@@ -98,11 +98,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     try {
       // Use apiRequest utility for consistent handling
-      const res = await apiRequest("POST", "/api/auth/login", {
-        username,
-        password,
-      });
-      
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
