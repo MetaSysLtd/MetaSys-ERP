@@ -51,7 +51,7 @@ export default function NotificationSettings() {
 
   // Fetch notification preferences
   const { data, isLoading, error } = useQuery({
-    queryKey: ['/api/users/me/notification-preferences'],
+    queryKey: ['/api/notification-settings'],
     enabled: !!user,
     placeholderData: defaultPreferences
   });
@@ -59,8 +59,9 @@ export default function NotificationSettings() {
   // Update notification preferences
   const updateMutation = useMutation({
     mutationFn: async (preferences: NotificationPreferences) => {
-      return apiRequest('/api/users/me/notification-preferences', {
-        method: 'PUT',
+      return apiRequest({
+        url: '/api/notification-settings',
+        method: 'POST',
         body: JSON.stringify(preferences)
       });
     },
@@ -69,7 +70,7 @@ export default function NotificationSettings() {
         title: "Notification preferences updated",
         description: "Your notification settings have been saved successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/me/notification-preferences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notification-settings'] });
       setHasChanges(false);
     },
     onError: (error) => {
