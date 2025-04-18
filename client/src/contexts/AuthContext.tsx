@@ -94,10 +94,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
     
     try {
-      const res = await apiRequest("POST", "/api/auth/login", {
-        username,
-        password,
+      // Use correct format for apiRequest
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+        credentials: 'include',
       });
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || `HTTP error! status: ${res.status}`);
+      }
       
       const data = await res.json();
       setIsAuthenticated(true);
@@ -118,7 +131,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(true);
     
     try {
-      await apiRequest("POST", "/api/auth/logout", {});
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
       setIsAuthenticated(false);
       setUser(null);
       setRole(null);
