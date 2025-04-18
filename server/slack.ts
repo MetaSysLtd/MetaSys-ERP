@@ -6,28 +6,57 @@ if (!process.env.SLACK_BOT_TOKEN) {
   console.warn("SLACK_BOT_TOKEN environment variable is not set. Slack notifications will not work.");
 }
 
-if (!process.env.SLACK_CHANNEL_ID) {
-  console.warn("SLACK_CHANNEL_ID environment variable is not set. Slack notifications will not work.");
+// Define channel type for team-specific notifications
+export enum SlackChannelType {
+  GENERAL = 'general',
+  SALES = 'sales',
+  DISPATCH = 'dispatch',
+  ADMIN = 'admin'
 }
+
+// Channel ID mapping
+export const SLACK_CHANNELS = {
+  [SlackChannelType.GENERAL]: process.env.SLACK_CHANNEL_ID,
+  [SlackChannelType.SALES]: process.env.SLACK_SALES_CHANNEL_ID,
+  [SlackChannelType.DISPATCH]: process.env.SLACK_DISPATCH_CHANNEL_ID,
+  [SlackChannelType.ADMIN]: process.env.SLACK_ADMIN_CHANNEL_ID
+};
+
+// Log channel configuration status
+Object.entries(SLACK_CHANNELS).forEach(([type, id]) => {
+  if (!id) {
+    console.warn(`Slack channel ID for ${type} is not set. Notifications to this channel will not work.`);
+  }
+});
 
 // Initialize the Slack Web API client
 const slack = new WebClient(process.env.SLACK_BOT_TOKEN);
 
 /**
- * Sends a message to the configured Slack channel
+ * Sends a message to a specific Slack channel
  * @param message - The text message to send
+ * @param channelType - The channel type to send the message to
  * @returns Promise resolving to success status
  */
-export async function sendSlackMessage(message: string): Promise<boolean> {
+export async function sendSlackMessage(
+  message: string, 
+  channelType: SlackChannelType = SlackChannelType.GENERAL
+): Promise<boolean> {
   try {
-    if (!process.env.SLACK_BOT_TOKEN || !process.env.SLACK_CHANNEL_ID) {
-      console.warn("Slack notification not sent: Missing configuration");
+    if (!process.env.SLACK_BOT_TOKEN) {
+      console.warn("Slack notification not sent: Missing SLACK_BOT_TOKEN");
+      return false;
+    }
+
+    const channelId = SLACK_CHANNELS[channelType];
+    if (!channelId) {
+      console.warn(`Slack notification not sent: Channel ID for ${channelType} not configured`);
       return false;
     }
 
     // Send the message to the configured channel
     await slack.chat.postMessage({
-      channel: process.env.SLACK_CHANNEL_ID,
+      channel: channelId,
       text: message
     });
 
@@ -41,27 +70,31 @@ export async function sendSlackMessage(message: string): Promise<boolean> {
 /**
  * Sends a structured message to Slack with blocks
  * @param params - Message parameters including blocks
+ * @param channelType - The channel type to send the message to
  * @returns Promise resolving to success status
  */
-export async function sendStructuredSlackMessage(params: ChatPostMessageArguments): Promise<boolean> {
+export async function sendStructuredSlackMessage(
+  params: ChatPostMessageArguments,
+  channelType: SlackChannelType = SlackChannelType.GENERAL
+): Promise<boolean> {
   try {
     if (!process.env.SLACK_BOT_TOKEN) {
       console.warn("Slack notification not sent: Missing SLACK_BOT_TOKEN");
       return false;
     }
 
-    // Use the channel from params or fall back to the default channel
-    const channel = params.channel || process.env.SLACK_CHANNEL_ID;
+    // Use the channel from params or get it from the channel type
+    const channelId = params.channel || SLACK_CHANNELS[channelType];
     
-    if (!channel) {
-      console.warn("Slack notification not sent: No channel specified");
+    if (!channelId) {
+      console.warn(`Slack notification not sent: Channel ID for ${channelType} not configured`);
       return false;
     }
 
     // Send the structured message
     await slack.chat.postMessage({
       ...params,
-      channel
+      channel: channelId
     });
 
     return true;
@@ -148,9 +181,10 @@ export async function sendLeadNotification(leadInfo: {
     }
   ];
 
+  // Send to the Sales channel
   return sendStructuredSlackMessage({
-    channel: process.env.SLACK_CHANNEL_ID,
-    blocks
+    blocks,
+    channel: SLACK_CHANNELS[SlackChannelType.SALES] || ''
   });
 }
 
@@ -239,14 +273,115 @@ export async function sendLoadNotification(loadInfo: {
     }
   ];
 
+  // Send to both Sales and Dispatch channels
+  const dispatchResult = await sendStructuredSlackMessage({
+    blocks,
+    channel: SLACK_CHANNELS[SlackChannelType.DISPATCH] || ''
+  });
+  
+  // Also send to Sales channel for lead-related updates
+  const salesResult = await sendStructuredSlackMessage({
+    blocks,
+    channel: SLACK_CHANNELS[SlackChannelType.SALES] || ''
+  });
+  
+  return dispatchResult && salesResult;
+}
+
+/**
+ * Sends an invoice notification to Slack
+ * @param invoiceInfo - Information about the invoice
+ * @returns Promise resolving to success status
+ */
+export async function sendInvoiceNotification(invoiceInfo: {
+  id: number;
+  invoiceNumber: string;
+  leadId: number;
+  companyName: string;
+  totalAmount: number;
+  status: string;
+  dueDate: string;
+  action: 'created' | 'updated' | 'status_changed';
+}): Promise<boolean> {
+  const { id, invoiceNumber, leadId, companyName, totalAmount, status, dueDate, action } = invoiceInfo;
+  
+  let emoji = '📝';
+  let actionText = 'updated';
+  
+  switch (action) {
+    case 'created':
+      emoji = '📄';
+      actionText = 'created';
+      break;
+    case 'status_changed':
+      emoji = '🔄';
+      actionText = 'changed status to';
+      break;
+  }
+  
+  // Format the amount as currency
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(totalAmount);
+
+  const blocks = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: `${emoji} Invoice ${actionText}: #${invoiceNumber}`
+      }
+    },
+    {
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `*Invoice ID:*\n#${id}`
+        },
+        {
+          type: "mrkdwn",
+          text: `*Client:*\n${companyName}`
+        },
+        {
+          type: "mrkdwn",
+          text: `*Status:*\n${status}`
+        },
+        {
+          type: "mrkdwn",
+          text: `*Amount:*\n${formattedAmount}`
+        },
+        {
+          type: "mrkdwn",
+          text: `*Due Date:*\n${new Date(dueDate).toLocaleDateString()}`
+        }
+      ]
+    },
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: `View invoice details in MetaSys ERP`
+        }
+      ]
+    },
+    {
+      type: "divider"
+    }
+  ];
+
+  // Send to Dispatch channel
   return sendStructuredSlackMessage({
-    channel: process.env.SLACK_CHANNEL_ID,
-    blocks
+    blocks,
+    channel: SLACK_CHANNELS[SlackChannelType.DISPATCH] || ''
   });
 }
 
 /**
  * Sends a daily summary to Slack
+ * This sends a comprehensive report to the admin channel
  * @param summary - Summary data
  * @returns Promise resolving to success status
  */
@@ -258,21 +393,134 @@ export async function sendDailySummary(summary: {
   completedLoads: number;
   pendingInvoices: number;
   totalRevenue: number;
+  commissions?: {
+    totalPaid: number;
+    salesTeam: number;
+    dispatchTeam: number;
+  }
 }): Promise<boolean> {
-  const { date, newLeads, qualifiedLeads, activeLoads, completedLoads, pendingInvoices, totalRevenue } = summary;
+  const { 
+    date, 
+    newLeads, 
+    qualifiedLeads, 
+    activeLoads, 
+    completedLoads, 
+    pendingInvoices, 
+    totalRevenue,
+    commissions
+  } = summary;
   
   // Format the revenue as currency
   const formattedRevenue = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD'
   }).format(totalRevenue);
-
-  const blocks = [
+  
+  // Base fields that are common for all channels
+  const baseFields = [
+    {
+      type: "mrkdwn",
+      text: `*New Leads:*\n${newLeads}`
+    },
+    {
+      type: "mrkdwn",
+      text: `*Qualified Leads:*\n${qualifiedLeads}`
+    },
+    {
+      type: "mrkdwn",
+      text: `*Active Loads:*\n${activeLoads}`
+    },
+    {
+      type: "mrkdwn",
+      text: `*Completed Loads:*\n${completedLoads}`
+    },
+    {
+      type: "mrkdwn",
+      text: `*Pending Invoices:*\n${pendingInvoices}`
+    },
+    {
+      type: "mrkdwn",
+      text: `*Total Revenue:*\n${formattedRevenue}`
+    }
+  ];
+  
+  // Admin blocks include everything
+  const adminBlocks = [
     {
       type: "header",
       text: {
         type: "plain_text",
-        text: `📊 Daily Summary: ${date}`
+        text: `📊 Daily Summary Report: ${date}`
+      }
+    },
+    {
+      type: "section",
+      fields: baseFields
+    }
+  ];
+  
+  // Add commission information to admin report if available
+  if (commissions) {
+    const formattedTotalCommission = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(commissions.totalPaid);
+    
+    const formattedSalesCommission = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(commissions.salesTeam);
+    
+    const formattedDispatchCommission = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(commissions.dispatchTeam);
+    
+    adminBlocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: "*Commission Summary*"
+      }
+    });
+    
+    adminBlocks.push({
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `*Total Commissions:*\n${formattedTotalCommission}`
+        },
+        {
+          type: "mrkdwn",
+          text: `*Sales Team:*\n${formattedSalesCommission}`
+        },
+        {
+          type: "mrkdwn",
+          text: `*Dispatch Team:*\n${formattedDispatchCommission}`
+        }
+      ]
+    });
+  }
+  
+  // Add footer to admin report
+  adminBlocks.push({
+    type: "context",
+    elements: [
+      {
+        type: "mrkdwn",
+        text: `View detailed reports in MetaSys ERP`
+      }
+    ]
+  });
+  
+  // Sales team blocks - focus on leads
+  const salesBlocks = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: `📊 Sales Daily Summary: ${date}`
       }
     },
     {
@@ -286,6 +534,35 @@ export async function sendDailySummary(summary: {
           type: "mrkdwn",
           text: `*Qualified Leads:*\n${qualifiedLeads}`
         },
+        {
+          type: "mrkdwn",
+          text: `*Total Revenue:*\n${formattedRevenue}`
+        }
+      ]
+    },
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: `View detailed reports in MetaSys ERP`
+        }
+      ]
+    }
+  ];
+  
+  // Dispatch team blocks - focus on loads and invoices
+  const dispatchBlocks = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: `📊 Dispatch Daily Summary: ${date}`
+      }
+    },
+    {
+      type: "section",
+      fields: [
         {
           type: "mrkdwn",
           text: `*Active Loads:*\n${activeLoads}`
@@ -315,10 +592,20 @@ export async function sendDailySummary(summary: {
     }
   ];
 
-  return sendStructuredSlackMessage({
-    channel: process.env.SLACK_CHANNEL_ID,
-    blocks
-  });
+  // Send to all three channels with appropriate content
+  const adminResult = await sendStructuredSlackMessage({
+    blocks: adminBlocks
+  }, SlackChannelType.ADMIN);
+  
+  const salesResult = await sendStructuredSlackMessage({
+    blocks: salesBlocks
+  }, SlackChannelType.SALES);
+  
+  const dispatchResult = await sendStructuredSlackMessage({
+    blocks: dispatchBlocks
+  }, SlackChannelType.DISPATCH);
+  
+  return adminResult && salesResult && dispatchResult;
 }
 
 // Export default functions for easier imports
@@ -327,5 +614,6 @@ export default {
   sendStructuredSlackMessage,
   sendLeadNotification,
   sendLoadNotification,
+  sendInvoiceNotification,
   sendDailySummary
 };
