@@ -1,5 +1,17 @@
 import { WebClient } from "@slack/web-api";
-import type { ChatPostMessageArguments } from "@slack/web-api";
+import type { ChatPostMessageArguments, Block } from "@slack/web-api";
+
+// Define custom block types that include context with elements
+interface ContextBlock {
+  type: "context";
+  elements: {
+    type: "mrkdwn";
+    text: string;
+  }[];
+}
+
+// Create a union type that includes all possible block types
+type SlackBlock = Block | ContextBlock;
 
 // Validate that required environment variables are set
 if (!process.env.SLACK_BOT_TOKEN) {
@@ -74,7 +86,7 @@ export async function sendSlackMessage(
  * @returns Promise resolving to success status
  */
 export async function sendStructuredSlackMessage(
-  params: ChatPostMessageArguments,
+  params: Omit<ChatPostMessageArguments, 'blocks'> & { blocks?: SlackBlock[] },
   channelType: SlackChannelType = SlackChannelType.GENERAL
 ): Promise<boolean> {
   try {
@@ -505,14 +517,14 @@ export async function sendDailySummary(summary: {
   
   // Add footer to admin report
   adminBlocks.push({
-    type: "context",
+    type: "context" as const,
     elements: [
       {
         type: "mrkdwn",
         text: `View detailed reports in MetaSys ERP`
       }
     ]
-  });
+  } as any);
   
   // Sales team blocks - focus on leads
   const salesBlocks = [
@@ -594,16 +606,19 @@ export async function sendDailySummary(summary: {
 
   // Send to all three channels with appropriate content
   const adminResult = await sendStructuredSlackMessage({
-    blocks: adminBlocks
-  }, SlackChannelType.ADMIN);
+    blocks: adminBlocks,
+    channel: SLACK_CHANNELS[SlackChannelType.ADMIN] || ''
+  });
   
   const salesResult = await sendStructuredSlackMessage({
-    blocks: salesBlocks
-  }, SlackChannelType.SALES);
+    blocks: salesBlocks,
+    channel: SLACK_CHANNELS[SlackChannelType.SALES] || ''
+  });
   
   const dispatchResult = await sendStructuredSlackMessage({
-    blocks: dispatchBlocks
-  }, SlackChannelType.DISPATCH);
+    blocks: dispatchBlocks,
+    channel: SLACK_CHANNELS[SlackChannelType.DISPATCH] || ''
+  });
   
   return adminResult && salesResult && dispatchResult;
 }
