@@ -15,6 +15,7 @@ import createMemoryStore from "memorystore";
 import path from "path";
 import * as slackNotifications from "./slack";
 import * as notificationService from "./notifications";
+import { NotificationPreferences, defaultNotificationPreferences } from "./notifications";
 
 // Add type extensions for Express
 declare global {
@@ -801,6 +802,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Activity routes
   const activityRouter = express.Router();
   app.use("/api/activities", activityRouter);
+  
+  // Notification settings routes
+  const notificationSettingsRouter = express.Router();
+  app.use("/api/notification-settings", notificationSettingsRouter);
+  
+  // Store notification settings in memory since we aren't using a DB yet
+  const userNotificationSettings = new Map<number, NotificationPreferences>();
+  
+  // Get user notification settings
+  notificationSettingsRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const userId = req.user.id;
+      
+      // Get user's notification settings or return defaults
+      const settings = userNotificationSettings.get(userId) || defaultNotificationPreferences;
+      
+      res.json(settings);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Update user notification settings
+  notificationSettingsRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const userId = req.user.id;
+      const settings = req.body as NotificationPreferences;
+      
+      // Validate the settings
+      if (typeof settings !== 'object') {
+        return res.status(400).json({ message: "Invalid notification settings format" });
+      }
+      
+      // Save the settings
+      userNotificationSettings.set(userId, settings);
+      
+      // Log activity
+      await storage.createActivity({
+        userId,
+        entityType: 'user',
+        entityId: userId,
+        action: 'updated',
+        details: 'Updated notification preferences'
+      });
+      
+      res.status(200).json(settings);
+    } catch (error) {
+      next(error);
+    }
+  });
 
   activityRouter.get("/", createAuthMiddleware(2), async (req, res, next) => {
     try {

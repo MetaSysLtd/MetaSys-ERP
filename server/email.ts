@@ -1,4 +1,4 @@
-import { MailService } from '@sendgrid/mail';
+import nodemailer from 'nodemailer';
 
 // Define email types for the system
 export enum EmailType {
@@ -8,16 +8,6 @@ export enum EmailType {
   DAILY_REPORT = 'daily_report',
   PASSWORD_RESET = 'password_reset',
   WELCOME = 'welcome'
-}
-
-// Initialize the mail service
-const mailService = new MailService();
-
-// Set the API key if it's available
-if (process.env.SENDGRID_API_KEY) {
-  mailService.setApiKey(process.env.SENDGRID_API_KEY);
-} else {
-  console.warn("SENDGRID_API_KEY environment variable is not set. Email functionality will not work.");
 }
 
 // Configuration for sending emails
@@ -35,8 +25,50 @@ const defaultConfig: EmailConfig = {
   footerText: 'This is an automated message from MetaSys ERP. Please do not reply directly to this email.'
 };
 
+// Create a transporter for SMTP using Google Workspace
+let transporter: nodemailer.Transporter | null = null;
+
+// Initialize the transporter if credentials are available
+export function initializeTransporter(options: {
+  email: string;
+  password: string;
+  host?: string;
+  port?: number;
+}) {
+  try {
+    // Create reusable transporter object using SMTP transport
+    transporter = nodemailer.createTransport({
+      host: options.host || 'smtp.gmail.com',
+      port: options.port || 587,
+      secure: options.port === 465, // true for 465, false for other ports
+      auth: {
+        user: options.email,
+        pass: options.password,
+      },
+    });
+
+    console.log('Email transporter initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('Failed to initialize email transporter:', error);
+    return false;
+  }
+}
+
+// Initialize with environment variables if available
+if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
+  initializeTransporter({
+    email: process.env.SMTP_EMAIL,
+    password: process.env.SMTP_PASSWORD,
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : undefined
+  });
+} else {
+  console.warn("SMTP_EMAIL or SMTP_PASSWORD environment variables are not set. Email functionality will not work.");
+}
+
 /**
- * Sends an email using SendGrid
+ * Sends an email using Google Workspace SMTP
  * @param to - Recipient email address
  * @param subject - Email subject
  * @param text - Plain text content
@@ -52,26 +84,27 @@ export async function sendEmail(
   config: Partial<EmailConfig> = {}
 ): Promise<boolean> {
   try {
-    if (!process.env.SENDGRID_API_KEY) {
-      console.warn("Email not sent: Missing SENDGRID_API_KEY");
+    if (!transporter) {
+      console.warn("Email not sent: Email transporter not initialized");
       return false;
     }
 
     // Merge the default config with any provided overrides
     const emailConfig = { ...defaultConfig, ...config };
     
-    // Send the email
-    await mailService.send({
+    // Prepare message options
+    const mailOptions = {
+      from: `"${emailConfig.fromName}" <${emailConfig.fromEmail}>`,
       to,
-      from: {
-        email: emailConfig.fromEmail,
-        name: emailConfig.fromName
-      },
       subject,
       text,
       html,
       replyTo: emailConfig.replyToEmail
-    });
+    };
+    
+    // Send the email
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info.messageId);
     
     return true;
   } catch (error) {
