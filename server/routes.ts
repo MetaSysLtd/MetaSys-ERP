@@ -13,7 +13,8 @@ import {
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import path from "path";
-import { sendLeadNotification, sendLoadNotification } from "./slack";
+import * as slackNotifications from "./slack";
+import * as notificationService from "./notifications";
 
 // Add type extensions for Express
 declare global {
@@ -356,19 +357,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details: `Created lead for ${lead.companyName}`
       });
       
-      // Send Slack notification
-      const assignedUser = await storage.getUser(lead.assignedTo);
-      const assignedName = assignedUser ? `${assignedUser.firstName} ${assignedUser.lastName}` : 'Unassigned';
-      
-      sendLeadNotification({
-        id: lead.id,
-        companyName: lead.companyName,
-        status: lead.status,
-        contactName: lead.contactName,
-        equipmentType: lead.equipmentType,
-        assignedTo: assignedName,
-        action: 'created'
-      }).catch(err => console.error('Error sending lead notification to Slack:', err));
+      // Send notification through multiple channels
+      notificationService.sendLeadNotification(
+        lead.id,
+        'created',
+        true
+      ).catch(err => console.error('Error sending lead notification:', err));
       
       res.status(201).json(lead);
     } catch (error) {
@@ -525,18 +519,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details: `Created load from ${load.origin} to ${load.destination}`
       });
       
-      // Send Slack notification for the new load
-      sendLoadNotification({
-        id: load.id,
-        leadId: load.leadId,
-        companyName: lead.companyName,
-        origin: load.origin,
-        destination: load.destination,
-        status: load.status,
-        freightAmount: load.freightAmount,
-        pickupDate: load.pickupDate,
-        action: 'created'
-      }).catch(err => console.error('Error sending load notification to Slack:', err));
+      // Send notification through multiple channels
+      notificationService.sendLoadNotification(
+        load.id,
+        'created',
+        true
+      ).catch(err => console.error('Error sending load notification:', err));
       
       res.status(201).json(load);
     } catch (error) {
@@ -578,21 +566,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           details: `Changed load status from ${load.status} to ${req.body.status}`
         });
         
-        // Send Slack notification for status change
-        const lead = await storage.getLead(load.leadId);
-        if (lead) {
-          sendLoadNotification({
-            id: load.id,
-            leadId: load.leadId,
-            companyName: lead.companyName,
-            origin: load.origin,
-            destination: load.destination,
-            status: req.body.status,
-            freightAmount: load.freightAmount,
-            pickupDate: load.pickupDate,
-            action: 'status_changed'
-          }).catch(err => console.error('Error sending load status notification to Slack:', err));
-        }
+        // Send notification through multiple channels for status change
+        notificationService.sendLoadNotification(
+          load.id,
+          'status_changed',
+          true
+        ).catch(err => console.error('Error sending load status notification:', err));
         
         // If status changed to 'delivered', trigger invoice creation logic
         if (req.body.status === 'delivered') {
