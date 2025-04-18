@@ -103,7 +103,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
         password,
       });
       
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ username, password }),
+      });
+      
       const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to login");
+      }
+      
       setIsAuthenticated(true);
       setUser(data.user);
       setRole(data.role);

@@ -76,7 +76,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Session setup
   app.use(
     session({
-      cookie: { maxAge: 86400000 }, // 24 hours
+      cookie: { 
+        maxAge: 86400000, // 24 hours
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      },
       store: storage.sessionStore, // Use the storage session store (PostgreSQL)
       resave: false,
       saveUninitialized: false,
