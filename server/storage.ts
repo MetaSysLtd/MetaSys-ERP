@@ -5,9 +5,17 @@ import {
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
   type Commission, type InsertCommission, type Activity, type InsertActivity
 } from "@shared/schema";
+import session from "express-session";
+import connectPg from "connect-pg-simple";
+import { eq, and, desc } from "drizzle-orm";
+import createMemoryStore from "memorystore";
+import { db, pool } from './db';
 
 // Interface for storage operations
 export interface IStorage {
+  // Session store for authentication
+  sessionStore: session.Store;
+
   // User & Role operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -68,6 +76,8 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  sessionStore: session.Store;
+  
   private users: Map<number, User>;
   private roles: Map<number, Role>;
   private leads: Map<number, Lead>;
@@ -87,6 +97,12 @@ export class MemStorage implements IStorage {
   private activityIdCounter: number;
 
   constructor() {
+    // Initialize the memory session store
+    const MemoryStore = createMemoryStore(session);
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    });
+    
     this.users = new Map();
     this.roles = new Map();
     this.leads = new Map();
@@ -467,4 +483,371 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+
+  constructor() {
+    // Create PostgreSQL session store
+    const PostgresSessionStore = connectPg(session);
+    this.sessionStore = new PostgresSessionStore({
+      pool: pool,
+      createTableIfMissing: true
+    });
+    
+    // Initialize with default data if needed
+    this.initializeRoles();
+  }
+
+  private async initializeRoles() {
+    // Check if we have any roles already
+    const existingRoles = await this.getRoles();
+    if (existingRoles.length > 0) {
+      return; // Database is already initialized
+    }
+    
+    // Add default roles with different permissions and departments
+    const roles: InsertRole[] = [
+      {
+        name: "Administrator",
+        department: "admin",
+        level: 5,
+        permissions: ["all"]
+      },
+      {
+        name: "Sales Manager",
+        department: "sales",
+        level: 4,
+        permissions: ["manage_leads", "manage_users", "view_reports", "manage_sales"]
+      },
+      {
+        name: "Sales Team Lead",
+        department: "sales",
+        level: 3,
+        permissions: ["manage_leads", "view_users", "view_reports"]
+      },
+      {
+        name: "Sales Representative",
+        department: "sales",
+        level: 1,
+        permissions: ["view_leads", "create_leads"]
+      },
+      {
+        name: "Dispatch Manager",
+        department: "dispatch",
+        level: 4,
+        permissions: ["manage_loads", "manage_users", "view_reports", "manage_dispatch"]
+      },
+      {
+        name: "Dispatch Team Lead",
+        department: "dispatch",
+        level: 3,
+        permissions: ["manage_loads", "view_users", "view_reports"]
+      },
+      {
+        name: "Dispatcher",
+        department: "dispatch",
+        level: 1,
+        permissions: ["view_loads", "create_loads"]
+      },
+      {
+        name: "Accounting Manager",
+        department: "accounting",
+        level: 4,
+        permissions: ["manage_invoices", "manage_users", "view_reports", "manage_accounting"]
+      }
+    ];
+    
+    // Add roles
+    for (const role of roles) {
+      await this.createRole(role);
+    }
+    
+    // Check if admin user exists
+    const adminUser = await this.getUserByUsername("admin");
+    if (!adminUser) {
+      // Add admin user
+      await this.createUser({
+        username: "admin",
+        password: "admin123",  // In a real app would be hashed
+        firstName: "System",
+        lastName: "Administrator",
+        email: "admin@metasys.com",
+        phoneNumber: null,
+        roleId: 1,  // Administrator role
+        active: true,
+        profileImageUrl: null
+      });
+    }
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+
+  async getUsers(): Promise<User[]> {
+    return db.select().from(users);
+  }
+
+  async getUsersByRole(roleId: number): Promise<User[]> {
+    return db.select().from(users).where(eq(users.roleId, roleId));
+  }
+
+  async getRole(id: number): Promise<Role | undefined> {
+    const [role] = await db.select().from(roles).where(eq(roles.id, id));
+    return role;
+  }
+
+  async getRoleByName(name: string): Promise<Role | undefined> {
+    const [role] = await db.select().from(roles).where(eq(roles.name, name));
+    return role;
+  }
+
+  async createRole(insertRole: InsertRole): Promise<Role> {
+    const [role] = await db.insert(roles).values(insertRole).returning();
+    return role;
+  }
+
+  async getRoles(): Promise<Role[]> {
+    return db.select().from(roles);
+  }
+
+  async getLead(id: number): Promise<Lead | undefined> {
+    const [lead] = await db.select().from(leads).where(eq(leads.id, id));
+    return lead;
+  }
+
+  async getLeads(): Promise<Lead[]> {
+    return db.select().from(leads);
+  }
+
+  async getLeadsByStatus(status: string): Promise<Lead[]> {
+    return db.select().from(leads).where(eq(leads.status, status));
+  }
+
+  async getLeadsByAssignee(userId: number): Promise<Lead[]> {
+    return db.select().from(leads).where(eq(leads.assignedTo, userId));
+  }
+
+  async createLead(insertLead: InsertLead): Promise<Lead> {
+    const now = new Date().toISOString();
+    const [lead] = await db.insert(leads).values({
+      ...insertLead,
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    return lead;
+  }
+
+  async updateLead(id: number, updates: Partial<Lead>): Promise<Lead | undefined> {
+    const [updatedLead] = await db
+      .update(leads)
+      .set({
+        ...updates,
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(leads.id, id))
+      .returning();
+    return updatedLead;
+  }
+
+  async getLoad(id: number): Promise<Load | undefined> {
+    const [load] = await db.select().from(loads).where(eq(loads.id, id));
+    return load;
+  }
+
+  async getLoads(): Promise<Load[]> {
+    return db.select().from(loads);
+  }
+
+  async getLoadsByStatus(status: string): Promise<Load[]> {
+    return db.select().from(loads).where(eq(loads.status, status));
+  }
+
+  async getLoadsByAssignee(userId: number): Promise<Load[]> {
+    return db.select().from(loads).where(eq(loads.assignedTo, userId));
+  }
+
+  async getLoadsByLead(leadId: number): Promise<Load[]> {
+    return db.select().from(loads).where(eq(loads.leadId, leadId));
+  }
+
+  async createLoad(insertLoad: InsertLoad): Promise<Load> {
+    const now = new Date().toISOString();
+    const [load] = await db.insert(loads).values({
+      ...insertLoad,
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    return load;
+  }
+
+  async updateLoad(id: number, updates: Partial<Load>): Promise<Load | undefined> {
+    const [updatedLoad] = await db
+      .update(loads)
+      .set({
+        ...updates,
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(loads.id, id))
+      .returning();
+    return updatedLoad;
+  }
+
+  async getInvoice(id: number): Promise<Invoice | undefined> {
+    const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
+    return invoice;
+  }
+
+  async getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined> {
+    const [invoice] = await db.select().from(invoices).where(eq(invoices.invoiceNumber, invoiceNumber));
+    return invoice;
+  }
+
+  async getInvoices(): Promise<Invoice[]> {
+    return db.select().from(invoices);
+  }
+
+  async getInvoicesByStatus(status: string): Promise<Invoice[]> {
+    return db.select().from(invoices).where(eq(invoices.status, status));
+  }
+
+  async getInvoicesByLead(leadId: number): Promise<Invoice[]> {
+    return db.select().from(invoices).where(eq(invoices.leadId, leadId));
+  }
+
+  async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
+    const [invoice] = await db.insert(invoices).values({
+      ...insertInvoice,
+      createdAt: new Date().toISOString()
+    }).returning();
+    return invoice;
+  }
+
+  async updateInvoice(id: number, updates: Partial<Invoice>): Promise<Invoice | undefined> {
+    const [updatedInvoice] = await db
+      .update(invoices)
+      .set(updates)
+      .where(eq(invoices.id, id))
+      .returning();
+    return updatedInvoice;
+  }
+
+  async getInvoiceItem(id: number): Promise<InvoiceItem | undefined> {
+    const [item] = await db.select().from(invoiceItems).where(eq(invoiceItems.id, id));
+    return item;
+  }
+
+  async getInvoiceItemsByInvoice(invoiceId: number): Promise<InvoiceItem[]> {
+    return db.select().from(invoiceItems).where(eq(invoiceItems.invoiceId, invoiceId));
+  }
+
+  async createInvoiceItem(insertItem: InsertInvoiceItem): Promise<InvoiceItem> {
+    const [item] = await db.insert(invoiceItems).values(insertItem).returning();
+    return item;
+  }
+
+  async getCommission(id: number): Promise<Commission | undefined> {
+    const [commission] = await db.select().from(commissions).where(eq(commissions.id, id));
+    return commission;
+  }
+
+  async getCommissions(): Promise<Commission[]> {
+    return db.select().from(commissions);
+  }
+
+  async getCommissionsByUser(userId: number): Promise<Commission[]> {
+    return db.select().from(commissions).where(eq(commissions.userId, userId));
+  }
+
+  async getCommissionsByInvoice(invoiceId: number): Promise<Commission[]> {
+    return db.select().from(commissions).where(eq(commissions.invoiceId, invoiceId));
+  }
+
+  async createCommission(insertCommission: InsertCommission): Promise<Commission> {
+    const [commission] = await db.insert(commissions).values(insertCommission).returning();
+    return commission;
+  }
+
+  async updateCommission(id: number, updates: Partial<Commission>): Promise<Commission | undefined> {
+    const [updatedCommission] = await db
+      .update(commissions)
+      .set(updates)
+      .where(eq(commissions.id, id))
+      .returning();
+    return updatedCommission;
+  }
+
+  async getActivities(limit?: number): Promise<Activity[]> {
+    const query = db.select()
+      .from(activities)
+      .orderBy(desc(activities.timestamp));
+    
+    if (limit) {
+      query.limit(limit);
+    }
+    
+    return query;
+  }
+
+  async getActivitiesByUser(userId: number, limit?: number): Promise<Activity[]> {
+    const query = db.select()
+      .from(activities)
+      .where(eq(activities.userId, userId))
+      .orderBy(desc(activities.timestamp));
+    
+    if (limit) {
+      query.limit(limit);
+    }
+    
+    return query;
+  }
+
+  async getActivitiesByEntity(entityType: string, entityId: number, limit?: number): Promise<Activity[]> {
+    const query = db.select()
+      .from(activities)
+      .where(
+        and(
+          eq(activities.entityType, entityType),
+          eq(activities.entityId, entityId)
+        )
+      )
+      .orderBy(desc(activities.timestamp));
+    
+    if (limit) {
+      query.limit(limit);
+    }
+    
+    return query;
+  }
+
+  async createActivity(insertActivity: InsertActivity): Promise<Activity> {
+    const [activity] = await db.insert(activities).values({
+      ...insertActivity,
+      timestamp: new Date().toISOString()
+    }).returning();
+    return activity;
+  }
+}
+
+// Use database storage instead of memory storage
+export const storage = new DatabaseStorage();
