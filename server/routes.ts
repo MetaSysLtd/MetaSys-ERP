@@ -77,9 +77,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(
     session({
       cookie: { maxAge: 86400000 }, // 24 hours
-      store: new MemoryStore({
-        checkPeriod: 86400000 // prune expired entries every 24h
-      }),
+      store: storage.sessionStore, // Use the storage session store (PostgreSQL)
       resave: false,
       saveUninitialized: false,
       secret: process.env.SESSION_SECRET || "metasys-erp-secret"
