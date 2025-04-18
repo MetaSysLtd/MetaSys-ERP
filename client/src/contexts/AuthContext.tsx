@@ -56,12 +56,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Check if user is already logged in
     const checkAuth = async () => {
       try {
+        // Use queryClient's getQueryFn with returnNull for 401 handling
         const res = await fetch("/api/auth/me", {
           credentials: "include",
         });
-
+        
         if (res.ok) {
           const data = await res.json();
+          console.log("Auth check response:", data);
           if (data.authenticated) {
             setIsAuthenticated(true);
             setUser(data.user);
@@ -72,6 +74,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             setRole(null);
           }
         } else {
+          console.log("Auth check failed:", res.status);
           setIsAuthenticated(false);
           setUser(null);
           setRole(null);
@@ -94,28 +97,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
     
     try {
-      // Use correct format for apiRequest
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-        credentials: 'include',
+      // Use apiRequest utility for consistent handling
+      const res = await apiRequest("POST", "/api/auth/login", {
+        username,
+        password,
       });
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || `HTTP error! status: ${res.status}`);
-      }
       
       const data = await res.json();
       setIsAuthenticated(true);
       setUser(data.user);
       setRole(data.role);
+      console.log("Login successful:", data);
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message || "Failed to login. Please check your credentials.");
@@ -131,10 +123,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(true);
     
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await apiRequest("POST", "/api/auth/logout");
       setIsAuthenticated(false);
       setUser(null);
       setRole(null);

@@ -28,7 +28,7 @@ declare global {
   
   // Extend express-session
   namespace Express {
-    interface SessionData {
+    interface Session {
       userId?: number;
     }
   }
