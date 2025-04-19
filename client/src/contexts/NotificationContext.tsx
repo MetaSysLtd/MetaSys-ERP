@@ -57,7 +57,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, [data]);
 
   // Calculate unread count
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(notification => !notification.read).length;
 
   // Mark a notification as read
   const markAsRead = async (id: string) => {

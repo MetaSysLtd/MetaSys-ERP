@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'wouter/use-location';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { useMessages, Conversation } from '@/contexts/MessageContext';
 import {
@@ -21,7 +21,7 @@ interface MessageDropdownProps {
 export function MessageDropdown({ className }: MessageDropdownProps) {
   const { conversations, totalUnreadCount, markConversationAsRead, isLoading } = useMessages();
   const [open, setOpen] = React.useState(false);
-  const navigate = useNavigate();
+  const [_, navigate] = useLocation();
 
   const handleConversationClick = (conversation: Conversation) => {
     if (conversation.unreadCount > 0) {

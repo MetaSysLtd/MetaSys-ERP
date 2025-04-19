@@ -2,26 +2,24 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 
+export interface Participant {
+  id: number;
+  name: string;
+  avatar?: string;
+}
+
 export interface Message {
   id: string;
-  sender: {
-    id: number;
-    name: string;
-    avatar?: string;
-  };
+  conversationId: string;
+  senderId: number;
   content: string;
   timestamp: string;
   read: boolean;
-  conversation_id: string;
 }
 
 export interface Conversation {
   id: string;
-  participants: {
-    id: number;
-    name: string;
-    avatar?: string;
-  }[];
+  participants: Participant[];
   lastMessage?: Message;
   unreadCount: number;
 }
@@ -30,9 +28,8 @@ interface MessageContextType {
   conversations: Conversation[];
   totalUnreadCount: number;
   markConversationAsRead: (id: string) => void;
-  markMessageAsRead: (conversationId: string, messageId: string) => void;
+  sendMessage: (conversationId: string, content: string) => void;
   isLoading: boolean;
-  fetchMessages: () => void;
 }
 
 const MessageContext = createContext<MessageContextType | null>(null);
@@ -41,17 +38,17 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
-  // Fetch messages from API
+  // Fetch conversations from API
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['/api/messages/conversations'],
     queryFn: async () => {
       if (!user) return { conversations: [] };
       const res = await fetch('/api/messages/conversations');
-      if (!res.ok) throw new Error('Failed to fetch messages');
+      if (!res.ok) throw new Error('Failed to fetch conversations');
       return res.json();
     },
     enabled: !!user,
-    refetchInterval: 60000, // Refetch every minute
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   // Update conversations when data changes
@@ -62,9 +59,12 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
   }, [data]);
 
   // Calculate total unread count
-  const totalUnreadCount = conversations.reduce((acc, convo) => acc + convo.unreadCount, 0);
+  const totalUnreadCount = conversations.reduce(
+    (total, conversation) => total + conversation.unreadCount,
+    0
+  );
 
-  // Mark an entire conversation as read
+  // Mark a conversation as read
   const markConversationAsRead = async (id: string) => {
     try {
       const res = await fetch(`/api/messages/conversations/${id}/read`, {
@@ -85,26 +85,42 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Mark a specific message as read
-  const markMessageAsRead = async (conversationId: string, messageId: string) => {
+  // Send a message
+  const sendMessage = async (conversationId: string, content: string) => {
+    if (!content.trim()) return;
+    
     try {
-      const res = await fetch(`/api/messages/${messageId}/read`, {
+      const res = await fetch('/api/messages', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversationId,
+          content,
+        }),
       });
       
       if (res.ok) {
+        // Optimistically update the UI
+        const message = await res.json();
+        
         setConversations(prev => 
-          prev.map(conversation => {
-            if (conversation.id === conversationId) {
-              const updatedUnreadCount = Math.max(0, conversation.unreadCount - 1);
-              return { ...conversation, unreadCount: updatedUnreadCount };
-            }
-            return conversation;
-          })
+          prev.map(conversation => 
+            conversation.id === conversationId
+              ? { 
+                  ...conversation, 
+                  lastMessage: message,
+                }
+              : conversation
+          )
         );
+        
+        // Refetch to ensure data consistency
+        refetch();
       }
     } catch (error) {
-      console.error('Error marking message as read:', error);
+      console.error('Error sending message:', error);
     }
   };
 
@@ -114,9 +130,8 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
         conversations,
         totalUnreadCount,
         markConversationAsRead,
-        markMessageAsRead,
+        sendMessage,
         isLoading,
-        fetchMessages: refetch,
       }}
     >
       {children}

@@ -1,32 +1,41 @@
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 interface NotificationBadgeProps {
   count: number;
-  max?: number;
   className?: string;
+  variant?: "primary" | "destructive" | "secondary";
+  max?: number;
+  showZero?: boolean;
 }
 
 export function NotificationBadge({ 
   count, 
-  max = 99, 
-  className 
+  className, 
+  variant = "primary",
+  max = 99,
+  showZero = false
 }: NotificationBadgeProps) {
-  // Handle count display
-  const displayCount = count > max ? `${max}+` : count.toString();
+  if (count === 0 && !showZero) {
+    return null;
+  }
 
-  // Don't render anything if count is 0
-  if (count <= 0) return null;
+  const displayCount = count > max ? `${max}+` : count.toString();
+  
+  const variantClasses = {
+    primary: "bg-[#2170dd] text-white",
+    destructive: "bg-red-500 text-white",
+    secondary: "bg-gray-500 text-white",
+  };
 
   return (
-    <Badge 
+    <span
       className={cn(
-        "rounded-full bg-red-500 text-white border-0 px-1.5 min-w-5 h-5 flex items-center justify-center text-xs",
+        "inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-medium rounded-full",
+        variantClasses[variant],
         className
       )}
     >
       {displayCount}
-    </Badge>
+    </span>
   );
 }

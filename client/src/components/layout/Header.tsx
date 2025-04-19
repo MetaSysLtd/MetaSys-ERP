@@ -29,6 +29,8 @@ import {
   DropdownMenuShortcut,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { NotificationDropdown } from "@/components/notification/NotificationDropdown";
+import { MessageDropdown } from "@/components/message/MessageDropdown";
 
 interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
@@ -107,23 +109,11 @@ export function Header({ setSidebarOpen }: HeaderProps) {
             <Calendar className="h-5 w-5" />
           </button>
 
-          {/* Messages */}
-          <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative">
-            <span className="sr-only">View messages</span>
-            <MessageSquare className="h-5 w-5" />
-            <Badge variant="secondary" className="absolute -top-0.5 -right-0.5 h-4 w-4 p-0 flex items-center justify-center text-[10px] font-medium">
-              3
-            </Badge>
-          </button>
-
-          {/* Notifications */}
-          <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative">
-            <span className="sr-only">View notifications</span>
-            <Bell className="h-5 w-5" />
-            <Badge variant="destructive" className="absolute -top-0.5 -right-0.5 h-4 w-4 p-0 flex items-center justify-center text-[10px] font-medium">
-              5
-            </Badge>
-          </button>
+          {/* Messages Dropdown */}
+          <MessageDropdown />
+          
+          {/* Notifications Dropdown */}
+          <NotificationDropdown />
 
           {/* Profile dropdown */}
           <div className="relative">

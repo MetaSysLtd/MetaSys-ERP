@@ -1,149 +1,233 @@
-import React from 'react';
-import { useNavigate } from 'wouter/use-location';
-import { Button } from '@/components/ui/button';
-import { Notification, useNotifications } from '@/contexts/NotificationContext';
+import { useState, useRef, useEffect } from "react";
+import { Bell, Check, Dot, ExternalLink, X } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { useNotifications } from "@/contexts/NotificationContext";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { NotificationBadge } from '@/components/ui/notification-badge';
-import { BellIcon, CheckIcon, MoreHorizontal } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { NotificationBadge } from "@/components/ui/notification-badge";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "wouter";
 
-interface NotificationDropdownProps {
-  className?: string;
-}
+// Type icons mapping
+const typeIcons: Record<string, any> = {
+  lead: () => (
+    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600">
+      <span className="text-xs font-bold">L</span>
+    </div>
+  ),
+  load: () => (
+    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-600">
+      <span className="text-xs font-bold">LD</span>
+    </div>
+  ),
+  invoice: () => (
+    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-600">
+      <span className="text-xs font-bold">INV</span>
+    </div>
+  ),
+  task: () => (
+    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-600">
+      <span className="text-xs font-bold">T</span>
+    </div>
+  ),
+  system: () => (
+    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-600">
+      <span className="text-xs font-bold">S</span>
+    </div>
+  ),
+  message: () => (
+    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-100 text-yellow-600">
+      <span className="text-xs font-bold">M</span>
+    </div>
+  ),
+};
 
-export function NotificationDropdown({ className }: NotificationDropdownProps) {
-  const { notifications, unreadCount, markAsRead, markAllAsRead, isLoading } = useNotifications();
-  const [open, setOpen] = React.useState(false);
-  const navigate = useNavigate();
+export function NotificationDropdown() {
+  const { notifications, unreadCount, markAsRead, markAllAsRead, isLoading } =
+    useNotifications();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
-  const handleNotificationClick = (notification: Notification) => {
-    if (!notification.read) {
-      markAsRead(notification.id);
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
     }
-    
-    if (notification.link) {
-      navigate(notification.link);
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [ref]);
+
+  // Handle notification click
+  const handleNotificationClick = (id: string, link?: string) => {
+    markAsRead(id);
+    if (link) {
+      window.location.href = link;
     }
-    
     setOpen(false);
   };
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'lead':
-        return <div className="bg-blue-100 text-blue-700 rounded-full p-1.5">📋</div>;
-      case 'load':
-        return <div className="bg-purple-100 text-purple-700 rounded-full p-1.5">🚚</div>;
-      case 'invoice':
-        return <div className="bg-green-100 text-green-700 rounded-full p-1.5">💰</div>;
-      case 'task':
-        return <div className="bg-yellow-100 text-yellow-700 rounded-full p-1.5">✅</div>;
-      case 'system':
-        return <div className="bg-red-100 text-red-700 rounded-full p-1.5">⚙️</div>;
-      case 'message':
-        return <div className="bg-indigo-100 text-indigo-700 rounded-full p-1.5">💬</div>;
-      default:
-        return <div className="bg-gray-100 text-gray-700 rounded-full p-1.5">📢</div>;
-    }
+  // Handle mark all as read
+  const handleMarkAllAsRead = () => {
+    markAllAsRead();
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className={cn("relative", className)}>
-          <BellIcon className="h-5 w-5" />
-          <NotificationBadge 
-            count={unreadCount} 
-            className="absolute -top-1 -right-1"
-          />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between px-4 py-2 border-b">
-          <h3 className="font-medium">Notifications</h3>
-          {unreadCount > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={markAllAsRead}
-              className="h-8 text-xs"
-            >
-              <CheckIcon className="mr-1 h-3.5 w-3.5" />
-              Mark all as read
-            </Button>
-          )}
-        </div>
-        
-        <ScrollArea className="h-[300px]">
-          {isLoading ? (
-            <div className="flex justify-center items-center h-[300px]">
-              <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
-            </div>
-          ) : notifications.length > 0 ? (
-            <div className="py-1">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={cn(
-                    "flex gap-3 px-4 py-2 hover:bg-accent cursor-pointer transition-colors",
-                    !notification.read && "bg-muted/50"
-                  )}
-                  onClick={() => handleNotificationClick(notification)}
-                >
-                  <div className="mt-1 shrink-0">
-                    {getNotificationIcon(notification.type)}
-                  </div>
-                  <div className="space-y-1 flex-1 overflow-hidden">
-                    <div className="flex justify-between items-start">
-                      <p className={cn(
-                        "text-sm",
-                        !notification.read && "font-medium"
-                      )}>
-                        {notification.title}
-                      </p>
-                      <small className="text-[10px] text-muted-foreground whitespace-nowrap ml-2">
-                        {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
-                      </small>
-                    </div>
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {notification.message}
-                    </p>
-                  </div>
-                  {!notification.read && (
-                    <div className="shrink-0 self-center">
-                      <div className="h-2 w-2 rounded-full bg-primary"></div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex justify-center items-center h-[300px] text-muted-foreground text-sm">
-              No notifications
-            </div>
-          )}
-        </ScrollArea>
-        
-        <div className="border-t p-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="w-full justify-center text-xs"
-            onClick={() => {
-              navigate('/notifications');
-              setOpen(false);
-            }}
+    <div ref={ref}>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative h-9 w-9 rounded-full"
           >
-            View all notifications
+            <Bell className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            {unreadCount > 0 && (
+              <NotificationBadge
+                count={unreadCount}
+                className="absolute -top-1 -right-1"
+              />
+            )}
           </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          className="w-80 md:w-96"
+          forceMount
+        >
+          <div className="flex items-center justify-between p-4">
+            <DropdownMenuLabel className="text-base font-semibold">
+              Notifications
+            </DropdownMenuLabel>
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-[#2170dd] hover:text-[#1861c9]"
+                onClick={handleMarkAllAsRead}
+              >
+                Mark all as read
+              </Button>
+            )}
+          </div>
+          <DropdownMenuSeparator />
+          <ScrollArea className="h-[calc(80vh-8rem)] md:h-[480px]">
+            <DropdownMenuGroup className="p-2">
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start gap-3 p-3 rounded-md"
+                  >
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-3 w-3/4" />
+                      <Skeleton className="h-3 w-1/4" />
+                    </div>
+                  </div>
+                ))
+              ) : notifications.length === 0 ? (
+                <div className="text-center py-8 px-4">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                    <Bell className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                  </div>
+                  <h3 className="mt-4 text-sm font-medium text-gray-900 dark:text-gray-100">
+                    No notifications
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    When you receive notifications, they'll appear here.
+                  </p>
+                </div>
+              ) : (
+                notifications.map((notification) => {
+                  const TypeIcon =
+                    typeIcons[notification.type] ||
+                    typeIcons.system;
+                  
+                  return (
+                    <DropdownMenuItem
+                      key={notification.id}
+                      className={`flex items-start gap-3 p-3 rounded-md cursor-pointer ${
+                        !notification.read
+                          ? "bg-blue-50 dark:bg-blue-900/20"
+                          : ""
+                      }`}
+                      onClick={() =>
+                        handleNotificationClick(
+                          notification.id,
+                          notification.link
+                        )
+                      }
+                    >
+                      {/* Notification icon */}
+                      <TypeIcon />
+                      
+                      {/* Notification content */}
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-start justify-between">
+                          <p className="text-sm font-medium leading-none">
+                            {notification.title}
+                          </p>
+                          <div className="flex items-center gap-1.5">
+                            {!notification.read && (
+                              <Dot className="h-5 w-5 text-[#2170dd]" />
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {notification.message}
+                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-xs text-gray-400 dark:text-gray-500">
+                            {formatDistanceToNow(
+                              new Date(notification.timestamp),
+                              { addSuffix: true }
+                            )}
+                          </span>
+                          {notification.type && (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] h-4 px-1.5 capitalize"
+                            >
+                              {notification.type}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                  );
+                })
+              )}
+            </DropdownMenuGroup>
+          </ScrollArea>
+          <DropdownMenuSeparator />
+          <Link href="/notifications" className="block">
+            <Button
+              variant="ghost"
+              className="w-full justify-center py-2 text-[#2170dd] hover:text-[#1861c9]"
+              onClick={() => setOpen(false)}
+            >
+              View all notifications
+              <ExternalLink className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

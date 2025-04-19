@@ -14,6 +14,8 @@ import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import AdminDashboard from "@/pages/admin";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
+import { MessageProvider } from "@/contexts/MessageContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
@@ -131,8 +133,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
-        <Toaster />
+        <NotificationProvider>
+          <MessageProvider>
+            <Router />
+            <Toaster />
+          </MessageProvider>
+        </NotificationProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
