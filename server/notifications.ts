@@ -4,6 +4,7 @@ import { log } from './vite';
 import { db } from './db';
 import { eq } from 'drizzle-orm';
 import { leads, users } from '@shared/schema';
+import { storage } from './storage';
 
 // Types of notifications
 export enum NotificationType {
@@ -16,6 +17,9 @@ export enum NotificationType {
   INVOICE_CREATED = 'invoice_created',
   INVOICE_UPDATED = 'invoice_updated',
   INVOICE_STATUS_CHANGED = 'invoice_status_changed',
+  DISPATCH_CLIENT_CREATED = 'dispatch_client_created',
+  DISPATCH_CLIENT_UPDATED = 'dispatch_client_updated',
+  DISPATCH_CLIENT_STATUS_CHANGED = 'dispatch_client_status_changed',
   DAILY_SUMMARY = 'daily_summary'
 }
 
@@ -268,6 +272,101 @@ export const sendInvoiceNotification = async (
 };
 
 // Send daily summary notifications to all users who have opted in
+// Send a dispatch client notification
+export const sendDispatchNotification = async (
+  dispatchClientId: number,
+  action: 'created' | 'updated' | 'status_changed',
+  data: {
+    userId: number,
+    userName: string,
+    leadId: number,
+    companyName: string
+  },
+  urgent: boolean = false
+): Promise<void> => {
+  try {
+    const dispatchClient = await storage.getDispatchClient(dispatchClientId);
+    if (!dispatchClient) {
+      log(`Dispatch client notification failed: Client ${dispatchClientId} not found`);
+      return;
+    }
+
+    // Construct notification message
+    const notificationType = action === 'created' 
+      ? NotificationType.DISPATCH_CLIENT_CREATED 
+      : action === 'status_changed' 
+        ? NotificationType.DISPATCH_CLIENT_STATUS_CHANGED 
+        : NotificationType.DISPATCH_CLIENT_UPDATED;
+
+    const message = {
+      type: notificationType,
+      title: action === 'created' 
+        ? 'New Dispatch Client Created' 
+        : action === 'status_changed' 
+          ? `Dispatch Client Status Changed to ${dispatchClient.status}` 
+          : 'Dispatch Client Updated',
+      body: `Dispatch Client for ${data.companyName} has been ${action}`,
+      details: {
+        dispatchClientId: dispatchClient.id,
+        leadId: dispatchClient.leadId,
+        companyName: data.companyName,
+        status: dispatchClient.status,
+        urgent: urgent,
+        createdBy: data.userName
+      }
+    };
+
+    // Get all active users - focusing on dispatch department
+    const allUsers = await storage.getUsers();
+    
+    // Get dispatch department roles
+    const roles = await storage.getRoles();
+    const dispatchRoleIds = roles
+      .filter(role => role.department === 'dispatch')
+      .map(role => role.id);
+
+    // Filter users to only dispatch department
+    const dispatchUsers = allUsers.filter(user => 
+      dispatchRoleIds.includes(user.roleId) && user.active
+    );
+
+    // Send notifications to dispatch team
+    for (const user of dispatchUsers) {
+      // Get user preferences
+      const preferences = getUserNotificationPreferences(user.id);
+
+      // Check if user wants lead updates (for now, dispatch client notifications will be part of lead updates)
+      if (preferences.teamNotifications.leadUpdates) {
+        // Send through enabled channels
+        if (preferences.email) {
+          log(`Would send email to ${user.email} about dispatch client ${dispatchClientId}`);
+          // emailService.sendEmail(user.email, message.title, message.body);
+        }
+
+        if (preferences.slack) {
+          // Send to Slack dispatch channel
+          slackService.sendSlackMessage({
+            channel: process.env.SLACK_DISPATCH_CHANNEL_ID || 'general',
+            text: `${message.title}: ${message.body}`
+          }).catch(err => console.error('Error sending dispatch slack notification:', err));
+          
+          log(`Sent Slack message to dispatch channel about client ${dispatchClientId}`);
+        }
+
+        // Store in-app notification
+        if (preferences.inApp) {
+          log(`Would store in-app notification for ${user.username} about dispatch client ${dispatchClientId}`);
+          // In a real app, we would store this in a notifications collection
+        }
+      }
+    }
+
+    log(`Notifications sent for dispatch client ${dispatchClientId} ${action}`);
+  } catch (error) {
+    log(`Failed to send dispatch client notification: ${error}`);
+  }
+};
+
 export const sendDailySummaries = async (): Promise<void> => {
   try {
     // Get all active users

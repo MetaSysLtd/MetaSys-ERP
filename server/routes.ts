@@ -405,6 +405,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
           action: 'status_changed',
           details: `Changed lead status from ${lead.status} to ${req.body.status}`
         });
+        
+        // Step 7: Activation Workflow - Create dispatch client record when lead status changes to "Active"
+        if (req.body.status === 'active') {
+          // Check if this lead already has a dispatch client record
+          const existingClient = await storage.getDispatchClientByLeadId(leadId);
+          
+          if (!existingClient) {
+            // Create new dispatch client with status "Pending Onboard"
+            const dispatchClient = await storage.createDispatchClient({
+              leadId: leadId,
+              status: 'pending_onboard',
+              orgId: req.user.id, // Typically would be organization ID
+              notes: `Auto-created when lead ${lead.companyName} was activated`,
+              onboardingDate: null,
+              approvedBy: null
+            });
+            
+            // Log activity for dispatch client creation
+            await storage.createActivity({
+              userId: req.user.id,
+              entityType: 'dispatch_client',
+              entityId: dispatchClient.id,
+              action: 'created',
+              details: `Created dispatch client record for lead ${lead.companyName}`
+            });
+            
+            // Send notification if available
+            if (typeof notificationService.sendDispatchNotification === 'function') {
+              await notificationService.sendDispatchNotification(
+                dispatchClient.id,
+                'created',
+                {
+                  userId: req.user.id,
+                  userName: `${req.user.firstName} ${req.user.lastName}`,
+                  leadId: leadId,
+                  companyName: lead.companyName
+                }
+              );
+            }
+            
+            console.log(`Created dispatch client ${dispatchClient.id} for activated lead ${leadId}`);
+          }
+        }
       } else {
         await storage.createActivity({
           userId: req.user.id,
