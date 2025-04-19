@@ -56,8 +56,18 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TeamPerformance type="sales" data={dashboardData?.salesPerformance} />
-        <TeamPerformance type="dispatch" data={dashboardData?.dispatchPerformance} />
+        <TeamPerformance 
+          title="Sales Team Performance" 
+          type="sales" 
+          data={dashboardData?.salesPerformance} 
+          className="border-blue-500 dark:border-blue-400"
+        />
+        <TeamPerformance 
+          title="Dispatch Team Performance" 
+          type="dispatch" 
+          data={dashboardData?.dispatchPerformance}
+          className="border-amber-500 dark:border-amber-400" 
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

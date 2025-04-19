@@ -1,9 +1,6 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from "@shared/schema";
-
-neonConfig.webSocketConstructor = ws;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,15 +8,21 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+// For Drizzle ORM using postgres.js
+const queryClient = postgres(process.env.DATABASE_URL, { 
+  max: 10,
+  connect_timeout: 10,
 });
 
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
+// Cannot use .on directly with postgres.js
+// Set up an uncaughtException handler as a fallback
+process.on('uncaughtException', (err) => {
+  if (err.message.includes('database')) {
+    console.error('Database connection error:', err);
+  } else {
+    throw err;
+  }
 });
-export const db = drizzle(pool, { schema });
+
+export const db = drizzle(queryClient, { schema });
+export const pool = queryClient;

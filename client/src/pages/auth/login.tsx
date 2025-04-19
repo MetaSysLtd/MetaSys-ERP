@@ -62,7 +62,7 @@ export default function Login() {
     <div 
       className="min-h-screen flex items-center justify-center md:justify-end bg-no-repeat bg-cover bg-center relative p-4 md:p-8" 
       style={{ 
-        backgroundImage: "url('/metio-bg.jpg')",
+        backgroundImage: "url('/auth-bg.jpg')",
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}
@@ -72,6 +72,9 @@ export default function Login() {
         <Card className="w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-0 shadow-2xl">
           <div className="h-1 bg-gradient-to-r from-[#2170dd] to-[#4d9eff] rounded-t-lg"></div>
           <CardHeader className="space-y-1 pt-6">
+            <div className="flex justify-center mb-2">
+              <img src="/metio-logo.png" alt="Metio ERP" className="h-10" />
+            </div>
             <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
             <CardDescription className="text-center">
               Sign in to your account to continue
@@ -125,6 +128,17 @@ export default function Login() {
                     </FormItem>
                   )}
                 />
+                <div className="flex justify-end mb-2">
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto text-[#2170dd] hover:text-[#3984ea] font-medium"
+                    onClick={() => navigate("/auth/forgot-password")}
+                    type="button"
+                  >
+                    Forgot password?
+                  </Button>
+                </div>
+                
                 <Button 
                   type="submit" 
                   className="w-full h-11 mt-2 bg-[#2170dd] hover:bg-[#3984ea] transition-colors"

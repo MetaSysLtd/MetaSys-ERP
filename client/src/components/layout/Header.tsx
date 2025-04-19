@@ -155,12 +155,10 @@ export function Header({ setSidebarOpen }: HeaderProps) {
                   <DropdownMenuItem onClick={() => navigate("/settings")}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
-                    <DropdownMenuShortcut>⇧P</DropdownMenuShortcut>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/settings/preferences")}>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
-                    <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
                     {theme === 'dark' ? (
@@ -175,7 +173,6 @@ export function Header({ setSidebarOpen }: HeaderProps) {
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
-                  <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
