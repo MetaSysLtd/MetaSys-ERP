@@ -50,10 +50,10 @@ function ActivityItem({ activity }: ActivityItemProps) {
 }
 
 interface ActivityFeedProps {
-  activities: Activity[];
+  activities?: Activity[];
 }
 
-export function ActivityFeed({ activities }: ActivityFeedProps) {
+export function ActivityFeed({ activities = [] }: ActivityFeedProps) {
   return (
     <Card className="shadow rounded-lg">
       <CardHeader className="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -63,11 +63,17 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
         <button className="text-sm text-gray-500 hover:text-gray-700">See all</button>
       </CardHeader>
       <CardContent className="p-5">
-        <ul className="space-y-4">
-          {activities.map((activity) => (
-            <ActivityItem key={activity.id} activity={activity} />
-          ))}
-        </ul>
+        {activities.length > 0 ? (
+          <ul className="space-y-4">
+            {activities.map((activity) => (
+              <ActivityItem key={activity.id} activity={activity} />
+            ))}
+          </ul>
+        ) : (
+          <div className="text-center py-6">
+            <p className="text-gray-500">No recent activities</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

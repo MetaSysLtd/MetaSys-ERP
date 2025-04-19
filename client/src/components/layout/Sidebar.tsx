@@ -110,7 +110,15 @@ export function Sidebar({ mobile }: SidebarProps) {
   });
 
   const handleLogout = async () => {
-    await logout();
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+      window.location.href = "/login";
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
   };
   
   return (

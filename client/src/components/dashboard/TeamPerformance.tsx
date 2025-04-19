@@ -61,25 +61,43 @@ function TeamMetric({ title, value, change, chart, chartData }: TeamMetricProps)
   );
 }
 
-interface TeamPerformanceProps {
-  data: {
-    performanceData: any[];
-    avgCallsPerDay: number;
-    callsChangePercentage: number;
-    conversionRate: number;
-    conversionChangePercentage: number;
-    teamTarget: number;
-  };
+interface PerformanceData {
+  performanceData: any[];
+  avgCallsPerDay: number;
+  callsChangePercentage: number;
+  conversionRate: number;
+  conversionChangePercentage: number;
+  teamTarget: number;
 }
 
-export function TeamPerformance({ data }: TeamPerformanceProps) {
+interface TeamPerformanceProps {
+  data?: PerformanceData;
+  type?: 'sales' | 'dispatch';
+}
+
+export function TeamPerformance({ data, type }: TeamPerformanceProps) {
+  if (!data) {
+    return (
+      <Card className="shadow rounded-lg lg:col-span-2">
+        <CardHeader className="px-5 py-4 border-b border-gray-200">
+          <CardTitle className="text-lg leading-6 font-medium text-gray-900">
+            {type ? `${type.charAt(0).toUpperCase() + type.slice(1)} Performance` : 'Team Performance'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-5 flex justify-center items-center h-64">
+          <p className="text-gray-500">No performance data available.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const { 
-    performanceData, 
-    avgCallsPerDay, 
-    callsChangePercentage, 
-    conversionRate, 
-    conversionChangePercentage, 
-    teamTarget 
+    performanceData = [], 
+    avgCallsPerDay = 0, 
+    callsChangePercentage = 0, 
+    conversionRate = 0, 
+    conversionChangePercentage = 0, 
+    teamTarget = 0 
   } = data;
 
   return (
