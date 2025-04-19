@@ -87,10 +87,10 @@ export function MetricCard({
         <CardFooter className="bg-gray-50 px-5 py-3">
           <div className="text-sm">
             <Link href={href}>
-              <a className="font-medium text-blue-600 hover:text-blue-900 flex items-center">
+              <span className="font-medium text-blue-600 hover:text-blue-900 flex items-center cursor-pointer">
                 View details
                 <ArrowRight className="ml-1 h-4 w-4" />
-              </a>
+              </span>
             </Link>
           </div>
         </CardFooter>
