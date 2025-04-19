@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <style>
+    .logo-mark {
+      fill: #1D3557;
+    }
+  </style>
+  <g transform="translate(50, 50)">
+    <path class="logo-mark" d="M30,20 C33,20 35,22 35,25 L35,75 C35,78 33,80 30,80 L27,80 C24,80 22,78 22,75 L22,50 L12,65 C11,66.5 9,67 7,67 C5,67 3,66.5 2,65 L-8,50 L-8,75 C-8,78 -10,80 -13,80 L-16,80 C-19,80 -21,78 -21,75 L-21,25 C-21,22 -19,20 -16,20 L-13,20 C-11,20 -9,21 -8,23 L7,45 L22,23 C23,21 25,20 27,20 L30,20 Z" transform="translate(0, -50) scale(0.6)"/>
+  </g>
+</svg>

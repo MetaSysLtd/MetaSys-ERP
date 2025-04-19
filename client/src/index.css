@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --primary: #1D3557;
+  --primary-light: #457B9D;
+  --accent: #2EC4B6;
+  --highlight: #FFDD57;
+  --bg-light: #F1FAFB;
+  --bg-gray: #D6D6D6;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -9,5 +18,54 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    background-color: var(--bg-light);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--primary);
+  }
+}
+
+@layer components {
+  /* Custom button styles */
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary/90 transform transition-transform duration-200 hover:scale-105;
+  }
+  
+  .btn-accent {
+    @apply bg-[#2EC4B6] text-white hover:bg-[#2EC4B6]/90 transform transition-transform duration-200 hover:scale-105;
+  }
+  
+  .btn-highlight {
+    @apply bg-[#FFDD57] text-[#1D3557] hover:bg-[#FFDD57]/90 transform transition-transform duration-200 hover:scale-105;
+  }
+
+  /* Card enhancements */
+  .card {
+    @apply rounded-xl border bg-white shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-[#1D3557] to-[#457B9D] font-bold;
+  }
+  
+  /* Dashboard item container */
+  .dashboard-item {
+    @apply bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-all duration-200;
+  }
+  
+  /* Animated hover effects */
+  .hover-lift {
+    @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-md;
+  }
+  
+  /* Sidebar active link */
+  .sidebar-link {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-primary;
+  }
+  
+  .sidebar-link.active {
+    @apply bg-primary/10 text-primary font-medium;
   }
 }
