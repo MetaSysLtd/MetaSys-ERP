@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { db } from '../db';
-import { organizations } from '@shared/schema';
+import { organizations, users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 /**
@@ -8,8 +8,8 @@ import { eq } from 'drizzle-orm';
  * It sets req.orgId based on the user's selected organization or the default one.
  */
 export const organizationMiddleware = async (req: any, res: Response, next: NextFunction) => {
-  // Check if the user is authenticated
-  if (!req.user) {
+  // Check if the user is authenticated via session
+  if (!req.session?.userId) {
     return next();
   }
 
@@ -22,9 +22,17 @@ export const organizationMiddleware = async (req: any, res: Response, next: Next
       orgId = parseInt(req.headers['x-organization-id'] as string, 10);
     }
     
-    // If still no organization selected, use the user's default org if assigned
-    if (!orgId && req.user?.orgId) {
-      orgId = req.user.orgId;
+    // If still no organization selected, try to load the user and use their default org if assigned
+    if (!orgId && req.session?.userId) {
+      try {
+        // Import would create circular dependency, so we'll use db directly
+        const [user] = await db.select().from(users).where(eq(users.id, req.session.userId));
+        if (user?.orgId) {
+          orgId = user.orgId;
+        }
+      } catch (err) {
+        console.error('Error loading user in middleware:', err);
+      }
     }
     
     // If no org selected and user has no default, find or create a default org
