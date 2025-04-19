@@ -13,9 +13,6 @@ import InvoicesPage from "@/pages/invoices";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import AdminDashboard from "@/pages/admin";
-import AdminCMS from "@/pages/admin/cms";
-import PageBuilder from "@/pages/admin/cms/page-builder";
-import MediaManager from "@/pages/admin/cms/media-manager";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
@@ -121,30 +118,6 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={AdminDashboard} />
-          </AppLayout>
-        )}
-      </Route>
-      
-      <Route path="/admin/cms">
-        {() => (
-          <AppLayout>
-            <ProtectedRoute component={AdminCMS} />
-          </AppLayout>
-        )}
-      </Route>
-      
-      <Route path="/admin/cms/page-builder">
-        {() => (
-          <AppLayout>
-            <ProtectedRoute component={PageBuilder} />
-          </AppLayout>
-        )}
-      </Route>
-      
-      <Route path="/admin/cms/media">
-        {() => (
-          <AppLayout>
-            <ProtectedRoute component={MediaManager} />
           </AppLayout>
         )}
       </Route>
