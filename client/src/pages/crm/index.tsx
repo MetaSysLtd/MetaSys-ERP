@@ -6,6 +6,8 @@ import { useLocation, useSearch } from "wouter";
 import { formatDate, getStatusColor, formatPhone } from "@/lib/utils";
 import { NewContactModal } from "@/components/modals/NewContactModal";
 import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
+import { ViewToggle } from "@/components/crm/ViewToggle";
+import { KanbanView } from "@/components/crm/KanbanView";
 
 import {
   Table,
@@ -39,6 +41,7 @@ export default function CRMPage() {
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all");
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredLeads, setFilteredLeads] = useState<any[]>([]);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
   
   // Get leads from the API
   const { data: leads, isLoading, error } = useQuery({
@@ -131,12 +134,14 @@ export default function CRMPage() {
                 </h1>
               </MotionWrapper>
               <MotionWrapper animation="fade-left" delay={0.3}>
-                <div className="flex flex-wrap space-x-2">
+                <div className="flex flex-wrap space-x-3 items-center">
+                  <ViewToggle view={viewMode} onChange={setViewMode} />
+                  
                   {canCreateContact && (
                     <Button
                       onClick={() => setNewContactModalOpen(true)}
                       size="sm"
-                      className="h-9"
+                      className="h-9 ml-2"
                     >
                       <Plus className="h-4 w-4 mr-1" />
                       New Lead
@@ -205,111 +210,121 @@ export default function CRMPage() {
           </Card>
         </MotionWrapper>
         
-        <MotionWrapper animation="fade-up" delay={0.5}>
-          <Card className="shadow overflow-hidden">
-            <CardHeader className="px-5 py-4 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-lg leading-6 font-medium text-gray-900">
-                  Contacts
-                </CardTitle>
-                <span className="text-sm text-gray-500">
-                  Showing {filteredLeads.length} contacts
-                </span>
-              </div>
-            </CardHeader>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Company</TableHead>
-                    <TableHead>MC Number</TableHead>
-                    <TableHead>Contact Info</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Equipment</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredLeads.length === 0 ? (
+        {viewMode === 'kanban' ? (
+          <MotionWrapper animation="fade-up" delay={0.5}>
+            <KanbanView 
+              leads={filteredLeads} 
+              isLoading={isLoading} 
+              showFilter={statusFilter !== "all" ? statusFilter : null} 
+            />
+          </MotionWrapper>
+        ) : (
+          <MotionWrapper animation="fade-up" delay={0.5}>
+            <Card className="shadow overflow-hidden">
+              <CardHeader className="px-5 py-4 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-lg leading-6 font-medium text-gray-900">
+                    Contacts
+                  </CardTitle>
+                  <span className="text-sm text-gray-500">
+                    Showing {filteredLeads.length} contacts
+                  </span>
+                </div>
+              </CardHeader>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
-                        <div className="flex flex-col items-center justify-center text-gray-500">
-                          <Users className="h-12 w-12 mb-2" />
-                          <h3 className="text-lg font-medium">No contacts found</h3>
-                          <p className="text-sm max-w-md mt-1">
-                            {statusFilter !== "all"
-                              ? `No contacts match the "${statusFilter}" status filter. Try changing your filters or create a new contact.`
-                              : searchQuery
-                              ? "No contacts match your search criteria. Try a different search term."
-                              : "No contacts have been created yet. Start by creating a new contact."}
-                          </p>
-                          {canCreateContact && (
-                            <Button
-                              onClick={() => setNewContactModalOpen(true)}
-                              className="mt-4"
-                            >
-                              <Plus className="h-4 w-4 mr-1" />
-                              Create New Lead
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
+                      <TableHead>Company</TableHead>
+                      <TableHead>MC Number</TableHead>
+                      <TableHead>Contact Info</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Equipment</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ) : (
-                    filteredLeads.map((lead) => {
-                      const statusStyle = getStatusColor(lead.status);
-                      
-                      return (
-                        <TableRow key={lead.id}>
-                          <TableCell className="font-medium">
-                            {lead.companyName}
-                          </TableCell>
-                          <TableCell>{lead.mcNumber}</TableCell>
-                          <TableCell>
-                            {lead.email && (
-                              <div className="text-sm text-gray-500">
-                                {lead.email}
-                              </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredLeads.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8">
+                          <div className="flex flex-col items-center justify-center text-gray-500">
+                            <Users className="h-12 w-12 mb-2" />
+                            <h3 className="text-lg font-medium">No contacts found</h3>
+                            <p className="text-sm max-w-md mt-1">
+                              {statusFilter !== "all"
+                                ? `No contacts match the "${statusFilter}" status filter. Try changing your filters or create a new contact.`
+                                : searchQuery
+                                ? "No contacts match your search criteria. Try a different search term."
+                                : "No contacts have been created yet. Start by creating a new contact."}
+                            </p>
+                            {canCreateContact && (
+                              <Button
+                                onClick={() => setNewContactModalOpen(true)}
+                                className="mt-4"
+                              >
+                                <Plus className="h-4 w-4 mr-1" />
+                                Create New Lead
+                              </Button>
                             )}
-                            <div className="text-sm text-gray-500">
-                              {formatPhone(lead.phoneNumber)}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant="outline"
-                              className={`${statusStyle.bg} ${statusStyle.text} ${statusStyle.border} px-2 inline-flex text-xs leading-5 font-semibold rounded-full`}
-                            >
-                              {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <span className="capitalize">
-                              {lead.equipmentType.replace("-", " ")}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            {formatDate(lead.createdAt)}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="link"
-                              className="text-primary-600 hover:text-primary-900 p-0 h-auto"
-                              onClick={() => setLocation(`/crm/${lead.id}`)}
-                            >
-                              View
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </Card>
-        </MotionWrapper>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredLeads.map((lead) => {
+                        const statusStyle = getStatusColor(lead.status);
+                        
+                        return (
+                          <TableRow key={lead.id}>
+                            <TableCell className="font-medium">
+                              {lead.companyName}
+                            </TableCell>
+                            <TableCell>{lead.mcNumber}</TableCell>
+                            <TableCell>
+                              {lead.email && (
+                                <div className="text-sm text-gray-500">
+                                  {lead.email}
+                                </div>
+                              )}
+                              <div className="text-sm text-gray-500">
+                                {formatPhone(lead.phoneNumber)}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant="outline"
+                                className={`${statusStyle.bg} ${statusStyle.text} ${statusStyle.border} px-2 inline-flex text-xs leading-5 font-semibold rounded-full`}
+                              >
+                                {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <span className="capitalize">
+                                {lead.equipmentType.replace("-", " ")}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              {formatDate(lead.createdAt)}
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="link"
+                                className="text-primary-600 hover:text-primary-900 p-0 h-auto"
+                                onClick={() => setLocation(`/crm/${lead.id}`)}
+                              >
+                                View
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          </MotionWrapper>
+        )}
       </div>
       
       {/* New Contact Modal */}
