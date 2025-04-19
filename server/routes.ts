@@ -2131,6 +2131,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(error);
     }
   });
+  
+  // Get top commission earners for a specific month and organization
+  commissionMonthlyRouter.get("/top-earners", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const { month, limit = 5, type, previousMonth } = req.query;
+      const orgId = req.user?.orgId || 0;
+      
+      // Default to current month if not specified
+      const targetMonth = month ? String(month) : new Date().toISOString().substring(0, 7);
+      
+      // Get top earners for current month
+      const topEarners = await storage.getTopCommissionEarners({
+        orgId,
+        month: targetMonth,
+        limit: Number(limit),
+        type: type as 'sales' | 'dispatch' | undefined
+      });
+      
+      // If we need to include previous month data for comparison
+      if (previousMonth === 'true') {
+        // Calculate previous month in YYYY-MM format
+        const [year, monthNum] = targetMonth.split('-').map(Number);
+        const prevMonthDate = new Date(year, monthNum - 2, 1); // Month is 0-indexed
+        const prevMonth = prevMonthDate.toISOString().substring(0, 7);
+        
+        // Get previous month data for the same users
+        const userIds = topEarners.map(earner => earner.userId);
+        
+        // Get all commission records for the previous month
+        const prevMonthCommissions = await storage.getCommissionsMonthlyByMonth(prevMonth);
+        
+        // Filter to only include our top earners from current month and same org
+        const filteredPrevMonthCommissions = prevMonthCommissions.filter(
+          comm => userIds.includes(comm.userId) && comm.orgId === orgId
+        );
+        
+        // Create a map for quick lookup
+        const prevMonthMap = new Map(
+          filteredPrevMonthCommissions.map(comm => [comm.userId, comm.totalCommission])
+        );
+        
+        // Add previous amount to each earner
+        const earnersWithPrevious = topEarners.map(earner => ({
+          ...earner,
+          previousAmount: prevMonthMap.get(earner.userId) || 0
+        }));
+        
+        return res.json(earnersWithPrevious);
+      }
+      
+      res.json(topEarners);
+    } catch (error) {
+      next(error);
+    }
+  });
 
   commissionMonthlyRouter.post("/calculate", createAuthMiddleware(4), async (req, res, next) => {
     try {
