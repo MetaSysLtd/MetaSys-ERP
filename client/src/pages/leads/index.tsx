@@ -125,7 +125,7 @@ export default function LeadsPage() {
             <div className="flex flex-wrap items-center justify-between">
               <MotionWrapper animation="fade-right" delay={0.2}>
                 <h1 className="text-2xl font-semibold text-gray-900 mb-2 sm:mb-0">
-                  Leads Management
+                  CRM Management
                 </h1>
               </MotionWrapper>
               <MotionWrapper animation="fade-left" delay={0.3}>
@@ -153,7 +153,7 @@ export default function LeadsPage() {
           <Card className="shadow mb-6">
             <CardHeader className="px-5 py-4 border-b border-gray-200">
               <CardTitle className="text-lg leading-6 font-medium text-gray-900">
-                Leads Filters
+                CRM Filters
               </CardTitle>
             </CardHeader>
             <CardContent className="p-5">
@@ -208,10 +208,10 @@ export default function LeadsPage() {
             <CardHeader className="px-5 py-4 border-b border-gray-200">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-lg leading-6 font-medium text-gray-900">
-                  Leads
+                  Contacts
                 </CardTitle>
                 <span className="text-sm text-gray-500">
-                  Showing {filteredLeads.length} leads
+                  Showing {filteredLeads.length} contacts
                 </span>
               </div>
             </CardHeader>
@@ -294,7 +294,7 @@ export default function LeadsPage() {
                             <Button
                               variant="link"
                               className="text-primary-600 hover:text-primary-900 p-0 h-auto"
-                              onClick={() => setLocation(`/leads/${lead.id}`)}
+                              onClick={() => setLocation(`/crm/${lead.id}`)}
                             >
                               View
                             </Button>

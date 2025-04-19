@@ -8,6 +8,7 @@ import ForgotPassword from "@/pages/auth/forgot-password";
 import Dashboard from "@/pages/dashboard";
 import LeadsPage from "@/pages/leads";
 import LeadDetails from "@/pages/leads/[id]";
+// Renamed imports pointing to the same components for now
 import DispatchPage from "@/pages/dispatch";
 import InvoicesPage from "@/pages/invoices";
 import InvoiceDetailsPage from "@/pages/invoices/[id]";
@@ -71,7 +72,7 @@ function Router() {
         )}
       </Route>
       
-      <Route path="/leads">
+      <Route path="/crm">
         {() => (
           <AppLayout>
             <ProtectedRoute component={LeadsPage} />
@@ -79,7 +80,7 @@ function Router() {
         )}
       </Route>
       
-      <Route path="/leads/:id">
+      <Route path="/crm/:id">
         {(params) => (
           <AppLayout>
             <ProtectedRoute component={LeadDetails} params={params} />
