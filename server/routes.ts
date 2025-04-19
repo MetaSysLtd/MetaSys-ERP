@@ -7,8 +7,8 @@ import { fromZodError } from "zod-validation-error";
 import { 
   insertUserSchema, insertRoleSchema, insertLeadSchema, 
   insertLoadSchema, insertInvoiceSchema, insertInvoiceItemSchema,
-  insertCommissionSchema, insertActivitySchema,
-  users, roles
+  insertCommissionSchema, insertActivitySchema, insertDispatchClientSchema,
+  users, roles, dispatch_clients
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";

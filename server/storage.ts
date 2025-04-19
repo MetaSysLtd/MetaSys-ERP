@@ -1,9 +1,10 @@
 import {
-  users, roles, leads, loads, invoices, invoiceItems, commissions, activities,
+  users, roles, leads, loads, invoices, invoiceItems, commissions, activities, dispatch_clients,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
-  type Commission, type InsertCommission, type Activity, type InsertActivity
+  type Commission, type InsertCommission, type Activity, type InsertActivity,
+  type DispatchClient, type InsertDispatchClient
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -69,6 +70,14 @@ export interface IStorage {
   createCommission(commission: InsertCommission): Promise<Commission>;
   updateCommission(id: number, commission: Partial<Commission>): Promise<Commission | undefined>;
   
+  // Dispatch Client operations
+  getDispatchClient(id: number): Promise<DispatchClient | undefined>;
+  getDispatchClientByLeadId(leadId: number): Promise<DispatchClient | undefined>;
+  getDispatchClients(): Promise<DispatchClient[]>;
+  getDispatchClientsByStatus(status: string): Promise<DispatchClient[]>;
+  createDispatchClient(client: InsertDispatchClient): Promise<DispatchClient>;
+  updateDispatchClient(id: number, client: Partial<DispatchClient>): Promise<DispatchClient | undefined>;
+  
   // Activity logging
   getActivities(limit?: number): Promise<Activity[]>;
   getActivitiesByUser(userId: number, limit?: number): Promise<Activity[]>;
@@ -82,6 +91,7 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private roles: Map<number, Role>;
   private leads: Map<number, Lead>;
+  private dispatchClients: Map<number, DispatchClient>;
   private loads: Map<number, Load>;
   private invoices: Map<number, Invoice>;
   private invoiceItems: Map<number, InvoiceItem>;
@@ -91,6 +101,7 @@ export class MemStorage implements IStorage {
   private userIdCounter: number;
   private roleIdCounter: number;
   private leadIdCounter: number;
+  private dispatchClientIdCounter: number;
   private loadIdCounter: number;
   private invoiceIdCounter: number;
   private invoiceItemIdCounter: number;
@@ -107,6 +118,7 @@ export class MemStorage implements IStorage {
     this.users = new Map();
     this.roles = new Map();
     this.leads = new Map();
+    this.dispatchClients = new Map();
     this.loads = new Map();
     this.invoices = new Map();
     this.invoiceItems = new Map();
@@ -116,6 +128,7 @@ export class MemStorage implements IStorage {
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
     this.leadIdCounter = 1;
+    this.dispatchClientIdCounter = 1;
     this.loadIdCounter = 1;
     this.invoiceIdCounter = 1;
     this.invoiceItemIdCounter = 1;
@@ -451,6 +464,49 @@ export class MemStorage implements IStorage {
     return updatedCommission;
   }
 
+  // Dispatch Client operations
+  async getDispatchClient(id: number): Promise<DispatchClient | undefined> {
+    return this.dispatchClients.get(id);
+  }
+  
+  async getDispatchClientByLeadId(leadId: number): Promise<DispatchClient | undefined> {
+    return Array.from(this.dispatchClients.values()).find(client => client.leadId === leadId);
+  }
+  
+  async getDispatchClients(): Promise<DispatchClient[]> {
+    return Array.from(this.dispatchClients.values());
+  }
+  
+  async getDispatchClientsByStatus(status: string): Promise<DispatchClient[]> {
+    return Array.from(this.dispatchClients.values()).filter(client => client.status === status);
+  }
+  
+  async createDispatchClient(insertClient: InsertDispatchClient): Promise<DispatchClient> {
+    const id = this.dispatchClientIdCounter++;
+    const now = new Date();
+    const client: DispatchClient = {
+      ...insertClient,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.dispatchClients.set(id, client);
+    return client;
+  }
+  
+  async updateDispatchClient(id: number, updates: Partial<DispatchClient>): Promise<DispatchClient | undefined> {
+    const client = await this.getDispatchClient(id);
+    if (!client) return undefined;
+    
+    const updatedClient = {
+      ...client,
+      ...updates,
+      updatedAt: new Date()
+    };
+    this.dispatchClients.set(id, updatedClient);
+    return updatedClient;
+  }
+  
   // Activity logging
   async getActivities(limit?: number): Promise<Activity[]> {
     const activities = Array.from(this.activities.values())
@@ -804,6 +860,47 @@ export class DatabaseStorage implements IStorage {
       .where(eq(commissions.id, id))
       .returning();
     return updatedCommission;
+  }
+  
+  // Dispatch Client operations
+  async getDispatchClient(id: number): Promise<DispatchClient | undefined> {
+    const [client] = await db.select().from(dispatch_clients).where(eq(dispatch_clients.id, id));
+    return client;
+  }
+  
+  async getDispatchClientByLeadId(leadId: number): Promise<DispatchClient | undefined> {
+    const [client] = await db.select().from(dispatch_clients).where(eq(dispatch_clients.leadId, leadId));
+    return client;
+  }
+  
+  async getDispatchClients(): Promise<DispatchClient[]> {
+    return db.select().from(dispatch_clients);
+  }
+  
+  async getDispatchClientsByStatus(status: string): Promise<DispatchClient[]> {
+    return db.select().from(dispatch_clients).where(eq(dispatch_clients.status, status));
+  }
+  
+  async createDispatchClient(insertClient: InsertDispatchClient): Promise<DispatchClient> {
+    const now = new Date().toISOString();
+    const [client] = await db.insert(dispatch_clients).values({
+      ...insertClient,
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    return client;
+  }
+  
+  async updateDispatchClient(id: number, updates: Partial<DispatchClient>): Promise<DispatchClient | undefined> {
+    const [updatedClient] = await db
+      .update(dispatch_clients)
+      .set({
+        ...updates,
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(dispatch_clients.id, id))
+      .returning();
+    return updatedClient;
   }
 
   async getActivities(limit?: number): Promise<Activity[]> {
