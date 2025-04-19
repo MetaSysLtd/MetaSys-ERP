@@ -1,6 +1,7 @@
 import {
   users, roles, leads, loads, invoices, invoiceItems, commissions, activities, tasks,
   dispatch_clients, organizations, userOrganizations, commissionRules, commissionsMonthly,
+  clockEvents, clockEventTypeEnum,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
@@ -10,7 +11,8 @@ import {
   type UserOrganization, type InsertUserOrganization,
   type CommissionRule, type InsertCommissionRule,
   type CommissionMonthly, type InsertCommissionMonthly,
-  type Task, type InsertTask
+  type Task, type InsertTask,
+  type ClockEvent, type InsertClockEvent
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -136,6 +138,14 @@ export interface IStorage {
   getTasksByEntity(entityType: string, entityId: number): Promise<Task[]>;
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: number, task: Partial<Task>): Promise<Task | undefined>;
+  
+  // Clock Event operations
+  getClockEvent(id: number): Promise<ClockEvent | undefined>;
+  getClockEvents(): Promise<ClockEvent[]>;
+  getClockEventsByUser(userId: number): Promise<ClockEvent[]>;
+  getClockEventsByUserAndDay(userId: number, date: Date): Promise<ClockEvent[]>;
+  getCurrentClockStatus(userId: number): Promise<'IN' | 'OUT' | null>;
+  createClockEvent(event: InsertClockEvent): Promise<ClockEvent>;
 }
 
 export class MemStorage implements IStorage {
@@ -155,6 +165,7 @@ export class MemStorage implements IStorage {
   private commissionRules: Map<number, CommissionRule>;
   private commissionsMonthly: Map<number, CommissionMonthly>;
   private tasks: Map<number, Task>;
+  private clockEvents: Map<number, ClockEvent>;
   
   private userIdCounter: number;
   private roleIdCounter: number;
@@ -170,6 +181,7 @@ export class MemStorage implements IStorage {
   private commissionRuleIdCounter: number;
   private commissionMonthlyIdCounter: number;
   private taskIdCounter: number;
+  private clockEventIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
@@ -192,6 +204,7 @@ export class MemStorage implements IStorage {
     this.commissionRules = new Map();
     this.commissionsMonthly = new Map();
     this.tasks = new Map();
+    this.clockEvents = new Map();
     
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
@@ -207,6 +220,7 @@ export class MemStorage implements IStorage {
     this.commissionRuleIdCounter = 1;
     this.commissionMonthlyIdCounter = 1;
     this.taskIdCounter = 1;
+    this.clockEventIdCounter = 1;
     
     // Initialize with default roles
     this.initializeRoles();
@@ -846,6 +860,69 @@ export class MemStorage implements IStorage {
     };
     this.tasks.set(id, updatedTask);
     return updatedTask;
+  }
+  
+  // Clock Event operations
+  async getClockEvent(id: number): Promise<ClockEvent | undefined> {
+    return this.clockEvents.get(id);
+  }
+
+  async getClockEvents(): Promise<ClockEvent[]> {
+    return Array.from(this.clockEvents.values())
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }
+
+  async getClockEventsByUser(userId: number): Promise<ClockEvent[]> {
+    return Array.from(this.clockEvents.values())
+      .filter(event => event.userId === userId)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }
+
+  async getClockEventsByUserAndDay(userId: number, date: Date): Promise<ClockEvent[]> {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    return Array.from(this.clockEvents.values())
+      .filter(event => {
+        const eventDate = new Date(event.timestamp);
+        return event.userId === userId && 
+               eventDate >= startOfDay && 
+               eventDate <= endOfDay;
+      })
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  }
+
+  async getCurrentClockStatus(userId: number): Promise<'IN' | 'OUT' | null> {
+    const userEvents = await this.getClockEventsByUser(userId);
+    
+    if (userEvents.length === 0) {
+      return 'OUT'; // Default state if no events exist
+    }
+    
+    // Sort by timestamp descending to get the most recent event
+    userEvents.sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    
+    // Return the type of the most recent event
+    return userEvents[0].type;
+  }
+
+  async createClockEvent(event: InsertClockEvent): Promise<ClockEvent> {
+    const id = this.clockEventIdCounter++;
+    const now = new Date();
+    
+    const clockEvent: ClockEvent = {
+      ...event,
+      id,
+      timestamp: now
+    };
+    
+    this.clockEvents.set(id, clockEvent);
+    return clockEvent;
   }
 
   // Commission Rules operations
