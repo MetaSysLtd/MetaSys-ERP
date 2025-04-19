@@ -12,6 +12,7 @@ import DispatchPage from "@/pages/dispatch";
 import InvoicesPage from "@/pages/invoices";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
+import ProfilePage from "@/pages/settings/profile";
 import AdminDashboard from "@/pages/admin";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -112,6 +113,14 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={SettingsPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/settings/profile">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={ProfilePage} />
           </AppLayout>
         )}
       </Route>
