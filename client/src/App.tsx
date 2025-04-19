@@ -10,6 +10,7 @@ import LeadsPage from "@/pages/leads";
 import LeadDetails from "@/pages/leads/[id]";
 import DispatchPage from "@/pages/dispatch";
 import InvoicesPage from "@/pages/invoices";
+import InvoiceDetailsPage from "@/pages/invoices/[id]";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import ProfilePage from "@/pages/settings/profile";
@@ -97,6 +98,14 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={InvoicesPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/invoices/:id">
+        {(params) => (
+          <AppLayout>
+            <ProtectedRoute component={InvoiceDetailsPage} params={params} />
           </AppLayout>
         )}
       </Route>
