@@ -15,7 +15,8 @@ import {
   Calendar, 
   HelpCircle,
   Moon,
-  Sun
+  Sun,
+  Building
 } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -31,6 +32,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { NotificationDropdown } from "@/components/notification/NotificationDropdown";
 import { MessageDropdown } from "@/components/message/MessageDropdown";
+import { OrganizationSwitcher } from "@/components/OrganizationSwitcher";
 
 interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
@@ -97,6 +99,13 @@ export function Header({ setSidebarOpen }: HeaderProps) {
 
         {/* Right side items */}
         <div className="ml-4 flex items-center space-x-4">
+          {/* Organization Switcher */}
+          <div className="hidden lg:flex items-center border-r border-gray-200 dark:border-gray-700 pr-4 mr-1">
+            <div className="w-44">
+              <OrganizationSwitcher />
+            </div>
+          </div>
+
           {/* Help button */}
           <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
             <span className="sr-only">Get help</span>
@@ -159,6 +168,14 @@ export function Header({ setSidebarOpen }: HeaderProps) {
                     <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
+                
+                {/* Organization section - visible only on mobile/smaller screens */}
+                <DropdownMenuSeparator className="lg:hidden" />
+                <DropdownMenuLabel className="lg:hidden">Organization</DropdownMenuLabel>
+                <div className="lg:hidden px-2 py-2">
+                  <OrganizationSwitcher />
+                </div>
+                
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
