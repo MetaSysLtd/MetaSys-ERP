@@ -996,6 +996,218 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate weekly invoices
+  app.post("/api/invoices/generate-weekly", createAuthMiddleware(4), async (req, res, next) => {
+    try {
+      // This will generate invoices for all active loads that don't have invoices yet
+      // In a real implementation, this would query for all completed loads without invoices
+      
+      // Get all leads
+      const leads = await storage.getAllLeads();
+      if (!leads.length) {
+        return res.status(400).json({ message: "No leads available to generate invoices for" });
+      }
+      
+      // Get all loads that are completed but not invoiced
+      const loads = await storage.getLoadsForInvoicing();
+      if (!loads.length) {
+        return res.status(400).json({ message: "No uninvoiced loads available" });
+      }
+      
+      // Group loads by client (lead)
+      const loadsByLead: Record<number, any[]> = {};
+      
+      for (const load of loads) {
+        if (!loadsByLead[load.leadId]) {
+          loadsByLead[load.leadId] = [];
+        }
+        loadsByLead[load.leadId].push(load);
+      }
+      
+      // Generate an invoice for each lead that has loads
+      const createdInvoices = [];
+      
+      for (const [leadId, leadLoads] of Object.entries(loadsByLead)) {
+        if (leadLoads.length === 0) continue;
+        
+        // Generate invoice number
+        const date = new Date();
+        const year = date.getFullYear().toString().substr(-2);
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const random = Math.floor(1000 + Math.random() * 9000).toString();
+        const invoiceNumber = `INV-${year}${month}-${random}`;
+        
+        // Calculate total amount
+        const totalAmount = leadLoads.reduce((total, load) => total + load.totalAmount, 0);
+        
+        // Create the invoice
+        const invoice = await storage.createInvoice({
+          leadId: parseInt(leadId),
+          invoiceNumber,
+          totalAmount,
+          status: 'draft',
+          issuedDate: new Date().toISOString().split('T')[0],
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          createdBy: req.user.id,
+          notes: `Automatically generated weekly invoice for ${leadLoads.length} loads.`
+        });
+        
+        // Create invoice items for each load
+        for (const load of leadLoads) {
+          await storage.createInvoiceItem({
+            invoiceId: invoice.id,
+            loadId: load.id,
+            description: `Load #${load.loadNumber}: ${load.origin} to ${load.destination}`,
+            amount: load.totalAmount
+          });
+          
+          // Mark the load as invoiced
+          await storage.updateLoad(load.id, { invoiced: true });
+        }
+        
+        createdInvoices.push(invoice);
+      }
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: 'invoice',
+        entityId: 0, // System-wide activity
+        action: 'generate-weekly',
+        details: `Generated ${createdInvoices.length} weekly invoices`
+      });
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: `Successfully generated ${createdInvoices.length} invoices`,
+        count: createdInvoices.length,
+        invoices: createdInvoices.map(inv => inv.id)
+      });
+    } catch (error) {
+      console.error("Error generating weekly invoices:", error);
+      next(error);
+    }
+  });
+
+  // Invoice email endpoints
+  app.post("/api/invoices/:id/send", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const invoiceId = parseInt(req.params.id);
+      const { template = 'standard', message = '' } = req.body;
+      
+      // Get the invoice
+      const invoice = await storage.getInvoice(invoiceId);
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+      
+      // Get the lead (client) information
+      const lead = await storage.getLead(invoice.leadId);
+      if (!lead) {
+        return res.status(404).json({ message: "Client information not found" });
+      }
+      
+      // Get the invoice items
+      const items = await storage.getInvoiceItems(invoiceId);
+      
+      // Get the user who created the invoice
+      const creator = await storage.getUser(invoice.createdBy);
+      if (!creator) {
+        return res.status(404).json({ message: "Invoice creator not found" });
+      }
+      
+      // Get load information for each item
+      const enrichedItems = await Promise.all(items.map(async (item) => {
+        const load = await storage.getLoad(item.loadId);
+        return {
+          ...item,
+          loadInfo: load ? {
+            loadNumber: load.loadNumber,
+            origin: load.origin,
+            destination: load.destination,
+            date: load.date
+          } : undefined
+        };
+      }));
+      
+      // Import InvoiceTemplateType from invoiceTemplates
+      const { sendInvoiceEmailWithTemplate, InvoiceTemplateType } = await import('./invoiceTemplates');
+      
+      // Prepare email data
+      const emailData = {
+        id: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        clientName: lead.companyName,
+        clientEmail: lead.email,
+        clientContactName: lead.contactName,
+        totalAmount: invoice.totalAmount,
+        issuedDate: invoice.issuedDate,
+        dueDate: invoice.dueDate,
+        items: enrichedItems,
+        notes: invoice.notes,
+        createdBy: {
+          name: `${creator.firstName} ${creator.lastName}`,
+          email: creator.email,
+          phone: creator.phoneNumber
+        },
+        customMessage: message
+      };
+      
+      // Determine template type
+      let templateType: any;
+      switch (template) {
+        case 'friendly':
+          templateType = InvoiceTemplateType.FRIENDLY_REMINDER;
+          break;
+        case 'urgent':
+          templateType = InvoiceTemplateType.URGENT_PAYMENT;
+          break;
+        case 'overdue':
+          templateType = InvoiceTemplateType.OVERDUE_NOTICE;
+          break;
+        case 'standard':
+        default:
+          templateType = InvoiceTemplateType.STANDARD;
+          break;
+      }
+      
+      // Send the email
+      const success = await sendInvoiceEmailWithTemplate(
+        templateType,
+        emailData,
+        message
+      );
+      
+      if (success) {
+        // If the invoice was in draft status, update it to sent
+        if (invoice.status === 'draft') {
+          await storage.updateInvoice(invoiceId, {
+            status: 'sent'
+          });
+        }
+        
+        // Log the activity
+        await storage.createActivity({
+          userId: req.user.id,
+          entityType: 'invoice',
+          entityId: invoiceId,
+          action: 'sent',
+          details: `Invoice ${invoice.invoiceNumber} sent to ${lead.email} using ${template} template`
+        });
+        
+        return res.status(200).json({ 
+          success: true, 
+          message: "Invoice sent successfully" 
+        });
+      } else {
+        throw new Error("Failed to send invoice email");
+      }
+    } catch (error) {
+      console.error("Error sending invoice:", error);
+      next(error);
+    }
+  });
+  
   // Dashboard data route
   app.get("/api/dashboard", createAuthMiddleware(1), async (req, res, next) => {
     try {
