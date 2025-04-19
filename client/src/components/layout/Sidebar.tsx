@@ -7,8 +7,16 @@ import {
   Truck, 
   FileText, 
   BarChart2, 
-  Settings 
+  Settings,
+  Clock,
+  Banknote,
+  Building2,
+  LogOut
 } from "lucide-react";
+
+// Import the Metio logo and icon
+import metioIcon from "@/assets/metio-icon.svg";
+import metioLogo from "@/assets/metio-logo.svg";
 
 interface SidebarProps {
   mobile: boolean;
@@ -16,7 +24,7 @@ interface SidebarProps {
 
 export function Sidebar({ mobile }: SidebarProps) {
   const [location] = useLocation();
-  const { user, role } = useAuth();
+  const { user, role, logout } = useAuth();
   
   if (!user || !role) {
     return null;
@@ -54,10 +62,30 @@ export function Sidebar({ mobile }: SidebarProps) {
       minLevel: 2,
     },
     {
+      name: "Time Tracking",
+      href: "/time-tracking",
+      icon: Clock,
+      showFor: ["hr", "admin"],
+    },
+    {
+      name: "Finance",
+      href: "/finance",
+      icon: Banknote,
+      showFor: ["finance", "admin"],
+      minLevel: 3,
+    },
+    {
+      name: "Client Portal",
+      href: "/client-portal",
+      icon: Building2,
+      showFor: ["sales", "dispatch", "admin"],
+      minLevel: 3,
+    },
+    {
       name: "Reports",
       href: "/reports",
       icon: BarChart2,
-      showFor: ["sales", "dispatch", "admin"],
+      showFor: ["sales", "dispatch", "finance", "hr", "admin"],
       minLevel: 2,
     },
     {
@@ -80,38 +108,40 @@ export function Sidebar({ mobile }: SidebarProps) {
     
     return true;
   });
+
+  const handleLogout = async () => {
+    await logout();
+  };
   
   return (
-    <div className="flex flex-col h-full bg-gray-900 text-white">
+    <div className="flex flex-col h-full bg-[#1D3557] text-white">
       {/* Logo */}
-      <div className="px-6 pt-6 pb-4 flex items-center border-b border-gray-700">
+      <div className="px-6 pt-6 pb-4 flex items-center border-b border-[#457B9D]/30">
         <div className="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-          </svg>
-          <span className="ml-2 text-xl font-semibold">MetaSys ERP</span>
+          <img src={metioIcon} alt="Metio" className="h-9 w-9" />
+          <span className="ml-3 text-xl font-semibold">Metio ERP</span>
         </div>
       </div>
       
       {/* User profile */}
-      <div className="px-4 py-4 border-b border-gray-700">
+      <div className="px-5 py-4 border-b border-[#457B9D]/30">
         <div className="flex items-center">
           {user.profileImageUrl ? (
             <img 
               src={user.profileImageUrl} 
               alt={`${user.firstName} ${user.lastName}`}
-              className="h-10 w-10 rounded-full"
+              className="h-10 w-10 rounded-full border-2 border-[#2EC4B6]"
             />
           ) : (
-            <div className="bg-gray-700 rounded-full h-10 w-10 flex items-center justify-center text-lg font-medium">
+            <div className="bg-[#457B9D] rounded-full h-10 w-10 flex items-center justify-center text-lg font-medium border-2 border-[#2EC4B6]">
               {getInitials(user.firstName, user.lastName)}
             </div>
           )}
           <div className="ml-3">
-            <p className="text-sm font-medium">
+            <p className="text-sm font-medium text-white">
               {user.firstName} {user.lastName}
             </p>
-            <p className={`text-xs ${getDepartmentColor(role.department)}`}>
+            <p className="text-xs text-[#2EC4B6] font-medium">
               {role.name}
             </p>
           </div>
@@ -120,44 +150,56 @@ export function Sidebar({ mobile }: SidebarProps) {
       
       {/* Navigation */}
       <nav className="pt-4 flex-1 overflow-y-auto scrollbar-hide">
-        <div className="px-2 space-y-1">
+        <div className="px-3 space-y-1">
           {filteredNavItems.map((item) => (
             <Link key={item.href} href={item.href}>
-              <a
-                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                  isActiveRoute(item.href)
-                    ? "bg-gray-800 text-white"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
-                }`}
-              >
-                <item.icon
-                  className={`mr-3 h-5 w-5 ${
-                    isActiveRoute(item.href) ? "text-gray-300" : "text-gray-400"
-                  }`}
-                />
-                {item.name}
-              </a>
+              <div className={`sidebar-link ${isActiveRoute(item.href) ? 'active' : ''}`}>
+                <item.icon className="h-5 w-5" />
+                <span>{item.name}</span>
+              </div>
             </Link>
           ))}
         </div>
         
         {/* Team switcher for admin users */}
         {role && role.department === "admin" && (
-          <div className="mt-6 px-2">
-            <h3 className="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          <div className="mt-6 px-3">
+            <h3 className="px-2 text-xs font-semibold text-[#FFDD57] uppercase tracking-wider">
               Teams
             </h3>
             <div className="mt-2 space-y-1">
-              <a href="#" className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-white bg-primary-600">
-                Sales
-              </a>
-              <a href="#" className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-800 hover:text-white">
-                Dispatch
-              </a>
+              <Link href="/teams/sales">
+                <div className="sidebar-link">
+                  <Users className="h-5 w-5" />
+                  <span>Sales</span>
+                </div>
+              </Link>
+              <Link href="/teams/dispatch">
+                <div className="sidebar-link">
+                  <Truck className="h-5 w-5" />
+                  <span>Dispatch</span>
+                </div>
+              </Link>
             </div>
           </div>
         )}
+        
+        {/* Logout button */}
+        <div className="px-3 py-4 mt-6">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-gray-200 transition-all hover:text-white hover:bg-[#1A2A47]"
+          >
+            <LogOut className="h-5 w-5" />
+            <span>Logout</span>
+          </button>
+        </div>
       </nav>
+      
+      {/* Version info */}
+      <div className="px-5 py-2 text-xs text-[#457B9D]/70 text-center">
+        Metio ERP v1.0
+      </div>
     </div>
   );
 }

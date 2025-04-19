@@ -14,12 +14,24 @@ import SettingsPage from "@/pages/settings";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
+import { Loader2 } from "lucide-react";
+
+// Import the Metio logo
+import metioIcon from "@/assets/metio-icon.svg";
 
 function ProtectedRoute({ component: Component, ...rest }: any) {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div className="flex h-screen w-full items-center justify-center">Loading...</div>;
+    return (
+      <div className="flex h-screen w-full items-center justify-center flex-col bg-[#F1FAFB]">
+        <img src={metioIcon} alt="Metio" className="w-16 h-16 mb-4 animate-pulse" />
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-5 w-5 animate-spin text-[#1D3557]" />
+          <span className="text-[#1D3557] font-medium">Loading...</span>
+        </div>
+      </div>
+    );
   }
   
   if (!isAuthenticated) {
