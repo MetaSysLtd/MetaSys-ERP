@@ -6,9 +6,9 @@ import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/login";
 import ForgotPassword from "@/pages/auth/forgot-password";
 import Dashboard from "@/pages/dashboard";
-import LeadsPage from "@/pages/leads";
-import LeadDetails from "@/pages/leads/[id]";
-// Renamed imports pointing to the same components for now
+import CRMPage from "@/pages/crm";
+import ContactDetails from "@/pages/crm/[id]";
+// Renamed imports pointing to new CRM components
 import DispatchPage from "@/pages/dispatch";
 import InvoicesPage from "@/pages/invoices";
 import InvoiceDetailsPage from "@/pages/invoices/[id]";
@@ -75,7 +75,7 @@ function Router() {
       <Route path="/crm">
         {() => (
           <AppLayout>
-            <ProtectedRoute component={LeadsPage} />
+            <ProtectedRoute component={CRMPage} />
           </AppLayout>
         )}
       </Route>
@@ -83,7 +83,7 @@ function Router() {
       <Route path="/crm/:id">
         {(params) => (
           <AppLayout>
-            <ProtectedRoute component={LeadDetails} params={params} />
+            <ProtectedRoute component={ContactDetails} params={params} />
           </AppLayout>
         )}
       </Route>
