@@ -2,6 +2,21 @@ import { pgTable, text, serial, integer, boolean, date, timestamp, real } from "
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Organization Management
+export const organizations = pgTable("organizations", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  code: text("code").notNull().unique(),
+  active: boolean("active").notNull().default(true),
+  address: text("address"),
+  contactName: text("contact_name"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  logoUrl: text("logo_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // User and Role Management
 export const roles = pgTable("roles", {
   id: serial("id").primaryKey(),
@@ -20,6 +35,7 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   phoneNumber: text("phone_number"),
   roleId: integer("role_id").notNull().references(() => roles.id),
+  orgId: integer("org_id").references(() => organizations.id),
   active: boolean("active").notNull().default(true),
   profileImageUrl: text("profile_image_url"),
 });
@@ -39,6 +55,7 @@ export const leads = pgTable("leads", {
   email: text("email"),
   status: text("status").notNull(), // "unqualified", "qualified", "active", "lost", "won", "follow-up", "nurture"
   assignedTo: integer("assigned_to").notNull(),
+  orgId: integer("org_id").references(() => organizations.id),
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -61,6 +78,7 @@ export const dispatch_clients = pgTable("dispatch_clients", {
 export const loads = pgTable("loads", {
   id: serial("id").primaryKey(),
   leadId: integer("lead_id").notNull(),
+  orgId: integer("org_id").references(() => organizations.id),
   origin: text("origin").notNull(),
   destination: text("destination").notNull(),
   pickupDate: date("pickup_date").notNull(),
@@ -82,6 +100,7 @@ export const invoices = pgTable("invoices", {
   id: serial("id").primaryKey(),
   invoiceNumber: text("invoice_number").notNull().unique(),
   leadId: integer("lead_id").notNull(),
+  orgId: integer("org_id").references(() => organizations.id),
   totalAmount: real("total_amount").notNull(),
   status: text("status").notNull(), // "draft", "sent", "paid", "overdue"
   issuedDate: date("issued_date").notNull(),
@@ -140,6 +159,7 @@ export const tasks = pgTable("tasks", {
   status: text("status").notNull(), // "todo", "in_progress", "completed", "cancelled"
   priority: text("priority").notNull(), // "low", "medium", "high", "urgent"
   dueDate: date("due_date"),
+  orgId: integer("org_id").references(() => organizations.id),
   createdBy: integer("created_by").notNull(),
   assignedTo: integer("assigned_to"),
   relatedEntityType: text("related_entity_type"), // "lead", "load", "invoice", etc.
@@ -164,6 +184,7 @@ export const comments = pgTable("comments", {
 export const timeClockEntries = pgTable("time_clock_entries", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
+  orgId: integer("org_id").references(() => organizations.id),
   clockInTime: timestamp("clock_in_time").notNull(),
   clockOutTime: timestamp("clock_out_time"),
   clockInLocation: text("clock_in_location"),
