@@ -431,19 +431,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               details: `Created dispatch client record for lead ${lead.companyName}`
             });
             
-            // Send notification if available
-            if (typeof notificationService.sendDispatchNotification === 'function') {
-              await notificationService.sendDispatchNotification(
-                dispatchClient.id,
-                'created',
-                {
-                  userId: req.user.id,
-                  userName: `${req.user.firstName} ${req.user.lastName}`,
-                  leadId: leadId,
-                  companyName: lead.companyName
-                }
-              );
-            }
+            // Send notification to dispatch team
+            await notificationService.sendDispatchNotification(
+              dispatchClient.id,
+              'created',
+              {
+                userId: req.user.id,
+                userName: `${req.user.firstName} ${req.user.lastName}`,
+                leadId: leadId,
+                companyName: lead.companyName
+              }
+            );
             
             console.log(`Created dispatch client ${dispatchClient.id} for activated lead ${leadId}`);
           }

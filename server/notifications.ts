@@ -345,10 +345,10 @@ export const sendDispatchNotification = async (
 
         if (preferences.slack) {
           // Send to Slack dispatch channel
-          slackService.sendSlackMessage({
-            channel: process.env.SLACK_DISPATCH_CHANNEL_ID || 'general',
-            text: `${message.title}: ${message.body}`
-          }).catch(err => console.error('Error sending dispatch slack notification:', err));
+          slackService.sendSlackMessage(
+            `${message.title}: ${message.body}`,
+            slackService.SlackChannelType.DISPATCH
+          ).catch(err => console.error('Error sending dispatch slack notification:', err));
           
           log(`Sent Slack message to dispatch channel about client ${dispatchClientId}`);
         }
