@@ -2,7 +2,13 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { Select } from "@/components/ui/select";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from "@/components/ui/select";
 import { KPISection } from "@/components/dashboard/KPISection";
 import { TeamPerformance } from "@/components/dashboard/TeamPerformance";
 import { OnboardingRatio } from "@/components/dashboard/OnboardingRatio";
@@ -13,6 +19,12 @@ import { CommissionTracking } from "@/components/dashboard/CommissionTracking";
 import { RevenueCard } from "@/components/dashboard/RevenueCard";
 import { FinanceOverview } from "@/components/dashboard/FinanceOverview";
 import { EmployeeSummary } from "@/components/dashboard/EmployeeSummary";
+import { 
+  AnimatedContainer,
+  AnimatedList,
+  AnimatedListItem,
+  AnimatedWrapper
+} from "@/components/ui/animated-container";
 
 export default function Dashboard() {
   const { user, role } = useAuth();
