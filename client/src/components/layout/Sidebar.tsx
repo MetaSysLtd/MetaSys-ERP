@@ -16,7 +16,15 @@ import {
   Bell,
   Layers,
   ChevronRight,
-  ShieldAlert
+  ShieldAlert,
+  HeartPulse,
+  BriefcaseBusiness,
+  UserRound,
+  CalendarClock,
+  BrainCircuit,
+  Megaphone,
+  BarChart,
+  MessageSquareText
 } from "lucide-react";
 
 // Import the Metio logo and icon
@@ -89,11 +97,24 @@ export function Sidebar({ mobile }: SidebarProps) {
       showFor: ["hr", "admin"],
     },
     {
+      name: "Human Resources",
+      href: "/hr",
+      icon: HeartPulse,
+      showFor: ["hr", "admin"],
+    },
+    {
       name: "Finance",
       href: "/finance",
       icon: Banknote,
       showFor: ["finance", "admin"],
       minLevel: 3,
+    },
+    {
+      name: "Marketing",
+      href: "/marketing",
+      icon: Megaphone,
+      showFor: ["marketing", "admin"],
+      minLevel: 2,
     },
     {
       name: "Client Portal",

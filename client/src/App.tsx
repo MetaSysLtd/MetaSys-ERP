@@ -16,6 +16,9 @@ import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import ProfilePage from "@/pages/settings/profile";
 import AdminDashboard from "@/pages/admin";
+import HRPage from "@/pages/hr";
+import FinancePage from "@/pages/finance";
+import MarketingPage from "@/pages/marketing";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { MessageProvider } from "@/contexts/MessageContext";
@@ -140,6 +143,30 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={AdminDashboard} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/hr">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={HRPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/finance">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={FinancePage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/marketing">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={MarketingPage} />
           </AppLayout>
         )}
       </Route>
