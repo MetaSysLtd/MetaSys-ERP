@@ -623,6 +623,103 @@ export async function sendDailySummary(summary: {
   return adminResult && salesResult && dispatchResult;
 }
 
+/**
+ * Sends a dispatch client notification to Slack
+ * @param dispatchClientInfo - Information about the dispatch client
+ * @returns Promise resolving to success status
+ */
+export async function sendDispatchClientNotification(dispatchClientInfo: {
+  id: number;
+  leadId: number;
+  companyName: string;
+  status: string;
+  createdBy: string;
+  action: 'created' | 'updated' | 'status_changed';
+}): Promise<boolean> {
+  const { id, leadId, companyName, status, createdBy, action } = dispatchClientInfo;
+  
+  let emoji = '🚚';
+  let actionText = 'updated';
+  
+  switch (action) {
+    case 'created':
+      emoji = '🆕';
+      actionText = 'created';
+      break;
+    case 'status_changed':
+      emoji = '🔄';
+      actionText = 'changed status to';
+      break;
+  }
+
+  // Format message with custom blocks
+  const blocks: SlackBlock[] = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: `${emoji} Dispatch Client ${actionText.toUpperCase()}`,
+        emoji: true
+      }
+    },
+    {
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `*Company:*\n${companyName}`
+        },
+        {
+          type: "mrkdwn",
+          text: `*ID:*\n${id}`
+        }
+      ]
+    },
+    {
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `*Status:*\n${status}`
+        },
+        {
+          type: "mrkdwn",
+          text: `*Created By:*\n${createdBy}`
+        }
+      ]
+    },
+    {
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `*Lead ID:*\n${leadId}`
+        }
+      ]
+    },
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: `${action} at ${new Date().toLocaleString()}`
+        }
+      ]
+    },
+    {
+      type: "divider"
+    }
+  ];
+
+  return await sendStructuredSlackMessage(
+    {
+      text: `Dispatch Client ${actionText}: ${companyName}`,
+      blocks: blocks as any,
+    },
+    SlackChannelType.DISPATCH
+  );
+}
+
 // Export default functions for easier imports
 export default {
   sendSlackMessage,
@@ -630,5 +727,6 @@ export default {
   sendLeadNotification,
   sendLoadNotification,
   sendInvoiceNotification,
-  sendDailySummary
+  sendDailySummary,
+  sendDispatchClientNotification
 };

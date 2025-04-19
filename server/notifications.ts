@@ -344,11 +344,15 @@ export const sendDispatchNotification = async (
         }
 
         if (preferences.slack) {
-          // Send to Slack dispatch channel
-          slackService.sendSlackMessage(
-            `${message.title}: ${message.body}`,
-            slackService.SlackChannelType.DISPATCH
-          ).catch(err => console.error('Error sending dispatch slack notification:', err));
+          // Send to Slack dispatch channel using the specialized function
+          slackService.sendDispatchClientNotification({
+            id: dispatchClient.id,
+            leadId: dispatchClient.leadId,
+            companyName: data.companyName,
+            status: dispatchClient.status,
+            createdBy: data.userName,
+            action: action as 'created' | 'updated' | 'status_changed'
+          }).catch(err => console.error('Error sending dispatch slack notification:', err));
           
           log(`Sent Slack message to dispatch channel about client ${dispatchClientId}`);
         }
