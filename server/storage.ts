@@ -1,11 +1,13 @@
 import {
-  users, roles, leads, loads, invoices, invoiceItems, commissions, activities, dispatch_clients, organizations,
+  users, roles, leads, loads, invoices, invoiceItems, commissions, activities, 
+  dispatch_clients, organizations, userOrganizations,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
   type Commission, type InsertCommission, type Activity, type InsertActivity,
   type DispatchClient, type InsertDispatchClient, 
-  type Organization, type InsertOrganization
+  type Organization, type InsertOrganization,
+  type UserOrganization, type InsertUserOrganization
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -35,6 +37,11 @@ export interface IStorage {
   getUsersByOrganization(orgId: number): Promise<User[]>;
   getAllUsers(): Promise<User[]>;
   getUsersByRole(roleId: number): Promise<User[]>;
+  
+  // User-Organization relationships
+  getUserOrganizations(userId: number): Promise<Organization[]>;
+  getUserOrganizationIds(userId: number): Promise<number[]>;
+  setUserOrganizations(userId: number, organizationIds: number[]): Promise<void>;
   
   getRole(id: number): Promise<Role | undefined>;
   getRoleByName(name: string): Promise<Role | undefined>;
@@ -108,6 +115,7 @@ export class MemStorage implements IStorage {
   private commissions: Map<number, Commission>;
   private activities: Map<number, Activity>;
   private organizations: Map<number, Organization>;
+  private userOrganizations: Map<number, UserOrganization>;
   
   private userIdCounter: number;
   private roleIdCounter: number;
@@ -119,6 +127,7 @@ export class MemStorage implements IStorage {
   private commissionIdCounter: number;
   private activityIdCounter: number;
   private organizationIdCounter: number;
+  private userOrganizationIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
@@ -137,6 +146,7 @@ export class MemStorage implements IStorage {
     this.commissions = new Map();
     this.activities = new Map();
     this.organizations = new Map();
+    this.userOrganizations = new Map();
     
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
@@ -148,6 +158,7 @@ export class MemStorage implements IStorage {
     this.commissionIdCounter = 1;
     this.activityIdCounter = 1;
     this.organizationIdCounter = 1;
+    this.userOrganizationIdCounter = 1;
     
     // Initialize with default roles
     this.initializeRoles();

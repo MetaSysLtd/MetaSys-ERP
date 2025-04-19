@@ -40,6 +40,14 @@ export const users = pgTable("users", {
   profileImageUrl: text("profile_image_url"),
 });
 
+// User-organization relationships (many-to-many)
+export const userOrganizations = pgTable("user_organizations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  organizationId: integer("organization_id").notNull().references(() => organizations.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Lead Management
 export const leads = pgTable("leads", {
   id: serial("id").primaryKey(),
@@ -256,10 +264,14 @@ export const insertTimeClockEntrySchema = createInsertSchema(timeClockEntries).o
 export const insertLeaveTypeSchema = createInsertSchema(leaveTypes).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLeaveRequestSchema = createInsertSchema(leaveRequests).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
+export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({ id: true, createdAt: true });
 
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+
+export type UserOrganization = typeof userOrganizations.$inferSelect;
+export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
 
 export type Role = typeof roles.$inferSelect;
 export type InsertRole = z.infer<typeof insertRoleSchema>;
