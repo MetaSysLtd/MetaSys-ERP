@@ -1,6 +1,7 @@
 import { ReactNode, useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { X } from "lucide-react";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -19,35 +20,21 @@ export function AppLayout({ children }: AppLayoutProps) {
       >
         {/* Sidebar backdrop */}
         <div 
-          className="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity ease-linear duration-300"
+          className="fixed inset-0 bg-[#0a1825]/80 backdrop-blur-sm transition-opacity ease-linear duration-300"
           aria-hidden="true"
           onClick={() => setSidebarOpen(false)}
         ></div>
         
         {/* Sidebar */}
-        <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gray-900 transform transition ease-in-out duration-300 translate-x-0">
-          <div className="absolute top-0 right-0 -mr-12 pt-2">
+        <div className="relative flex-1 flex flex-col max-w-xs w-full transform transition ease-in-out duration-300 translate-x-0">
+          <div className="absolute top-0 right-0 -mr-12 pt-4">
             <button
               type="button"
               className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
               onClick={() => setSidebarOpen(false)}
             >
               <span className="sr-only">Close sidebar</span>
-              <svg
-                className="h-6 w-6 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <X className="h-6 w-6 text-white" />
             </button>
           </div>
           
@@ -61,7 +48,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:flex-shrink-0">
-        <div className="flex flex-col w-64">
+        <div className="flex flex-col w-72">
           <Sidebar mobile={false} />
         </div>
       </div>
@@ -70,7 +57,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
         <Header setSidebarOpen={setSidebarOpen} />
         
-        <main className="flex-1 relative overflow-y-auto focus:outline-none">
+        <main className="flex-1 relative overflow-y-auto focus:outline-none bg-white dark:bg-gray-900">
           {children}
         </main>
       </div>

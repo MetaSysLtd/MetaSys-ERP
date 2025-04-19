@@ -3,14 +3,29 @@ import { useAuth } from "@/hooks/use-auth";
 import { getInitials } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Bell, ChevronDown, Menu, Search } from "lucide-react";
+import { 
+  Bell, 
+  ChevronDown, 
+  Menu, 
+  Search, 
+  MessageSquare, 
+  Settings, 
+  LogOut, 
+  User, 
+  Calendar, 
+  HelpCircle 
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
+  DropdownMenuShortcut,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
@@ -23,12 +38,30 @@ export function Header({ setSidebarOpen }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   
   const handleLogout = async () => {
-    await logout();
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
-    navigate("/login");
+    try {
+      if (logout) {
+        await logout();
+        toast({
+          title: "Logged out",
+          description: "You have been successfully logged out.",
+        });
+        navigate("/auth");
+      } else {
+        // Fallback for direct API call
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          credentials: "include"
+        });
+        window.location.href = "/auth";
+      }
+    } catch (err) {
+      console.error("Logout error:", err);
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging out. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
   const handleSearch = (e: React.FormEvent) => {
@@ -41,10 +74,10 @@ export function Header({ setSidebarOpen }: HeaderProps) {
   };
   
   return (
-    <header className="relative z-10 flex-shrink-0 flex h-16 bg-white shadow">
+    <header className="relative z-10 flex-shrink-0 flex h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <button
         type="button"
-        className="md:hidden px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:bg-gray-100 focus:text-gray-600"
+        className="md:hidden px-4 border-r border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 focus:text-gray-600 dark:focus:text-gray-300"
         onClick={() => setSidebarOpen(true)}
       >
         <span className="sr-only">Open sidebar</span>
@@ -58,14 +91,14 @@ export function Header({ setSidebarOpen }: HeaderProps) {
             <label htmlFor="search" className="sr-only">
               Search
             </label>
-            <div className="relative text-gray-400 focus-within:text-gray-600">
+            <div className="relative text-gray-400 focus-within:text-gray-600 dark:focus-within:text-gray-300">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5" />
+                <Search className="h-4 w-4" />
               </div>
               <input
                 id="search"
-                className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-md leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:placeholder-gray-500 focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                placeholder="Search leads, loads..."
+                className="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-600 rounded-md leading-5 bg-gray-50 dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#2170dd] dark:focus:ring-[#3f8cff] focus:border-transparent sm:text-sm"
+                placeholder="Search leads, loads, invoices..."
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -74,48 +107,81 @@ export function Header({ setSidebarOpen }: HeaderProps) {
           </form>
         </div>
         
-        {/* Notifications and user menu */}
-        <div className="ml-4 flex items-center md:ml-6">
+        {/* Right side items */}
+        <div className="ml-4 flex items-center space-x-4">
+          {/* Help button */}
+          <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+            <span className="sr-only">Get help</span>
+            <HelpCircle className="h-5 w-5" />
+          </button>
+          
+          {/* Calendar button */}
+          <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+            <span className="sr-only">View calendar</span>
+            <Calendar className="h-5 w-5" />
+          </button>
+          
+          {/* Messages */}
+          <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative">
+            <span className="sr-only">View messages</span>
+            <MessageSquare className="h-5 w-5" />
+            <Badge variant="secondary" className="absolute -top-0.5 -right-0.5 h-4 w-4 p-0 flex items-center justify-center text-[10px] font-medium">
+              3
+            </Badge>
+          </button>
+          
           {/* Notifications */}
-          <button className="p-1 rounded-full text-gray-500 hover:text-gray-700 relative">
+          <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative">
             <span className="sr-only">View notifications</span>
-            <Bell className="h-6 w-6" />
-            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-accent-500 ring-2 ring-white"></span>
+            <Bell className="h-5 w-5" />
+            <Badge variant="destructive" className="absolute -top-0.5 -right-0.5 h-4 w-4 p-0 flex items-center justify-center text-[10px] font-medium">
+              5
+            </Badge>
           </button>
           
           {/* Profile dropdown */}
-          <div className="ml-3 relative">
+          <div className="relative">
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+              <DropdownMenuTrigger className="flex items-center p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2170dd] dark:focus:ring-[#3f8cff]">
                 <span className="sr-only">Open user menu</span>
                 <div className="flex items-center">
                   {user?.profileImageUrl ? (
                     <img
-                      className="h-8 w-8 rounded-full"
+                      className="h-8 w-8 rounded-full object-cover border-2 border-white dark:border-gray-800"
                       src={user.profileImageUrl}
-                      alt=""
+                      alt={`${user.firstName} ${user.lastName}`}
                     />
                   ) : (
-                    <div className="bg-primary-500 rounded-full h-8 w-8 flex items-center justify-center text-sm font-medium text-white">
+                    <div className="bg-[#2170dd] rounded-full h-8 w-8 flex items-center justify-center text-sm font-medium text-white border-2 border-white dark:border-gray-800">
                       {user ? getInitials(user.firstName, user.lastName) : ""}
                     </div>
                   )}
-                  <span className="hidden md:block ml-2 text-sm font-medium text-gray-700">
+                  <span className="hidden lg:block ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                     {user?.firstName} {user?.lastName}
                   </span>
-                  <ChevronDown className="ml-1 h-4 w-4 text-gray-400" />
+                  <ChevronDown className="hidden lg:block ml-1 h-4 w-4 text-gray-400" />
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => navigate("/settings")}>
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/settings?tab=account")}>
-                  Account Settings
-                </DropdownMenuItem>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                    <DropdownMenuShortcut>⇧P</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/settings/preferences")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                    <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
-                  Logout
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                  <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
