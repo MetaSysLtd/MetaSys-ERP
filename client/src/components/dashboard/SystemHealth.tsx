@@ -123,8 +123,7 @@ export function SystemHealth({
               <div className="flex items-center gap-2">
                 <Progress 
                   value={metric.value} 
-                  className="h-2"
-                  indicatorClassName={getProgressColor(metric.status)}
+                  className={`h-2 [&>div]:${getProgressColor(metric.status)}`}
                 />
                 <span className="text-sm font-medium">{metric.value}%</span>
               </div>

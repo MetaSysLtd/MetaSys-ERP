@@ -11,6 +11,7 @@ import DispatchPage from "@/pages/dispatch";
 import InvoicesPage from "@/pages/invoices";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
+import AdminDashboard from "@/pages/admin";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
@@ -100,6 +101,14 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={SettingsPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/admin">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={AdminDashboard} />
           </AppLayout>
         )}
       </Route>

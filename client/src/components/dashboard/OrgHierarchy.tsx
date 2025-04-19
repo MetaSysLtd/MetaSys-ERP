@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronRight, FolderTree, Plus, Users, Building, FileOrganize } from 'lucide-react';
+import { ChevronRight, FolderTree, Plus, Users, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Custom FileOrganize icon since it's not in lucide-react
