@@ -137,7 +137,7 @@ export default function CRMPage() {
                       className="h-9"
                     >
                       <Plus className="h-4 w-4 mr-1" />
-                      New Contact
+                      New Lead
                     </Button>
                   )}
                 </div>
@@ -248,7 +248,7 @@ export default function CRMPage() {
                               className="mt-4"
                             >
                               <Plus className="h-4 w-4 mr-1" />
-                              Create New Contact
+                              Create New Lead
                             </Button>
                           )}
                         </div>

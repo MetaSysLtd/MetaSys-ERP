@@ -97,7 +97,7 @@ export function NewContactModal({ open, onOpenChange, onSuccess }: NewContactMod
       
       toast({
         title: "Success",
-        description: "Contact has been created successfully",
+        description: "Lead has been created successfully",
       });
       
       // Reset form and close modal
@@ -114,7 +114,7 @@ export function NewContactModal({ open, onOpenChange, onSuccess }: NewContactMod
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create contact. Please try again.",
+        description: error.message || "Failed to create lead. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -132,10 +132,10 @@ export function NewContactModal({ open, onOpenChange, onSuccess }: NewContactMod
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <DialogTitle className="text-lg leading-6 font-medium text-gray-900">
-                Add New Contact
+                Add New Lead
               </DialogTitle>
               <DialogDescription className="mt-2 text-sm text-gray-500">
-                Please fill out the information for the new contact. Fields marked with * are required.
+                Please fill out the information for the new lead. Fields marked with * are required.
               </DialogDescription>
             </div>
           </div>
@@ -363,7 +363,7 @@ export function NewContactModal({ open, onOpenChange, onSuccess }: NewContactMod
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Contact"}
+                {isSubmitting ? "Creating..." : "Create Lead"}
               </Button>
             </DialogFooter>
           </form>
