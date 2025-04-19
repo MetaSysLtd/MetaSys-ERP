@@ -1,5 +1,5 @@
 import {
-  users, roles, leads, loads, invoices, invoiceItems, commissions, activities, 
+  users, roles, leads, loads, invoices, invoiceItems, commissions, activities, tasks,
   dispatch_clients, organizations, userOrganizations, commissionRules, commissionsMonthly,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
@@ -9,7 +9,8 @@ import {
   type Organization, type InsertOrganization,
   type UserOrganization, type InsertUserOrganization,
   type CommissionRule, type InsertCommissionRule,
-  type CommissionMonthly, type InsertCommissionMonthly
+  type CommissionMonthly, type InsertCommissionMonthly,
+  type Task, type InsertTask
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -127,6 +128,14 @@ export interface IStorage {
   getActivitiesByUser(userId: number, limit?: number): Promise<Activity[]>;
   getActivitiesByEntity(entityType: string, entityId: number, limit?: number): Promise<Activity[]>;
   createActivity(activity: InsertActivity): Promise<Activity>;
+  
+  // Task operations
+  getTask(id: number): Promise<Task | undefined>;
+  getTasks(options?: { status?: string; priority?: string; limit?: number }): Promise<Task[]>;
+  getTasksByAssignee(userId: number): Promise<Task[]>;
+  getTasksByEntity(entityType: string, entityId: number): Promise<Task[]>;
+  createTask(task: InsertTask): Promise<Task>;
+  updateTask(id: number, task: Partial<Task>): Promise<Task | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -145,6 +154,7 @@ export class MemStorage implements IStorage {
   private userOrganizations: Map<number, UserOrganization>;
   private commissionRules: Map<number, CommissionRule>;
   private commissionsMonthly: Map<number, CommissionMonthly>;
+  private tasks: Map<number, Task>;
   
   private userIdCounter: number;
   private roleIdCounter: number;
@@ -159,6 +169,7 @@ export class MemStorage implements IStorage {
   private userOrganizationIdCounter: number;
   private commissionRuleIdCounter: number;
   private commissionMonthlyIdCounter: number;
+  private taskIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
@@ -180,6 +191,7 @@ export class MemStorage implements IStorage {
     this.userOrganizations = new Map();
     this.commissionRules = new Map();
     this.commissionsMonthly = new Map();
+    this.tasks = new Map();
     
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
@@ -194,6 +206,7 @@ export class MemStorage implements IStorage {
     this.userOrganizationIdCounter = 1;
     this.commissionRuleIdCounter = 1;
     this.commissionMonthlyIdCounter = 1;
+    this.taskIdCounter = 1;
     
     // Initialize with default roles
     this.initializeRoles();
