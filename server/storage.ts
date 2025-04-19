@@ -102,6 +102,22 @@ export interface IStorage {
   getActivitiesByUser(userId: number, limit?: number): Promise<Activity[]>;
   getActivitiesByEntity(entityType: string, entityId: number, limit?: number): Promise<Activity[]>;
   createActivity(activity: InsertActivity): Promise<Activity>;
+  
+  // Commission Rules operations
+  getCommissionRule(id: number): Promise<CommissionRule | undefined>;
+  getCommissionRulesByType(type: string): Promise<CommissionRule[]>;
+  getCommissionRulesByOrg(orgId: number): Promise<CommissionRule[]>;
+  createCommissionRule(rule: InsertCommissionRule): Promise<CommissionRule>;
+  updateCommissionRule(id: number, rule: Partial<CommissionRule>): Promise<CommissionRule | undefined>;
+  
+  // Monthly Commission operations
+  getCommissionMonthly(id: number): Promise<CommissionMonthly | undefined>;
+  getCommissionMonthlyByUserAndMonth(userId: number, month: string): Promise<CommissionMonthly | undefined>;
+  getCommissionsMonthlyByUser(userId: number): Promise<CommissionMonthly[]>;
+  getCommissionsMonthlyByMonth(month: string): Promise<CommissionMonthly[]>;
+  getCommissionsMonthlyByOrg(orgId: number): Promise<CommissionMonthly[]>;
+  createCommissionMonthly(commission: InsertCommissionMonthly): Promise<CommissionMonthly>;
+  updateCommissionMonthly(id: number, commission: Partial<CommissionMonthly>): Promise<CommissionMonthly | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -118,6 +134,8 @@ export class MemStorage implements IStorage {
   private activities: Map<number, Activity>;
   private organizations: Map<number, Organization>;
   private userOrganizations: Map<number, UserOrganization>;
+  private commissionRules: Map<number, CommissionRule>;
+  private commissionsMonthly: Map<number, CommissionMonthly>;
   
   private userIdCounter: number;
   private roleIdCounter: number;
@@ -130,6 +148,8 @@ export class MemStorage implements IStorage {
   private activityIdCounter: number;
   private organizationIdCounter: number;
   private userOrganizationIdCounter: number;
+  private commissionRuleIdCounter: number;
+  private commissionMonthlyIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
@@ -149,6 +169,8 @@ export class MemStorage implements IStorage {
     this.activities = new Map();
     this.organizations = new Map();
     this.userOrganizations = new Map();
+    this.commissionRules = new Map();
+    this.commissionsMonthly = new Map();
     
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
@@ -161,6 +183,8 @@ export class MemStorage implements IStorage {
     this.activityIdCounter = 1;
     this.organizationIdCounter = 1;
     this.userOrganizationIdCounter = 1;
+    this.commissionRuleIdCounter = 1;
+    this.commissionMonthlyIdCounter = 1;
     
     // Initialize with default roles
     this.initializeRoles();
@@ -665,6 +689,94 @@ export class MemStorage implements IStorage {
     };
     this.activities.set(id, activity);
     return activity;
+  }
+
+  // Commission Rules operations
+  async getCommissionRule(id: number): Promise<CommissionRule | undefined> {
+    return this.commissionRules.get(id);
+  }
+
+  async getCommissionRulesByType(type: string): Promise<CommissionRule[]> {
+    return Array.from(this.commissionRules.values()).filter(rule => rule.type === type);
+  }
+
+  async getCommissionRulesByOrg(orgId: number): Promise<CommissionRule[]> {
+    return Array.from(this.commissionRules.values()).filter(rule => rule.orgId === orgId);
+  }
+
+  async createCommissionRule(rule: InsertCommissionRule): Promise<CommissionRule> {
+    const id = this.commissionRuleIdCounter++;
+    const now = new Date();
+    const commissionRule: CommissionRule = {
+      ...rule,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.commissionRules.set(id, commissionRule);
+    return commissionRule;
+  }
+
+  async updateCommissionRule(id: number, updates: Partial<CommissionRule>): Promise<CommissionRule | undefined> {
+    const rule = await this.getCommissionRule(id);
+    if (!rule) return undefined;
+    
+    const updatedRule = {
+      ...rule,
+      ...updates,
+      updatedAt: new Date()
+    };
+    this.commissionRules.set(id, updatedRule);
+    return updatedRule;
+  }
+  
+  // Monthly Commission operations
+  async getCommissionMonthly(id: number): Promise<CommissionMonthly | undefined> {
+    return this.commissionsMonthly.get(id);
+  }
+
+  async getCommissionMonthlyByUserAndMonth(userId: number, month: string): Promise<CommissionMonthly | undefined> {
+    return Array.from(this.commissionsMonthly.values()).find(
+      commission => commission.userId === userId && commission.month === month
+    );
+  }
+
+  async getCommissionsMonthlyByUser(userId: number): Promise<CommissionMonthly[]> {
+    return Array.from(this.commissionsMonthly.values()).filter(commission => commission.userId === userId);
+  }
+
+  async getCommissionsMonthlyByMonth(month: string): Promise<CommissionMonthly[]> {
+    return Array.from(this.commissionsMonthly.values()).filter(commission => commission.month === month);
+  }
+
+  async getCommissionsMonthlyByOrg(orgId: number): Promise<CommissionMonthly[]> {
+    return Array.from(this.commissionsMonthly.values()).filter(commission => commission.orgId === orgId);
+  }
+
+  async createCommissionMonthly(commission: InsertCommissionMonthly): Promise<CommissionMonthly> {
+    const id = this.commissionMonthlyIdCounter++;
+    const now = new Date();
+    const commissionMonthly: CommissionMonthly = {
+      ...commission,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.commissionsMonthly.set(id, commissionMonthly);
+    return commissionMonthly;
+  }
+
+  async updateCommissionMonthly(id: number, updates: Partial<CommissionMonthly>): Promise<CommissionMonthly | undefined> {
+    const commission = await this.getCommissionMonthly(id);
+    if (!commission) return undefined;
+    
+    const updatedCommission = {
+      ...commission,
+      ...updates,
+      updatedAt: new Date()
+    };
+    this.commissionsMonthly.set(id, updatedCommission);
+    return updatedCommission;
   }
 }
 
@@ -1190,6 +1302,92 @@ export class DatabaseStorage implements IStorage {
           );
       }
     });
+  }
+
+  // Commission Rules operations
+  async getCommissionRule(id: number): Promise<CommissionRule | undefined> {
+    const [rule] = await db.select().from(commissionRules).where(eq(commissionRules.id, id));
+    return rule;
+  }
+
+  async getCommissionRulesByType(type: string): Promise<CommissionRule[]> {
+    return db.select().from(commissionRules).where(eq(commissionRules.type, type));
+  }
+
+  async getCommissionRulesByOrg(orgId: number): Promise<CommissionRule[]> {
+    return db.select().from(commissionRules).where(eq(commissionRules.orgId, orgId));
+  }
+
+  async createCommissionRule(rule: InsertCommissionRule): Promise<CommissionRule> {
+    const now = new Date().toISOString();
+    const [commissionRule] = await db.insert(commissionRules).values({
+      ...rule,
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    return commissionRule;
+  }
+
+  async updateCommissionRule(id: number, updates: Partial<CommissionRule>): Promise<CommissionRule | undefined> {
+    const [updatedRule] = await db
+      .update(commissionRules)
+      .set({
+        ...updates,
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(commissionRules.id, id))
+      .returning();
+    return updatedRule;
+  }
+  
+  // Monthly Commission operations
+  async getCommissionMonthly(id: number): Promise<CommissionMonthly | undefined> {
+    const [commission] = await db.select().from(commissionsMonthly).where(eq(commissionsMonthly.id, id));
+    return commission;
+  }
+
+  async getCommissionMonthlyByUserAndMonth(userId: number, month: string): Promise<CommissionMonthly | undefined> {
+    const [commission] = await db.select().from(commissionsMonthly).where(
+      and(
+        eq(commissionsMonthly.userId, userId),
+        eq(commissionsMonthly.month, month)
+      )
+    );
+    return commission;
+  }
+
+  async getCommissionsMonthlyByUser(userId: number): Promise<CommissionMonthly[]> {
+    return db.select().from(commissionsMonthly).where(eq(commissionsMonthly.userId, userId));
+  }
+
+  async getCommissionsMonthlyByMonth(month: string): Promise<CommissionMonthly[]> {
+    return db.select().from(commissionsMonthly).where(eq(commissionsMonthly.month, month));
+  }
+
+  async getCommissionsMonthlyByOrg(orgId: number): Promise<CommissionMonthly[]> {
+    return db.select().from(commissionsMonthly).where(eq(commissionsMonthly.orgId, orgId));
+  }
+
+  async createCommissionMonthly(commission: InsertCommissionMonthly): Promise<CommissionMonthly> {
+    const now = new Date().toISOString();
+    const [commissionMonthly] = await db.insert(commissionsMonthly).values({
+      ...commission,
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    return commissionMonthly;
+  }
+
+  async updateCommissionMonthly(id: number, updates: Partial<CommissionMonthly>): Promise<CommissionMonthly | undefined> {
+    const [updatedCommission] = await db
+      .update(commissionsMonthly)
+      .set({
+        ...updates,
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(commissionsMonthly.id, id))
+      .returning();
+    return updatedCommission;
   }
 }
 
