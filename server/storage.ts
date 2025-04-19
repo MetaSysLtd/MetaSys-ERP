@@ -814,6 +814,41 @@ export class MemStorage implements IStorage {
   async getCommissionsMonthlyByOrg(orgId: number): Promise<CommissionMonthly[]> {
     return Array.from(this.commissionsMonthly.values()).filter(commission => commission.orgId === orgId);
   }
+  
+  async getTopCommissionEarners(options: {
+    orgId: number;
+    month: string;
+    limit: number;
+    type?: 'sales' | 'dispatch';
+  }): Promise<Array<CommissionMonthly & { username: string; firstName: string; lastName: string; profileImageUrl: string | null; }>> {
+    // Filter commissions by criteria
+    let filteredCommissions = Array.from(this.commissionsMonthly.values())
+      .filter(comm => comm.orgId === options.orgId && comm.month === options.month);
+    
+    // Filter by department if specified
+    if (options.type) {
+      filteredCommissions = filteredCommissions.filter(comm => comm.dept === options.type);
+    }
+    
+    // Sort by totalCommission in descending order
+    filteredCommissions.sort((a, b) => b.totalCommission - a.totalCommission);
+    
+    // Get top N commissions
+    const topCommissions = filteredCommissions.slice(0, options.limit);
+    
+    // Join with user data
+    return topCommissions.map(comm => {
+      const user = this.users.get(comm.userId);
+      return {
+        ...comm,
+        amount: comm.totalCommission, // Map totalCommission to amount for consistency
+        username: user?.username || 'unknown',
+        firstName: user?.firstName || 'Unknown',
+        lastName: user?.lastName || 'User',
+        profileImageUrl: user?.profileImageUrl
+      };
+    });
+  }
 
   async createCommissionMonthly(commission: InsertCommissionMonthly): Promise<CommissionMonthly> {
     const id = this.commissionMonthlyIdCounter++;

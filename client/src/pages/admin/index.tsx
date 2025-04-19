@@ -8,8 +8,9 @@ import { UserManagement } from "@/components/dashboard/UserManagement";
 import { OrgHierarchy } from "@/components/dashboard/OrgHierarchy";
 import { SystemHealth } from "@/components/dashboard/SystemHealth";
 import { ScheduledTasks } from "@/components/dashboard/ScheduledTasks";
+import TopCommissionEarners from "@/components/dashboard/TopCommissionEarners";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { Loader2, Settings, User, UserPlus, Shield, RefreshCw, Server, BellRing } from "lucide-react";
+import { Loader2, Settings, User, UserPlus, Shield, RefreshCw, Server, BellRing, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
@@ -247,7 +248,7 @@ export default function AdminDashboard() {
       </div>
       
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 mb-6">
+        <TabsList className="grid grid-cols-5 mb-6">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <Server className="h-4 w-4" />
             <span>System Overview</span>
@@ -259,6 +260,10 @@ export default function AdminDashboard() {
           <TabsTrigger value="organization" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             <span>Organization</span>
+          </TabsTrigger>
+          <TabsTrigger value="commissions" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            <span>Commissions</span>
           </TabsTrigger>
           <TabsTrigger value="tasks" className="flex items-center gap-2">
             <BellRing className="h-4 w-4" />
@@ -350,6 +355,53 @@ export default function AdminDashboard() {
               });
             }}
           />
+        </TabsContent>
+        
+        <TabsContent value="commissions" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <TopCommissionEarners 
+              limit={5} 
+              type="sales" 
+              className="col-span-1" 
+            />
+            
+            <TopCommissionEarners 
+              limit={5} 
+              type="dispatch" 
+              className="col-span-1" 
+            />
+            
+            <TopCommissionEarners 
+              limit={5} 
+              type="all" 
+              className="col-span-1" 
+            />
+          </div>
+          
+          <Card className="shadow-md">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold">Commission Rules Management</CardTitle>
+              <CardDescription>Configure and manage commission calculation rules</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-end mb-4">
+                <Button 
+                  onClick={() => navigate('/admin/commissions')}
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>Configure Commission Rules</span>
+                </Button>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                <p>
+                  The commission calculation rules determine how commissions are calculated for 
+                  sales representatives and dispatchers. Click the button above to configure 
+                  these rules and set tiers based on performance metrics.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
         
         <TabsContent value="tasks" className="space-y-6">
