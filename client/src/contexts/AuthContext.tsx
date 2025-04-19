@@ -1,3 +1,4 @@
+
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -31,7 +32,7 @@ interface AuthContextType {
   error: string | null;
 }
 
-export const AuthContext = createContext<AuthContextType>({
+const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isLoading: true,
   user: null,
@@ -41,11 +42,7 @@ export const AuthContext = createContext<AuthContextType>({
   error: null,
 });
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export function AuthProvider({ children }: AuthProviderProps) {
+function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
@@ -53,17 +50,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkAuth = async () => {
       try {
-        // Use queryClient's getQueryFn with returnNull for 401 handling
         const res = await fetch("/api/auth/me", {
           credentials: "include",
         });
         
         if (res.ok) {
           const data = await res.json();
-          console.log("Auth check response:", data);
           if (data.authenticated) {
             setIsAuthenticated(true);
             setUser(data.user);
@@ -74,7 +68,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
             setRole(null);
           }
         } else {
-          console.log("Auth check failed:", res.status);
           setIsAuthenticated(false);
           setUser(null);
           setRole(null);
@@ -97,7 +90,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
     
     try {
-      // Use apiRequest utility for consistent handling
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -116,7 +108,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsAuthenticated(true);
       setUser(data.user);
       setRole(data.role);
-      console.log("Login successful:", data);
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message || "Failed to login. Please check your credentials.");
@@ -163,3 +154,5 @@ export function AuthProvider({ children }: AuthProviderProps) {
     </AuthContext.Provider>
   );
 }
+
+export { AuthContext, AuthProvider };
