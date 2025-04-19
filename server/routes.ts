@@ -3296,6 +3296,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Time Tracking routes
+  // Get current clock status for a user
+  app.get("/api/time-tracking/status", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const status = await storage.getCurrentClockStatus(req.user.id);
+      res.json({ status });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Clock in/out endpoint
+  app.post("/api/time-tracking/clock", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const { type } = req.body;
+      
+      if (!type || !['IN', 'OUT'].includes(type)) {
+        return res.status(400).json({ message: "Invalid clock event type. Must be 'IN' or 'OUT'" });
+      }
+      
+      // Get current status to prevent duplicate events
+      const currentStatus = await storage.getCurrentClockStatus(req.user.id);
+      
+      if (currentStatus === type) {
+        return res.status(400).json({ 
+          message: `You are already clocked ${type === 'IN' ? 'in' : 'out'}` 
+        });
+      }
+      
+      // Create clock event
+      const clockEvent = await storage.createClockEvent({
+        userId: req.user.id,
+        type
+      });
+      
+      // Create activity log
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: 'clock_event',
+        entityId: clockEvent.id,
+        action: `clock_${type.toLowerCase()}`,
+        details: `User clocked ${type.toLowerCase()}`
+      });
+      
+      res.status(201).json({
+        message: `Successfully clocked ${type === 'IN' ? 'in' : 'out'}`,
+        event: clockEvent
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Get clock events for the current user
+  app.get("/api/time-tracking/events", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const events = await storage.getClockEventsByUser(req.user.id);
+      res.json(events);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Get clock events for a specific day for the current user
+  app.get("/api/time-tracking/events/day", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const dateStr = req.query.date as string;
+      let date: Date;
+      
+      if (dateStr) {
+        date = new Date(dateStr);
+        if (isNaN(date.getTime())) {
+          return res.status(400).json({ message: "Invalid date format" });
+        }
+      } else {
+        date = new Date(); // Default to today
+      }
+      
+      const events = await storage.getClockEventsByUserAndDay(req.user.id, date);
+      res.json(events);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Admin endpoint to get clock events for any user
+  app.get("/api/time-tracking/events/user/:userId", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const userId = Number(req.params.userId);
+      const events = await storage.getClockEventsByUser(userId);
+      res.json(events);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Use the existing httpServer
   return httpServer;
 }
