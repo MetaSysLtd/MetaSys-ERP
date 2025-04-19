@@ -70,14 +70,14 @@ export default function Login() {
     <div className="min-h-screen flex overflow-hidden">
       {/* Left side - Hero image */}
       <div className="hidden lg:block lg:w-1/2 relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1D3557] to-[#457B9D]">
+        <div className="absolute inset-0">
           <img 
-            src="/hero-image.png"
+            src="/ai-enterprise.png"
             alt="AI Enterprise Suite" 
-            className="w-full h-full object-cover opacity-80"
+            className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 flex flex-col justify-center items-center text-white p-12">
-            <h1 className="text-4xl font-bold mb-4 text-center">A Complete AI-Driven Enterprise Suite for Next Gen Businesses</h1>
+          <div className="absolute inset-0 flex flex-col justify-center items-center text-white p-12 bg-gradient-to-b from-transparent via-transparent to-[#1D3557]/80">
+            <h1 className="text-4xl font-bold mb-4 text-center drop-shadow-md">A Complete AI-Driven Enterprise Suite for Next Gen Businesses</h1>
           </div>
         </div>
       </div>
