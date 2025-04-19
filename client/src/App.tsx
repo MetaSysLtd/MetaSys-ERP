@@ -189,6 +189,14 @@ function Router() {
           </AppLayout>
         )}
       </Route>
+
+      <Route path="/tasks">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={TasksPage} />
+          </AppLayout>
+        )}
+      </Route>
       
       <Route component={NotFound} />
     </Switch>
