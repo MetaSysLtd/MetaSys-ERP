@@ -13,6 +13,12 @@
   --bg-light: #f8fafc;
   --bg-gray: #f1f5f9;
   --border-light: #e2e8f0;
+
+  &.dark {
+    --bg-light: #111827;
+    --bg-gray: #1f2937;
+    --border-light: #374151;
+  }
   
   /* Animation duration variables */
   --transition-fast: 150ms;
@@ -81,6 +87,21 @@
 }
 
 @layer components {
+  .card {
+    @apply rounded-xl border bg-white dark:bg-gray-800 dark:border-gray-700 shadow-sm hover:shadow-md 
+      transition-all duration-300;
+  }
+
+  .dashboard-card {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-100 dark:border-gray-700 
+      p-5 hover:shadow-md transition-all duration-300 overflow-hidden;
+  }
+
+  .dashboard-panel {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-100 dark:border-gray-700 
+      flex flex-col transition-all duration-300 overflow-hidden;
+  }
+
   /* Custom button styles */
   .btn-primary {
     @apply bg-[#2170dd] text-white hover:bg-[#3984ea]/95 shadow-sm hover:shadow-md 
@@ -274,11 +295,11 @@
   }
   
   .data-table tbody {
-    @apply divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900;
+    @apply divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800;
   }
   
   .data-table td {
-    @apply px-4 py-3.5 text-sm text-gray-700 dark:text-gray-300;
+    @apply px-4 py-3.5 text-sm text-gray-700 dark:text-gray-200;
   }
   
   .data-table tr {
