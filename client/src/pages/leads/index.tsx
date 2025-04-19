@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, useSearch } from "wouter";
 import { formatDate, getStatusColor, formatPhone } from "@/lib/utils";
-import { NewLeadModal } from "@/components/modals/NewLeadModal";
+import { NewContactModal } from "@/components/modals/NewContactModal";
 import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
 
 import {
@@ -35,7 +35,7 @@ export default function LeadsPage() {
   const search = useSearch();
   const searchParams = new URLSearchParams(search);
   
-  const [newLeadModalOpen, setNewLeadModalOpen] = useState(false);
+  const [newContactModalOpen, setNewContactModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all");
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredLeads, setFilteredLeads] = useState<any[]>([]);
@@ -132,7 +132,7 @@ export default function LeadsPage() {
                 <div className="flex flex-wrap space-x-2">
                   {canCreateLead && (
                     <Button
-                      onClick={() => setNewLeadModalOpen(true)}
+                      onClick={() => setNewContactModalOpen(true)}
                       size="sm"
                       className="h-9"
                     >
@@ -244,7 +244,7 @@ export default function LeadsPage() {
                           </p>
                           {canCreateLead && (
                             <Button
-                              onClick={() => setNewLeadModalOpen(true)}
+                              onClick={() => setNewContactModalOpen(true)}
                               className="mt-4"
                             >
                               <Plus className="h-4 w-4 mr-1" />
@@ -310,10 +310,10 @@ export default function LeadsPage() {
         </MotionWrapper>
       </div>
       
-      {/* New Lead Modal */}
-      <NewLeadModal 
-        open={newLeadModalOpen} 
-        onOpenChange={setNewLeadModalOpen}
+      {/* New Contact Modal */}
+      <NewContactModal 
+        open={newContactModalOpen} 
+        onOpenChange={setNewContactModalOpen}
       />
     </div>
   );
