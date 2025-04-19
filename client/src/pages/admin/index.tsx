@@ -97,7 +97,7 @@ export default function AdminDashboard() {
       email: 'john.smith@metasys.com',
       role: 'Sales Manager',
       department: 'Sales',
-      status: 'active'
+      status: 'active' as const
     },
     {
       id: 2,
@@ -105,7 +105,7 @@ export default function AdminDashboard() {
       email: 'emma.wilson@metasys.com',
       role: 'Dispatcher',
       department: 'Dispatch',
-      status: 'active'
+      status: 'active' as const
     },
     {
       id: 3,
@@ -113,7 +113,7 @@ export default function AdminDashboard() {
       email: 'michael.brown@metasys.com',
       role: 'Sales Representative',
       department: 'Sales',
-      status: 'active'
+      status: 'active' as const
     },
     {
       id: 4,
@@ -121,7 +121,7 @@ export default function AdminDashboard() {
       email: 'sarah.johnson@metasys.com',
       role: 'HR Manager',
       department: 'HR',
-      status: 'inactive'
+      status: 'inactive' as const
     },
     {
       id: 5,
@@ -129,7 +129,7 @@ export default function AdminDashboard() {
       email: 'robert.davis@metasys.com',
       role: 'Finance Manager',
       department: 'Finance',
-      status: 'active'
+      status: 'active' as const
     }
   ];
   

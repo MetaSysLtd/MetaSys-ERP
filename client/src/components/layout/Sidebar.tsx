@@ -15,7 +15,8 @@ import {
   CheckSquare,
   Bell,
   Layers,
-  ChevronRight
+  ChevronRight,
+  ShieldAlert
 } from "lucide-react";
 
 // Import the Metio logo and icon
@@ -262,6 +263,30 @@ export function Sidebar({ mobile }: SidebarProps) {
           </div>
         </div>
         
+        {/* Admin section */}
+        {role && role.department === "admin" && role.level >= 5 && (
+          <div className="px-4 mb-6">
+            <h3 className="px-2 text-xs font-semibold text-[#5a7a9a] uppercase tracking-wider mb-3">
+              Administration
+            </h3>
+            <div className="space-y-1">
+              <Link href="/admin">
+                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
+                  ${isActiveRoute('/admin') 
+                    ? 'bg-[#2170dd] text-white' 
+                    : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
+                >
+                  <ShieldAlert className="h-[18px] w-[18px]" />
+                  <span>Admin Dashboard</span>
+                  {isActiveRoute('/admin') && (
+                    <ChevronRight className="w-4 h-4 ml-auto" />
+                  )}
+                </div>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Team switcher for admin users */}
         {role && role.department === "admin" && (
           <div className="px-4 mb-6">

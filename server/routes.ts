@@ -896,6 +896,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin routes
+  app.get("/api/admin", createAuthMiddleware(5), async (req, res, next) => {
+    try {
+      // Verify user is an admin
+      if (req.userRole?.department !== 'admin' || req.userRole?.level < 5) {
+        return res.status(403).json({ message: "Forbidden: Admin access required" });
+      }
+      
+      // Get system health metrics
+      const systemHealth = {
+        cpu: Math.floor(Math.random() * 40) + 20, // Random value between 20-60%
+        memory: Math.floor(Math.random() * 30) + 30, // Random value between 30-60%
+        disk: Math.floor(Math.random() * 30) + 50, // Random value between 50-80%
+        network: Math.floor(Math.random() * 40) + 20, // Random value between 20-60%
+        uptime: 99.98, // High uptime percentage
+      };
+      
+      // Get security metrics
+      const securityMetrics = {
+        lastScan: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 24 hours ago
+        vulnerabilities: 0,
+        failedLogins: {
+          count: 3,
+          lastAttempt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
+        },
+        securityEvents: [
+          {
+            type: 'failed_login',
+            user: 'sarah.johnson',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            details: 'Failed login attempt from IP 192.168.1.100'
+          },
+          {
+            type: 'password_change',
+            user: 'john.smith',
+            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+            details: 'Password changed successfully'
+          },
+          {
+            type: 'security_scan',
+            user: 'system',
+            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+            details: 'Scheduled security scan completed with 0 vulnerabilities'
+          }
+        ]
+      };
+      
+      // Get users data
+      const users = await storage.getAllUsers();
+      
+      // Get tasks data - simulated for now
+      const tasks = [
+        {
+          id: 'task-1',
+          name: 'Daily Database Backup',
+          status: 'completed',
+          lastRun: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+          nextRun: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'task-2',
+          name: 'Data Synchronization',
+          status: 'running',
+          lastRun: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+          nextRun: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+          progress: 78
+        },
+        {
+          id: 'task-3',
+          name: 'Weekly Analytics Report',
+          status: 'scheduled',
+          lastRun: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          nextRun: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ];
+      
+      // Get recent activities
+      const activities = await storage.getActivities(10);
+      
+      res.json({
+        systemHealth,
+        securityMetrics,
+        users: users.map(u => ({
+          id: u.id,
+          username: u.username,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          email: u.email,
+          roleId: u.roleId,
+          active: u.active,
+          lastActivity: activities.find(a => a.userId === u.id)?.createdAt || null
+        })),
+        tasks,
+        activities
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Dashboard data route
   app.get("/api/dashboard", createAuthMiddleware(1), async (req, res, next) => {
     try {
