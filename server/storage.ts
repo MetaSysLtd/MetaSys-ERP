@@ -1619,6 +1619,86 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedCommission;
   }
+
+  // Task operations
+  async getTask(id: number): Promise<Task | undefined> {
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
+    return task;
+  }
+  
+  async getTasks(options?: { status?: string; priority?: string; limit?: number }): Promise<Task[]> {
+    let query = db.select().from(tasks);
+    
+    // Apply filters
+    const conditions = [];
+    
+    if (options?.status) {
+      conditions.push(eq(tasks.status, options.status));
+    }
+    
+    if (options?.priority) {
+      conditions.push(eq(tasks.priority, options.priority));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    // Sort by dueDate (most urgent first)
+    query = query.orderBy(tasks.dueDate);
+    
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+    
+    return query;
+  }
+  
+  async getTasksByAssignee(userId: number): Promise<Task[]> {
+    return db.select()
+      .from(tasks)
+      .where(eq(tasks.assignedTo, userId))
+      .orderBy(tasks.dueDate);
+  }
+  
+  async getTasksByEntity(entityType: string, entityId: number): Promise<Task[]> {
+    return db.select()
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.relatedEntityType, entityType),
+          eq(tasks.relatedEntityId, entityId)
+        )
+      )
+      .orderBy(tasks.dueDate);
+  }
+  
+  async createTask(insertTask: InsertTask): Promise<Task> {
+    const now = new Date().toISOString();
+    const [task] = await db.insert(tasks).values({
+      ...insertTask,
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    return task;
+  }
+  
+  async updateTask(id: number, updates: Partial<Task>): Promise<Task | undefined> {
+    // If we're completing a task now, set the completedAt timestamp
+    if (updates.status === 'completed') {
+      updates.completedAt = new Date().toISOString();
+    }
+    
+    const [updatedTask] = await db
+      .update(tasks)
+      .set({
+        ...updates,
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(tasks.id, id))
+      .returning();
+    return updatedTask;
+  }
 }
 
 // Use database storage instead of memory storage

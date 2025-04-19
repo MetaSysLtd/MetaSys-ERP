@@ -10,7 +10,7 @@ import {
   insertLoadSchema, insertInvoiceSchema, insertInvoiceItemSchema,
   insertCommissionSchema, insertActivitySchema, insertDispatchClientSchema,
   insertOrganizationSchema, insertCommissionRuleSchema, insertCommissionMonthlySchema,
-  users, roles, dispatch_clients, organizations
+  insertTaskSchema, users, roles, dispatch_clients, organizations
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -167,7 +167,7 @@ async function addSeedDataIfNeeded() {
           status: "active",
           orgId: 1,
           notes: "Premium client, priority dispatch",
-          onboardingDate: new Date().toISOString().split('T')[0],
+          onboardingDate: new Date(),
           approvedBy: 1
         });
         
@@ -176,7 +176,7 @@ async function addSeedDataIfNeeded() {
           status: "active",
           orgId: 1,
           notes: "Regular client with consistent loads",
-          onboardingDate: new Date().toISOString().split('T')[0],
+          onboardingDate: new Date(),
           approvedBy: 1
         });
         
@@ -203,7 +203,7 @@ async function addSeedDataIfNeeded() {
           status: "lost",
           orgId: 1,
           notes: "Went with competitor due to pricing",
-          onboardingDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          onboardingDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
           approvedBy: 1
         });
         
@@ -3155,6 +3155,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.json(updatedLoad);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Task Management API Routes
+  // Get all tasks with optional filtering
+  app.get("/api/tasks", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const status = req.query.status as string;
+      const priority = req.query.priority as string;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      
+      const options: { status?: string; priority?: string; limit?: number } = {};
+      if (status) options.status = status;
+      if (priority) options.priority = priority;
+      if (limit) options.limit = limit;
+      
+      const tasks = await storage.getTasks(options);
+      res.json(tasks);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get a specific task by ID
+  app.get("/api/tasks/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const task = await storage.getTask(taskId);
+      
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
+      res.json(task);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get tasks assigned to a specific user
+  app.get("/api/tasks/user/:userId", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const tasks = await storage.getTasksByAssignee(userId);
+      res.json(tasks);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get tasks for a specific entity (lead, load, etc.)
+  app.get("/api/tasks/entity/:type/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const entityType = req.params.type;
+      const entityId = parseInt(req.params.id);
+      const tasks = await storage.getTasksByEntity(entityType, entityId);
+      res.json(tasks);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Create a new task
+  app.post("/api/tasks", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      // Validate request body against schema
+      const validatedData = insertTaskSchema.parse(req.body);
+      
+      // Create task
+      const task = await storage.createTask(validatedData);
+      
+      // Log activity
+      if (req.user?.id) {
+        await storage.createActivity({
+          userId: req.user.id,
+          entityType: "task",
+          entityId: task.id,
+          action: "created",
+          details: `Task created: ${task.title}`
+        });
+      }
+      
+      res.status(201).json(task);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Update a task
+  app.patch("/api/tasks/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const taskId = parseInt(req.params.id);
+      const task = await storage.getTask(taskId);
+      
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
+      // Update task
+      const updatedTask = await storage.updateTask(taskId, req.body);
+      
+      // Log activity if status is changing
+      if (req.body.status && req.body.status !== task.status && req.user?.id) {
+        await storage.createActivity({
+          userId: req.user.id,
+          entityType: "task",
+          entityId: taskId,
+          action: "status_changed",
+          details: `Task status changed from ${task.status} to ${req.body.status}`
+        });
+      }
+      
+      res.json(updatedTask);
     } catch (error) {
       next(error);
     }
