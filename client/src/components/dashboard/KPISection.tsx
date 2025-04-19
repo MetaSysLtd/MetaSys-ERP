@@ -16,15 +16,18 @@ interface DashboardMetrics {
   totalProfit: number;
   profitMargin: number;
   invoicesPending: number;
+  activeDispatchClients?: number;
   monthlyLeads?: number;
   activeClients?: number;
   monthlyLoads?: number;
   leadsChange?: number;
   clientsChange?: number;
   loadsChange?: number;
+  dispatchClientsChange?: number;
   leadsTrend?: 'up' | 'down' | 'neutral';
   clientsTrend?: 'up' | 'down' | 'neutral';
   loadsTrend?: 'up' | 'down' | 'neutral';
+  dispatchClientsTrend?: 'up' | 'down' | 'neutral';
 }
 
 interface KPISectionProps {
@@ -53,22 +56,25 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
     totalProfit: 0,
     profitMargin: 0,
     invoicesPending: 0,
+    activeDispatchClients: 0,
     monthlyLeads: 0,
     activeClients: 0,
     monthlyLoads: 0,
     leadsChange: 0,
     clientsChange: 0,
     loadsChange: 0,
+    dispatchClientsChange: 0,
     leadsTrend: 'neutral',
     clientsTrend: 'neutral',
-    loadsTrend: 'neutral'
+    loadsTrend: 'neutral',
+    dispatchClientsTrend: 'neutral'
   };
   
   // Determine trend based on change percentage
   const getTrend = (change: number = 0) => change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
 
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
       <MetricCard
         title="Total Leads"
         value={metrics.totalLeads?.toString() || '0'}
@@ -82,6 +88,15 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         description={`${metrics.completedLoads || 0} completed this month`}
         trend={getTrend(metrics.loadsChange)}
         href="/dispatch"
+      />
+      <MetricCard
+        title="Active Clients"
+        value={metrics.activeDispatchClients?.toString() || '0'}
+        description="Dispatch clients in date range"
+        trend={getTrend(metrics.dispatchClientsChange)}
+        href="/dispatch/clients"
+        iconBgColor="bg-green-50"
+        iconColor="text-green-600"
       />
       <MetricCard
         title="Total Revenue"

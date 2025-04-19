@@ -1345,7 +1345,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalRevenue: 528750,
         totalProfit: 158625,
         profitMargin: 30,
-        invoicesPending: 24
+        invoicesPending: 24,
+        activeDispatchClients: 28,
+        dispatchClientsChange: 8,
+        dispatchClientsTrend: 'up'
       };
       
       // Revenue data
@@ -1552,6 +1555,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             dashboardData.metrics.realLoadsCount = allLoads.length;
             dashboardData.metrics.realInTransitLoads = inTransitLoads.length;
             dashboardData.metrics.realDeliveredLoads = deliveredLoads.length;
+            
+            // Get active dispatch clients
+            try {
+              const activeClients = await storage.getDispatchClientsByStatus('Active');
+              if (activeClients) {
+                dashboardData.metrics.activeDispatchClients = activeClients.length;
+              }
+            } catch (error) {
+              console.log('Error fetching active dispatch clients:', error);
+            }
             
             // Get user-specific loads if needed
             if (roleLevel === 1 && req.user) {
