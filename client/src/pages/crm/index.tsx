@@ -125,7 +125,9 @@ export default function CRMPage() {
             <div className="flex flex-wrap items-center justify-between">
               <MotionWrapper animation="fade-right" delay={0.2}>
                 <h1 className="text-2xl font-semibold text-gray-900 mb-2 sm:mb-0">
-                  CRM Management
+                  {statusFilter === "qualified" ? "SQL - Sales Qualified Leads" : 
+                   statusFilter === "nurture" ? "MQL - Marketing Qualified Leads" : 
+                   statusFilter === "active" ? "Clients" : "All Leads"}
                 </h1>
               </MotionWrapper>
               <MotionWrapper animation="fade-left" delay={0.3}>
@@ -167,14 +169,14 @@ export default function CRMPage() {
                       <SelectValue placeholder="All Contacts" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Contacts</SelectItem>
-                      <SelectItem value="qualified">Qualified</SelectItem>
+                      <SelectItem value="all">All Leads</SelectItem>
+                      <SelectItem value="qualified">SQL (Qualified)</SelectItem>
+                      <SelectItem value="nurture">MQL (Nurture)</SelectItem>
+                      <SelectItem value="active">Clients (Active)</SelectItem>
                       <SelectItem value="unqualified">Unqualified</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
                       <SelectItem value="lost">Lost</SelectItem>
                       <SelectItem value="won">Won</SelectItem>
                       <SelectItem value="follow-up">Follow-Up</SelectItem>
-                      <SelectItem value="nurture">Nurture</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

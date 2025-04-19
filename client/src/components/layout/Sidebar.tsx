@@ -16,6 +16,7 @@ import {
   Bell,
   Layers,
   ChevronRight,
+  ChevronDown,
   ShieldAlert,
   HeartPulse,
   BriefcaseBusiness,
@@ -60,6 +61,24 @@ export function Sidebar({ mobile }: SidebarProps) {
       href: "/crm",
       icon: Users,
       showFor: ["sales", "admin"],
+      subItems: [
+        {
+          name: "All Leads",
+          href: "/crm",
+        },
+        {
+          name: "SQL",
+          href: "/crm?status=qualified",
+        },
+        {
+          name: "MQL",
+          href: "/crm?status=nurture",
+        },
+        {
+          name: "Clients",
+          href: "/crm?status=active",
+        },
+      ],
     },
     {
       name: "Dispatch",
@@ -219,19 +238,43 @@ export function Sidebar({ mobile }: SidebarProps) {
           </h3>
           <div className="space-y-1">
             {filteredMainItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
-                  ${isActiveRoute(item.href) 
-                    ? 'bg-[#2170dd] text-white' 
-                    : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
-                >
-                  <item.icon className="h-[18px] w-[18px]" />
-                  <span>{item.name}</span>
-                  {isActiveRoute(item.href) && (
-                    <ChevronRight className="w-4 h-4 ml-auto" />
-                  )}
-                </div>
-              </Link>
+              <div key={item.href}>
+                <Link href={item.href}>
+                  <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
+                    ${isActiveRoute(item.href) 
+                      ? 'bg-[#2170dd] text-white' 
+                      : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
+                  >
+                    <item.icon className="h-[18px] w-[18px]" />
+                    <span>{item.name}</span>
+                    {/* Show ChevronRight for active items or ChevronDown for items with subItems */}
+                    {(item.subItems && item.subItems.length > 0) ? (
+                      <ChevronDown className="w-4 h-4 ml-auto" />
+                    ) : (
+                      isActiveRoute(item.href) && (
+                        <ChevronRight className="w-4 h-4 ml-auto" />
+                      )
+                    )}
+                  </div>
+                </Link>
+                
+                {/* Render submenu items if they exist */}
+                {item.subItems && item.subItems.length > 0 && (
+                  <div className="mt-1 ml-7 space-y-1">
+                    {item.subItems.map((subItem) => (
+                      <Link key={subItem.href} href={subItem.href}>
+                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-all
+                          ${location === subItem.href || (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
+                            ? 'bg-[#2170dd]/80 text-white' 
+                            : 'text-[#f5f9fc]/80 hover:bg-[#142c42] hover:text-white'}`}
+                        >
+                          <span>{subItem.name}</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
