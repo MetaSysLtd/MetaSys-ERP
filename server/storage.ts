@@ -1,13 +1,15 @@
 import {
   users, roles, leads, loads, invoices, invoiceItems, commissions, activities, 
-  dispatch_clients, organizations, userOrganizations,
+  dispatch_clients, organizations, userOrganizations, commissionRules, commissionsMonthly,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
   type Commission, type InsertCommission, type Activity, type InsertActivity,
   type DispatchClient, type InsertDispatchClient, 
   type Organization, type InsertOrganization,
-  type UserOrganization, type InsertUserOrganization
+  type UserOrganization, type InsertUserOrganization,
+  type CommissionRule, type InsertCommissionRule,
+  type CommissionMonthly, type InsertCommissionMonthly
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";

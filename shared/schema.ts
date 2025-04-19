@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, date, timestamp, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, date, timestamp, real, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -247,6 +247,38 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Commission Rules
+export const commissionRules = pgTable("commission_rules", {
+  id: serial("id").primaryKey(),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  type: text("type").notNull(), // "sales", "dispatch"
+  tiers: jsonb("tiers").notNull(), // Stores JSON array of tier objects
+  updatedBy: integer("updated_by").notNull().references(() => users.id),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Monthly Commissions
+export const commissionsMonthly = pgTable("commissions_monthly", {
+  id: serial("id").primaryKey(),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  month: text("month").notNull(), // Format: "YYYY-MM"
+  dept: text("dept").notNull(), // "sales", "dispatch"
+  activeLeads: integer("active_leads").default(0),
+  invoiceTotal: real("invoice_total").default(0),
+  ownLeadBonus: real("own_lead_bonus").default(0),
+  newLeadBonus: real("new_lead_bonus").default(0),
+  first2wkPct: real("first_2wk_pct").default(0),
+  bigTruckBonus: real("big_truck_bonus").default(0),
+  tierFixed: real("tier_fixed").default(0),
+  tierPct: real("tier_pct").default(0),
+  penaltyPct: real("penalty_pct").default(0),
+  totalCommission: real("total_commission").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Schema validation
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertRoleSchema = createInsertSchema(roles).omit({ id: true });
@@ -265,6 +297,8 @@ export const insertLeaveTypeSchema = createInsertSchema(leaveTypes).omit({ id: t
 export const insertLeaveRequestSchema = createInsertSchema(leaveRequests).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({ id: true, createdAt: true });
+export const insertCommissionRuleSchema = createInsertSchema(commissionRules).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCommissionMonthlySchema = createInsertSchema(commissionsMonthly).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type Organization = typeof organizations.$inferSelect;
@@ -317,3 +351,9 @@ export type InsertLeaveRequest = z.infer<typeof insertLeaveRequestSchema>;
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+export type CommissionRule = typeof commissionRules.$inferSelect;
+export type InsertCommissionRule = z.infer<typeof insertCommissionRuleSchema>;
+
+export type CommissionMonthly = typeof commissionsMonthly.$inferSelect;
+export type InsertCommissionMonthly = z.infer<typeof insertCommissionMonthlySchema>;
