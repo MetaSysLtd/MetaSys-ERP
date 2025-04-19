@@ -1584,7 +1584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  orgRouter.patch("/:id", createAuthMiddleware(5), async (req, res, next) => {
+  orgRouter.put("/:id", createAuthMiddleware(5), async (req, res, next) => {
     try {
       const orgId = Number(req.params.id);
       const organization = await storage.getOrganization(orgId);
@@ -1593,8 +1593,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Organization not found" });
       }
       
-      const updatedOrg = await storage.updateOrganization(orgId, req.body);
+      const orgData = insertOrganizationSchema.partial().parse(req.body);
+      const updatedOrg = await storage.updateOrganization(orgId, orgData);
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: 'organization',
+        entityId: orgId,
+        action: 'updated',
+        details: `Updated organization: ${organization.name}`
+      });
+      
       res.json(updatedOrg);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+  
+  // Delete organization route
+  orgRouter.delete("/:id", createAuthMiddleware(5), async (req, res, next) => {
+    try {
+      const orgId = Number(req.params.id);
+      const organization = await storage.getOrganization(orgId);
+      
+      if (!organization) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+      
+      // Don't allow deletion of the default organization
+      if (organization.code === "DEFAULT") {
+        return res.status(403).json({ message: "Cannot delete the default organization" });
+      }
+      
+      // Count users in this organization
+      const usersInOrg = await storage.getUsersByOrganization(orgId);
+      if (usersInOrg.length > 0) {
+        return res.status(400).json({ 
+          message: `Cannot delete organization with ${usersInOrg.length} active users. Reassign users first.` 
+        });
+      }
+      
+      // Perform the deletion - soft delete by setting active=false
+      const updatedOrg = await storage.updateOrganization(orgId, { active: false });
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: 'organization',
+        entityId: orgId,
+        action: 'deleted',
+        details: `Deleted organization: ${organization.name}`
+      });
+      
+      res.json({ message: "Organization deleted successfully", organization: updatedOrg });
     } catch (error) {
       next(error);
     }
