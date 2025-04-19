@@ -2,6 +2,16 @@ import { ReactNode } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Link } from "wouter";
 
+// Created CommissionBreakdown component
+function CommissionBreakdown() {
+  return (
+    <div>
+      {/* Commission Breakdown details would go here */}
+      <p>Commission Breakdown Component</p>
+    </div>
+  );
+}
+
 interface MetricCardProps {
   title: string;
   value: string | number;
@@ -42,10 +52,9 @@ export function MetricCard({
       {link && (
         <CardFooter className="bg-gray-50 px-5 py-3">
           <div className="text-sm">
+            {/* Removed nested <a> tag for better accessibility and SEO */}
             <Link href={link.href}>
-              <a className="font-medium text-primary-600 hover:text-primary-900">
-                {link.text}
-              </a>
+              <span className="font-medium text-primary-600 hover:text-primary-900"> {link.text}</span>
             </Link>
           </div>
         </CardFooter>
@@ -53,3 +62,5 @@ export function MetricCard({
     </Card>
   );
 }
+
+export default CommissionBreakdown;
