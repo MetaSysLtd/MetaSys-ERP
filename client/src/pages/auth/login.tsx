@@ -59,7 +59,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-end bg-cover bg-center" 
-      style={{ backgroundImage: "url('/ai-enterprise.png')" }}>
+      style={{ backgroundImage: "url('/metio-bg.jpg')" }}>
       <div className="w-full md:w-[420px] p-4 md:p-8 mr-0 md:mr-8">
         <Card className="w-full backdrop-blur-sm bg-white/95 dark:bg-gray-900/95 border-0 shadow-2xl">
           <div className="h-1 bg-gradient-to-r from-[#2170dd] to-[#4d9eff]"></div>
