@@ -30,10 +30,16 @@ export function OrganizationSwitcher() {
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const { toast } = useToast();
 
-  // Fetch active organizations
+  // Fetch organizations the user has access to
   const { data: organizations, isLoading } = useQuery<Organization[]>({
-    queryKey: ['/api/organizations/active'],
+    queryKey: ['/api/auth/user-organizations'],
     staleTime: 60000, // 1 minute
+    onError: () => {
+      // Fallback to active organizations if user-organizations endpoint fails
+      queryClient.fetchQuery({ 
+        queryKey: ['/api/organizations/active'] 
+      });
+    }
   });
 
   // Fetch current organization
