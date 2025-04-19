@@ -89,6 +89,22 @@ export interface IStorage {
   createCommission(commission: InsertCommission): Promise<Commission>;
   updateCommission(id: number, commission: Partial<Commission>): Promise<Commission | undefined>;
   
+  // Commission Rule operations
+  getCommissionRule(id: number): Promise<CommissionRule | undefined>;
+  getCommissionRulesByType(type: string): Promise<CommissionRule[]>;
+  getCommissionRulesByOrg(orgId: number): Promise<CommissionRule[]>;
+  createCommissionRule(rule: InsertCommissionRule): Promise<CommissionRule>;
+  updateCommissionRule(id: number, rule: Partial<CommissionRule>): Promise<CommissionRule | undefined>;
+  
+  // Commission Monthly operations
+  getCommissionMonthly(id: number): Promise<CommissionMonthly | undefined>;
+  getCommissionsMonthlyByUser(userId: number): Promise<CommissionMonthly[]>;
+  getCommissionsMonthlyByMonth(month: string): Promise<CommissionMonthly[]>;
+  getCommissionsMonthlyByOrg(orgId: number): Promise<CommissionMonthly[]>;
+  getCommissionMonthlyByUserAndMonth(userId: number, month: string): Promise<CommissionMonthly | undefined>;
+  createCommissionMonthly(commission: InsertCommissionMonthly): Promise<CommissionMonthly>;
+  updateCommissionMonthly(id: number, commission: Partial<CommissionMonthly>): Promise<CommissionMonthly | undefined>;
+  
   // Dispatch Client operations
   getDispatchClient(id: number): Promise<DispatchClient | undefined>;
   getDispatchClientByLeadId(leadId: number): Promise<DispatchClient | undefined>;
@@ -102,22 +118,6 @@ export interface IStorage {
   getActivitiesByUser(userId: number, limit?: number): Promise<Activity[]>;
   getActivitiesByEntity(entityType: string, entityId: number, limit?: number): Promise<Activity[]>;
   createActivity(activity: InsertActivity): Promise<Activity>;
-  
-  // Commission Rules operations
-  getCommissionRule(id: number): Promise<CommissionRule | undefined>;
-  getCommissionRulesByType(type: string): Promise<CommissionRule[]>;
-  getCommissionRulesByOrg(orgId: number): Promise<CommissionRule[]>;
-  createCommissionRule(rule: InsertCommissionRule): Promise<CommissionRule>;
-  updateCommissionRule(id: number, rule: Partial<CommissionRule>): Promise<CommissionRule | undefined>;
-  
-  // Monthly Commission operations
-  getCommissionMonthly(id: number): Promise<CommissionMonthly | undefined>;
-  getCommissionMonthlyByUserAndMonth(userId: number, month: string): Promise<CommissionMonthly | undefined>;
-  getCommissionsMonthlyByUser(userId: number): Promise<CommissionMonthly[]>;
-  getCommissionsMonthlyByMonth(month: string): Promise<CommissionMonthly[]>;
-  getCommissionsMonthlyByOrg(orgId: number): Promise<CommissionMonthly[]>;
-  createCommissionMonthly(commission: InsertCommissionMonthly): Promise<CommissionMonthly>;
-  updateCommissionMonthly(id: number, commission: Partial<CommissionMonthly>): Promise<CommissionMonthly | undefined>;
 }
 
 export class MemStorage implements IStorage {
