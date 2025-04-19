@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 export interface Participant {
   id: number;
@@ -36,6 +38,7 @@ const MessageContext = createContext<MessageContextType | null>(null);
 
 export function MessageProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
   // Fetch conversations from API
@@ -67,60 +70,66 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
   // Mark a conversation as read
   const markConversationAsRead = async (id: string) => {
     try {
-      const res = await fetch(`/api/messages/conversations/${id}/read`, {
-        method: 'POST',
-      });
+      const res = await apiRequest('PATCH', `/api/messages/conversations/${id}/read`);
+      if (!res.ok) throw new Error('Failed to mark conversation as read');
       
-      if (res.ok) {
-        setConversations(prev => 
-          prev.map(conversation => 
-            conversation.id === id 
-              ? { ...conversation, unreadCount: 0 } 
-              : conversation
-          )
-        );
-      }
+      // Update local state
+      setConversations(prev => 
+        prev.map(conversation => 
+          conversation.id === id 
+            ? { ...conversation, unreadCount: 0 } 
+            : conversation
+        )
+      );
     } catch (error) {
       console.error('Error marking conversation as read:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to mark conversation as read. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
   // Send a message
   const sendMessage = async (conversationId: string, content: string) => {
-    if (!content.trim()) return;
-    
     try {
-      const res = await fetch('/api/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          conversationId,
-          content,
-        }),
+      const res = await apiRequest('POST', `/api/messages`, { 
+        conversationId, 
+        content
       });
       
-      if (res.ok) {
-        // Optimistically update the UI
-        const message = await res.json();
-        
-        setConversations(prev => 
-          prev.map(conversation => 
-            conversation.id === conversationId
-              ? { 
-                  ...conversation, 
-                  lastMessage: message,
+      if (!res.ok) throw new Error('Failed to send message');
+      
+      const newMessage = await res.json();
+      
+      // Update local state
+      setConversations(prev => 
+        prev.map(conversation => 
+          conversation.id === conversationId 
+            ? { 
+                ...conversation, 
+                lastMessage: {
+                  id: newMessage.id,
+                  conversationId,
+                  senderId: user?.id || 0,
+                  content,
+                  timestamp: new Date().toISOString(),
+                  read: true
                 }
-              : conversation
-          )
-        );
-        
-        // Refetch to ensure data consistency
-        refetch();
-      }
+              } 
+            : conversation
+        )
+      );
+
+      refetch(); // Refetch to get updated conversation data
     } catch (error) {
       console.error('Error sending message:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send message. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -141,7 +150,7 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
 
 export function useMessages() {
   const context = useContext(MessageContext);
-  if (context === null) {
+  if (!context) {
     throw new Error('useMessages must be used within a MessageProvider');
   }
   return context;
