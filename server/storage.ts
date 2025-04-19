@@ -765,6 +765,88 @@ export class MemStorage implements IStorage {
     this.activities.set(id, activity);
     return activity;
   }
+  
+  // Task operations
+  async getTask(id: number): Promise<Task | undefined> {
+    return this.tasks.get(id);
+  }
+  
+  async getTasks(options?: { status?: string; priority?: string; limit?: number }): Promise<Task[]> {
+    let tasks = Array.from(this.tasks.values());
+    
+    if (options?.status) {
+      tasks = tasks.filter(task => task.status === options.status);
+    }
+    
+    if (options?.priority) {
+      tasks = tasks.filter(task => task.priority === options.priority);
+    }
+    
+    // Sort by dueDate (most urgent first)
+    tasks.sort((a, b) => {
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    });
+    
+    if (options?.limit) {
+      tasks = tasks.slice(0, options.limit);
+    }
+    
+    return tasks;
+  }
+  
+  async getTasksByAssignee(userId: number): Promise<Task[]> {
+    return Array.from(this.tasks.values())
+      .filter(task => task.assignedTo === userId)
+      .sort((a, b) => {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      });
+  }
+  
+  async getTasksByEntity(entityType: string, entityId: number): Promise<Task[]> {
+    return Array.from(this.tasks.values())
+      .filter(task => task.relatedEntityType === entityType && task.relatedEntityId === entityId)
+      .sort((a, b) => {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      });
+  }
+  
+  async createTask(insertTask: InsertTask): Promise<Task> {
+    const id = this.taskIdCounter++;
+    const now = new Date();
+    const task: Task = {
+      ...insertTask,
+      id,
+      createdAt: now,
+      updatedAt: now,
+      completedAt: null
+    };
+    this.tasks.set(id, task);
+    return task;
+  }
+  
+  async updateTask(id: number, updates: Partial<Task>): Promise<Task | undefined> {
+    const task = await this.getTask(id);
+    if (!task) return undefined;
+    
+    // If we're completing a task now, set the completedAt timestamp
+    if (updates.status === 'completed' && task.status !== 'completed') {
+      updates.completedAt = new Date();
+    }
+    
+    const updatedTask = {
+      ...task,
+      ...updates,
+      updatedAt: new Date()
+    };
+    this.tasks.set(id, updatedTask);
+    return updatedTask;
+  }
 
   // Commission Rules operations
   async getCommissionRule(id: number): Promise<CommissionRule | undefined> {
