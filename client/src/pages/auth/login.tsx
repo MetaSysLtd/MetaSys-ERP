@@ -62,7 +62,9 @@ export default function Login() {
     <div 
       className="min-h-screen flex items-center justify-center md:justify-end bg-no-repeat bg-cover bg-center relative p-4 md:p-8" 
       style={{ 
-        backgroundImage: "url('/ai-enterprise.png')",
+        backgroundImage: "url('/metio-bg.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
       }}
     >
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
