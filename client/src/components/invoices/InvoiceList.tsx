@@ -45,6 +45,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AnimatedCard, AnimatedList, AnimatedListItem } from "@/components/ui/animated-container";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface InvoiceListItem {
   id: number;
@@ -183,21 +185,34 @@ export function InvoiceList({
   
   return (
     <>
-      <Card className="shadow-md">
+      <AnimatedCard 
+        animation="container" 
+        className="shadow-md"
+      >
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle className="text-xl font-bold">Invoices</CardTitle>
               <CardDescription>Manage and track all client invoices</CardDescription>
             </div>
-            <Button onClick={onCreateInvoice}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Invoice
-            </Button>
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <Button onClick={onCreateInvoice}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Invoice
+              </Button>
+            </motion.div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col md:flex-row gap-4 mb-6"
+          >
             <div className="flex-1 relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -239,7 +254,7 @@ export function InvoiceList({
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          </motion.div>
           
           <div className="rounded-md border">
             <Table>
@@ -273,77 +288,108 @@ export function InvoiceList({
                 {isLoading ? (
                   <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center">
-                      <div className="flex justify-center">
+                      <motion.div 
+                        className="flex justify-center"
+                        animate={{
+                          opacity: [0.5, 1, 0.5],
+                          scale: [0.98, 1, 0.98],
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
                         <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
-                      </div>
+                      </motion.div>
                     </TableCell>
                   </TableRow>
                 ) : invoices.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center">
-                      <div className="flex flex-col items-center gap-2">
+                      <motion.div 
+                        className="flex flex-col items-center gap-2"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
                         <FileText className="h-6 w-6 text-muted-foreground" />
                         <span className="text-muted-foreground">No invoices found</span>
-                        <Button variant="outline" size="sm" onClick={onCreateInvoice}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Create Your First Invoice
-                        </Button>
-                      </div>
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Button variant="outline" size="sm" onClick={onCreateInvoice}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Create Your First Invoice
+                          </Button>
+                        </motion.div>
+                      </motion.div>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  invoices.map((invoice) => (
-                    <TableRow key={invoice.id}>
-                      <TableCell>
-                        <Link to={`/invoices/${invoice.id}`} className="font-medium hover:underline text-primary">
-                          {invoice.invoiceNumber}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{invoice.clientName}</TableCell>
-                      <TableCell>
-                        <Badge className={cn("gap-1", getStatusColor(invoice.status))}>
-                          {getStatusIcon(invoice.status)}
-                          <span>{invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}</span>
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatDate(invoice.issuedDate)}</TableCell>
-                      <TableCell>{formatDate(invoice.dueDate)}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(invoice.totalAmount)}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem asChild>
-                              <Link to={`/invoices/${invoice.id}`}>
-                                <FileText className="h-4 w-4 mr-2" />
-                                View Details
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Download className="h-4 w-4 mr-2" />
-                              Download PDF
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleDeleteInvoice(invoice.id)}
-                              className="text-destructive focus:text-destructive"
+                  <AnimatedList>
+                    {invoices.map((invoice, index) => (
+                      <AnimatedListItem key={invoice.id} staggerIndex={index}>
+                        <TableRow>
+                          <TableCell>
+                            <Link to={`/invoices/${invoice.id}`} className="font-medium hover:underline text-primary">
+                              {invoice.invoiceNumber}
+                            </Link>
+                          </TableCell>
+                          <TableCell>{invoice.clientName}</TableCell>
+                          <TableCell>
+                            <motion.div
+                              initial={{ scale: 0.9, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{ delay: 0.1 + (index * 0.03) }}
                             >
-                              <Trash className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                              <Badge className={cn("gap-1", getStatusColor(invoice.status))}>
+                                {getStatusIcon(invoice.status)}
+                                <span>{invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}</span>
+                              </Badge>
+                            </motion.div>
+                          </TableCell>
+                          <TableCell>{formatDate(invoice.issuedDate)}</TableCell>
+                          <TableCell>{formatDate(invoice.dueDate)}</TableCell>
+                          <TableCell className="text-right font-medium">
+                            {formatCurrency(invoice.totalAmount)}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem asChild>
+                                  <Link to={`/invoices/${invoice.id}`}>
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    View Details
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Download className="h-4 w-4 mr-2" />
+                                  Download PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteInvoice(invoice.id)}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash className="h-4 w-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      </AnimatedListItem>
+                    ))}
+                  </AnimatedList>
                 )}
               </TableBody>
             </Table>
@@ -354,28 +400,46 @@ export function InvoiceList({
             Showing {invoices.length} invoices
           </div>
         </CardFooter>
-      </Card>
+      </AnimatedCard>
       
       {/* Delete Invoice Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this invoice? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmDeleteInvoice}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+      <AnimatePresence>
+        {deleteDialogOpen && (
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent
+              asChild
+              forceMount
             >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this invoice? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <motion.div
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <AlertDialogAction 
+                      onClick={confirmDeleteInvoice}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </motion.div>
+                </AlertDialogFooter>
+              </motion.div>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </AnimatePresence>
     </>
   );
 }
