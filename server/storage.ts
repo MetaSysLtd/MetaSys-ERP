@@ -1776,6 +1776,58 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedTask;
   }
+  
+  // Clock Event operations
+  async getClockEvent(id: number): Promise<ClockEvent | undefined> {
+    const [event] = await db.select().from(clockEvents).where(eq(clockEvents.id, id));
+    return event;
+  }
+  
+  async getClockEvents(): Promise<ClockEvent[]> {
+    return db.select().from(clockEvents).orderBy(desc(clockEvents.timestamp));
+  }
+  
+  async getClockEventsByUser(userId: number): Promise<ClockEvent[]> {
+    return db.select()
+      .from(clockEvents)
+      .where(eq(clockEvents.userId, userId))
+      .orderBy(desc(clockEvents.timestamp));
+  }
+  
+  async getClockEventsByUserAndDay(userId: number, date: Date): Promise<ClockEvent[]> {
+    // Convert date to ISO string with only the date part (YYYY-MM-DD)
+    const dateString = date.toISOString().split('T')[0];
+    
+    return db.select()
+      .from(clockEvents)
+      .where(
+        and(
+          eq(clockEvents.userId, userId),
+          sql`DATE(${clockEvents.timestamp}) = ${dateString}`
+        )
+      )
+      .orderBy(clockEvents.timestamp);
+  }
+  
+  async getCurrentClockStatus(userId: number): Promise<'IN' | 'OUT' | null> {
+    const [latestEvent] = await db.select()
+      .from(clockEvents)
+      .where(eq(clockEvents.userId, userId))
+      .orderBy(desc(clockEvents.timestamp))
+      .limit(1);
+    
+    return latestEvent ? latestEvent.type : null;
+  }
+  
+  async createClockEvent(event: InsertClockEvent): Promise<ClockEvent> {
+    const now = new Date().toISOString();
+    const [clockEvent] = await db.insert(clockEvents).values({
+      ...event,
+      timestamp: now,
+      createdAt: now
+    }).returning();
+    return clockEvent;
+  }
 }
 
 // Use database storage instead of memory storage
