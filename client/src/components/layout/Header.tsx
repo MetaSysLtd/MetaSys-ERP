@@ -13,8 +13,11 @@ import {
   LogOut, 
   User, 
   Calendar, 
-  HelpCircle 
+  HelpCircle,
+  Moon,
+  Sun
 } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +39,7 @@ export function Header({ setSidebarOpen }: HeaderProps) {
   const { toast } = useToast();
   const [_, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const { theme, setTheme } = useTheme();
   
   const handleLogout = async () => {
     try {
@@ -175,6 +179,14 @@ export function Header({ setSidebarOpen }: HeaderProps) {
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                     <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                    {theme === 'dark' ? (
+                      <Sun className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Moon className="mr-2 h-4 w-4" />
+                    )}
+                    <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
