@@ -78,6 +78,165 @@ const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
   };
 };
 
+// Add some seed data for testing
+async function addSeedDataIfNeeded() {
+  try {
+    // Check if we already have some dispatch clients
+    const clients = await storage.getDispatchClients();
+    if (clients.length === 0) {
+      console.log("Adding seed dispatch clients...");
+      
+      // First, make sure we have some leads
+      const leads = await storage.getLeads();
+      
+      if (leads.length === 0) {
+        // Create some test leads first
+        const lead1 = await storage.createLead({
+          companyName: "FastFreight Carriers",
+          contactName: "John Smith",
+          email: "john@fastfreight.example",
+          phoneNumber: "555-123-4567",
+          source: "referral",
+          notes: "Large carrier with national routes",
+          status: "active",
+          mcNumber: "MC-123456",
+          dotNumber: "DOT-7890123",
+          assignedTo: 1,
+          orgId: 1
+        });
+        
+        const lead2 = await storage.createLead({
+          companyName: "Highway Express Logistics",
+          contactName: "Maria Rodriguez",
+          email: "maria@highway-express.example",
+          phoneNumber: "555-987-6543",
+          source: "website",
+          notes: "Mid-sized regional carrier",
+          status: "active",
+          mcNumber: "MC-456789",
+          dotNumber: "DOT-2345678",
+          assignedTo: 1,
+          orgId: 1
+        });
+        
+        const lead3 = await storage.createLead({
+          companyName: "Mountain Trucking Co.",
+          contactName: "Robert Chen",
+          email: "robert@mountain-trucking.example",
+          phoneNumber: "555-567-1234",
+          source: "cold_call",
+          notes: "Specialized in refrigerated freight",
+          status: "active",
+          mcNumber: "MC-789012",
+          dotNumber: "DOT-3456789",
+          assignedTo: 1,
+          orgId: 1
+        });
+        
+        const lead4 = await storage.createLead({
+          companyName: "Coastal Shipping LLC",
+          contactName: "Sarah Johnson",
+          email: "sarah@coastal-shipping.example",
+          phoneNumber: "555-222-3333",
+          source: "trade_show",
+          notes: "Interested in long-term partnership",
+          status: "qualified",
+          mcNumber: "MC-345678",
+          dotNumber: "DOT-9012345",
+          assignedTo: 1,
+          orgId: 1
+        });
+        
+        const lead5 = await storage.createLead({
+          companyName: "Midwest Haulers Inc.",
+          contactName: "Michael Brown",
+          email: "michael@midwest-haulers.example",
+          phoneNumber: "555-444-5555",
+          source: "referral",
+          notes: "Family-owned business, established 1985",
+          status: "qualified",
+          mcNumber: "MC-567890",
+          dotNumber: "DOT-1234567",
+          assignedTo: 1,
+          orgId: 1
+        });
+        
+        // Now create some dispatch clients linked to these leads
+        await storage.createDispatchClient({
+          leadId: lead1.id,
+          status: "active",
+          orgId: 1,
+          notes: "Premium client, priority dispatch",
+          onboardingDate: new Date().toISOString().split('T')[0],
+          approvedBy: 1
+        });
+        
+        await storage.createDispatchClient({
+          leadId: lead2.id,
+          status: "active",
+          orgId: 1,
+          notes: "Regular client with consistent loads",
+          onboardingDate: new Date().toISOString().split('T')[0],
+          approvedBy: 1
+        });
+        
+        await storage.createDispatchClient({
+          leadId: lead3.id,
+          status: "pending_onboard",
+          orgId: 1,
+          notes: "Waiting for paperwork submission",
+          onboardingDate: null,
+          approvedBy: null
+        });
+        
+        await storage.createDispatchClient({
+          leadId: lead4.id,
+          status: "pending_onboard",
+          orgId: 1,
+          notes: "Needs insurance verification",
+          onboardingDate: null,
+          approvedBy: null
+        });
+        
+        await storage.createDispatchClient({
+          leadId: lead5.id,
+          status: "lost",
+          orgId: 1,
+          notes: "Went with competitor due to pricing",
+          onboardingDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          approvedBy: 1
+        });
+        
+        console.log("Seed data added successfully!");
+      } else {
+        // We have leads but no dispatch clients, create clients for existing leads
+        for (const lead of leads.slice(0, 5)) {
+          // Determine a status based on lead status
+          let status = "pending_onboard";
+          if (lead.status === "active") {
+            status = Math.random() > 0.3 ? "active" : "pending_onboard";
+          } else if (lead.status === "lost") {
+            status = "lost";
+          }
+          
+          await storage.createDispatchClient({
+            leadId: lead.id,
+            status,
+            orgId: lead.orgId || 1,
+            notes: `Client created from lead ${lead.companyName}`,
+            onboardingDate: status === "active" ? new Date().toISOString().split('T')[0] : null,
+            approvedBy: status === "active" ? 1 : null
+          });
+        }
+        
+        console.log("Created dispatch clients from existing leads");
+      }
+    }
+  } catch (error) {
+    console.error("Error adding seed data:", error);
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Session setup
   app.use(
@@ -99,6 +258,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Apply organization middleware to all API routes
   app.use('/api', organizationMiddleware);
+  
+  // Add seed data if needed
+  await addSeedDataIfNeeded();
   
   // Create HTTP server
   let httpServer = createServer(app);

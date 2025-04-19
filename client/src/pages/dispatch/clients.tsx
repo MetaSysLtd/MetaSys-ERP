@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { formatDate } from "@/lib/utils";
 import { useLocation } from "wouter";
+import { format } from "date-fns";
 
 import {
   Table,
@@ -14,476 +14,508 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Truck, Plus, Search, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Truck,
+  Plus,
+  FileEdit,
+  MoreHorizontal,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  Users,
+  Clock,
+  TruckIcon,
+  User,
+  FileSpreadsheet,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Client statuses with their labels and colors
+const CLIENT_STATUSES = {
+  active: {
+    label: "Active",
+    color: "bg-green-100 text-green-800 hover:bg-green-200",
+  },
+  pending_onboard: {
+    label: "Pending Onboard",
+    color: "bg-amber-100 text-amber-800 hover:bg-amber-200",
+  },
+  lost: {
+    label: "Lost",
+    color: "bg-red-100 text-red-800 hover:bg-red-200",
+  },
+};
+
+// Function to get client status icon
+function getStatusIcon(status: string) {
+  switch (status) {
+    case "active":
+      return <CheckCircle className="h-4 w-4 text-green-600" />;
+    case "pending_onboard":
+      return <Clock className="h-4 w-4 text-amber-600" />;
+    case "lost":
+      return <XCircle className="h-4 w-4 text-red-600" />;
+    default:
+      return <AlertCircle className="h-4 w-4 text-gray-500" />;
+  }
+}
 
 export default function DispatchClientsPage() {
   const { toast } = useToast();
   const { user, role } = useAuth();
   const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("pending-onboard");
-  const [filteredClients, setFilteredClients] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState("all");
   
-  // Get dispatch clients from the API
-  const { data: clients, isLoading, error } = useQuery({
+  // Load dispatch clients from API
+  const {
+    data: clients,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["/api/dispatch/clients"],
   });
   
-  // Update filtered clients based on search and tab
-  useEffect(() => {
-    if (!clients) return;
-    
-    let filtered = [...clients];
-    
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((client) => {
-        const companyName = client.companyName || client.lead?.companyName || "";
-        const notes = client.notes || "";
-        return (
-          companyName.toLowerCase().includes(query) ||
-          notes.toLowerCase().includes(query)
-        );
+  // Status change mutation
+  const updateClientStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      return apiRequest("PATCH", `/api/dispatch/clients/${id}`, {
+        status,
       });
-    }
-    
-    setFilteredClients(filtered);
-  }, [clients, searchQuery]);
-  
-  // Show error toast if clients fetch fails
-  useEffect(() => {
-    if (error) {
+    },
+    onSuccess: () => {
+      toast({
+        title: "Client updated",
+        description: "Client status has been updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/dispatch/clients"] });
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to load client data. Please refresh the page.",
+        description: error.message || "Failed to update client status.",
         variant: "destructive",
       });
-    }
-  }, [error, toast]);
+    },
+  });
   
-  const getStatusBadge = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "pending_onboard":
-      case "pending onboard":
-        return (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 px-2">
-            Pending Onboard
-          </Badge>
-        );
-      case "active":
-        return (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 px-2">
-            Active
-          </Badge>
-        );
-      case "lost":
-        return (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 px-2">
-            Lost
-          </Badge>
-        );
-      case "inactive":
-        return (
-          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200 px-2">
-            Inactive
-          </Badge>
-        );
-      case "suspended":
-        return (
-          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 px-2">
-            Suspended
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200 px-2">
-            {status.charAt(0).toUpperCase() + status.slice(1).replace("_", " ")}
-          </Badge>
-        );
-    }
+  // Approve client mutation (transition from pending to active)
+  const approveClientMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest("PATCH", `/api/dispatch/clients/${id}/approve`, {
+        approvedBy: user?.id,
+        onboardingDate: new Date().toISOString().split("T")[0],
+        status: "active",
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Client approved",
+        description: "Client has been approved and is now active.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/dispatch/clients"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to approve client.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Group clients by status
+  const clientsByStatus = {
+    all: clients || [],
+    active: (clients || []).filter((client: any) => client.status === "active"),
+    pending_onboard: (clients || []).filter(
+      (client: any) => client.status === "pending_onboard"
+    ),
+    lost: (clients || []).filter((client: any) => client.status === "lost"),
   };
   
-  // Check if user can manage clients
-  const canManageClients = role && (role.department === "dispatch" || role.department === "admin");
+  // Handle client status update
+  const handleStatusChange = (id: number, newStatus: string) => {
+    updateClientStatusMutation.mutate({ id, status: newStatus });
+  };
   
+  // Handle client approval
+  const handleApproveClient = (id: number) => {
+    approveClientMutation.mutate(id);
+  };
+  
+  // Handle new load creation for a client
+  const handleCreateLoad = (clientId: number) => {
+    setLocation(`/dispatch/loads/new?clientId=${clientId}`);
+  };
+  
+  // Redirect if user doesn't have permission
+  useEffect(() => {
+    if (role && role.department !== "dispatch" && role.department !== "admin") {
+      toast({
+        title: "Access denied",
+        description: "You don't have permission to view dispatch clients.",
+        variant: "destructive",
+      });
+      setLocation("/");
+    }
+  }, [role, toast, setLocation]);
+  
+  // Render loading skeleton
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center p-8">
-        <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-900">Loading client data...</h3>
-          <p className="mt-1 text-sm text-gray-500">Please wait while we fetch your data.</p>
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-between mb-6">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-10 w-36" />
+        </div>
+        <Skeleton className="h-12 w-full mb-6" />
+        <div className="space-y-4">
+          {Array(5)
+            .fill(0)
+            .map((_, index) => (
+              <Skeleton key={index} className="h-16 w-full rounded-md" />
+            ))}
         </div>
       </div>
     );
   }
   
-  // Filter clients based on active tab
-  const pendingClients = filteredClients.filter(client => 
-    client.status.toLowerCase() === "pending_onboard" || client.status.toLowerCase() === "pending onboard"
-  );
-  const activeClients = filteredClients.filter(client => 
-    client.status.toLowerCase() === "active"
-  );
-  const lostClients = filteredClients.filter(client => 
-    client.status.toLowerCase() === "lost" || 
-    client.status.toLowerCase() === "inactive" || 
-    client.status.toLowerCase() === "suspended"
-  );
+  // Render error state
+  if (isError) {
+    return (
+      <div className="container mx-auto py-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="flex items-center text-red-700">
+              <AlertCircle className="mr-2 h-5 w-5" />
+              Error Loading Clients
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-red-600">
+              {error instanceof Error ? error.message : "Failed to load clients"}
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              variant="outline"
+              onClick={() =>
+                queryClient.invalidateQueries({
+                  queryKey: ["/api/dispatch/clients"],
+                })
+              }
+            >
+              Retry
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
   
   return (
-    <div>
-      {/* Page header */}
-      <div className="bg-white shadow">
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-wrap items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-2 sm:mb-0">
-              Dispatch Clients
-            </h1>
-            <div className="flex flex-wrap items-center space-x-2">
-              <form onSubmit={(e) => e.preventDefault()} className="relative mr-2">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-gray-400" />
-                </div>
-                <Input
-                  placeholder="Search clients..."
-                  className="pl-10 h-9 w-64"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </form>
-              {canManageClients && (
-                <Button
-                  size="sm"
-                  className="h-9 bg-[#457B9D] hover:bg-[#2EC4B6] text-white rounded-md transition-colors duration-200"
-                  onClick={() => setLocation("/crm?status=active")}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  View Active Leads
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
+    <div className="container mx-auto py-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+          <Users className="h-6 w-6 text-[#457B9D]" />
+          Dispatch Clients
+        </h1>
+        <Button
+          onClick={() => setLocation("/crm?createClient=true")}
+          className="bg-[#457B9D] hover:bg-[#2EC4B6] text-white rounded-md transition-colors duration-200"
+        >
+          <Plus className="h-4 w-4 mr-1" />
+          Add New Client
+        </Button>
       </div>
       
-      {/* Page content */}
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="pending-onboard">
+      <div className="stats-row grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card className="bg-green-50 border-green-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium text-green-700 flex items-center">
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Active Clients
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-800">
+              {clientsByStatus.active.length}
+            </div>
+            <p className="text-sm text-green-600 mt-1">Ready for load assignments</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-amber-50 border-amber-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium text-amber-700 flex items-center">
+              <Clock className="mr-2 h-4 w-4" />
               Pending Onboard
-              <Badge variant="secondary" className="ml-2">
-                {pendingClients.length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="active">
-              Active
-              <Badge variant="secondary" className="ml-2">
-                {activeClients.length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="lost">
-              Lost
-              <Badge variant="secondary" className="ml-2">
-                {lostClients.length}
-              </Badge>
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="pending-onboard">
-            <Card className="shadow overflow-hidden">
-              <CardHeader className="px-5 py-4 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg leading-6 font-medium text-gray-900">
-                    Pending Onboard Clients
-                  </CardTitle>
-                  <span className="text-sm text-gray-500">
-                    Showing {pendingClients.length} clients
-                  </span>
-                </div>
-              </CardHeader>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Contact Info</TableHead>
-                      <TableHead>MC Number</TableHead>
-                      <TableHead>Created Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pendingClients.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8">
-                          <div className="flex flex-col items-center justify-center text-gray-500">
-                            <Users className="h-12 w-12 mb-2" />
-                            <h3 className="text-lg font-medium">No pending clients found</h3>
-                            <p className="text-sm max-w-md mt-1">
-                              There are no clients pending onboarding at this time.
-                            </p>
-                            {canManageClients && (
-                              <Button
-                                className="mt-4 bg-[#457B9D] hover:bg-[#2EC4B6] text-white rounded-md transition-colors duration-200"
-                                onClick={() => setLocation("/crm?status=active")}
-                              >
-                                <Plus className="h-4 w-4 mr-1" />
-                                View Active Leads
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      pendingClients.map((client) => {
-                        const lead = client.lead || {};
-                        const companyName = client.companyName || lead.companyName || "Unknown";
-                        const email = lead.email || "No email";
-                        const phoneNumber = lead.phoneNumber || "No phone";
-                        const mcNumber = lead.mcNumber || "N/A";
-                        const contactName = lead.contactName || "N/A";
-                        
-                        return (
-                          <TableRow key={client.id}>
-                            <TableCell className="font-medium">
-                              {companyName}
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm text-gray-500">{contactName}</div>
-                              <div className="text-sm text-gray-500">{email}</div>
-                              <div className="text-sm text-gray-500">{phoneNumber}</div>
-                            </TableCell>
-                            <TableCell>{mcNumber}</TableCell>
-                            <TableCell>{formatDate(client.createdAt)}</TableCell>
-                            <TableCell>{getStatusBadge(client.status)}</TableCell>
-                            <TableCell>
-                              <div className="flex space-x-2">
-                                <Button
-                                  variant="link"
-                                  className="text-primary-600 hover:text-primary-900 p-0 h-auto"
-                                  onClick={() => setLocation(`/dispatch/clients/${client.id}`)}
-                                >
-                                  View
-                                </Button>
-                                <Button
-                                  variant="link"
-                                  className="text-green-600 hover:text-green-900 p-0 h-auto"
-                                  onClick={() => {
-                                    // Activate client
-                                    // Will implement in the next step
-                                    toast({
-                                      title: "Activate client",
-                                      description: "Client activation feature is coming soon.",
-                                    });
-                                  }}
-                                >
-                                  Activate
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="active">
-            <Card className="shadow overflow-hidden">
-              <CardHeader className="px-5 py-4 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg leading-6 font-medium text-gray-900">
-                    Active Clients
-                  </CardTitle>
-                  <span className="text-sm text-gray-500">
-                    Showing {activeClients.length} clients
-                  </span>
-                </div>
-              </CardHeader>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Contact Info</TableHead>
-                      <TableHead>MC Number</TableHead>
-                      <TableHead>Created Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activeClients.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8">
-                          <div className="flex flex-col items-center justify-center text-gray-500">
-                            <Users className="h-12 w-12 mb-2" />
-                            <h3 className="text-lg font-medium">No active clients found</h3>
-                            <p className="text-sm max-w-md mt-1">
-                              There are no active clients at this time.
-                            </p>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      activeClients.map((client) => {
-                        const lead = client.lead || {};
-                        const companyName = client.companyName || lead.companyName || "Unknown";
-                        const email = lead.email || "No email";
-                        const phoneNumber = lead.phoneNumber || "No phone";
-                        const mcNumber = lead.mcNumber || "N/A";
-                        const contactName = lead.contactName || "N/A";
-                        
-                        return (
-                          <TableRow key={client.id}>
-                            <TableCell className="font-medium">
-                              {companyName}
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm text-gray-500">{contactName}</div>
-                              <div className="text-sm text-gray-500">{email}</div>
-                              <div className="text-sm text-gray-500">{phoneNumber}</div>
-                            </TableCell>
-                            <TableCell>{mcNumber}</TableCell>
-                            <TableCell>{formatDate(client.createdAt)}</TableCell>
-                            <TableCell>{getStatusBadge(client.status)}</TableCell>
-                            <TableCell>
-                              <div className="flex space-x-2">
-                                <Button
-                                  variant="link"
-                                  className="text-primary-600 hover:text-primary-900 p-0 h-auto"
-                                  onClick={() => setLocation(`/dispatch/clients/${client.id}`)}
-                                >
-                                  View
-                                </Button>
-                                <Button
-                                  variant="link"
-                                  className="text-blue-600 hover:text-blue-900 p-0 h-auto"
-                                  onClick={() => {
-                                    // Create load
-                                    setLocation(`/dispatch/loads/new?clientId=${client.id}`);
-                                  }}
-                                >
-                                  Add Load
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="lost">
-            <Card className="shadow overflow-hidden">
-              <CardHeader className="px-5 py-4 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <CardTitle className="text-lg leading-6 font-medium text-gray-900">
-                    Lost Clients
-                  </CardTitle>
-                  <span className="text-sm text-gray-500">
-                    Showing {lostClients.length} clients
-                  </span>
-                </div>
-              </CardHeader>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Contact Info</TableHead>
-                      <TableHead>MC Number</TableHead>
-                      <TableHead>Created Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {lostClients.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8">
-                          <div className="flex flex-col items-center justify-center text-gray-500">
-                            <Users className="h-12 w-12 mb-2" />
-                            <h3 className="text-lg font-medium">No lost clients found</h3>
-                            <p className="text-sm max-w-md mt-1">
-                              There are no lost clients at this time.
-                            </p>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      lostClients.map((client) => {
-                        const lead = client.lead || {};
-                        const companyName = client.companyName || lead.companyName || "Unknown";
-                        const email = lead.email || "No email";
-                        const phoneNumber = lead.phoneNumber || "No phone";
-                        const mcNumber = lead.mcNumber || "N/A";
-                        const contactName = lead.contactName || "N/A";
-                        
-                        return (
-                          <TableRow key={client.id}>
-                            <TableCell className="font-medium">
-                              {companyName}
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm text-gray-500">{contactName}</div>
-                              <div className="text-sm text-gray-500">{email}</div>
-                              <div className="text-sm text-gray-500">{phoneNumber}</div>
-                            </TableCell>
-                            <TableCell>{mcNumber}</TableCell>
-                            <TableCell>{formatDate(client.createdAt)}</TableCell>
-                            <TableCell>{getStatusBadge(client.status)}</TableCell>
-                            <TableCell>
-                              <div className="flex space-x-2">
-                                <Button
-                                  variant="link"
-                                  className="text-primary-600 hover:text-primary-900 p-0 h-auto"
-                                  onClick={() => setLocation(`/dispatch/clients/${client.id}`)}
-                                >
-                                  View
-                                </Button>
-                                <Button
-                                  variant="link"
-                                  className="text-green-600 hover:text-green-900 p-0 h-auto"
-                                  onClick={() => {
-                                    // Reactivate client
-                                    // Will implement in the next step
-                                    toast({
-                                      title: "Reactivate client",
-                                      description: "Client reactivation feature is coming soon.",
-                                    });
-                                  }}
-                                >
-                                  Reactivate
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </Card>
-          </TabsContent>
-        </Tabs>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-amber-800">
+              {clientsByStatus.pending_onboard.length}
+            </div>
+            <p className="text-sm text-amber-600 mt-1">Awaiting document verification</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-blue-50 border-blue-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium text-blue-700 flex items-center">
+              <TruckIcon className="mr-2 h-4 w-4" />
+              Total Clients
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-800">
+              {clientsByStatus.all.length}
+            </div>
+            <p className="text-sm text-blue-600 mt-1">
+              Across all statuses
+            </p>
+          </CardContent>
+        </Card>
       </div>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="all" className="flex-1">
+            All Clients ({clientsByStatus.all.length})
+          </TabsTrigger>
+          <TabsTrigger value="active" className="flex-1">
+            Active ({clientsByStatus.active.length})
+          </TabsTrigger>
+          <TabsTrigger value="pending_onboard" className="flex-1">
+            Pending Onboard ({clientsByStatus.pending_onboard.length})
+          </TabsTrigger>
+          <TabsTrigger value="lost" className="flex-1">
+            Lost ({clientsByStatus.lost.length})
+          </TabsTrigger>
+        </TabsList>
+        
+        {Object.entries(clientsByStatus).map(([status, clients]) => (
+          <TabsContent key={status} value={status}>
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  {status === "all"
+                    ? "All Dispatch Clients"
+                    : status === "active"
+                    ? "Active Clients"
+                    : status === "pending_onboard"
+                    ? "Pending Onboard Clients"
+                    : "Lost Clients"}
+                </CardTitle>
+                <CardDescription>
+                  {status === "all"
+                    ? "Complete list of all dispatch clients in the system"
+                    : status === "active"
+                    ? "Clients with approved paperwork ready for load assignments"
+                    : status === "pending_onboard"
+                    ? "Clients in the onboarding process awaiting approval"
+                    : "Former clients no longer working with the company"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {clients.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="mx-auto h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                      <Users className="h-6 w-6 text-gray-500" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">
+                      No clients found
+                    </h3>
+                    <p className="text-gray-500 max-w-sm mx-auto">
+                      {status === "all"
+                        ? "There are no dispatch clients in the system. Add your first client to get started."
+                        : status === "active"
+                        ? "There are no active clients. Approve pending clients to move them to active status."
+                        : status === "pending_onboard"
+                        ? "There are no clients pending onboarding."
+                        : "There are no lost clients."}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[300px]">Client Name</TableHead>
+                          <TableHead>Contact</TableHead>
+                          <TableHead>MC #</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Onboarding Date</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {clients.map((client: any) => (
+                          <TableRow key={client.id}>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8 bg-blue-100">
+                                  <AvatarFallback className="text-blue-700">
+                                    {client.lead?.companyName
+                                      ? client.lead.companyName
+                                          .substring(0, 2)
+                                          .toUpperCase()
+                                      : "CL"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium">
+                                    {client.lead?.companyName || "Unknown Company"}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Added: {format(new Date(client.createdAt), "MMM d, yyyy")}
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {client.lead?.contactName ? (
+                                <div className="flex flex-col">
+                                  <span>{client.lead.contactName}</span>
+                                  <span className="text-xs text-gray-500">
+                                    {client.lead.email || "No email"}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 italic">Not specified</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {client.lead?.mcNumber ? (
+                                <span className="font-mono text-sm">
+                                  {client.lead.mcNumber}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 italic">Not specified</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={`flex items-center gap-1 ${
+                                  CLIENT_STATUSES[client.status]?.color ||
+                                  "bg-gray-100 text-gray-800"
+                                }`}
+                              >
+                                {getStatusIcon(client.status)}
+                                {CLIENT_STATUSES[client.status]?.label || "Unknown"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {client.onboardingDate ? (
+                                format(new Date(client.onboardingDate), "MMM d, yyyy")
+                              ) : (
+                                <span className="text-gray-400 italic">Pending</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                {client.status === "active" && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleCreateLoad(client.leadId)}
+                                    className="flex items-center gap-1"
+                                  >
+                                    <Truck className="h-3.5 w-3.5" />
+                                    <span>New Load</span>
+                                  </Button>
+                                )}
+                                
+                                {client.status === "pending_onboard" && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleApproveClient(client.id)}
+                                    className="flex items-center gap-1 bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:text-green-800"
+                                  >
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                    <span>Approve</span>
+                                  </Button>
+                                )}
+                                
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      onClick={() => setLocation(`/crm/${client.leadId}`)}
+                                    >
+                                      <User className="h-4 w-4 mr-2" />
+                                      View Details
+                                    </DropdownMenuItem>
+                                    
+                                    {client.status !== "active" && (
+                                      <DropdownMenuItem
+                                        onClick={() => handleStatusChange(client.id, "active")}
+                                      >
+                                        <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                                        Mark as Active
+                                      </DropdownMenuItem>
+                                    )}
+                                    
+                                    {client.status !== "pending_onboard" && (
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          handleStatusChange(client.id, "pending_onboard")
+                                        }
+                                      >
+                                        <Clock className="h-4 w-4 mr-2 text-amber-600" />
+                                        Mark as Pending
+                                      </DropdownMenuItem>
+                                    )}
+                                    
+                                    {client.status !== "lost" && (
+                                      <DropdownMenuItem
+                                        onClick={() => handleStatusChange(client.id, "lost")}
+                                        className="text-red-600"
+                                      >
+                                        <XCircle className="h-4 w-4 mr-2" />
+                                        Mark as Lost
+                                      </DropdownMenuItem>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 }

@@ -85,6 +85,20 @@ export function Sidebar({ mobile }: SidebarProps) {
       href: "/dispatch",
       icon: Truck,
       showFor: ["dispatch", "admin"],
+      subItems: [
+        {
+          name: "Loads",
+          href: "/dispatch",
+        },
+        {
+          name: "Clients",
+          href: "/dispatch/clients",
+        },
+        {
+          name: "New Load",
+          href: "/dispatch/loads/new",
+        },
+      ],
     },
     {
       name: "Invoices",
