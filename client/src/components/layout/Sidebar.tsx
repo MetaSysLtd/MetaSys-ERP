@@ -48,8 +48,8 @@ export function Sidebar({ mobile }: SidebarProps) {
       icon: HomeIcon,
     },
     {
-      name: "Leads",
-      href: "/leads",
+      name: "CRM",
+      href: "/crm",
       icon: Users,
       showFor: ["sales", "admin"],
     },

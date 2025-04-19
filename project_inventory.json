@@ -1,0 +1,160 @@
+{
+  "modules": [
+    {
+      "name": "authentication",
+      "route": "/api/auth",
+      "pages": ["/login", "/auth/login", "/auth/forgot-password"],
+      "controller": "authRouter",
+      "collection": "users",
+      "status": "working"
+    },
+    {
+      "name": "dashboard",
+      "route": "/api/dashboard",
+      "pages": ["/"],
+      "controller": "standalone endpoint",
+      "collection": null,
+      "status": "working"
+    },
+    {
+      "name": "leads",
+      "route": "/api/leads",
+      "pages": ["/leads", "/leads/:id"],
+      "controller": "leadRouter",
+      "collection": "leads",
+      "status": "working",
+      "notes": "Needs to be renamed to 'crm'"
+    },
+    {
+      "name": "loads",
+      "route": "/api/loads",
+      "pages": ["/dispatch"],
+      "controller": "loadRouter",
+      "collection": "loads",
+      "status": "working"
+    },
+    {
+      "name": "invoices",
+      "route": "/api/invoices",
+      "pages": ["/invoices", "/invoices/:id"],
+      "controller": "invoiceRouter",
+      "collection": "invoices",
+      "status": "working"
+    },
+    {
+      "name": "admin",
+      "route": "/api/admin",
+      "pages": ["/admin"],
+      "controller": "standalone endpoint",
+      "collection": null,
+      "status": "working"
+    },
+    {
+      "name": "users",
+      "route": "/api/users",
+      "pages": ["/settings/profile", "/settings"],
+      "controller": "userRouter",
+      "collection": "users",
+      "status": "working"
+    },
+    {
+      "name": "roles",
+      "route": "/api/roles",
+      "pages": null,
+      "controller": "roleRouter",
+      "collection": "roles",
+      "status": "working"
+    },
+    {
+      "name": "commissions",
+      "route": "/api/commissions",
+      "pages": null,
+      "controller": "commissionRouter",
+      "collection": "commissions",
+      "status": "working"
+    },
+    {
+      "name": "activities",
+      "route": "/api/activities",
+      "pages": null,
+      "controller": "activityRouter",
+      "collection": "activities",
+      "status": "working"
+    },
+    {
+      "name": "notifications",
+      "route": "/api/notifications",
+      "pages": null,
+      "controller": "appears to be middleware/standalone",
+      "collection": "notifications (schema exists but table missing)",
+      "status": "partial"
+    },
+    {
+      "name": "messages",
+      "route": "/api/messages",
+      "pages": null,
+      "controller": "appears to be middleware/standalone",
+      "collection": null,
+      "status": "partial"
+    },
+    {
+      "name": "reports",
+      "route": null,
+      "pages": ["/reports"],
+      "controller": null,
+      "collection": null,
+      "status": "stub"
+    },
+    {
+      "name": "tasks",
+      "route": null,
+      "pages": null,
+      "controller": null,
+      "collection": "tasks (schema exists but table missing)",
+      "status": "missing"
+    },
+    {
+      "name": "time-tracking",
+      "route": null,
+      "pages": null,
+      "controller": null,
+      "collection": "time_clock_entries (schema exists but table missing)",
+      "status": "missing"
+    },
+    {
+      "name": "leave-management",
+      "route": null,
+      "pages": null,
+      "controller": null,
+      "collection": "leave_types, leave_requests (schema exists but tables missing)",
+      "status": "missing"
+    },
+    {
+      "name": "comments",
+      "route": null,
+      "pages": null,
+      "controller": null,
+      "collection": "comments (schema exists but table missing)",
+      "status": "missing"
+    },
+    {
+      "name": "client-portal",
+      "route": null,
+      "pages": null,
+      "controller": null,
+      "collection": null,
+      "status": "missing"
+    }
+  ],
+  "tables_to_create": [
+    "comments",
+    "notifications",
+    "tasks",
+    "time_clock_entries",
+    "leave_types",
+    "leave_requests"
+  ],
+  "rename_tasks": [
+    "Rename 'leads' to 'crm' in sidebar, routes, and components"
+  ]
+}
