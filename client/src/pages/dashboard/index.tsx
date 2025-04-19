@@ -14,7 +14,8 @@ import { TeamPerformance } from "@/components/dashboard/TeamPerformance";
 import { OnboardingRatio } from "@/components/dashboard/OnboardingRatio";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { RecentLeads } from "@/components/dashboard/RecentLeads";
-import { CommissionBreakdown } from "@/components/dashboard/CommissionBreakdown";
+import CommissionBreakdown from "@/components/dashboard/CommissionBreakdown";
+import CommissionPerformance from "@/components/dashboard/CommissionPerformance";
 import { CommissionTracking } from "@/components/dashboard/CommissionTracking";
 import { RevenueCard } from "@/components/dashboard/RevenueCard";
 import { FinanceOverview } from "@/components/dashboard/FinanceOverview";
@@ -112,17 +113,19 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MotionWrapper animation="fade-in" delay={0.9}>
           <CommissionBreakdown 
-            data={dashboardData?.commissions?.topEarners?.map((earner: {name: string, amount: number}) => ({
-              name: earner.name,
-              amount: earner.amount,
-              department: earner.name.includes('Rodriguez') ? 'Dispatch' : 
-                        earner.name.includes('Johnson') || earner.name.includes('Kim') ? 'Sales' : 'Other'
-            }))}
-            lastMonthTopEarner={dashboardData?.commissions?.topEarners?.[0]}
+            isAdmin={role && role.level ? role.level >= 4 : false}
           />
         </MotionWrapper>
         
         <MotionWrapper animation="fade-in" delay={0.95}>
+          <CommissionPerformance 
+            type={user?.roleId === 5 || user?.roleId === 6 ? 'dispatch' : 'sales'}
+          />
+        </MotionWrapper>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <MotionWrapper animation="fade-in" delay={1.0}>
           <DispatchPerformance 
             data={[
               { name: 'Mike', activeLeads: 8, loadsBooked: 22, invoiceGenerated: 12500, invoiceCleared: 9800, highestLoad: 3200 },
@@ -131,6 +134,12 @@ export default function Dashboard() {
               { name: 'Priya', activeLeads: 7, loadsBooked: 20, invoiceGenerated: 13100, invoiceCleared: 10500, highestLoad: 3300 },
               { name: 'Raj', activeLeads: 5, loadsBooked: 17, invoiceGenerated: 9400, invoiceCleared: 7800, highestLoad: 2500 }
             ]}
+          />
+        </MotionWrapper>
+        
+        <MotionWrapper animation="fade-in" delay={1.05}>
+          <CommissionPerformance 
+            type="dispatch"
           />
         </MotionWrapper>
       </div>

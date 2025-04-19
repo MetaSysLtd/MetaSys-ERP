@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -18,6 +19,9 @@ import * as slackNotifications from "./slack";
 import * as notificationService from "./notifications";
 import { NotificationPreferences, defaultNotificationPreferences } from "./notifications";
 import { organizationMiddleware } from "./middleware/organizationMiddleware";
+
+// Socket.IO instance will be initialized in registerRoutes
+let io: SocketIOServer;
 
 // Add type extensions for Express
 declare global {
@@ -95,6 +99,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Apply organization middleware to all API routes
   app.use('/api', organizationMiddleware);
+  
+  // Create HTTP server
+  let httpServer = createServer(app);
+  
+  // Initialize Socket.IO
+  io = new SocketIOServer(httpServer, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
+  });
+  
+  // Set up Socket.IO events
+  io.on('connection', (socket) => {
+    console.log('Client connected:', socket.id);
+    
+    socket.on('disconnect', () => {
+      console.log('Client disconnected:', socket.id);
+    });
+  });
 
   // Authentication routes
   const authRouter = express.Router();
@@ -841,6 +865,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Commission routes
   const commissionRouter = express.Router();
   app.use("/api/commissions", commissionRouter);
+  
+  // Admin commission routes
+  const adminCommissionRouter = express.Router();
+  app.use("/api/admin/commissions", adminCommissionRouter);
 
   commissionRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
@@ -1002,6 +1030,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const activities = await storage.getActivitiesByEntity(entityType, entityId, limit);
       res.json(activities);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Admin commission routes handler
+  adminCommissionRouter.post("/:type", createAuthMiddleware(4), async (req, res, next) => {
+    try {
+      const type = req.params.type;
+      if (type !== 'sales' && type !== 'dispatch') {
+        return res.status(400).json({ message: "Invalid commission rule type" });
+      }
+      
+      // Validate the tiers based on type
+      const { tiers } = req.body;
+      if (!Array.isArray(tiers) || tiers.length === 0) {
+        return res.status(400).json({ message: "Tiers must be a non-empty array" });
+      }
+      
+      // Validate tier structure based on type
+      for (const tier of tiers) {
+        if (typeof tier.min !== 'number' || typeof tier.max !== 'number') {
+          return res.status(400).json({ message: "Each tier must have min and max values" });
+        }
+        
+        if (type === 'sales') {
+          if (typeof tier.active !== 'number' || typeof tier.inbound !== 'number') {
+            return res.status(400).json({ 
+              message: "Sales tiers must have active and inbound values" 
+            });
+          }
+        } else if (type === 'dispatch') {
+          if (typeof tier.pct !== 'number') {
+            return res.status(400).json({ 
+              message: "Dispatch tiers must have a percentage value" 
+            });
+          }
+        }
+      }
+      
+      // Create a new commission rule
+      const rule = await storage.createCommissionRule({
+        type,
+        orgId: req.user?.orgId || 1, // Default to org 1 if not available
+        tiers,
+        updatedBy: req.user?.id || 0
+      });
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: 'commission_rule',
+        entityId: rule.id,
+        action: 'updated',
+        details: `Updated ${type} commission rules`
+      });
+
+      // Emit a socket event for real-time updates
+      io.emit('commissionRulesUpdated', { type });
+      
+      res.status(201).json(rule);
     } catch (error) {
       next(error);
     }
@@ -2443,7 +2532,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
-
+  // Use the existing httpServer
   return httpServer;
 }
