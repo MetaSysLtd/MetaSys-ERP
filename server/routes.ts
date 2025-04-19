@@ -2250,6 +2250,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details: `Calculated all commissions for ${month}`
       });
       
+      // Emit socket event for admin dashboard
+      io.emit('commission_admin_update', {
+        type: 'calculated_all',
+        month,
+        count: results.length,
+        orgId: req.user?.orgId
+      });
+      
+      // Also emit individual events for each affected user
+      results.forEach(commission => {
+        io.emit(`commission_update_${commission.userId}`, {
+          type: 'updated',
+          data: commission
+        });
+      });
+      
       res.json({ 
         message: `Calculated commissions for ${results.length} users`,
         commissions: results
