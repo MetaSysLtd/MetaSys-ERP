@@ -119,7 +119,7 @@ export function Sidebar({ mobile }: SidebarProps) {
       <div className="px-6 pt-6 pb-4 flex items-center border-b border-[#457B9D]/30">
         <div className="flex items-center">
           <img src={metioIcon} alt="Metio" className="h-9 w-9" />
-          <span className="ml-3 text-xl font-semibold">Metio ERP</span>
+          <span className="ml-3 text-xl font-semibold">Metio</span>
         </div>
       </div>
       
