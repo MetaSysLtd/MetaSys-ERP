@@ -137,7 +137,7 @@ export default function LeadsPage() {
                       className="h-9"
                     >
                       <Plus className="h-4 w-4 mr-1" />
-                      New Lead
+                      New Contact
                     </Button>
                   )}
                 </div>
@@ -164,10 +164,10 @@ export default function LeadsPage() {
                   </label>
                   <Select value={statusFilter} onValueChange={handleStatusChange}>
                     <SelectTrigger id="status-filter" className="w-full">
-                      <SelectValue placeholder="All Leads" />
+                      <SelectValue placeholder="All Contacts" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Leads</SelectItem>
+                      <SelectItem value="all">All Contacts</SelectItem>
                       <SelectItem value="qualified">Qualified</SelectItem>
                       <SelectItem value="unqualified">Unqualified</SelectItem>
                       <SelectItem value="active">Active</SelectItem>
@@ -180,7 +180,7 @@ export default function LeadsPage() {
                 </div>
                 
                 <div className="w-full sm:w-2/3">
-                  <label htmlFor="search-leads" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="search-crm" className="block text-sm font-medium text-gray-700 mb-1">
                     Search
                   </label>
                   <form onSubmit={handleSearch}>
@@ -189,7 +189,7 @@ export default function LeadsPage() {
                         <Search className="h-5 w-5" />
                       </div>
                       <Input
-                        id="search-leads"
+                        id="search-crm"
                         className="pl-10"
                         placeholder="Search by company, MC number, email or phone..."
                         value={searchQuery}
@@ -234,13 +234,13 @@ export default function LeadsPage() {
                       <TableCell colSpan={7} className="text-center py-8">
                         <div className="flex flex-col items-center justify-center text-gray-500">
                           <Users className="h-12 w-12 mb-2" />
-                          <h3 className="text-lg font-medium">No leads found</h3>
+                          <h3 className="text-lg font-medium">No contacts found</h3>
                           <p className="text-sm max-w-md mt-1">
                             {statusFilter !== "all"
-                              ? `No leads match the "${statusFilter}" status filter. Try changing your filters or create a new lead.`
+                              ? `No contacts match the "${statusFilter}" status filter. Try changing your filters or create a new contact.`
                               : searchQuery
-                              ? "No leads match your search criteria. Try a different search term."
-                              : "No leads have been created yet. Start by creating a new lead."}
+                              ? "No contacts match your search criteria. Try a different search term."
+                              : "No contacts have been created yet. Start by creating a new contact."}
                           </p>
                           {canCreateLead && (
                             <Button
@@ -248,7 +248,7 @@ export default function LeadsPage() {
                               className="mt-4"
                             >
                               <Plus className="h-4 w-4 mr-1" />
-                              Create New Lead
+                              Create New Contact
                             </Button>
                           )}
                         </div>
