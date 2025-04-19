@@ -224,7 +224,7 @@ async function addSeedDataIfNeeded() {
           status: "lost",
           orgId: 1,
           notes: "Went with competitor due to pricing",
-          onboardingDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          onboardingDate: new Date().toISOString(), // Fix: Use .toISOString() for date
           approvedBy: 1
         });
         

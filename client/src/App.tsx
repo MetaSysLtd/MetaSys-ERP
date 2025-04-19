@@ -15,6 +15,7 @@ import NewLoadPage from "@/pages/dispatch/loads/new";
 import InvoicesPage from "@/pages/invoices";
 import InvoiceDetailsPage from "@/pages/invoices/[id]";
 import TasksPage from "@/pages/tasks";
+import TimeTrackingPage from "@/pages/time-tracking";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import ProfilePage from "@/pages/settings/profile";
@@ -194,6 +195,14 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={TasksPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/time-tracking">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={TimeTrackingPage} />
           </AppLayout>
         )}
       </Route>

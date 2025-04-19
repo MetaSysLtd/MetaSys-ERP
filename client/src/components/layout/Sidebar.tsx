@@ -127,7 +127,6 @@ export function Sidebar({ mobile }: SidebarProps) {
       name: "Time Tracking",
       href: "/time-tracking",
       icon: Clock,
-      showFor: ["hr", "admin"],
     },
     {
       name: "Human Resources",
