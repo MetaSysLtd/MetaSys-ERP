@@ -62,7 +62,7 @@ export default function Login() {
     <div 
       className="min-h-screen flex items-center justify-center md:justify-start lg:justify-end bg-no-repeat bg-cover bg-center relative p-4 md:p-8" 
       style={{ 
-        backgroundImage: "url('/auth-bg.jpg')",
+        backgroundImage: "url('/src/assets/auth-bg.jpg')",
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}
@@ -70,7 +70,7 @@ export default function Login() {
       <div className="absolute inset-0 bg-blue-900/50" />
       <div className="w-full max-w-[500px] relative z-10 mx-auto md:ml-24 lg:mr-24">
         <div className="w-full flex flex-col items-center justify-center mb-8">
-          <img src="/metio-logo.svg" alt="Metio ERP" className="h-12 mb-3" />
+          <img src="/src/assets/metio-logo.svg" alt="Metio ERP" className="h-12 mb-3" />
           <h1 className="text-white text-2xl font-bold">Complete Enterprise Resource Planning</h1>
           <h2 className="text-white text-xl">Solution for Modern Businesses</h2>
         </div>
