@@ -168,6 +168,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const userRouter = express.Router();
   app.use("/api/users", userRouter);
 
+  // User-Organization management routes
+  userRouter.get("/:userId/organizations", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const userId = Number(req.params.userId);
+      
+      // Check if user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get user's organizations
+      const organizations = await storage.getUserOrganizations(userId);
+      res.json(organizations);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  userRouter.post("/:userId/organizations", createAuthMiddleware(4), async (req, res, next) => {
+    try {
+      const userId = Number(req.params.userId);
+      
+      // Check if user exists
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Validate organization IDs
+      const { organizationIds } = req.body;
+      if (!Array.isArray(organizationIds)) {
+        return res.status(400).json({ message: "organizationIds must be an array" });
+      }
+      
+      // Verify all organization IDs exist
+      for (const orgId of organizationIds) {
+        const org = await storage.getOrganization(Number(orgId));
+        if (!org) {
+          return res.status(404).json({ message: `Organization with ID ${orgId} not found` });
+        }
+      }
+      
+      // Set user's organizations
+      await storage.setUserOrganizations(userId, organizationIds.map(id => Number(id)));
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: 'user',
+        entityId: userId,
+        action: 'updated_organizations',
+        details: `Updated organization access for user: ${user.username}`
+      });
+      
+      res.status(200).json({ message: "User organizations updated successfully" });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   userRouter.get("/", createAuthMiddleware(3), async (req, res, next) => {
     try {
       const users = await storage.getUsers();
@@ -1655,6 +1716,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all organizations the user has access to
+  authRouter.get("/user-organizations", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const organizations = await storage.getUserOrganizations(req.user.id);
+      res.json(organizations);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Switch organization route
   authRouter.post("/switch-organization", createAuthMiddleware(1), async (req, res, next) => {
     try {
@@ -1669,8 +1740,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Organization not found" });
       }
       
+      // Check if user has access to this organization
+      const userOrgIds = await storage.getUserOrganizationIds(req.user.id);
+      if (!userOrgIds.includes(Number(organizationId))) {
+        return res.status(403).json({ 
+          message: "You don't have access to this organization" 
+        });
+      }
+      
       // Store the selected organization ID in the session
       req.session.orgId = organization.id;
+      
+      // Also update the user's current organization in the database
+      await storage.updateUser(req.user.id, {
+        orgId: Number(organizationId)
+      });
       
       res.json({ message: `Switched to ${organization.name}`, organization });
     } catch (error) {
