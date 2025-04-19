@@ -8,7 +8,7 @@ import {
   insertUserSchema, insertRoleSchema, insertLeadSchema, 
   insertLoadSchema, insertInvoiceSchema, insertInvoiceItemSchema,
   insertCommissionSchema, insertActivitySchema, insertDispatchClientSchema,
-  insertOrganizationSchema,
+  insertOrganizationSchema, insertCommissionRuleSchema, insertCommissionMonthlySchema,
   users, roles, dispatch_clients, organizations
 } from "@shared/schema";
 import session from "express-session";
@@ -1806,6 +1806,638 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       res.json({ message: `Switched to ${organization.name}`, organization });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Commission Rules routes
+  const commissionRuleRouter = express.Router();
+  app.use("/api/commission-rules", commissionRuleRouter);
+
+  commissionRuleRouter.get("/", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const { type, orgId } = req.query;
+      let rules = [];
+
+      if (type && orgId) {
+        // Get rules by type and organization
+        rules = await storage.getCommissionRulesByType(type as string);
+        rules = rules.filter(rule => rule.orgId === Number(orgId));
+      } else if (type) {
+        // Get rules by type only
+        rules = await storage.getCommissionRulesByType(type as string);
+      } else if (orgId) {
+        // Get rules by organization only
+        rules = await storage.getCommissionRulesByOrg(Number(orgId));
+      } else {
+        // Get all rules
+        const allRules = [];
+        
+        // Get sales commission rules
+        const salesRules = await storage.getCommissionRulesByType("sales");
+        allRules.push(...salesRules);
+        
+        // Get dispatch commission rules
+        const dispatchRules = await storage.getCommissionRulesByType("dispatch");
+        allRules.push(...dispatchRules);
+        
+        rules = allRules;
+      }
+      
+      res.json(rules);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  commissionRuleRouter.get("/:id", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      const rule = await storage.getCommissionRule(id);
+      
+      if (!rule) {
+        return res.status(404).json({ message: "Commission rule not found" });
+      }
+      
+      res.json(rule);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  commissionRuleRouter.post("/", createAuthMiddleware(4), async (req, res, next) => {
+    try {
+      const ruleData = insertCommissionRuleSchema.parse(req.body);
+      
+      // Make sure updatedBy is set to the current user
+      const rule = await storage.createCommissionRule({
+        ...ruleData,
+        updatedBy: req.user?.id || 0
+      });
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: 'commission_rule',
+        entityId: rule.id,
+        action: 'created',
+        details: `Created ${rule.type} commission rule`
+      });
+      
+      res.status(201).json(rule);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+
+  commissionRuleRouter.patch("/:id", createAuthMiddleware(4), async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      const rule = await storage.getCommissionRule(id);
+      
+      if (!rule) {
+        return res.status(404).json({ message: "Commission rule not found" });
+      }
+      
+      // Make sure updatedBy is set to the current user
+      const updatedRule = await storage.updateCommissionRule(id, {
+        ...req.body,
+        updatedBy: req.user?.id || 0
+      });
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: 'commission_rule',
+        entityId: id,
+        action: 'updated',
+        details: `Updated ${rule.type} commission rule`
+      });
+      
+      res.json(updatedRule);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Monthly Commissions routes
+  const commissionMonthlyRouter = express.Router();
+  app.use("/api/commissions-monthly", commissionMonthlyRouter);
+
+  commissionMonthlyRouter.get("/", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const { userId, month, orgId } = req.query;
+      let commissions = [];
+
+      if (userId && month) {
+        // Get commission by user and month
+        const commission = await storage.getCommissionMonthlyByUserAndMonth(
+          Number(userId), 
+          month as string
+        );
+        if (commission) {
+          commissions = [commission];
+        }
+      } else if (userId) {
+        // Get commissions by user
+        commissions = await storage.getCommissionsMonthlyByUser(Number(userId));
+      } else if (month) {
+        // Get commissions by month
+        commissions = await storage.getCommissionsMonthlyByMonth(month as string);
+      } else if (orgId) {
+        // Get commissions by organization
+        commissions = await storage.getCommissionsMonthlyByOrg(Number(orgId));
+      } else {
+        // Get all commissions (limited by role permissions)
+        if (req.userRole?.level >= 4) {
+          // Admins and department heads can see all commissions
+          const allCommissions = [];
+          
+          // Get latest month's commissions
+          const currentDate = new Date();
+          const currentMonth = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`;
+          
+          const latestCommissions = await storage.getCommissionsMonthlyByMonth(currentMonth);
+          allCommissions.push(...latestCommissions);
+          
+          commissions = allCommissions;
+        } else {
+          // Others can only see their own commissions
+          commissions = await storage.getCommissionsMonthlyByUser(req.user?.id || 0);
+        }
+      }
+      
+      res.json(commissions);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  commissionMonthlyRouter.get("/:id", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      const commission = await storage.getCommissionMonthly(id);
+      
+      if (!commission) {
+        return res.status(404).json({ message: "Monthly commission not found" });
+      }
+      
+      // Check if user has permission to view this commission
+      if (req.userRole?.level < 4 && commission.userId !== req.user?.id) {
+        return res.status(403).json({ 
+          message: "You don't have permission to view this commission report" 
+        });
+      }
+      
+      res.json(commission);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  commissionMonthlyRouter.post("/calculate", createAuthMiddleware(4), async (req, res, next) => {
+    try {
+      const { userId, month } = req.body;
+      
+      if (!userId || !month) {
+        return res.status(400).json({ 
+          message: "Both userId and month are required" 
+        });
+      }
+      
+      // Get the user
+      const user = await storage.getUser(Number(userId));
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get the user's role to determine calculation method
+      const role = await storage.getRole(user.roleId);
+      if (!role) {
+        return res.status(404).json({ message: "User role not found" });
+      }
+      
+      let calculatedCommission = null;
+      
+      // Calculate commission based on department
+      if (role.department === 'sales') {
+        calculatedCommission = await calculateSalesCommission(userId, month, req.user?.id || 0);
+      } else if (role.department === 'dispatch') {
+        calculatedCommission = await calculateDispatchCommission(userId, month, req.user?.id || 0);
+      } else {
+        return res.status(400).json({ 
+          message: `Cannot calculate commission for ${role.department} department` 
+        });
+      }
+      
+      if (!calculatedCommission) {
+        return res.status(404).json({ 
+          message: "Could not calculate commission - insufficient data" 
+        });
+      }
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: 'commission_monthly',
+        entityId: calculatedCommission.id,
+        action: 'calculated',
+        details: `Calculated ${role.department} commission for ${user.firstName} ${user.lastName} (${month})`
+      });
+      
+      res.json(calculatedCommission);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  commissionMonthlyRouter.post("/calculate-all", createAuthMiddleware(5), async (req, res, next) => {
+    try {
+      const { month } = req.body;
+      
+      if (!month) {
+        return res.status(400).json({ message: "Month is required (YYYY-MM format)" });
+      }
+      
+      // Get all active users
+      const allUsers = await storage.getUsers();
+      const activeUsers = allUsers.filter(user => user.active);
+      
+      const results = [];
+      
+      // Calculate commissions for all users
+      for (const user of activeUsers) {
+        // Get the user's role
+        const role = await storage.getRole(user.roleId);
+        if (!role) continue;
+        
+        // Only calculate for sales and dispatch roles
+        if (role.department !== 'sales' && role.department !== 'dispatch') {
+          continue;
+        }
+        
+        let calculatedCommission = null;
+        
+        // Calculate commission based on department
+        if (role.department === 'sales') {
+          calculatedCommission = await calculateSalesCommission(user.id, month, req.user?.id || 0);
+        } else if (role.department === 'dispatch') {
+          calculatedCommission = await calculateDispatchCommission(user.id, month, req.user?.id || 0);
+        }
+        
+        if (calculatedCommission) {
+          results.push(calculatedCommission);
+        }
+      }
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: 'commission_monthly',
+        entityId: 0, // Batch operation
+        action: 'calculated_all',
+        details: `Calculated all commissions for ${month}`
+      });
+      
+      res.json({ 
+        message: `Calculated commissions for ${results.length} users`,
+        commissions: results
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Helper function to calculate sales commission
+  async function calculateSalesCommission(userId: number, month: string, calculatedBy: number): Promise<any> {
+    // Get the user
+    const user = await storage.getUser(userId);
+    if (!user) return null;
+    
+    // Get the commission rule for sales
+    const salesRules = await storage.getCommissionRulesByType("sales");
+    const orgRules = salesRules.filter(rule => rule.orgId === user.orgId);
+    if (orgRules.length === 0) return null;
+    
+    // Use the latest rule
+    const rule = orgRules.sort((a, b) => 
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    )[0];
+    
+    // Parse the tiers from the rule
+    const tiers = rule.tiers as { active: number, pct?: number, fixed?: number }[];
+    
+    // Count active leads for this user for the specified month
+    // This is a simplified version - in a real app, we would filter by created month
+    // and status change date to ensure we only count leads activated in the target month
+    const userLeads = await storage.getLeadsByAssignee(userId);
+    const activeLeads = userLeads.filter(lead => lead.status === 'active');
+    const activeLeadCount = activeLeads.length;
+    
+    // Get existing commission record if any
+    let commissionRecord = await storage.getCommissionMonthlyByUserAndMonth(userId, month);
+    
+    // Calculate the fixed amount and percentage
+    let fixedAmount = 0;
+    let calculatedPct = 0;
+    let appliedTier = null;
+    
+    // Find the appropriate tier based on active lead count
+    for (const tier of tiers) {
+      if (activeLeadCount >= tier.active) {
+        appliedTier = tier;
+        if (tier.fixed !== undefined) {
+          fixedAmount = tier.fixed;
+        }
+        if (tier.pct !== undefined) {
+          calculatedPct = tier.pct;
+        }
+      }
+    }
+    
+    // Calculate total amount (simplified - in a real app we would factor in lead value)
+    // Adjust for inbound leads if needed
+    const inboundFactor = 0.75; // 25% reduction for inbound leads
+    const starterCloserSplit = { starter: 0.4, closer: 0.6 }; // 40% starter, 60% closer
+    
+    // Dummy values for metrics - in a real app, these would be calculated from actual data
+    const inboundLeadCount = Math.floor(activeLeadCount * 0.3); // Assuming 30% are inbound
+    const outboundLeadCount = activeLeadCount - inboundLeadCount;
+    const teamTargetMet = activeLeadCount >= 10; // Example target
+    const teamLeadBonus = teamTargetMet ? activeLeadCount * 1000 : 0; // 1000 PKR per active lead after target
+    
+    // Calculate adjusted amount based on inbound/outbound mix
+    const adjustedFixedAmount = (
+      (inboundLeadCount * fixedAmount * inboundFactor) + 
+      (outboundLeadCount * fixedAmount)
+    ) / activeLeadCount;
+    
+    // Apply percentage adjustment if applicable
+    let finalAmount = adjustedFixedAmount;
+    if (calculatedPct !== 0) {
+      const percentageAdjustment = (finalAmount * calculatedPct) / 100;
+      finalAmount += percentageAdjustment;
+    }
+    
+    // Add team lead bonus if applicable
+    if (user.roleId === 2) { // Assuming roleId 2 is for Team Leads
+      finalAmount += teamLeadBonus;
+    }
+    
+    // If we have an existing record, update it, otherwise create a new one
+    if (commissionRecord) {
+      commissionRecord = await storage.updateCommissionMonthly(commissionRecord.id, {
+        amount: finalAmount,
+        metrics: {
+          activeLeads: activeLeadCount,
+          inboundLeads: inboundLeadCount,
+          outboundLeads: outboundLeadCount,
+          teamTargetMet,
+          appliedTier: appliedTier ? appliedTier.active : 0,
+          fixedAmount,
+          adjustedAmount: adjustedFixedAmount,
+          teamLeadBonus
+        },
+        updatedBy: calculatedBy
+      });
+    } else {
+      commissionRecord = await storage.createCommissionMonthly({
+        userId,
+        orgId: user.orgId || 0,
+        month,
+        amount: finalAmount,
+        baseAmount: fixedAmount,
+        bonusAmount: teamLeadBonus,
+        percentageAdjustment: calculatedPct,
+        type: "sales",
+        metrics: {
+          activeLeads: activeLeadCount,
+          inboundLeads: inboundLeadCount,
+          outboundLeads: outboundLeadCount,
+          teamTargetMet,
+          appliedTier: appliedTier ? appliedTier.active : 0,
+          fixedAmount,
+          adjustedAmount: adjustedFixedAmount,
+          teamLeadBonus
+        },
+        status: "calculated",
+        approvedBy: null,
+        approvedAt: null,
+        updatedBy: calculatedBy
+      });
+    }
+    
+    return commissionRecord;
+  }
+
+  // Helper function to calculate dispatch commission
+  async function calculateDispatchCommission(userId: number, month: string, calculatedBy: number): Promise<any> {
+    // Get the user
+    const user = await storage.getUser(userId);
+    if (!user) return null;
+    
+    // Get the commission rule for dispatch
+    const dispatchRules = await storage.getCommissionRulesByType("dispatch");
+    const orgRules = dispatchRules.filter(rule => rule.orgId === user.orgId);
+    if (orgRules.length === 0) return null;
+    
+    // Use the latest rule
+    const rule = orgRules.sort((a, b) => 
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    )[0];
+    
+    // Parse the tiers from the rule
+    const tiers = rule.tiers as { min: number, max: number, pct: number }[];
+    
+    // Get loads managed by this dispatcher for the specified month
+    // This is a simplified version - in a real app, we would filter by month
+    const userLoads = await storage.getLoadsByAssignee(userId);
+    const completedLoads = userLoads.filter(load => load.status === 'completed');
+    
+    // Calculate total invoice amount from completed loads
+    // In a real app, we would sum the actual invoice amounts
+    const invoiceTotal = completedLoads.reduce((sum, load) => {
+      // Dummy invoice amount - in real app, we'd get from the invoice
+      const loadValue = Math.floor(Math.random() * 1000) + 500; // Random value between 500-1500
+      return sum + loadValue;
+    }, 0);
+    
+    // Get existing commission record if any
+    let commissionRecord = await storage.getCommissionMonthlyByUserAndMonth(userId, month);
+    
+    // Calculate the percentage based on invoice total
+    let calculatedPct = 0;
+    let salaryPenalty = 0;
+    let appliedTier = null;
+    
+    // Check for salary penalty if invoice total is below threshold
+    if (invoiceTotal < 650) {
+      salaryPenalty = -25; // 25% reduction
+    }
+    
+    // Find the appropriate tier based on invoice total
+    for (const tier of tiers) {
+      if (invoiceTotal >= tier.min && invoiceTotal <= tier.max) {
+        appliedTier = tier;
+        calculatedPct = tier.pct;
+      }
+    }
+    
+    // Calculate additional bonuses
+    
+    // Own lead bonus (3000 PKR per onboarded lead)
+    const ownLeadCount = 2; // Dummy value - in real app, we'd count actual own leads
+    const ownLeadBonus = ownLeadCount * 3000;
+    
+    // New lead bonus (2000 PKR per new lead)
+    const newLeadCount = 3; // Dummy value - in real app, we'd count actual new leads
+    const newLeadBonus = newLeadCount * 2000;
+    
+    // First-2-weeks invoice bonus (3%)
+    const first2WeeksInvoiceAmount = invoiceTotal * 0.4; // Dummy value - assuming 40% of invoices were in first 2 weeks
+    const first2WeeksBonus = first2WeeksInvoiceAmount * 0.03;
+    
+    // Active trucks bonus (3000 PKR per lead if ≥3 active trucks)
+    const activeLeads = 4; // Dummy value - in real app, we'd count actual active leads
+    const activeTrucksBonus = activeLeads >= 3 ? activeLeads * 3000 : 0;
+    
+    // More than 5 active leads in month bonus (5000 PKR)
+    const activeLeadsBonus = activeLeads > 5 ? 5000 : 0;
+    
+    // Calculate base amount from invoice total and percentage
+    const baseAmount = (invoiceTotal * calculatedPct) / 100;
+    
+    // Calculate total bonuses
+    const totalBonuses = ownLeadBonus + newLeadBonus + first2WeeksBonus + activeTrucksBonus + activeLeadsBonus;
+    
+    // Apply salary penalty if applicable
+    const penaltyAmount = salaryPenalty !== 0 ? (baseAmount * salaryPenalty) / 100 : 0;
+    
+    // Calculate final amount
+    const finalAmount = baseAmount + totalBonuses + penaltyAmount;
+    
+    // If we have an existing record, update it, otherwise create a new one
+    if (commissionRecord) {
+      commissionRecord = await storage.updateCommissionMonthly(commissionRecord.id, {
+        amount: finalAmount,
+        metrics: {
+          invoiceTotal,
+          completedLoads: completedLoads.length,
+          appliedTier: appliedTier ? `${appliedTier.min}-${appliedTier.max}` : 'None',
+          ownLeadCount,
+          newLeadCount,
+          first2WeeksInvoiceAmount,
+          activeLeads,
+          baseAmount,
+          ownLeadBonus,
+          newLeadBonus,
+          first2WeeksBonus,
+          activeTrucksBonus,
+          activeLeadsBonus,
+          totalBonuses,
+          penaltyAmount
+        },
+        updatedBy: calculatedBy
+      });
+    } else {
+      commissionRecord = await storage.createCommissionMonthly({
+        userId,
+        orgId: user.orgId || 0,
+        month,
+        amount: finalAmount,
+        baseAmount,
+        bonusAmount: totalBonuses,
+        percentageAdjustment: calculatedPct,
+        penaltyPct: salaryPenalty,
+        type: "dispatch",
+        metrics: {
+          invoiceTotal,
+          completedLoads: completedLoads.length,
+          appliedTier: appliedTier ? `${appliedTier.min}-${appliedTier.max}` : 'None',
+          ownLeadCount,
+          newLeadCount,
+          first2WeeksInvoiceAmount,
+          activeLeads,
+          baseAmount,
+          ownLeadBonus,
+          newLeadBonus,
+          first2WeeksBonus,
+          activeTrucksBonus,
+          activeLeadsBonus,
+          totalBonuses,
+          penaltyAmount
+        },
+        status: "calculated",
+        approvedBy: null,
+        approvedAt: null,
+        updatedBy: calculatedBy
+      });
+    }
+    
+    return commissionRecord;
+  }
+
+  // Automatically recalculate commissions when a lead status changes to active
+  app.patch("/api/leads/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const leadId = Number(req.params.id);
+      const lead = await storage.getLead(leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Update lead
+      const updatedLead = await storage.updateLead(leadId, req.body);
+      
+      // Check if status changed to active
+      if (req.body.status === 'active' && lead.status !== 'active') {
+        // Trigger commission recalculation for the assigned sales rep
+        const currentDate = new Date();
+        const currentMonth = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`;
+        
+        // Only recalculate if we have an assigned user
+        if (lead.assignedTo) {
+          await calculateSalesCommission(lead.assignedTo, currentMonth, req.user?.id || 0);
+        }
+      }
+      
+      res.json(updatedLead);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Automatically recalculate commissions when a load is marked as completed
+  app.patch("/api/loads/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const loadId = Number(req.params.id);
+      const load = await storage.getLoad(loadId);
+      
+      if (!load) {
+        return res.status(404).json({ message: "Load not found" });
+      }
+      
+      // Update load
+      const updatedLoad = await storage.updateLoad(loadId, req.body);
+      
+      // Check if status changed to completed
+      if (req.body.status === 'completed' && load.status !== 'completed') {
+        // Trigger commission recalculation for the assigned dispatcher
+        const currentDate = new Date();
+        const currentMonth = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`;
+        
+        // Only recalculate if we have an assigned user
+        if (load.assignedTo) {
+          await calculateDispatchCommission(load.assignedTo, currentMonth, req.user?.id || 0);
+        }
+      }
+      
+      res.json(updatedLoad);
     } catch (error) {
       next(error);
     }

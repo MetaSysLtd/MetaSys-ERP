@@ -190,6 +190,56 @@ export class MemStorage implements IStorage {
     this.initializeRoles();
   }
   
+  private initializeCommissionRules(orgId: number) {
+    // Check if we already have commission rules
+    const existingSalesRules = Array.from(this.commissionRules.values())
+      .filter(rule => rule.type === 'sales' && rule.orgId === orgId);
+    
+    const existingDispatchRules = Array.from(this.commissionRules.values())
+      .filter(rule => rule.type === 'dispatch' && rule.orgId === orgId);
+    
+    // If we don't have sales commission rules, create them
+    if (existingSalesRules.length === 0) {
+      const salesCommRules = {
+        type: 'sales',
+        orgId,
+        tiers: [
+          {active: 0, pct: -25, fixed: 0},
+          {active: 2, fixed: 5000},
+          {active: 3, fixed: 10000},
+          {active: 4, fixed: 15000},
+          {active: 5, fixed: 21500},
+          {active: 6, fixed: 28000},
+          {active: 7, fixed: 36000},
+          {active: 8, fixed: 45000},
+          {active: 9, fixed: 55000},
+          {active: 10, fixed: 70000}
+        ],
+        updatedBy: 1 // Default admin user
+      };
+      
+      this.createCommissionRule(salesCommRules);
+    }
+    
+    // If we don't have dispatch commission rules, create them
+    if (existingDispatchRules.length === 0) {
+      const dispatchCommRules = {
+        type: 'dispatch',
+        orgId,
+        tiers: [
+          {min: 651, max: 850, pct: 2.5},
+          {min: 851, max: 1500, pct: 5},
+          {min: 1501, max: 2700, pct: 10},
+          {min: 2701, max: 3700, pct: 12.5},
+          {min: 3701, max: Infinity, pct: 15}
+        ],
+        updatedBy: 1 // Default admin user
+      };
+      
+      this.createCommissionRule(dispatchCommRules);
+    }
+  }
+  
   private initializeRoles() {
     // Create a default organization
     const defaultOrg = this.createOrganization({
@@ -197,6 +247,9 @@ export class MemStorage implements IStorage {
       code: "DEFAULT",
       active: true
     });
+    
+    // Initialize commission rules
+    this.initializeCommissionRules(defaultOrg.id);
     
     const roles: InsertRole[] = [
       {
