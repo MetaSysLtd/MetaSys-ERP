@@ -2,16 +2,16 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { Select } from "@/components/ui/select";
 import { KPISection } from "@/components/dashboard/KPISection";
 import { TeamPerformance } from "@/components/dashboard/TeamPerformance";
 import { OnboardingRatio } from "@/components/dashboard/OnboardingRatio";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { RecentLeads } from "@/components/dashboard/RecentLeads";
-import { CommissionBreakdown } from "@/components/dashboard/CommissionBreakdown";
+import { CommissionBreakdown } from "@/components/dashboard/MetricCard";
 import { RevenueCard } from "@/components/dashboard/RevenueCard";
 import { FinanceOverview } from "@/components/dashboard/FinanceOverview";
 import { EmployeeSummary } from "@/components/dashboard/EmployeeSummary";
+import { DepartmentSelect } from "@/components/dashboard/DepartmentSelect";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
@@ -113,7 +113,7 @@ export default function Dashboard() {
             to={dateRange.to}
             onSelect={setDateRange}
           />
-          <Select
+          <DepartmentSelect
             value={department}
             onValueChange={setDepartment}
             options={[

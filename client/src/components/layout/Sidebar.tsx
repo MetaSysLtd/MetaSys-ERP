@@ -111,11 +111,11 @@ export function Sidebar({ mobile }: SidebarProps) {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", {
+      await fetch("/api/logout", {
         method: "POST",
         credentials: "include"
       });
-      window.location.href = "/login";
+      window.location.href = "/auth";
     } catch (err) {
       console.error("Logout error:", err);
     }

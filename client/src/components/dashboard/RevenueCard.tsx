@@ -1,33 +1,90 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend
+} from "recharts";
 import { formatCurrency } from "@/lib/utils";
 
 interface RevenueData {
-  name: string;
-  value: number;
+  total: number;
+  byMonth: {
+    month: string;
+    revenue: number;
+    target: number;
+  }[];
 }
 
-export function RevenueCard({ data }: { data?: RevenueData[] }) {
+interface RevenueCardProps {
+  data?: RevenueData;
+}
+
+export function RevenueCard({ data }: RevenueCardProps) {
+  // Return placeholder UI if no data is provided
+  if (!data) {
+    return (
+      <Card className="shadow rounded-lg">
+        <CardHeader className="px-5 py-4 border-b border-gray-200">
+          <CardTitle className="text-lg leading-6 font-medium text-gray-900">
+            Revenue Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-5 flex justify-center items-center h-80">
+          <p className="text-gray-500">No revenue data available</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const { total, byMonth } = data;
+
   return (
-    <Card className="col-span-full">
-      <CardHeader>
-        <CardTitle>Revenue Overview</CardTitle>
+    <Card className="shadow rounded-lg">
+      <CardHeader className="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
+        <CardTitle className="text-lg leading-6 font-medium text-gray-900">
+          Revenue Overview
+        </CardTitle>
+        <div className="text-lg font-semibold">
+          {formatCurrency(total)}
+        </div>
       </CardHeader>
-      <CardContent>
-        <div className="h-[300px]">
+      <CardContent className="p-5">
+        <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data || []}>
+            <LineChart
+              data={byMonth}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis tickFormatter={(value) => formatCurrency(value)} />
-              <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-              <Line 
-                type="monotone" 
-                dataKey="value" 
-                stroke="#2563eb" 
-                strokeWidth={2} 
+              <XAxis dataKey="month" />
+              <YAxis 
+                tickFormatter={(value) => `$${value/1000}k`}
+              />
+              <Tooltip 
+                formatter={(value: number) => [`$${value.toLocaleString()}`, undefined]}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="revenue"
+                stroke="#2EC4B6"
+                strokeWidth={2}
                 dot={{ r: 4 }}
+                name="Actual Revenue"
+              />
+              <Line
+                type="monotone"
+                dataKey="target"
+                stroke="#1D3557"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={{ r: 4 }}
+                name="Target Revenue"
               />
             </LineChart>
           </ResponsiveContainer>
