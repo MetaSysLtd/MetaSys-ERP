@@ -1,10 +1,11 @@
 import {
-  users, roles, leads, loads, invoices, invoiceItems, commissions, activities, dispatch_clients,
+  users, roles, leads, loads, invoices, invoiceItems, commissions, activities, dispatch_clients, organizations,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
   type Commission, type InsertCommission, type Activity, type InsertActivity,
-  type DispatchClient, type InsertDispatchClient
+  type DispatchClient, type InsertDispatchClient, 
+  type Organization, type InsertOrganization
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -17,12 +18,21 @@ export interface IStorage {
   // Session store for authentication
   sessionStore: session.Store;
 
+  // Organization operations
+  getOrganization(id: number): Promise<Organization | undefined>;
+  getOrganizationByCode(code: string): Promise<Organization | undefined>;
+  getOrganizations(): Promise<Organization[]>;
+  getActiveOrganizations(): Promise<Organization[]>;
+  createOrganization(org: InsertOrganization): Promise<Organization>;
+  updateOrganization(id: number, org: Partial<Organization>): Promise<Organization | undefined>;
+  
   // User & Role operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
   getUsers(): Promise<User[]>;
+  getUsersByOrganization(orgId: number): Promise<User[]>;
   getAllUsers(): Promise<User[]>;
   getUsersByRole(roleId: number): Promise<User[]>;
   
@@ -97,6 +107,7 @@ export class MemStorage implements IStorage {
   private invoiceItems: Map<number, InvoiceItem>;
   private commissions: Map<number, Commission>;
   private activities: Map<number, Activity>;
+  private organizations: Map<number, Organization>;
   
   private userIdCounter: number;
   private roleIdCounter: number;
@@ -107,6 +118,7 @@ export class MemStorage implements IStorage {
   private invoiceItemIdCounter: number;
   private commissionIdCounter: number;
   private activityIdCounter: number;
+  private organizationIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
