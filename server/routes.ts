@@ -224,7 +224,7 @@ async function addSeedDataIfNeeded() {
             status,
             orgId: lead.orgId || 1,
             notes: `Client created from lead ${lead.companyName}`,
-            onboardingDate: status === "active" ? new Date().toISOString().split('T')[0] : null,
+            onboardingDate: status === "active" ? new Date() : null,
             approvedBy: status === "active" ? 1 : null
           });
         }
