@@ -978,7 +978,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         systemHealth,
         securityMetrics,
-        users: users.map(u => ({
+        users: users.map((u: typeof users.$inferSelect) => ({
           id: u.id,
           username: u.username,
           firstName: u.firstName,
@@ -986,7 +986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: u.email,
           roleId: u.roleId,
           active: u.active,
-          lastActivity: activities.find(a => a.userId === u.id)?.createdAt || null
+          lastActivity: activities.find(a => a.userId === u.id)?.timestamp || null
         })),
         tasks,
         activities

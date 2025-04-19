@@ -230,6 +230,10 @@ export class MemStorage implements IStorage {
   async getUsers(): Promise<User[]> {
     return Array.from(this.users.values());
   }
+  
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
 
   async getUsersByRole(roleId: number): Promise<User[]> {
     return Array.from(this.users.values()).filter(user => user.roleId === roleId);
@@ -606,6 +610,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsers(): Promise<User[]> {
+    return db.select().from(users);
+  }
+  
+  async getAllUsers(): Promise<User[]> {
     return db.select().from(users);
   }
 
