@@ -1,6 +1,9 @@
-import { pgTable, text, serial, integer, boolean, date, timestamp, real, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, date, timestamp, real, jsonb, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Clock event types enum
+export const clockEventTypeEnum = pgEnum('clock_event_type', ['IN', 'OUT']);
 
 // Organization Management
 export const organizations = pgTable("organizations", {
@@ -258,6 +261,18 @@ export const commissionRules = pgTable("commission_rules", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Simple Clock Events (new implementation)
+export const clockEvents = pgTable("clock_events", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  type: clockEventTypeEnum("type").notNull(), // IN or OUT
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+  location: text("location"),
+  notes: text("notes"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+});
+
 // Monthly Commissions
 export const commissionsMonthly = pgTable("commissions_monthly", {
   id: serial("id").primaryKey(),
@@ -297,6 +312,7 @@ export const insertLeaveTypeSchema = createInsertSchema(leaveTypes).omit({ id: t
 export const insertLeaveRequestSchema = createInsertSchema(leaveRequests).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({ id: true, createdAt: true });
+export const insertClockEventSchema = createInsertSchema(clockEvents).omit({ id: true, timestamp: true });
 export const insertCommissionRuleSchema = createInsertSchema(commissionRules).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertCommissionMonthlySchema = createInsertSchema(commissionsMonthly).omit({ id: true, createdAt: true, updatedAt: true });
 
@@ -351,6 +367,9 @@ export type InsertLeaveRequest = z.infer<typeof insertLeaveRequestSchema>;
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+export type ClockEvent = typeof clockEvents.$inferSelect;
+export type InsertClockEvent = z.infer<typeof insertClockEventSchema>;
 
 export type CommissionRule = typeof commissionRules.$inferSelect;
 export type InsertCommissionRule = z.infer<typeof insertCommissionRuleSchema>;
