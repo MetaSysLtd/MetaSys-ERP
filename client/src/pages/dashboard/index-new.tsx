@@ -19,7 +19,7 @@ import { CommissionTracking } from "@/components/dashboard/CommissionTracking";
 import { RevenueCard } from "@/components/dashboard/RevenueCard";
 import { FinanceOverview } from "@/components/dashboard/FinanceOverview";
 import { EmployeeSummary } from "@/components/dashboard/EmployeeSummary";
-import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
+import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper";
 import { AnimationSettings } from "@/components/ui/animation-settings";
 
 export default function Dashboard() {
