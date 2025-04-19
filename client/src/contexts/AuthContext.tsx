@@ -139,6 +139,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsAuthenticated(false);
       setUser(null);
       setRole(null);
+      window.location.href = '/login';
     } catch (err) {
       console.error("Logout error:", err);
     } finally {

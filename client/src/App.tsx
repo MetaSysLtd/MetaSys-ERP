@@ -47,7 +47,9 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
 function Router() {
   return (
     <Switch>
-      <Route path="/login" component={Login} />
+      <Route path="/login">
+    <Login />
+  </Route>
       
       <Route path="/">
         {() => (
