@@ -1609,20 +1609,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Generate weekly invoices
+  // Generate invoices (for weekly or custom date range)
+  app.post("/api/invoices/generate", createAuthMiddleware(4), async (req, res, next) => {
+    try {
+      // Get date range parameter
+      const range = req.query.range as string || 'weekly';
+      
+      // Get all leads
+      const leads = await storage.getLeads();
+      if (!leads.length) {
+        return res.status(400).json({ message: "No leads available to generate invoices for" });
+      }
+      
+      // Get all loads that are completed but not invoiced
+      // Filter loads based on date range and status
+      const allLoads = await storage.getLoads();
+      let loads;
+      
+      if (range === 'weekly') {
+        // Get loads from the last 7 days
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        
+        loads = allLoads.filter(load => 
+          load.status === 'delivered' && 
+          !load.invoiceId && // Not already invoiced
+          new Date(load.deliveryDate) >= weekAgo
+        );
+      } else if (range === 'custom') {
+        // Get all loads that are delivered but not invoiced (regardless of date)
+        loads = allLoads.filter(load => 
+          load.status === 'delivered' && 
+          !load.invoiceId // Not already invoiced
+        );
+      } else {
+        return res.status(400).json({ message: "Invalid range parameter. Use 'weekly' or 'custom'." });
+      }
+      
+      if (!loads.length) {
+        return res.status(400).json({ message: "No uninvoiced loads available in the specified range" });
+      }
+      
+      // Group loads by client (lead)
+      const loadsByLead: Record<number, any[]> = {};
+      
+      for (const load of loads) {
+        if (!loadsByLead[load.leadId]) {
+          loadsByLead[load.leadId] = [];
+        }
+        loadsByLead[load.leadId].push(load);
+      }
+      
+      // Generate an invoice for each lead that has loads
+      const createdInvoices = [];
+      
+      for (const [leadId, leadLoads] of Object.entries(loadsByLead)) {
+        if (leadLoads.length === 0) continue;
+        
+        // Generate invoice number
+        const date = new Date();
+        const year = date.getFullYear().toString().substr(-2);
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const random = Math.floor(1000 + Math.random() * 9000).toString();
+        const invoiceNumber = `INV-${year}${month}-${random}`;
+        
+        // Calculate total amount
+        const totalAmount = leadLoads.reduce((total, load) => {
+          // Make sure we're calculating the actual total properly
+          const loadTotal = load.freightAmount + load.serviceCharge;
+          return total + loadTotal;
+        }, 0);
+        
+        // Create the invoice
+        const invoice = await storage.createInvoice({
+          leadId: parseInt(leadId),
+          invoiceNumber,
+          totalAmount,
+          status: 'draft',
+          issuedDate: new Date().toISOString().split('T')[0],
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          createdBy: req.user?.id || 1,
+          notes: `Automatically generated invoice for ${leadLoads.length} loads.`
+        });
+        
+        // Create invoice items for each load
+        for (const load of leadLoads) {
+          await storage.createInvoiceItem({
+            invoiceId: invoice.id,
+            loadId: load.id,
+            description: `Load: ${load.origin} to ${load.destination}`,
+            amount: load.freightAmount + load.serviceCharge
+          });
+          
+          // Mark the load as invoiced by adding the invoice ID
+          await storage.updateLoad(load.id, { status: 'invoiced', invoiceId: invoice.id });
+        }
+        
+        createdInvoices.push(invoice);
+      }
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user?.id || 1,
+        entityType: 'invoice',
+        entityId: 0, // System-wide activity
+        action: range === 'weekly' ? 'generate-weekly' : 'generate-custom',
+        details: `Generated ${createdInvoices.length} invoices (${range} range)`
+      });
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: `Successfully generated ${createdInvoices.length} invoices`,
+        count: createdInvoices.length,
+        invoices: createdInvoices.map(inv => inv.id)
+      });
+    } catch (error) {
+      console.error("Error generating invoices:", error);
+      next(error);
+    }
+  });
+  
+  // Legacy route for backward compatibility
   app.post("/api/invoices/generate-weekly", createAuthMiddleware(4), async (req, res, next) => {
     try {
       // This will generate invoices for all active loads that don't have invoices yet
       // In a real implementation, this would query for all completed loads without invoices
       
       // Get all leads
-      const leads = await storage.getAllLeads();
+      const leads = await storage.getLeads();
       if (!leads.length) {
         return res.status(400).json({ message: "No leads available to generate invoices for" });
       }
       
       // Get all loads that are completed but not invoiced
-      const loads = await storage.getLoadsForInvoicing();
+      // Filter loads that are "delivered" status and not already invoiced
+      const allLoads = await storage.getLoads();
+      const loads = allLoads.filter(load => 
+        load.status === 'delivered' && 
+        !load.invoiceId // We'll use this to determine if it's been invoiced
+      );
+      
       if (!loads.length) {
         return res.status(400).json({ message: "No uninvoiced loads available" });
       }
@@ -1651,7 +1777,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const invoiceNumber = `INV-${year}${month}-${random}`;
         
         // Calculate total amount
-        const totalAmount = leadLoads.reduce((total, load) => total + load.totalAmount, 0);
+        const totalAmount = leadLoads.reduce((total, load) => {
+          // Make sure we're calculating the actual total properly
+          const loadTotal = load.freightAmount + load.serviceCharge;
+          return total + loadTotal;
+        }, 0);
         
         // Create the invoice
         const invoice = await storage.createInvoice({
@@ -1661,7 +1791,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: 'draft',
           issuedDate: new Date().toISOString().split('T')[0],
           dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          createdBy: req.user.id,
+          createdBy: req.user?.id || 1,
           notes: `Automatically generated weekly invoice for ${leadLoads.length} loads.`
         });
         
@@ -1670,12 +1800,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.createInvoiceItem({
             invoiceId: invoice.id,
             loadId: load.id,
-            description: `Load #${load.loadNumber}: ${load.origin} to ${load.destination}`,
-            amount: load.totalAmount
+            description: `Load: ${load.origin} to ${load.destination}`,
+            amount: load.freightAmount + load.serviceCharge
           });
           
-          // Mark the load as invoiced
-          await storage.updateLoad(load.id, { invoiced: true });
+          // Mark the load as invoiced by adding the invoice ID
+          await storage.updateLoad(load.id, { status: 'invoiced', invoiceId: invoice.id });
         }
         
         createdInvoices.push(invoice);
@@ -1683,7 +1813,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log the activity
       await storage.createActivity({
-        userId: req.user.id,
+        userId: req.user?.id || 1,
         entityType: 'invoice',
         entityId: 0, // System-wide activity
         action: 'generate-weekly',

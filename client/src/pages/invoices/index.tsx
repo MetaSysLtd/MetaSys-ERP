@@ -9,7 +9,7 @@ import { InvoiceForm } from "@/components/invoices/InvoiceForm";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, PlusCircle } from "lucide-react";
 import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
-import { Pagination } from "@/components/ui/pagination";
+import { CustomPagination } from "@/components/ui/custom-pagination";
 
 interface InvoiceResponse {
   data: Array<{
@@ -239,7 +239,7 @@ export default function InvoicesPage() {
         
         {invoiceResponse?.pagination && (
           <div className="mt-6 flex justify-center">
-            <Pagination
+            <CustomPagination
               currentPage={invoiceResponse.pagination.page}
               totalPages={invoiceResponse.pagination.pages}
               onPageChange={handlePageChange}
