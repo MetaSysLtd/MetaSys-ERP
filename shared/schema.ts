@@ -19,7 +19,7 @@ export const users = pgTable("users", {
   lastName: text("last_name").notNull(),
   email: text("email").notNull(),
   phoneNumber: text("phone_number"),
-  roleId: integer("role_id").notNull(),
+  roleId: integer("role_id").notNull().references(() => roles.id),
   active: boolean("active").notNull().default(true),
   profileImageUrl: text("profile_image_url"),
 });

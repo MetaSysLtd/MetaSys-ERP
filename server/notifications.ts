@@ -1,7 +1,9 @@
 import * as slackService from './slack';
 import * as emailService from './email';
-import { storage } from './storage';
 import { log } from './vite';
+import { db } from './db';
+import { eq } from 'drizzle-orm';
+import { leads, users } from '@shared/schema';
 
 // Types of notifications
 export enum NotificationType {
@@ -67,7 +69,7 @@ export const sendLeadNotification = async (
   urgent: boolean = false
 ): Promise<void> => {
   try {
-    const lead = await storage.getLead(leadId);
+    const [lead] = await db.select().from(leads).where(eq(leads.id, leadId));
     if (!lead) {
       log(`Lead notification failed: Lead ${leadId} not found`);
       return;
