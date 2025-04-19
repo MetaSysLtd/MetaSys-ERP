@@ -79,6 +79,17 @@ const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
 };
 
 // Add some seed data for testing
+// Helper to safely create a date object
+function createDate(dateString?: string | null): Date | null {
+  if (!dateString) return null;
+  try {
+    return new Date(dateString);
+  } catch (error) {
+    console.error("Invalid date format:", dateString);
+    return new Date(); // fallback to current date
+  }
+}
+
 async function addSeedDataIfNeeded() {
   try {
     // Check if we already have some dispatch clients
@@ -96,13 +107,15 @@ async function addSeedDataIfNeeded() {
           contactName: "John Smith",
           email: "john@fastfreight.example",
           phoneNumber: "555-123-4567",
-          source: "referral",
-          notes: "Large carrier with national routes",
           status: "active",
           mcNumber: "MC-123456",
           dotNumber: "DOT-7890123",
           assignedTo: 1,
-          orgId: 1
+          orgId: 1,
+          notes: "Large carrier with national routes",
+          equipmentType: "Dry Van",
+          factoringStatus: "approved",
+          serviceCharges: 5
         });
         
         const lead2 = await storage.createLead({
@@ -110,13 +123,15 @@ async function addSeedDataIfNeeded() {
           contactName: "Maria Rodriguez",
           email: "maria@highway-express.example",
           phoneNumber: "555-987-6543",
-          source: "website",
-          notes: "Mid-sized regional carrier",
           status: "active",
           mcNumber: "MC-456789",
           dotNumber: "DOT-2345678",
           assignedTo: 1,
-          orgId: 1
+          orgId: 1,
+          notes: "Mid-sized regional carrier",
+          equipmentType: "Reefer",
+          factoringStatus: "pending",
+          serviceCharges: 6
         });
         
         const lead3 = await storage.createLead({
@@ -124,13 +139,15 @@ async function addSeedDataIfNeeded() {
           contactName: "Robert Chen",
           email: "robert@mountain-trucking.example",
           phoneNumber: "555-567-1234",
-          source: "cold_call",
-          notes: "Specialized in refrigerated freight",
           status: "active",
           mcNumber: "MC-789012",
           dotNumber: "DOT-3456789",
           assignedTo: 1,
-          orgId: 1
+          orgId: 1,
+          notes: "Specialized in refrigerated freight",
+          equipmentType: "Reefer",
+          factoringStatus: "not_required",
+          serviceCharges: 4
         });
         
         const lead4 = await storage.createLead({
@@ -138,13 +155,15 @@ async function addSeedDataIfNeeded() {
           contactName: "Sarah Johnson",
           email: "sarah@coastal-shipping.example",
           phoneNumber: "555-222-3333",
-          source: "trade_show",
-          notes: "Interested in long-term partnership",
           status: "qualified",
           mcNumber: "MC-345678",
           dotNumber: "DOT-9012345",
           assignedTo: 1,
-          orgId: 1
+          orgId: 1,
+          notes: "Interested in long-term partnership",
+          equipmentType: "Flatbed",
+          factoringStatus: "pending",
+          serviceCharges: 6
         });
         
         const lead5 = await storage.createLead({
@@ -152,13 +171,15 @@ async function addSeedDataIfNeeded() {
           contactName: "Michael Brown",
           email: "michael@midwest-haulers.example",
           phoneNumber: "555-444-5555",
-          source: "referral",
-          notes: "Family-owned business, established 1985",
           status: "qualified",
           mcNumber: "MC-567890",
           dotNumber: "DOT-1234567",
           assignedTo: 1,
-          orgId: 1
+          orgId: 1,
+          notes: "Family-owned business, established 1985",
+          equipmentType: "Dry Van",
+          factoringStatus: "approved",
+          serviceCharges: 5
         });
         
         // Now create some dispatch clients linked to these leads

@@ -14,6 +14,7 @@ import DispatchClientsPage from "@/pages/dispatch/clients";
 import NewLoadPage from "@/pages/dispatch/loads/new";
 import InvoicesPage from "@/pages/invoices";
 import InvoiceDetailsPage from "@/pages/invoices/[id]";
+import TasksPage from "@/pages/tasks";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import ProfilePage from "@/pages/settings/profile";
