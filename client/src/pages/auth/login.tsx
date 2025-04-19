@@ -60,17 +60,15 @@ export default function Login() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center md:justify-end bg-cover bg-center relative" 
+      className="min-h-screen flex items-center justify-center md:justify-end bg-no-repeat bg-cover bg-center relative p-4 md:p-8" 
       style={{ 
-        backgroundImage: "url('/metio-bg.jpg')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
+        backgroundImage: "url('/ai-enterprise.png')",
       }}
     >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-      <div className="w-full max-w-[420px] p-4 relative z-10 mx-4 md:mr-8">
-        <Card className="w-full bg-white/95 dark:bg-gray-900/95 border-0 shadow-2xl">
-          <div className="h-1 bg-gradient-to-r from-[#2170dd] to-[#4d9eff]"></div>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="w-full max-w-[420px] relative z-10 mx-auto md:mx-8">
+        <Card className="w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-0 shadow-2xl">
+          <div className="h-1 bg-gradient-to-r from-[#2170dd] to-[#4d9eff] rounded-t-lg"></div>
           <CardHeader className="space-y-1 pt-6">
             <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
             <CardDescription className="text-center">
@@ -127,11 +125,11 @@ export default function Login() {
                 />
                 <Button 
                   type="submit" 
-                  className="w-full h-11 mt-2 bg-[#2170dd] hover:bg-[#3984ea]"
+                  className="w-full h-11 mt-2 bg-[#2170dd] hover:bg-[#3984ea] transition-colors"
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center gap-2">
                       <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
