@@ -188,7 +188,7 @@ async function addSeedDataIfNeeded() {
           status: "active",
           orgId: 1,
           notes: "Premium client, priority dispatch",
-          onboardingDate: new Date(),
+          onboardingDate: new Date().toISOString(),
           approvedBy: 1
         });
         
