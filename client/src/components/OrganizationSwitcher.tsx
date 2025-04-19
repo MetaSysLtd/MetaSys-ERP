@@ -31,24 +31,15 @@ export function OrganizationSwitcher() {
   const { toast } = useToast();
 
   // Fetch organizations the user has access to
-  const { data: organizations, isLoading } = useQuery<Organization[]>({
+  const { data: organizations = [], isLoading } = useQuery<Organization[]>({
     queryKey: ['/api/auth/user-organizations'],
-    staleTime: 60000, // 1 minute
-    onError: () => {
-      // Fallback to active organizations if user-organizations endpoint fails
-      queryClient.fetchQuery({ 
-        queryKey: ['/api/organizations/active'] 
-      });
-    }
+    staleTime: 60000 // 1 minute
   });
 
   // Fetch current organization
   const { data: currentOrg, isLoading: isLoadingCurrent } = useQuery<Organization>({
     queryKey: ['/api/organizations/current'],
-    staleTime: 60000, // 1 minute
-    onError: () => {
-      // It's ok if this fails, user might not have an org selected yet
-    }
+    staleTime: 60000 // 1 minute
   });
 
   // Update selected org when current org is loaded

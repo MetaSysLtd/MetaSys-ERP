@@ -1725,6 +1725,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(error);
     }
   });
+  
+  // Switch organization route (GET version)
+  authRouter.get("/switch", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const orgId = req.query.orgId;
+      
+      if (!orgId) {
+        return res.status(400).json({ message: "Organization ID is required" });
+      }
+      
+      const organization = await storage.getOrganization(Number(orgId));
+      if (!organization) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+      
+      // Check if user has access to this organization
+      const userOrgIds = await storage.getUserOrganizationIds(req.user.id);
+      if (!userOrgIds.includes(Number(orgId))) {
+        return res.status(403).json({ 
+          message: "You don't have access to this organization" 
+        });
+      }
+      
+      // Store the selected organization ID in the session
+      req.session.orgId = organization.id;
+      
+      // Also update the user's current organization in the database
+      await storage.updateUser(req.user.id, {
+        orgId: Number(orgId)
+      });
+      
+      res.json({ message: `Switched to ${organization.name}`, organization });
+    } catch (error) {
+      next(error);
+    }
+  });
 
   // Switch organization route
   authRouter.post("/switch-organization", createAuthMiddleware(1), async (req, res, next) => {
