@@ -73,11 +73,11 @@ export default function Login() {
         <div className="absolute inset-0">
           <img 
             src="/ai-enterprise.png"
-            alt="AI Enterprise Suite" 
+            alt="Enterprise Suite" 
             className="w-full h-full object-cover object-center"
           />
-          <div className="absolute inset-0 flex flex-col justify-center items-center text-white p-12 bg-gradient-to-b from-transparent via-transparent to-[#1D3557]/80">
-            <h1 className="text-4xl font-bold mb-4 text-center drop-shadow-md">A Complete AI-Driven Enterprise Suite for Next Gen Businesses</h1>
+          <div className="absolute inset-0 flex flex-col justify-end items-center text-white p-12 bg-gradient-to-b from-transparent via-transparent to-[#1D3557]/80">
+            <h1 className="text-3xl font-bold mb-4 text-center drop-shadow-lg">Seamless Business Management for Modern Enterprises</h1>
           </div>
         </div>
       </div>

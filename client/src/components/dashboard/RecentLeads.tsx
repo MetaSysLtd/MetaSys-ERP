@@ -3,16 +3,34 @@ import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
+
+// Original lead interface (from database)
+interface DbLead {
+  id: string;
+  companyName: string;
+  status: string;
+  mcNumber: string;
+  createdAt: string;
+}
+
+// New lead interface from API (dummy data)
+interface DashboardLead {
+  id: string;
+  company: string;
+  contact: string;
+  status: string;
+  value: number;
+  assignee: string;
+  lastActivity: string;
+  lastUpdated: string;
+}
+
+// Combined type that accepts either format
+type CombinedLead = DbLead | DashboardLead;
 
 interface LeadsTableProps {
-  leads?: Array<{
-    id: string;
-    companyName: string;
-    status: string;
-    mcNumber: string;
-    createdAt: string;
-  }>;
+  leads?: CombinedLead[];
 }
 
 export function RecentLeads({ leads = [] }: LeadsTableProps) {
@@ -23,16 +41,51 @@ export function RecentLeads({ leads = [] }: LeadsTableProps) {
       active: "bg-blue-100 text-blue-800 border-blue-200",
       lost: "bg-gray-100 text-gray-800 border-gray-200",
       "follow-up": "bg-yellow-100 text-yellow-800 border-yellow-200",
+      new: "bg-orange-100 text-orange-800 border-orange-200",
+      nurturing: "bg-yellow-100 text-yellow-800 border-yellow-200",
       won: "bg-purple-100 text-purple-800 border-purple-200"
     };
-    return colors[status as keyof typeof colors] || colors.active;
+    return colors[status as keyof typeof colors] || "bg-blue-100 text-blue-800 border-blue-200";
+  };
+
+  // Get company name based on lead type
+  const getCompanyName = (lead: CombinedLead): string => {
+    if ('companyName' in lead) {
+      return lead.companyName;
+    } else {
+      return lead.company;
+    }
+  };
+
+  // Get status based on lead type
+  const getStatus = (lead: CombinedLead): string => {
+    return lead.status;
+  };
+
+  // Get date based on lead type
+  const getDate = (lead: CombinedLead): string => {
+    if ('createdAt' in lead) {
+      return formatDate(lead.createdAt);
+    } else {
+      return formatDate(lead.lastUpdated);
+    }
+  };
+
+  // Get additional info based on lead type
+  const getAdditionalInfo = (lead: CombinedLead): string => {
+    if ('mcNumber' in lead) {
+      return lead.mcNumber;
+    } else if ('value' in lead) {
+      return formatCurrency(lead.value);
+    }
+    return '';
   };
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-medium">Recent Leads</CardTitle>
-        <Link href="/leads" className="text-sm text-blue-600 hover:text-blue-800">
+        <Link href="/leads" className="text-sm text-primary hover:text-primary/80">
           View all
         </Link>
       </CardHeader>
@@ -41,29 +94,29 @@ export function RecentLeads({ leads = [] }: LeadsTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Company</TableHead>
-              <TableHead>MC Number</TableHead>
+              <TableHead>Value</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Created</TableHead>
+              <TableHead>Updated</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {leads.length === 0 ? (
+            {!leads || leads.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-4 text-gray-500">
                   No recent leads
                 </TableCell>
               </TableRow>
             ) : (
-              leads.slice(0, 5).map((lead) => (
+              leads.map((lead) => (
                 <TableRow key={lead.id}>
-                  <TableCell className="font-medium">{lead.companyName}</TableCell>
-                  <TableCell>{lead.mcNumber}</TableCell>
+                  <TableCell className="font-medium">{getCompanyName(lead)}</TableCell>
+                  <TableCell>{getAdditionalInfo(lead)}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={getStatusColor(lead.status)}>
-                      {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                    <Badge variant="outline" className={getStatusColor(getStatus(lead))}>
+                      {getStatus(lead).charAt(0).toUpperCase() + getStatus(lead).slice(1)}
                     </Badge>
                   </TableCell>
-                  <TableCell>{formatDate(lead.createdAt)}</TableCell>
+                  <TableCell>{getDate(lead)}</TableCell>
                 </TableRow>
               ))
             )}
