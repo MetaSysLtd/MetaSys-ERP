@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Card,
   CardContent,
@@ -14,8 +14,10 @@ import {
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { InfoIcon, TrendingUpIcon, TrendingDownIcon } from "lucide-react";
+import { InfoIcon, TrendingUpIcon, TrendingDownIcon, WifiIcon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useSocket } from "@/hooks/use-socket";
+import { useEffect } from "react";
 
 interface CommissionPerformanceProps {
   userId?: number;
@@ -35,7 +37,35 @@ export default function CommissionPerformance({ userId, type = 'sales' }: Commis
   
   // User ID to fetch (if userId prop is provided, use that; otherwise use current user)
   const targetUserId = userId || user?.id;
-
+  const queryClient = useQueryClient();
+  const { subscribe, connected } = useSocket();
+  
+  // Set up socket listeners for real-time commission updates
+  useEffect(() => {
+    if (!targetUserId) return;
+    
+    // Subscribe to commission update events
+    const unsubscribeCommissionUpdate = subscribe(`commission_update_${targetUserId}`, (data) => {
+      console.log('Received commission update:', data);
+      
+      // Invalidate the queries to trigger a refetch
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/commissions/monthly', targetUserId, currentMonth]
+      });
+      
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/commissions/monthly', targetUserId, prevMonth]
+      });
+    });
+    
+    // Clean up subscription when component unmounts
+    return () => {
+      if (unsubscribeCommissionUpdate) {
+        unsubscribeCommissionUpdate();
+      }
+    };
+  }, [targetUserId, subscribe, queryClient, currentMonth, prevMonth]);
+  
   // Fetch current month's commission
   const { data: currentCommission, isLoading: isLoadingCurrent } = useQuery({
     queryKey: ['/api/commissions/monthly', targetUserId, currentMonth],
@@ -173,10 +203,28 @@ export default function CommissionPerformance({ userId, type = 'sales' }: Commis
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Commission Performance</CardTitle>
-        <CardDescription>
-          {type === 'sales' ? 'Sales' : 'Dispatch'} commission progress
-        </CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Commission Performance</CardTitle>
+            <CardDescription>
+              {type === 'sales' ? 'Sales' : 'Dispatch'} commission progress
+            </CardDescription>
+          </div>
+          {connected && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="flex items-center">
+                    <WifiIcon className="h-4 w-4 text-green-500 mr-1" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Real-time updates active</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
