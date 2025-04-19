@@ -10,6 +10,8 @@ import CRMPage from "@/pages/crm";
 import ContactDetails from "@/pages/crm/[id]";
 // Renamed imports pointing to new CRM components
 import DispatchPage from "@/pages/dispatch";
+import DispatchClientsPage from "@/pages/dispatch/clients";
+import NewLoadPage from "@/pages/dispatch/loads/new";
 import InvoicesPage from "@/pages/invoices";
 import InvoiceDetailsPage from "@/pages/invoices/[id]";
 import ReportsPage from "@/pages/reports";
@@ -95,6 +97,22 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={DispatchPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/dispatch/clients">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={DispatchClientsPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/dispatch/loads/new">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={NewLoadPage} />
           </AppLayout>
         )}
       </Route>

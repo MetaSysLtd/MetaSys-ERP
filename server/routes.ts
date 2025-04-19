@@ -732,6 +732,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dispatch Client routes
+  const dispatchClientRouter = express.Router();
+  app.use("/api/dispatch/clients", dispatchClientRouter);
+  
+  dispatchClientRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      let clients = await storage.getDispatchClients();
+      
+      // Load the associated lead data for each client
+      const clientsWithLeads = await Promise.all(
+        clients.map(async (client) => {
+          const lead = await storage.getLead(client.leadId);
+          return {
+            ...client,
+            lead
+          };
+        })
+      );
+      
+      res.json(clientsWithLeads);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  dispatchClientRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const client = await storage.getDispatchClient(Number(req.params.id));
+      
+      if (!client) {
+        return res.status(404).json({ message: "Dispatch client not found" });
+      }
+      
+      // Get the associated lead
+      const lead = await storage.getLead(client.leadId);
+      
+      // Get loads for this client
+      const loads = await storage.getLoadsByLead(client.leadId);
+      
+      res.json({
+        ...client,
+        lead,
+        loads
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  dispatchClientRouter.post("/", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const clientData = insertDispatchClientSchema.parse(req.body);
+      
+      // Check if lead exists
+      const lead = await storage.getLead(clientData.leadId);
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Check if a dispatch client already exists for this lead
+      const existingClient = await storage.getDispatchClientByLeadId(clientData.leadId);
+      if (existingClient) {
+        return res.status(400).json({ message: "A dispatch client already exists for this lead" });
+      }
+      
+      const client = await storage.createDispatchClient(clientData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: 'dispatch_client',
+        entityId: client.id,
+        action: 'created',
+        details: `Created dispatch client for lead ${lead.companyName}`
+      });
+      
+      // Send notification
+      await notificationService.sendDispatchNotification(
+        client.id,
+        'created',
+        {
+          userId: req.user.id,
+          userName: `${req.user.firstName} ${req.user.lastName}`,
+          leadId: clientData.leadId,
+          companyName: lead.companyName
+        }
+      );
+      
+      res.status(201).json(client);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+  
+  dispatchClientRouter.patch("/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const clientId = Number(req.params.id);
+      const client = await storage.getDispatchClient(clientId);
+      
+      if (!client) {
+        return res.status(404).json({ message: "Dispatch client not found" });
+      }
+      
+      // Get the lead for notifications
+      const lead = await storage.getLead(client.leadId);
+      
+      // Check if status is being updated
+      const isStatusChange = req.body.status && req.body.status !== client.status;
+      
+      // Update the client
+      const updatedClient = await storage.updateDispatchClient(clientId, req.body);
+      
+      // Log the appropriate activity
+      if (isStatusChange) {
+        await storage.createActivity({
+          userId: req.user.id,
+          entityType: 'dispatch_client',
+          entityId: clientId,
+          action: 'status_changed',
+          details: `Changed dispatch client status from ${client.status} to ${req.body.status}`
+        });
+        
+        // Send notification for status change
+        await notificationService.sendDispatchNotification(
+          clientId,
+          'status_changed',
+          {
+            userId: req.user.id,
+            userName: `${req.user.firstName} ${req.user.lastName}`,
+            leadId: client.leadId,
+            companyName: lead.companyName
+          }
+        );
+        
+        // If client is being activated from pending, perform additional setup
+        if (client.status === 'pending_onboard' && req.body.status === 'active') {
+          // Additional setup could go here (e.g., creating default settings)
+          console.log(`Activated dispatch client ${clientId} - performing setup`);
+        }
+      } else {
+        await storage.createActivity({
+          userId: req.user.id,
+          entityType: 'dispatch_client',
+          entityId: clientId,
+          action: 'updated',
+          details: `Updated dispatch client information`
+        });
+        
+        // Send notification for general update
+        await notificationService.sendDispatchNotification(
+          clientId,
+          'updated',
+          {
+            userId: req.user.id,
+            userName: `${req.user.firstName} ${req.user.lastName}`,
+            leadId: client.leadId,
+            companyName: lead.companyName
+          }
+        );
+      }
+      
+      res.json(updatedClient);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Invoice routes
   const invoiceRouter = express.Router();
   app.use("/api/invoices", invoiceRouter);
