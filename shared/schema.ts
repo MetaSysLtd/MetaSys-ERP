@@ -22,16 +22,6 @@ export const users = pgTable("users", {
   roleId: integer("role_id").notNull(),
   active: boolean("active").notNull().default(true),
   profileImageUrl: text("profile_image_url"),
-  bio: text("bio"),
-  title: text("title"),
-  department: text("department"),
-  dateOfBirth: date("date_of_birth"),
-  hireDate: date("hire_date"),
-  lastLoginAt: timestamp("last_login_at"),
-  twoFactorEnabled: boolean("two_factor_enabled").default(false),
-  twoFactorSecret: text("two_factor_secret"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 // Lead Management
@@ -218,7 +208,7 @@ export const notifications = pgTable("notifications", {
 
 // Schema validation
 export const insertRoleSchema = createInsertSchema(roles).omit({ id: true });
-export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true, lastLoginAt: true });
+export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLoadSchema = createInsertSchema(loads).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true, updatedAt: true });
