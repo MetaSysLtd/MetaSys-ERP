@@ -46,6 +46,18 @@ export const leads = pgTable("leads", {
 });
 
 // Dispatch Management
+export const dispatch_clients = pgTable("dispatch_clients", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull().references(() => leads.id),
+  orgId: integer("org_id").notNull(),
+  status: text("status").notNull(), // "Pending Onboard", "Active", "Inactive", "Suspended"
+  onboardingDate: timestamp("onboarding_date"),
+  approvedBy: integer("approved_by"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const loads = pgTable("loads", {
   id: serial("id").primaryKey(),
   leadId: integer("lead_id").notNull(),
@@ -210,6 +222,7 @@ export const notifications = pgTable("notifications", {
 export const insertRoleSchema = createInsertSchema(roles).omit({ id: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertDispatchClientSchema = createInsertSchema(dispatch_clients).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLoadSchema = createInsertSchema(loads).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertInvoiceItemSchema = createInsertSchema(invoiceItems).omit({ id: true, createdAt: true });
@@ -231,6 +244,9 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export type Lead = typeof leads.$inferSelect;
 export type InsertLead = z.infer<typeof insertLeadSchema>;
+
+export type DispatchClient = typeof dispatch_clients.$inferSelect;
+export type InsertDispatchClient = z.infer<typeof insertDispatchClientSchema>;
 
 export type Load = typeof loads.$inferSelect;
 export type InsertLoad = z.infer<typeof insertLoadSchema>;
