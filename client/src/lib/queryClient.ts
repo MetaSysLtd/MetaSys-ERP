@@ -39,7 +39,7 @@ export async function apiRequest(
   }
   
   const res = await fetch(url, {
-    method,
+    method: method || 'GET',
     headers: requestHeaders,
     body: typeof requestData === 'string' ? requestData : requestData ? JSON.stringify(requestData) : undefined,
     credentials: "include",

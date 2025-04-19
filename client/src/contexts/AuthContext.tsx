@@ -132,7 +132,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsLoading(true);
     
     try {
-      await apiRequest("POST", "/api/auth/logout");
+      await apiRequest({
+        url: "/api/auth/logout",
+        method: "POST"
+      });
       setIsAuthenticated(false);
       setUser(null);
       setRole(null);
