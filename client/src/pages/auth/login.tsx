@@ -60,21 +60,23 @@ export default function Login() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center md:justify-end bg-no-repeat bg-cover bg-center relative p-4 md:p-8" 
+      className="min-h-screen flex items-center justify-center md:justify-start lg:justify-end bg-no-repeat bg-cover bg-center relative p-4 md:p-8" 
       style={{ 
         backgroundImage: "url('/auth-bg.jpg')",
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }}
     >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-      <div className="w-full max-w-[420px] relative z-10 mx-auto md:mx-8">
-        <Card className="w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-0 shadow-2xl">
+      <div className="absolute inset-0 bg-blue-900/50" />
+      <div className="w-full max-w-[500px] relative z-10 mx-auto md:ml-24 lg:mr-24">
+        <div className="w-full flex flex-col items-center justify-center mb-8">
+          <img src="/metio-logo.svg" alt="Metio ERP" className="h-12 mb-3" />
+          <h1 className="text-white text-2xl font-bold">Complete Enterprise Resource Planning</h1>
+          <h2 className="text-white text-xl">Solution for Modern Businesses</h2>
+        </div>
+        <Card className="w-full bg-white/90 dark:bg-gray-900/95 backdrop-blur-sm border-0 shadow-2xl">
           <div className="h-1 bg-gradient-to-r from-[#2170dd] to-[#4d9eff] rounded-t-lg"></div>
           <CardHeader className="space-y-1 pt-6">
-            <div className="flex justify-center mb-2">
-              <img src="/metio-logo.png" alt="Metio ERP" className="h-10" />
-            </div>
             <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
             <CardDescription className="text-center">
               Sign in to your account to continue
