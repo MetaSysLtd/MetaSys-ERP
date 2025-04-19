@@ -136,6 +136,7 @@ export class MemStorage implements IStorage {
     this.invoiceItems = new Map();
     this.commissions = new Map();
     this.activities = new Map();
+    this.organizations = new Map();
     
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
@@ -146,12 +147,20 @@ export class MemStorage implements IStorage {
     this.invoiceItemIdCounter = 1;
     this.commissionIdCounter = 1;
     this.activityIdCounter = 1;
+    this.organizationIdCounter = 1;
     
     // Initialize with default roles
     this.initializeRoles();
   }
   
   private initializeRoles() {
+    // Create a default organization
+    const defaultOrg = this.createOrganization({
+      name: "Default Organization",
+      code: "DEFAULT",
+      active: true
+    });
+    
     const roles: InsertRole[] = [
       {
         name: "Sales Rep",
@@ -221,8 +230,56 @@ export class MemStorage implements IStorage {
       roleId: 9, // Super Admin role
       active: true,
       phoneNumber: null,
-      profileImageUrl: null
+      profileImageUrl: null,
+      orgId: defaultOrg.id
     });
+  }
+  
+  // Organization operations
+  async getOrganization(id: number): Promise<Organization | undefined> {
+    return this.organizations.get(id);
+  }
+
+  async getOrganizationByCode(code: string): Promise<Organization | undefined> {
+    return Array.from(this.organizations.values()).find(org => org.code === code);
+  }
+
+  async getOrganizations(): Promise<Organization[]> {
+    return Array.from(this.organizations.values());
+  }
+
+  async getActiveOrganizations(): Promise<Organization[]> {
+    return Array.from(this.organizations.values()).filter(org => org.active);
+  }
+
+  async createOrganization(insertOrg: InsertOrganization): Promise<Organization> {
+    const id = this.organizationIdCounter++;
+    const now = new Date();
+    const org: Organization = {
+      ...insertOrg,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.organizations.set(id, org);
+    return org;
+  }
+
+  async updateOrganization(id: number, updates: Partial<Organization>): Promise<Organization | undefined> {
+    const org = await this.getOrganization(id);
+    if (!org) return undefined;
+    
+    const updatedOrg = {
+      ...org,
+      ...updates,
+      updatedAt: new Date()
+    };
+    this.organizations.set(id, updatedOrg);
+    return updatedOrg;
+  }
+  
+  async getUsersByOrganization(orgId: number): Promise<User[]> {
+    return Array.from(this.users.values()).filter(user => user.orgId === orgId);
   }
 
   // User & Role operations
@@ -578,6 +635,16 @@ export class DatabaseStorage implements IStorage {
       return; // Database is already initialized
     }
     
+    // Create default organization or use existing one
+    let defaultOrg = await this.getOrganizationByCode("DEFAULT");
+    if (!defaultOrg) {
+      defaultOrg = await this.createOrganization({
+        name: "Default Organization",
+        code: "DEFAULT",
+        active: true
+      });
+    }
+    
     // Add default roles with different permissions and departments
     const roles: InsertRole[] = [
       {
@@ -648,9 +715,54 @@ export class DatabaseStorage implements IStorage {
         phoneNumber: null,
         roleId: 1,  // Administrator role
         active: true,
-        profileImageUrl: null
+        profileImageUrl: null,
+        orgId: defaultOrg.id
       });
     }
+  }
+  
+  // Organization operations
+  async getOrganization(id: number): Promise<Organization | undefined> {
+    const [org] = await db.select().from(organizations).where(eq(organizations.id, id));
+    return org;
+  }
+
+  async getOrganizationByCode(code: string): Promise<Organization | undefined> {
+    const [org] = await db.select().from(organizations).where(eq(organizations.code, code));
+    return org;
+  }
+
+  async getOrganizations(): Promise<Organization[]> {
+    return await db.select().from(organizations);
+  }
+
+  async getActiveOrganizations(): Promise<Organization[]> {
+    return await db.select().from(organizations).where(eq(organizations.active, true));
+  }
+
+  async createOrganization(insertOrg: InsertOrganization): Promise<Organization> {
+    const now = new Date().toISOString();
+    const [org] = await db.insert(organizations).values({
+      ...insertOrg,
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    return org;
+  }
+
+  async updateOrganization(id: number, updates: Partial<Organization>): Promise<Organization | undefined> {
+    const [org] = await db.update(organizations)
+      .set({
+        ...updates,
+        updatedAt: new Date().toISOString()
+      })
+      .where(eq(organizations.id, id))
+      .returning();
+    return org;
+  }
+  
+  async getUsersByOrganization(orgId: number): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.orgId, orgId));
   }
 
   async getUser(id: number): Promise<User | undefined> {
