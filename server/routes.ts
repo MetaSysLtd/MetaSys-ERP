@@ -2182,6 +2182,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details: `Calculated ${role.department} commission for ${user.firstName} ${user.lastName} (${month})`
       });
       
+      // Emit socket events for real-time updates
+      io.emit(`commission_update_${userId}`, {
+        type: 'updated',
+        data: calculatedCommission
+      });
+      
+      // Emit admin-specific event for dashboard updates
+      io.emit('commission_admin_update', {
+        type: 'updated',
+        department: role.department,
+        month,
+        orgId: user.orgId
+      });
+      
       res.json(calculatedCommission);
     } catch (error) {
       next(error);
