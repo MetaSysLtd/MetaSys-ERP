@@ -8,7 +8,8 @@ import {
   insertUserSchema, insertRoleSchema, insertLeadSchema, 
   insertLoadSchema, insertInvoiceSchema, insertInvoiceItemSchema,
   insertCommissionSchema, insertActivitySchema, insertDispatchClientSchema,
-  users, roles, dispatch_clients
+  insertOrganizationSchema,
+  users, roles, dispatch_clients, organizations
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -16,6 +17,7 @@ import path from "path";
 import * as slackNotifications from "./slack";
 import * as notificationService from "./notifications";
 import { NotificationPreferences, defaultNotificationPreferences } from "./notifications";
+import { organizationMiddleware } from "./middleware/organizationMiddleware";
 
 // Add type extensions for Express
 declare global {
@@ -90,6 +92,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Setup for handling file uploads
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  
+  // Apply organization middleware to all API routes
+  app.use('/api', organizationMiddleware);
 
   // Authentication routes
   const authRouter = express.Router();
@@ -340,7 +345,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const leadData = insertLeadSchema.parse({
         ...req.body,
-        createdBy: req.user.id
+        createdBy: req.user.id,
+        orgId: req.orgId // Add organization ID from the request context
       });
       
       // Validate MC number age if provided
@@ -540,7 +546,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Forbidden: Only dispatch department can create loads" });
       }
       
-      const loadData = insertLoadSchema.parse(req.body);
+      const loadData = insertLoadSchema.parse({
+        ...req.body,
+        orgId: req.orgId // Add organization ID from the request context
+      });
       
       // Verify lead exists and is active
       const lead = await storage.getLead(loadData.leadId);
@@ -1509,6 +1518,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create HTTP server
+  // Organization routes
+  const orgRouter = express.Router();
+  app.use("/api/organizations", orgRouter);
+
+  orgRouter.get("/", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const organizations = await storage.getOrganizations();
+      res.json(organizations);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  orgRouter.get("/active", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const activeOrgs = await storage.getActiveOrganizations();
+      res.json(activeOrgs);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  orgRouter.get("/current", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      // Return the current organization if it's set in the request
+      if (!req.orgId) {
+        return res.status(404).json({ message: "No organization selected" });
+      }
+      
+      const organization = await storage.getOrganization(req.orgId);
+      if (!organization) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+      
+      res.json(organization);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  orgRouter.get("/:id", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const organization = await storage.getOrganization(Number(req.params.id));
+      if (!organization) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+      
+      res.json(organization);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  orgRouter.post("/", createAuthMiddleware(5), async (req, res, next) => {
+    try {
+      const orgData = insertOrganizationSchema.parse(req.body);
+      const organization = await storage.createOrganization(orgData);
+      res.status(201).json(organization);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+
+  orgRouter.patch("/:id", createAuthMiddleware(5), async (req, res, next) => {
+    try {
+      const orgId = Number(req.params.id);
+      const organization = await storage.getOrganization(orgId);
+      
+      if (!organization) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+      
+      const updatedOrg = await storage.updateOrganization(orgId, req.body);
+      res.json(updatedOrg);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Switch organization route
+  authRouter.post("/switch-organization", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const { organizationId } = req.body;
+      
+      if (!organizationId) {
+        return res.status(400).json({ message: "Organization ID is required" });
+      }
+      
+      const organization = await storage.getOrganization(Number(organizationId));
+      if (!organization) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+      
+      // Store the selected organization ID in the session
+      req.session.orgId = organization.id;
+      
+      res.json({ message: `Switched to ${organization.name}`, organization });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
