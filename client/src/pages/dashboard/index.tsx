@@ -19,6 +19,7 @@ import { CommissionTracking } from "@/components/dashboard/CommissionTracking";
 import { RevenueCard } from "@/components/dashboard/RevenueCard";
 import { FinanceOverview } from "@/components/dashboard/FinanceOverview";
 import { EmployeeSummary } from "@/components/dashboard/EmployeeSummary";
+import { DispatchPerformance } from "@/components/dashboard/DispatchPerformance";
 import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
 import { AnimationSettings } from "@/components/ui/animation-settings";
 
@@ -108,9 +109,31 @@ export default function Dashboard() {
         </div>
       </MotionList>
 
-      <MotionWrapper animation="fade-in" delay={0.9}>
-        <CommissionBreakdown data={dashboardData?.commissions} />
-      </MotionWrapper>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <MotionWrapper animation="fade-in" delay={0.9}>
+          <CommissionBreakdown 
+            data={dashboardData?.commissions?.topEarners?.map((earner: {name: string, amount: number}) => ({
+              name: earner.name,
+              amount: earner.amount,
+              department: earner.name.includes('Rodriguez') ? 'Dispatch' : 
+                        earner.name.includes('Johnson') || earner.name.includes('Kim') ? 'Sales' : 'Other'
+            }))}
+            lastMonthTopEarner={dashboardData?.commissions?.topEarners?.[0]}
+          />
+        </MotionWrapper>
+        
+        <MotionWrapper animation="fade-in" delay={0.95}>
+          <DispatchPerformance 
+            data={[
+              { name: 'Mike', activeLeads: 8, loadsBooked: 22, invoiceGenerated: 12500, invoiceCleared: 9800, highestLoad: 3200 },
+              { name: 'Lisa', activeLeads: 6, loadsBooked: 18, invoiceGenerated: 10200, invoiceCleared: 8100, highestLoad: 2700 },
+              { name: 'Carlos', activeLeads: 10, loadsBooked: 25, invoiceGenerated: 14800, invoiceCleared: 11200, highestLoad: 3700 },
+              { name: 'Priya', activeLeads: 7, loadsBooked: 20, invoiceGenerated: 13100, invoiceCleared: 10500, highestLoad: 3300 },
+              { name: 'Raj', activeLeads: 5, loadsBooked: 17, invoiceGenerated: 9400, invoiceCleared: 7800, highestLoad: 2500 }
+            ]}
+          />
+        </MotionWrapper>
+      </div>
       
       <MotionWrapper animation="fade-in" delay={1.0}>
         <FinanceOverview data={dashboardData?.finance} />
