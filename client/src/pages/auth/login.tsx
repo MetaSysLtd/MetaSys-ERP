@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,10 +59,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-end bg-cover bg-center" 
-      style={{ backgroundImage: "url('/metio-bg.jpg')" }}>
-      <div className="w-full md:w-[420px] p-4 md:p-8 mr-0 md:mr-8">
-        <Card className="w-full backdrop-blur-sm bg-white/95 dark:bg-gray-900/95 border-0 shadow-2xl">
+    <div 
+      className="min-h-screen flex items-center justify-center md:justify-end bg-cover bg-center relative" 
+      style={{ 
+        backgroundImage: "url('/metio-bg.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
+    >
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+      <div className="w-full max-w-[420px] p-4 relative z-10 mx-4 md:mr-8">
+        <Card className="w-full bg-white/95 dark:bg-gray-900/95 border-0 shadow-2xl">
           <div className="h-1 bg-gradient-to-r from-[#2170dd] to-[#4d9eff]"></div>
           <CardHeader className="space-y-1 pt-6">
             <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
