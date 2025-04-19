@@ -31,6 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
 
 export type Task = {
   id: number;
@@ -57,6 +58,7 @@ export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [currentTab, setCurrentTab] = useState<string>('all');
+  const [showCreateTaskDialog, setShowCreateTaskDialog] = useState(false);
   
   // Fetch tasks based on current filters
   const { data: tasks, isLoading, isError, refetch } = useQuery<Task[]>({
@@ -152,16 +154,16 @@ export default function TasksPage() {
         <title>Tasks | Metio ERP</title>
       </Helmet>
       
-      <MotionWrapper animation={AnimationSettings.slideRight}>
+      <MotionWrapper animation="fade-right">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
             <p className="text-muted-foreground">Manage and track your tasks</p>
           </div>
-          <Button onClick={() => toast({ 
-            title: "Coming Soon",
-            description: "Task creation form will be available in the next update."
-          })}>
+          <Button 
+            onClick={() => setShowCreateTaskDialog(true)}
+            className="bg-[#457B9D] hover:bg-[#2EC4B6] text-white"
+          >
             <Plus className="mr-2 h-4 w-4" /> Create Task
           </Button>
         </div>
@@ -356,6 +358,19 @@ export default function TasksPage() {
           </CardFooter>
         </Card>
       </MotionWrapper>
+      
+      {/* Task Creation Dialog */}
+      <CreateTaskDialog
+        open={showCreateTaskDialog}
+        onOpenChange={setShowCreateTaskDialog}
+        onSuccess={() => {
+          setShowCreateTaskDialog(false);
+          toast({
+            title: "Task Created",
+            description: "New task has been successfully created.",
+          });
+        }}
+      />
     </>
   );
 }
