@@ -1070,9 +1070,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   invoiceRouter.get("/", createAuthMiddleware(2), async (req, res, next) => {
     try {
-      const invoices = await storage.getInvoices();
-      res.json(invoices);
+      // Get pagination parameters from query
+      const page = req.query.page ? parseInt(req.query.page as string) : 1;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const offset = (page - 1) * limit;
+      
+      // Get all invoices first
+      const allInvoices = await storage.getInvoices();
+      
+      // Enrich invoices with client names for frontend display
+      const enrichedInvoices = await Promise.all(
+        allInvoices.map(async (invoice) => {
+          // Get the lead (client) data for the invoice
+          const lead = await storage.getLead(invoice.leadId);
+          return {
+            ...invoice,
+            clientName: lead ? `${lead.companyName}` : `Client ${invoice.leadId}`
+          };
+        })
+      );
+      
+      // Apply pagination
+      const paginatedInvoices = enrichedInvoices.slice(offset, offset + limit);
+      
+      // Add pagination metadata
+      res.json({
+        data: paginatedInvoices,
+        pagination: {
+          total: allInvoices.length,
+          page,
+          limit,
+          pages: Math.ceil(allInvoices.length / limit)
+        }
+      });
     } catch (error) {
+      console.error("Error fetching invoices:", error);
       next(error);
     }
   });
@@ -1088,11 +1120,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get the invoice items
       const items = await storage.getInvoiceItemsByInvoice(invoice.id);
       
+      // Get the lead (client) data for the invoice
+      const lead = await storage.getLead(invoice.leadId);
+      
       res.json({
         ...invoice,
+        clientName: lead ? `${lead.companyName}` : `Client ${invoice.leadId}`,
         items
       });
     } catch (error) {
+      console.error("Error fetching invoice:", error);
       next(error);
     }
   });

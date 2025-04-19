@@ -7,25 +7,49 @@ import { Helmet } from "react-helmet";
 import { InvoiceList, InvoiceFilters, InvoiceListItem } from "@/components/invoices/InvoiceList";
 import { InvoiceForm } from "@/components/invoices/InvoiceForm";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, PlusCircle } from "lucide-react";
 import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
+import { Pagination } from "@/components/ui/pagination";
+
+interface InvoiceResponse {
+  data: Array<{
+    id: number;
+    invoiceNumber: string;
+    leadId: number;
+    totalAmount: number;
+    status: string;
+    issuedDate: string;
+    dueDate: string;
+    paidDate?: string;
+    createdAt: string;
+    clientName?: string;
+  }>;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+  };
+}
 
 export default function InvoicesPage() {
   const { toast } = useToast();
   const { user, role } = useAuth();
   const [invoiceFormOpen, setInvoiceFormOpen] = useState(false);
   const [filters, setFilters] = useState<InvoiceFilters>({});
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   
   // Get invoices from the API
-  const { data: originalInvoices = [], isLoading, error, refetch } = useQuery({
-    queryKey: ["/api/invoices"],
+  const { data: invoiceResponse, isLoading, error, refetch } = useQuery<InvoiceResponse>({
+    queryKey: ["/api/invoices", page, limit],
     queryFn: async () => {
       try {
-        const res = await apiRequest("GET", "/api/invoices");
+        const res = await apiRequest("GET", `/api/invoices?page=${page}&limit=${limit}`);
         if (!res.ok) {
           throw new Error("Failed to fetch invoices");
         }
-        return await res.json() as any[];
+        return await res.json() as InvoiceResponse;
       } catch (error) {
         console.error("Error fetching invoices:", error);
         toast({
@@ -33,13 +57,13 @@ export default function InvoicesPage() {
           description: "Failed to load invoices data. Please try again.",
           variant: "destructive",
         });
-        return [];
+        throw error;
       }
     }
   });
   
   // Transform the invoice data for the InvoiceList component
-  const invoices: InvoiceListItem[] = originalInvoices.map(invoice => {
+  const invoices: InvoiceListItem[] = invoiceResponse?.data?.map(invoice => {
     return {
       id: invoice.id,
       invoiceNumber: invoice.invoiceNumber,
@@ -50,7 +74,7 @@ export default function InvoicesPage() {
       dueDate: invoice.dueDate,
       paidDate: invoice.paidDate
     };
-  });
+  }) || [];
   
   // Filter invoices based on the filters
   const filteredInvoices = invoices.filter(invoice => {
@@ -102,6 +126,11 @@ export default function InvoicesPage() {
   
   const handleFilterChange = (newFilters: InvoiceFilters) => {
     setFilters(newFilters);
+    setPage(1); // Reset to first page when filters change
+  };
+  
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
   };
   
   const handleGenerateWeeklyInvoices = async () => {
@@ -130,6 +159,32 @@ export default function InvoicesPage() {
     }
   };
   
+  const handleGeneratePendingInvoices = async () => {
+    try {
+      const res = await apiRequest("POST", "/api/invoices/generate?range=custom");
+      if (!res.ok) {
+        throw new Error("Failed to generate pending invoices");
+      }
+      
+      const data = await res.json();
+      
+      toast({
+        title: "Success",
+        description: `Generated ${data.count} pending invoices successfully.`,
+      });
+      
+      // Refresh the invoice list
+      refetch();
+    } catch (error) {
+      console.error("Error generating pending invoices:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate pending invoices. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+  
   return (
     <div className="container py-6">
       <Helmet>
@@ -146,13 +201,27 @@ export default function InvoicesPage() {
             <Button
               variant="outline"
               onClick={handleGenerateWeeklyInvoices}
+              className="flex items-center"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Generate Weekly Invoices
             </Button>
             
+            <Button
+              variant="outline"
+              onClick={handleGeneratePendingInvoices}
+              className="flex items-center bg-#457B9D hover:bg-#2EC4B6 text-white rounded-md transition-colors duration-200"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Generate Pending Invoices
+            </Button>
+            
             {canCreateInvoice && (
-              <Button onClick={() => setInvoiceFormOpen(true)}>
+              <Button 
+                onClick={() => setInvoiceFormOpen(true)}
+                className="flex items-center bg-#457B9D hover:bg-#2EC4B6 text-white rounded-md transition-colors duration-200"
+              >
+                <PlusCircle className="h-4 w-4 mr-2" />
                 Create Invoice
               </Button>
             )}
@@ -167,6 +236,16 @@ export default function InvoicesPage() {
           onFilterChange={handleFilterChange}
           isLoading={isLoading}
         />
+        
+        {invoiceResponse?.pagination && (
+          <div className="mt-6 flex justify-center">
+            <Pagination
+              currentPage={invoiceResponse.pagination.page}
+              totalPages={invoiceResponse.pagination.pages}
+              onPageChange={handlePageChange}
+            />
+          </div>
+        )}
       </MotionWrapper>
       
       <InvoiceForm 
