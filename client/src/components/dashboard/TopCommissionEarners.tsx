@@ -55,10 +55,13 @@ export default function TopCommissionEarners({
   
   // Fetch top commission earners
   const { data: earners, isLoading } = useQuery({
-    queryKey: ['/api/admin/commissions/top-earners', type, currentMonth, limit],
+    queryKey: ['/api/commissions-monthly/top-earners', type, currentMonth, limit],
     queryFn: async () => {
       try {
-        const response = await fetch(`/api/admin/commissions/top-earners?type=${type}&month=${currentMonth}&limit=${limit}`);
+        // Use our newly created endpoint
+        const typeParam = type !== 'all' ? `&type=${type}` : '';
+        const response = await fetch(`/api/commissions-monthly/top-earners?month=${currentMonth}&limit=${limit}${typeParam}&previousMonth=true`);
+        
         if (!response.ok) {
           throw new Error('Failed to fetch top commission earners');
         }
@@ -78,7 +81,7 @@ export default function TopCommissionEarners({
       
       // Invalidate the queries to trigger a refetch
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/admin/commissions/top-earners', type, currentMonth, limit]
+        queryKey: ['/api/commissions-monthly/top-earners', type, currentMonth, limit]
       });
     });
     
