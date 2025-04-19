@@ -74,7 +74,7 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
   const getTrend = (change: number = 0) => change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
 
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
       <MetricCard
         title="Total Leads"
         value={metrics.totalLeads?.toString() || '0'}
@@ -111,6 +111,7 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         description={`${formatCurrency(metrics.totalProfit || 0)} profit`}
         trend={getTrend(metrics.profitMargin)}
         href="/invoices"
+        className="lg:col-span-2 xl:col-span-1"
       />
     </div>
   );

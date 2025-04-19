@@ -12,6 +12,7 @@ export interface MetricCardProps {
   iconBgColor?: string;
   iconColor?: string;
   href?: string;
+  className?: string;
 }
 
 export function MetricCard({
@@ -22,7 +23,8 @@ export function MetricCard({
   icon,
   iconBgColor = "bg-blue-50",
   iconColor = "text-blue-600",
-  href
+  href,
+  className = ""
 }: MetricCardProps) {
   // Default icons based on title if not provided
   const getDefaultIcon = () => {
@@ -61,7 +63,7 @@ export function MetricCard({
   const displayIcon = icon || getDefaultIcon();
 
   return (
-    <Card className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow">
+    <Card className={`bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow ${className}`}>
       <CardContent className="p-5">
         <div className="flex items-center">
           <div className={`flex-shrink-0 ${iconBgColor} rounded-md p-3`}>
