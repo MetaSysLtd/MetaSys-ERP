@@ -145,11 +145,13 @@ export function AnimatedContainer({
       : transition;
   
   // Add delay and duration to transition if specified
-  const finalTransition = {
-    ...transitionSettings,
-    delay: delay || 0,
-    ...(duration ? { duration } : {}),
-  };
+  const finalTransition = typeof transitionSettings === 'string' 
+    ? { delay: delay || 0, ...(duration ? { duration } : {}) }
+    : { 
+      ...(transitionSettings as Record<string, any> || {}),
+      delay: delay || 0,
+      ...(duration ? { duration } : {})
+    };
   
   return (
     <Component

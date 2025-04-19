@@ -46,50 +46,75 @@ export default function Dashboard() {
             to={dateRange.to}
             onSelect={setDateRange}
           />
-          <Select
-            value={department}
-            onValueChange={setDepartment}
-            options={[
-              { value: "all", label: "All Departments" },
-              { value: "sales", label: "Sales" },
-              { value: "dispatch", label: "Dispatch" }
-            ]}
-          />
+          <Select value={department} onValueChange={setDepartment}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select Department" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Departments</SelectItem>
+              <SelectItem value="sales">Sales</SelectItem>
+              <SelectItem value="dispatch">Dispatch</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      <KPISection />
+      <AnimatedContainer animation="fadeIn" delay={0.1}>
+        <KPISection />
+      </AnimatedContainer>
 
-      <RevenueCard data={dashboardData?.revenueData} />
+      <AnimatedContainer animation="scaleIn" delay={0.2}>
+        <RevenueCard data={dashboardData?.revenueData} />
+      </AnimatedContainer>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <OnboardingRatio data={dashboardData?.onboardingMetrics} />
-        <TeamPerformance data={dashboardData?.teamMetrics} />
+        <AnimatedContainer animation="slideRight" delay={0.3}>
+          <OnboardingRatio data={dashboardData?.onboardingMetrics} />
+        </AnimatedContainer>
+        <AnimatedContainer animation="slideLeft" delay={0.3}>
+          <TeamPerformance data={dashboardData?.teamMetrics} />
+        </AnimatedContainer>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TeamPerformance 
-          title="Sales Team Performance" 
-          type="sales" 
-          data={dashboardData?.salesPerformance} 
-          className="border-blue-500 dark:border-blue-400"
-        />
-        <TeamPerformance 
-          title="Dispatch Team Performance" 
-          type="dispatch" 
-          data={dashboardData?.dispatchPerformance}
-          className="border-amber-500 dark:border-amber-400" 
-        />
+        <AnimatedContainer animation="slideUp" delay={0.4}>
+          <TeamPerformance 
+            title="Sales Team Performance" 
+            type="sales" 
+            data={dashboardData?.salesPerformance} 
+            className="border-blue-500 dark:border-blue-400"
+          />
+        </AnimatedContainer>
+        <AnimatedContainer animation="slideUp" delay={0.5}>
+          <TeamPerformance 
+            title="Dispatch Team Performance" 
+            type="dispatch" 
+            data={dashboardData?.dispatchPerformance}
+            className="border-amber-500 dark:border-amber-400" 
+          />
+        </AnimatedContainer>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ActivityFeed activities={dashboardData?.activities?.slice(0, 10)} />
-        <RecentLeads leads={dashboardData?.leads} />
+        <AnimatedContainer animation="slideRight" delay={0.6}>
+          <ActivityFeed activities={dashboardData?.activities?.slice(0, 10)} />
+        </AnimatedContainer>
+        <AnimatedContainer animation="slideLeft" delay={0.6}>
+          <RecentLeads leads={dashboardData?.leads} />
+        </AnimatedContainer>
       </div>
 
-      <CommissionBreakdown data={dashboardData?.commissions} />
-      <FinanceOverview data={dashboardData?.finance} />
-      <EmployeeSummary data={dashboardData?.employees} />
+      <AnimatedContainer animation="fadeIn" delay={0.7}>
+        <CommissionBreakdown data={dashboardData?.commissions} />
+      </AnimatedContainer>
+      
+      <AnimatedContainer animation="fadeIn" delay={0.8}>
+        <FinanceOverview data={dashboardData?.finance} />
+      </AnimatedContainer>
+      
+      <AnimatedContainer animation="fadeIn" delay={0.9}>
+        <EmployeeSummary data={dashboardData?.employees} />
+      </AnimatedContainer>
     </div>
   );
 }
