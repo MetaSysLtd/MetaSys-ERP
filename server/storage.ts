@@ -98,6 +98,15 @@ export interface IStorage {
   
   // Commission Monthly operations
   getCommissionMonthly(id: number): Promise<CommissionMonthly | undefined>;
+  
+  // Commission analysis operations
+  getTopCommissionEarners(options: {
+    orgId: number;
+    month: string;
+    limit: number;
+    type?: 'sales' | 'dispatch';
+  }): Promise<Array<CommissionMonthly & { username: string; firstName: string; lastName: string; profileImageUrl: string | null; }>>;
+  
   getCommissionsMonthlyByUser(userId: number): Promise<CommissionMonthly[]>;
   getCommissionsMonthlyByMonth(month: string): Promise<CommissionMonthly[]>;
   getCommissionsMonthlyByOrg(orgId: number): Promise<CommissionMonthly[]>;
@@ -1419,6 +1428,44 @@ export class DatabaseStorage implements IStorage {
 
   async getCommissionsMonthlyByOrg(orgId: number): Promise<CommissionMonthly[]> {
     return db.select().from(commissionsMonthly).where(eq(commissionsMonthly.orgId, orgId));
+  }
+  
+  async getTopCommissionEarners(options: {
+    orgId: number;
+    month: string;
+    limit: number;
+    type?: 'sales' | 'dispatch';
+  }): Promise<Array<CommissionMonthly & { username: string; firstName: string; lastName: string; profileImageUrl: string | null; }>> {
+    // Build the query conditions
+    const conditions = [
+      eq(commissionsMonthly.orgId, options.orgId),
+      eq(commissionsMonthly.month, options.month)
+    ];
+    
+    // Filter by department if specified
+    if (options.type) {
+      conditions.push(eq(commissionsMonthly.dept, options.type));
+    }
+    
+    // Get top commission earners with user details
+    const results = await db.select({
+      id: commissionsMonthly.id,
+      userId: commissionsMonthly.userId,
+      amount: commissionsMonthly.totalCommission,
+      username: users.username,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      profileImageUrl: users.profileImageUrl,
+      dept: commissionsMonthly.dept,
+      month: commissionsMonthly.month
+    })
+    .from(commissionsMonthly)
+    .innerJoin(users, eq(commissionsMonthly.userId, users.id))
+    .where(and(...conditions))
+    .orderBy(desc(commissionsMonthly.totalCommission))
+    .limit(options.limit);
+    
+    return results;
   }
 
   async createCommissionMonthly(commission: InsertCommissionMonthly): Promise<CommissionMonthly> {

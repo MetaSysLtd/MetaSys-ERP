@@ -869,6 +869,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin commission routes
   const adminCommissionRouter = express.Router();
   app.use("/api/admin/commissions", adminCommissionRouter);
+  
+  // Get top commission earners for admin dashboard
+  adminCommissionRouter.get("/top-earners", createAuthMiddleware(4), async (req, res, next) => {
+    try {
+      // Get query parameters
+      const type = req.query.type as string || 'all';
+      const month = req.query.month as string || new Date().toISOString().slice(0, 7); // Format: YYYY-MM
+      const limit = parseInt(req.query.limit as string || '5');
+      
+      // Get top commission earners
+      const commissions = await storage.getTopCommissionEarners({
+        orgId: req.user.orgId || 1,
+        month,
+        limit,
+        type: type === 'all' ? undefined : type as 'sales' | 'dispatch'
+      });
+      
+      // Get previous month for comparison
+      const [year, monthNum] = month.split('-').map(Number);
+      const prevDate = new Date(year, monthNum - 2, 1); // -2 because months are 0-indexed
+      const prevMonth = prevDate.toISOString().slice(0, 7);
+      
+      // Get previous month commissions for comparison
+      const prevCommissions = await storage.getTopCommissionEarners({
+        orgId: req.user.orgId || 1,
+        month: prevMonth,
+        limit: 50, // Get more to ensure we can match all current users
+        type: type === 'all' ? undefined : type as 'sales' | 'dispatch'
+      });
+      
+      // Add previous month amounts for trending indicators
+      const result = commissions.map(comm => {
+        const prevComm = prevCommissions.find(pc => pc.userId === comm.userId);
+        return {
+          ...comm,
+          previousAmount: prevComm ? prevComm.amount : undefined
+        };
+      });
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
 
   commissionRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
