@@ -11,7 +11,7 @@ import {
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import createMemoryStore from "memorystore";
 import { db, pgPool, pool } from './db';
 
@@ -291,6 +291,48 @@ export class MemStorage implements IStorage {
   
   async getUsersByOrganization(orgId: number): Promise<User[]> {
     return Array.from(this.users.values()).filter(user => user.orgId === orgId);
+  }
+
+  // User-Organization relationships
+  async getUserOrganizations(userId: number): Promise<Organization[]> {
+    // Get all user-organization relationships for this user
+    const userOrgRelations = Array.from(this.userOrganizations.values())
+      .filter(relation => relation.userId === userId);
+    
+    // Get the actual organization objects
+    const orgIds = userOrgRelations.map(relation => relation.organizationId);
+    const organizations = orgIds.map(orgId => this.organizations.get(orgId))
+      .filter((org): org is Organization => org !== undefined);
+    
+    return organizations;
+  }
+
+  async getUserOrganizationIds(userId: number): Promise<number[]> {
+    // Get all user-organization relationships for this user and return just the organization IDs
+    const userOrgRelations = Array.from(this.userOrganizations.values())
+      .filter(relation => relation.userId === userId);
+    
+    return userOrgRelations.map(relation => relation.organizationId);
+  }
+
+  async setUserOrganizations(userId: number, organizationIds: number[]): Promise<void> {
+    // Remove existing relationships for this user
+    Array.from(this.userOrganizations.values())
+      .filter(relation => relation.userId === userId)
+      .forEach(relation => this.userOrganizations.delete(relation.id));
+    
+    // Create new relationships
+    for (const orgId of organizationIds) {
+      const id = this.userOrganizationIdCounter++;
+      const now = new Date();
+      const userOrg: UserOrganization = {
+        id,
+        userId,
+        organizationId: orgId,
+        createdAt: now
+      };
+      this.userOrganizations.set(id, userOrg);
+    }
   }
 
   // User & Role operations
@@ -1087,6 +1129,65 @@ export class DatabaseStorage implements IStorage {
       timestamp: new Date().toISOString()
     }).returning();
     return activity;
+  }
+
+  // User-Organization relationships
+  async getUserOrganizations(userId: number): Promise<Organization[]> {
+    const userOrgs = await db
+      .select({
+        organizationId: userOrganizations.organizationId
+      })
+      .from(userOrganizations)
+      .where(eq(userOrganizations.userId, userId));
+    
+    if (userOrgs.length === 0) {
+      return [];
+    }
+    
+    // Get the organizations
+    const orgIds = userOrgs.map(uo => uo.organizationId);
+    return db
+      .select()
+      .from(organizations)
+      .where(
+        orgIds.length === 1 
+          ? eq(organizations.id, orgIds[0]) 
+          : inArray(organizations.id, orgIds)
+      );
+  }
+
+  async getUserOrganizationIds(userId: number): Promise<number[]> {
+    const userOrgs = await db
+      .select({
+        organizationId: userOrganizations.organizationId
+      })
+      .from(userOrganizations)
+      .where(eq(userOrganizations.userId, userId));
+    
+    return userOrgs.map(uo => uo.organizationId);
+  }
+
+  async setUserOrganizations(userId: number, organizationIds: number[]): Promise<void> {
+    // Transaction to ensure atomicity
+    await db.transaction(async (tx) => {
+      // Delete existing relationships
+      await tx
+        .delete(userOrganizations)
+        .where(eq(userOrganizations.userId, userId));
+      
+      // Insert new relationships
+      if (organizationIds.length > 0) {
+        await tx
+          .insert(userOrganizations)
+          .values(
+            organizationIds.map(orgId => ({
+              userId,
+              organizationId: orgId,
+              createdAt: new Date().toISOString()
+            }))
+          );
+      }
+    });
   }
 }
 
