@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation, useSearch } from "wouter";
 import { formatDate, getStatusColor, formatPhone } from "@/lib/utils";
 import { NewLeadModal } from "@/components/modals/NewLeadModal";
+import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
 
 import {
   Table,
@@ -58,7 +59,8 @@ export default function LeadsPage() {
   useEffect(() => {
     if (!leads) return;
     
-    let filtered = [...leads];
+    // Make sure leads is treated as an array
+    let filtered = Array.isArray(leads) ? [...leads] : [];
     
     // Filter by status
     if (statusFilter && statusFilter !== "all") {
@@ -117,185 +119,195 @@ export default function LeadsPage() {
   return (
     <div>
       {/* Page header */}
-      <div className="bg-white shadow">
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-wrap items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-2 sm:mb-0">
-              Leads Management
-            </h1>
-            <div className="flex flex-wrap space-x-2">
-              {canCreateLead && (
-                <Button
-                  onClick={() => setNewLeadModalOpen(true)}
-                  size="sm"
-                  className="h-9"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  New Lead
-                </Button>
-              )}
+      <MotionWrapper animation="fade-in" delay={0.1}>
+        <div className="bg-white shadow">
+          <div className="px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex flex-wrap items-center justify-between">
+              <MotionWrapper animation="fade-right" delay={0.2}>
+                <h1 className="text-2xl font-semibold text-gray-900 mb-2 sm:mb-0">
+                  Leads Management
+                </h1>
+              </MotionWrapper>
+              <MotionWrapper animation="fade-left" delay={0.3}>
+                <div className="flex flex-wrap space-x-2">
+                  {canCreateLead && (
+                    <Button
+                      onClick={() => setNewLeadModalOpen(true)}
+                      size="sm"
+                      className="h-9"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      New Lead
+                    </Button>
+                  )}
+                </div>
+              </MotionWrapper>
             </div>
           </div>
         </div>
-      </div>
+      </MotionWrapper>
       
       {/* Page content */}
       <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <Card className="shadow mb-6">
-          <CardHeader className="px-5 py-4 border-b border-gray-200">
-            <CardTitle className="text-lg leading-6 font-medium text-gray-900">
-              Leads Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-5">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="w-full sm:w-1/3">
-                <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <Select value={statusFilter} onValueChange={handleStatusChange}>
-                  <SelectTrigger id="status-filter" className="w-full">
-                    <SelectValue placeholder="All Leads" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Leads</SelectItem>
-                    <SelectItem value="qualified">Qualified</SelectItem>
-                    <SelectItem value="unqualified">Unqualified</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="lost">Lost</SelectItem>
-                    <SelectItem value="won">Won</SelectItem>
-                    <SelectItem value="follow-up">Follow-Up</SelectItem>
-                    <SelectItem value="nurture">Nurture</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="w-full sm:w-2/3">
-                <label htmlFor="search-leads" className="block text-sm font-medium text-gray-700 mb-1">
-                  Search
-                </label>
-                <form onSubmit={handleSearch}>
-                  <div className="relative text-gray-400 focus-within:text-gray-600">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Search className="h-5 w-5" />
-                    </div>
-                    <Input
-                      id="search-leads"
-                      className="pl-10"
-                      placeholder="Search by company, MC number, email or phone..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                </form>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="shadow overflow-hidden">
-          <CardHeader className="px-5 py-4 border-b border-gray-200">
-            <div className="flex justify-between items-center">
+        <MotionWrapper animation="fade-up" delay={0.4}>
+          <Card className="shadow mb-6">
+            <CardHeader className="px-5 py-4 border-b border-gray-200">
               <CardTitle className="text-lg leading-6 font-medium text-gray-900">
-                Leads
+                Leads Filters
               </CardTitle>
-              <span className="text-sm text-gray-500">
-                Showing {filteredLeads.length} leads
-              </span>
-            </div>
-          </CardHeader>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Company</TableHead>
-                  <TableHead>MC Number</TableHead>
-                  <TableHead>Contact Info</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Equipment</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLeads.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      <div className="flex flex-col items-center justify-center text-gray-500">
-                        <Users className="h-12 w-12 mb-2" />
-                        <h3 className="text-lg font-medium">No leads found</h3>
-                        <p className="text-sm max-w-md mt-1">
-                          {statusFilter !== "all"
-                            ? `No leads match the "${statusFilter}" status filter. Try changing your filters or create a new lead.`
-                            : searchQuery
-                            ? "No leads match your search criteria. Try a different search term."
-                            : "No leads have been created yet. Start by creating a new lead."}
-                        </p>
-                        {canCreateLead && (
-                          <Button
-                            onClick={() => setNewLeadModalOpen(true)}
-                            className="mt-4"
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Create New Lead
-                          </Button>
-                        )}
+            </CardHeader>
+            <CardContent className="p-5">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="w-full sm:w-1/3">
+                  <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <Select value={statusFilter} onValueChange={handleStatusChange}>
+                    <SelectTrigger id="status-filter" className="w-full">
+                      <SelectValue placeholder="All Leads" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Leads</SelectItem>
+                      <SelectItem value="qualified">Qualified</SelectItem>
+                      <SelectItem value="unqualified">Unqualified</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="lost">Lost</SelectItem>
+                      <SelectItem value="won">Won</SelectItem>
+                      <SelectItem value="follow-up">Follow-Up</SelectItem>
+                      <SelectItem value="nurture">Nurture</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="w-full sm:w-2/3">
+                  <label htmlFor="search-leads" className="block text-sm font-medium text-gray-700 mb-1">
+                    Search
+                  </label>
+                  <form onSubmit={handleSearch}>
+                    <div className="relative text-gray-400 focus-within:text-gray-600">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Search className="h-5 w-5" />
                       </div>
-                    </TableCell>
+                      <Input
+                        id="search-leads"
+                        className="pl-10"
+                        placeholder="Search by company, MC number, email or phone..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </MotionWrapper>
+        
+        <MotionWrapper animation="fade-up" delay={0.5}>
+          <Card className="shadow overflow-hidden">
+            <CardHeader className="px-5 py-4 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg leading-6 font-medium text-gray-900">
+                  Leads
+                </CardTitle>
+                <span className="text-sm text-gray-500">
+                  Showing {filteredLeads.length} leads
+                </span>
+              </div>
+            </CardHeader>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Company</TableHead>
+                    <TableHead>MC Number</TableHead>
+                    <TableHead>Contact Info</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Equipment</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ) : (
-                  filteredLeads.map((lead) => {
-                    const statusStyle = getStatusColor(lead.status);
-                    
-                    return (
-                      <TableRow key={lead.id}>
-                        <TableCell className="font-medium">
-                          {lead.companyName}
-                        </TableCell>
-                        <TableCell>{lead.mcNumber}</TableCell>
-                        <TableCell>
-                          {lead.email && (
-                            <div className="text-sm text-gray-500">
-                              {lead.email}
-                            </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredLeads.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        <div className="flex flex-col items-center justify-center text-gray-500">
+                          <Users className="h-12 w-12 mb-2" />
+                          <h3 className="text-lg font-medium">No leads found</h3>
+                          <p className="text-sm max-w-md mt-1">
+                            {statusFilter !== "all"
+                              ? `No leads match the "${statusFilter}" status filter. Try changing your filters or create a new lead.`
+                              : searchQuery
+                              ? "No leads match your search criteria. Try a different search term."
+                              : "No leads have been created yet. Start by creating a new lead."}
+                          </p>
+                          {canCreateLead && (
+                            <Button
+                              onClick={() => setNewLeadModalOpen(true)}
+                              className="mt-4"
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Create New Lead
+                            </Button>
                           )}
-                          <div className="text-sm text-gray-500">
-                            {formatPhone(lead.phoneNumber)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant="outline"
-                            className={`${statusStyle.bg} ${statusStyle.text} ${statusStyle.border} px-2 inline-flex text-xs leading-5 font-semibold rounded-full`}
-                          >
-                            {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span className="capitalize">
-                            {lead.equipmentType.replace("-", " ")}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {formatDate(lead.createdAt)}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="link"
-                            className="text-primary-600 hover:text-primary-900 p-0 h-auto"
-                            onClick={() => setLocation(`/leads/${lead.id}`)}
-                          >
-                            View
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </Card>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredLeads.map((lead) => {
+                      const statusStyle = getStatusColor(lead.status);
+                      
+                      return (
+                        <TableRow key={lead.id}>
+                          <TableCell className="font-medium">
+                            {lead.companyName}
+                          </TableCell>
+                          <TableCell>{lead.mcNumber}</TableCell>
+                          <TableCell>
+                            {lead.email && (
+                              <div className="text-sm text-gray-500">
+                                {lead.email}
+                              </div>
+                            )}
+                            <div className="text-sm text-gray-500">
+                              {formatPhone(lead.phoneNumber)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant="outline"
+                              className={`${statusStyle.bg} ${statusStyle.text} ${statusStyle.border} px-2 inline-flex text-xs leading-5 font-semibold rounded-full`}
+                            >
+                              {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="capitalize">
+                              {lead.equipmentType.replace("-", " ")}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {formatDate(lead.createdAt)}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="link"
+                              className="text-primary-600 hover:text-primary-900 p-0 h-auto"
+                              onClick={() => setLocation(`/leads/${lead.id}`)}
+                            >
+                              View
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
+        </MotionWrapper>
       </div>
       
       {/* New Lead Modal */}

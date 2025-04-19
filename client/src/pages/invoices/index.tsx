@@ -8,6 +8,7 @@ import { InvoiceList, InvoiceFilters, InvoiceListItem } from "@/components/invoi
 import { InvoiceForm } from "@/components/invoices/InvoiceForm";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
+import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
 
 export default function InvoicesPage() {
   const { toast } = useToast();
@@ -136,31 +137,37 @@ export default function InvoicesPage() {
       </Helmet>
       
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Invoices</h1>
+        <MotionWrapper animation="fade-right" delay={0.1}>
+          <h1 className="text-2xl font-bold">Invoices</h1>
+        </MotionWrapper>
         
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleGenerateWeeklyInvoices}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Generate Weekly Invoices
-          </Button>
-          
-          {canCreateInvoice && (
-            <Button onClick={() => setInvoiceFormOpen(true)}>
-              Create Invoice
+        <MotionWrapper animation="fade-left" delay={0.2}>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleGenerateWeeklyInvoices}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Generate Weekly Invoices
             </Button>
-          )}
-        </div>
+            
+            {canCreateInvoice && (
+              <Button onClick={() => setInvoiceFormOpen(true)}>
+                Create Invoice
+              </Button>
+            )}
+          </div>
+        </MotionWrapper>
       </div>
       
-      <InvoiceList 
-        invoices={filteredInvoices}
-        onCreateInvoice={() => setInvoiceFormOpen(true)}
-        onFilterChange={handleFilterChange}
-        isLoading={isLoading}
-      />
+      <MotionWrapper animation="fade-up" delay={0.3}>
+        <InvoiceList 
+          invoices={filteredInvoices}
+          onCreateInvoice={() => setInvoiceFormOpen(true)}
+          onFilterChange={handleFilterChange}
+          isLoading={isLoading}
+        />
+      </MotionWrapper>
       
       <InvoiceForm 
         open={invoiceFormOpen}
