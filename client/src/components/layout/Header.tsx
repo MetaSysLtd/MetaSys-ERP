@@ -40,34 +40,16 @@ export function Header({ setSidebarOpen }: HeaderProps) {
   const [_, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
-  
+
   const handleLogout = async () => {
     try {
-      if (logout) {
-        await logout();
-        toast({
-          title: "Logged out",
-          description: "You have been successfully logged out.",
-        });
-        navigate("/auth");
-      } else {
-        // Fallback for direct API call
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          credentials: "include"
-        });
-        window.location.href = "/auth";
-      }
-    } catch (err) {
-      console.error("Logout error:", err);
-      toast({
-        title: "Logout failed",
-        description: "There was an error logging out. Please try again.",
-        variant: "destructive"
-      });
+      await logout();
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Logout failed:", error);
     }
   };
-  
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // Implement search functionality
@@ -76,7 +58,7 @@ export function Header({ setSidebarOpen }: HeaderProps) {
       description: `Searching for: ${searchQuery}`,
     });
   };
-  
+
   return (
     <header className="relative z-10 flex-shrink-0 flex h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
       <button
@@ -87,7 +69,7 @@ export function Header({ setSidebarOpen }: HeaderProps) {
         <span className="sr-only">Open sidebar</span>
         <Menu className="h-6 w-6" />
       </button>
-      
+
       <div className="flex-1 px-4 flex justify-between">
         {/* Search */}
         <div className="flex-1 flex items-center">
@@ -110,7 +92,7 @@ export function Header({ setSidebarOpen }: HeaderProps) {
             </div>
           </form>
         </div>
-        
+
         {/* Right side items */}
         <div className="ml-4 flex items-center space-x-4">
           {/* Help button */}
@@ -118,13 +100,13 @@ export function Header({ setSidebarOpen }: HeaderProps) {
             <span className="sr-only">Get help</span>
             <HelpCircle className="h-5 w-5" />
           </button>
-          
+
           {/* Calendar button */}
           <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
             <span className="sr-only">View calendar</span>
             <Calendar className="h-5 w-5" />
           </button>
-          
+
           {/* Messages */}
           <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative">
             <span className="sr-only">View messages</span>
@@ -133,7 +115,7 @@ export function Header({ setSidebarOpen }: HeaderProps) {
               3
             </Badge>
           </button>
-          
+
           {/* Notifications */}
           <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 relative">
             <span className="sr-only">View notifications</span>
@@ -142,7 +124,7 @@ export function Header({ setSidebarOpen }: HeaderProps) {
               5
             </Badge>
           </button>
-          
+
           {/* Profile dropdown */}
           <div className="relative">
             <DropdownMenu>
