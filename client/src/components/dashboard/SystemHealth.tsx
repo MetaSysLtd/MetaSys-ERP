@@ -15,7 +15,13 @@ import {
   Gauge,
   BarChart3,
   Bell,
-  Cpu
+  Cpu,
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
+  HelpCircle,
+  Calendar,
+  Clock
 } from "lucide-react";
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -135,21 +141,6 @@ export function SystemHealth({
     }
   }
   
-  const getProgressColor = (status: string) => {
-    switch (status) {
-      case 'healthy':
-      case 'operational': 
-        return 'bg-green-500';
-      case 'warning':
-      case 'degraded': 
-        return 'bg-yellow-500';
-      case 'critical':
-      case 'outage': 
-        return 'bg-red-500';
-      default: return 'bg-blue-500';
-    }
-  }
-  
   const systemMetrics: SystemMetric[] = [
     {
       name: 'CPU Usage',
@@ -241,8 +232,11 @@ export function SystemHealth({
                 <div className="flex items-center gap-2">
                   <Progress 
                     value={metric.value} 
-                    className="h-2"
-                    indicatorClassName={getProgressColor(metric.status)}
+                    className={cn("h-2", 
+                      metric.status === 'healthy' && "[&>div]:bg-green-500",
+                      metric.status === 'warning' && "[&>div]:bg-yellow-500",
+                      metric.status === 'critical' && "[&>div]:bg-red-500"
+                    )}
                   />
                   <span className="text-sm font-medium">{metric.value}%</span>
                 </div>
