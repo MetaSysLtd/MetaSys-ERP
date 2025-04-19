@@ -18,6 +18,7 @@ import AdminDashboard from "@/pages/admin";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { MessageProvider } from "@/contexts/MessageContext";
+import { AnimationProvider } from "@/contexts/AnimationContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
@@ -153,8 +154,10 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
           <MessageProvider>
-            <Router />
-            <Toaster />
+            <AnimationProvider>
+              <Router />
+              <Toaster />
+            </AnimationProvider>
           </MessageProvider>
         </NotificationProvider>
       </AuthProvider>
