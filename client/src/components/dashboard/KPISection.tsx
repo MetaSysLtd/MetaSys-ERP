@@ -68,7 +68,7 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
   const getTrend = (change: number = 0) => change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       <MetricCard
         title="Total Leads"
         value={metrics.totalLeads?.toString() || '0'}

@@ -60,7 +60,7 @@ export function OrganizationSwitcher() {
 
   const switchOrganization = async (orgId: number) => {
     try {
-      await apiRequest('POST', '/api/auth/switch-organization', { organizationId: orgId });
+      await apiRequest('GET', `/api/auth/switch?orgId=${orgId}`);
       
       // Invalidate queries that might have organization-specific data
       queryClient.invalidateQueries({ queryKey: ['/api/organizations/current'] });
