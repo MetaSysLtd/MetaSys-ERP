@@ -90,6 +90,11 @@ function createDate(dateString?: string | null): Date | null {
   }
 }
 
+// Create a date string in ISO format for database compatibility
+function createDateString(): string {
+  return new Date().toISOString();
+}
+
 async function addSeedDataIfNeeded() {
   try {
     // Check if we already have some dispatch clients
@@ -224,7 +229,7 @@ async function addSeedDataIfNeeded() {
           status: "lost",
           orgId: 1,
           notes: "Went with competitor due to pricing",
-          onboardingDate: new Date().toISOString(), // Fix: Use .toISOString() for date
+          onboardingDate: new Date().toISOString(),
           approvedBy: 1
         });
         
@@ -3387,6 +3392,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = Number(req.params.userId);
       const events = await storage.getClockEventsByUser(userId);
       res.json(events);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Team Management routes
+  // Get all team members by department
+  app.get("/api/teams/:department", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const department = req.params.department;
+      
+      // Validate department parameter
+      if (!['sales', 'dispatch', 'admin', 'finance', 'hr'].includes(department)) {
+        return res.status(400).json({ message: "Invalid department. Must be one of: sales, dispatch, admin, finance, hr" });
+      }
+      
+      const teamMembers = await storage.getTeamMembersByDepartment(department);
+      res.json(teamMembers);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get performance metrics for sales team members
+  app.get("/api/teams/sales/performance", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      // Default to current month if not specified
+      const month = req.query.month as string || createDateString().substring(0, 7); // Format: YYYY-MM
+      
+      const performanceData = await storage.getSalesTeamPerformance(month);
+      res.json(performanceData);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get performance metrics for dispatch team members
+  app.get("/api/teams/dispatch/performance", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      // Default to current month if not specified
+      const month = req.query.month as string || createDateString().substring(0, 7); // Format: YYYY-MM
+      
+      const performanceData = await storage.getDispatchTeamPerformance(month);
+      res.json(performanceData);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get KPIs for a specific user
+  app.get("/api/teams/user/:userId/kpi", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const userId = Number(req.params.userId);
+      const month = req.query.month as string || createDateString().substring(0, 7); // Format: YYYY-MM
+      
+      // Find the user to determine their department
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const role = await storage.getRole(user.roleId);
+      if (!role) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+      
+      let kpiData;
+      
+      // Get department-specific KPIs
+      if (role.department === 'sales') {
+        const data = await storage.getSalesUserKPIs(userId, month);
+        kpiData = {
+          department: 'sales',
+          metrics: {
+            activeLeads: data.activeLeads || 0,
+            closedDeals: data.closedDeals || 0,
+            invoiceTotal: data.invoiceTotal || 0,
+            ownLeadBonus: data.ownLeadBonus || 0,
+            totalCommission: data.totalCommission || 0
+          }
+        };
+      } else if (role.department === 'dispatch') {
+        const data = await storage.getDispatchUserKPIs(userId, month);
+        kpiData = {
+          department: 'dispatch',
+          metrics: {
+            loadCount: data.loadCount || 0,
+            grossRevenue: data.grossRevenue || 0,
+            directGrossRevenue: data.directGrossRevenue || 0,
+            bonusAmount: data.bonusAmount || 0,
+            totalCommission: data.totalCommission || 0
+          }
+        };
+      } else {
+        kpiData = {
+          department: role.department,
+          metrics: {
+            message: 'No specific KPIs defined for this department'
+          }
+        };
+      }
+      
+      res.json(kpiData);
     } catch (error) {
       next(error);
     }
