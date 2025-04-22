@@ -1,6 +1,6 @@
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { getInitials, getDepartmentColor } from "@/lib/utils";
+import { getInitials } from "@/lib/utils";
 import { 
   HomeIcon, 
   Users, 
@@ -14,61 +14,98 @@ import {
   LogOut,
   CheckSquare,
   Bell,
-  Layers,
   ChevronRight,
   ChevronDown,
   ShieldAlert,
   HeartPulse,
-  BriefcaseBusiness,
-  UserRound,
-  CalendarClock,
-  BrainCircuit,
-  Megaphone,
-  BarChart,
-  MessageSquareText
+  Megaphone
 } from "lucide-react";
+import { useDispatch, useSelector } from 'react-redux';
+import { setPreferences } from '@/store/uiPreferencesSlice';
+import { useEffect, useCallback, useState } from "react";
+import { cn } from "@/lib/utils";
+import { Logo } from '@/components/ui/logo';
 
-// Import the Metio logo and icon
-import metioIcon from "@/assets/metio-icon.svg";
-import metioLogo from "@/assets/metio-logo.svg";
+// Import the store where it's defined
+import { store } from '@/store/store';
+
+type RootState = ReturnType<typeof store.getState>;
 
 interface SidebarProps {
   mobile: boolean;
-  collapsed: boolean; // Added collapsed state
+  collapsed: boolean;
 }
 
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '@/store';
-import { setPreferences } from '@/store/uiPreferencesSlice';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip'
-import { useEffect, useCallback } from "react"; // Added imports
-import { cn } from "@/lib/utils";
+// Define NavItem type
+type SubItem = {
+  name: string;
+  href: string;
+};
 
+type NavItem = {
+  name: string;
+  href: string;
+  icon: React.FC<{ className?: string }>;
+  showFor?: string[];
+  minLevel?: number;
+  subItems?: SubItem[];
+};
 
 export function Sidebar({ mobile, collapsed }: SidebarProps) {
   const [location] = useLocation();
   const { user, role } = useAuth();
   const dispatch = useDispatch();
   const preferences = useSelector((state: RootState) => state.uiPreferences);
+  
+  // Define helper functions
+  const isActiveRoute = useCallback((route: string) => {
+    if (route === "/" && location === "/") return true;
+    if (route === location) return true;
+    return false;
+  }, [location]);
 
+  const isParentActive = useCallback((parentRoute: string) => {
+    return location.startsWith(parentRoute) && location !== parentRoute;
+  }, [location]);
+  
+  // Handle window resize for mobile breakpoint
+  const handleResize = useCallback(() => {
+    if (window.innerWidth < 768) {
+      dispatch(setPreferences({ ...preferences, sidebarCollapsed: true }));
+    }
+  }, [dispatch, preferences]);
+
+  useEffect(() => {
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Check initial size
+    return () => window.removeEventListener('resize', handleResize);
+  }, [handleResize]);
+  
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+      window.location.href = "/auth";
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  }, []);
+
+  const handleLinkClick = useCallback(() => {
+    if (mobile) {
+      dispatch(setPreferences({ ...preferences, sidebarCollapsed: true }));
+    }
+  }, [mobile, dispatch, preferences]);
+
+  // Return early if user not authenticated
   if (!user || !role) {
     return null;
   }
 
-  const isActiveRoute = (route: string) => {
-    // Exact match for root
-    if (route === "/" && location === "/") return true;
-    // Exact match for other routes
-    if (route === location) return true;
-    return false;
-  };
-
-  const isParentActive = (parentRoute: string) => {
-    // Check if any child route is active
-    return location.startsWith(parentRoute) && location !== parentRoute;
-  };
-
-  const mainNavItems = [
+  // Define navigation items
+  const mainNavItems: NavItem[] = [
     {
       name: "Dashboard",
       href: "/",
@@ -80,22 +117,10 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
       icon: Users,
       showFor: ["sales", "admin"],
       subItems: [
-        {
-          name: "All Leads",
-          href: "/crm",
-        },
-        {
-          name: "SQL",
-          href: "/crm?status=qualified",
-        },
-        {
-          name: "MQL",
-          href: "/crm?status=nurture",
-        },
-        {
-          name: "Clients",
-          href: "/crm?status=active",
-        },
+        { name: "All Leads", href: "/crm" },
+        { name: "SQL", href: "/crm?status=qualified" },
+        { name: "MQL", href: "/crm?status=nurture" },
+        { name: "Clients", href: "/crm?status=active" },
       ],
     },
     {
@@ -104,18 +129,9 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
       icon: Truck,
       showFor: ["dispatch", "admin"],
       subItems: [
-        {
-          name: "Loads",
-          href: "/dispatch",
-        },
-        {
-          name: "Clients",
-          href: "/dispatch/clients",
-        },
-        {
-          name: "New Load",
-          href: "/dispatch/loads/new",
-        },
+        { name: "Loads", href: "/dispatch" },
+        { name: "Clients", href: "/dispatch/clients" },
+        { name: "New Load", href: "/dispatch/loads/new" },
       ],
     },
     {
@@ -127,78 +143,30 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
     },
   ];
 
-  const taskItems = [
-    {
-      name: "Tasks",
-      href: "/tasks",
-      icon: CheckSquare,
-    },
-    {
-      name: "Notifications",
-      href: "/notifications",
-      icon: Bell,
-    },
+  const taskItems: NavItem[] = [
+    { name: "Tasks", href: "/tasks", icon: CheckSquare },
+    { name: "Notifications", href: "/notifications", icon: Bell },
   ];
 
-  const secondaryNavItems = [
-    {
-      name: "Time Tracking",
-      href: "/time-tracking",
-      icon: Clock,
-    },
-    {
-      name: "Human Resources",
-      href: "/hr",
-      icon: HeartPulse,
-      showFor: ["hr", "admin"],
-    },
-    {
-      name: "Finance",
-      href: "/finance",
-      icon: Banknote,
-      showFor: ["finance", "admin"],
-      minLevel: 3,
-    },
-    {
-      name: "Marketing",
-      href: "/marketing",
-      icon: Megaphone,
-      showFor: ["marketing", "admin"],
-      minLevel: 2,
-    },
-    {
-      name: "Client Portal",
-      href: "/client-portal",
-      icon: Building2,
-      showFor: ["sales", "dispatch", "admin"],
-      minLevel: 3,
-    },
-    {
-      name: "Reports",
-      href: "/reports",
-      icon: BarChart2,
-      showFor: ["sales", "dispatch", "finance", "hr", "admin"],
-      minLevel: 2,
-    },
-    {
-      name: "Settings",
-      href: "/settings",
-      icon: Settings,
-    },
+  const secondaryNavItems: NavItem[] = [
+    { name: "Time Tracking", href: "/time-tracking", icon: Clock },
+    { name: "Human Resources", href: "/hr", icon: HeartPulse, showFor: ["hr", "admin"] },
+    { name: "Finance", href: "/finance", icon: Banknote, showFor: ["finance", "admin"], minLevel: 3 },
+    { name: "Marketing", href: "/marketing", icon: Megaphone, showFor: ["marketing", "admin"], minLevel: 2 },
+    { name: "Client Portal", href: "/client-portal", icon: Building2, showFor: ["sales", "dispatch", "admin"], minLevel: 3 },
+    { name: "Reports", href: "/reports", icon: BarChart2, showFor: ["sales", "dispatch", "finance", "hr", "admin"], minLevel: 2 },
+    { name: "Settings", href: "/settings", icon: Settings },
   ];
 
-  const filterItems = (items: typeof mainNavItems) => {
+  // Filter items based on user role
+  const filterItems = (items: NavItem[]) => {
     return items.filter(item => {
-      // Check if the item is restricted to certain departments
       if (item.showFor && !item.showFor.includes(role.department)) {
         return false;
       }
-
-      // Check if the item requires a minimum role level
       if (item.minLevel && role.level < item.minLevel) {
         return false;
       }
-
       return true;
     });
   };
@@ -207,43 +175,52 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   const filteredSecondaryItems = filterItems(secondaryNavItems);
   const filteredTaskItems = filterItems(taskItems);
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include"
-      });
-      window.location.href = "/auth";
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
-  };
+  // Navigation item component
+  const NavItemComponent = ({ item, isMain = false }: { item: NavItem, isMain?: boolean }) => (
+    <div key={item.href}>
+      <Link href={item.href} onClick={handleLinkClick}>
+        <div 
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
+            ${isActiveRoute(item.href)
+              ? 'bg-[#457B9D] text-white hover:bg-[#2EC4B6]'
+              : isParentActive(item.href)
+                ? 'bg-[#1D3557] text-white'
+                : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
+        >
+          <item.icon className="h-[18px] w-[18px]" />
+          {!collapsed || window.innerWidth < 992 ? (
+            <>
+              <span>{item.name}</span>
+              {(item.subItems && item.subItems.length > 0) ? (
+                <ChevronDown className="w-4 h-4 ml-auto" />
+              ) : (
+                isActiveRoute(item.href) && (
+                  <ChevronRight className="w-4 h-4 ml-auto" />
+                )
+              )}
+            </>
+          ) : null}
+        </div>
+      </Link>
 
-  const handleLinkClick = () => {
-    if (mobile) {
-      dispatch(setPreferences({ ...preferences, sidebarCollapsed: true }));
-    }
-  };
-
-  // Handle window resize for mobile breakpoint
-  const handleResize = useCallback(() => {
-    if (window.innerWidth < 768) {
-      dispatch(setPreferences({ ...preferences, sidebarCollapsed: true }));
-    }
-  }, [dispatch, preferences]);
-
-  useEffect(() => {
-    window.addEventListener('resize', handleResize);
-    handleResize(); // Check initial size
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, [handleResize]);
-
-  // Colors based on metasysltd.com
-  // Primary blue: #0a1825
-  // Accent blue: #2170dd
-  // Lighter accent: #3f8cff
-  // Text color: #f5f9fc
+      {/* Render submenu items if they exist */}
+      {isMain && item.subItems && item.subItems.length > 0 && (
+        <div className="mt-1 ml-7 space-y-1">
+          {item.subItems.map((subItem) => (
+            <Link key={subItem.href} href={subItem.href} onClick={handleLinkClick}>
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-all
+                ${location === subItem.href || (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
+                  ? 'bg-[#2170dd]/80 text-white' 
+                  : 'text-[#f5f9fc]/80 hover:bg-[#142c42] hover:text-white'}`}
+              >
+                <span>{subItem.name}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="flex flex-col h-full bg-[#0a1825] text-[#f5f9fc]">
@@ -286,58 +263,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
           </h3>
           <div className="space-y-1">
             {filteredMainItems.map((item) => (
-              <div key={item.href}>
-                <Link href={item.href} onClick={handleLinkClick}>
-                  <div 
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
-                      ${isActiveRoute(item.href)
-                        ? 'bg-[#457B9D] text-white hover:bg-[#2EC4B6]'
-                        : isParentActive(item.href)
-                          ? 'bg-[#1D3557] text-white'
-                          : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
-                  >
-                    {collapsed && window.innerWidth >= 992 ? (
-                      <TooltipProvider>
-                        <Tooltip delayDuration={0} openDelay={200}>
-                          <TooltipTrigger>
-                            <item.icon className="h-[18px] w-[18px]" />
-                          </TooltipTrigger>
-                          <TooltipContent>{item.name}</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <>
-                        <item.icon className="h-[18px] w-[18px]" />
-                        <span>{item.name}</span>
-                        {(item.subItems && item.subItems.length > 0) ? (
-                          <ChevronDown className="w-4 h-4 ml-auto" />
-                        ) : (
-                          isActiveRoute(item.href) && (
-                            <ChevronRight className="w-4 h-4 ml-auto" />
-                          )
-                        )}
-                      </>
-                    )}
-                  </div>
-                </Link>
-
-                {/* Render submenu items if they exist */}
-                {item.subItems && item.subItems.length > 0 && (
-                  <div className="mt-1 ml-7 space-y-1">
-                    {item.subItems.map((subItem) => (
-                      <Link key={subItem.href} href={subItem.href} onClick={handleLinkClick}>
-                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-all
-                          ${location === subItem.href || (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
-                            ? 'bg-[#2170dd]/80 text-white' 
-                            : 'text-[#f5f9fc]/80 hover:bg-[#142c42] hover:text-white'}`}
-                        >
-                          <span>{subItem.name}</span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <NavItemComponent key={item.href} item={item} isMain={true} />
             ))}
           </div>
         </div>
@@ -349,32 +275,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
           </h3>
           <div className="space-y-1">
             {filteredTaskItems.map((item) => (
-              <Link key={item.href} href={item.href} onClick={handleLinkClick}>
-                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
-                  ${isActiveRoute(item.href) 
-                    ? 'bg-[#2170dd] text-white' 
-                    : 'text-[#f5f9fc]/99 hover:bg-[#142c42] hover:text-white'}`}
-                >
-                  {collapsed && window.innerWidth >= 992 ? (
-                    <TooltipProvider>
-                      <Tooltip delayDuration={0} openDelay={200}>
-                        <TooltipTrigger>
-                          <item.icon className="h-[18px] w-[18px]" />
-                        </TooltipTrigger>
-                        <TooltipContent>{item.name}</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : (
-                    <>
-                      <item.icon className="h-[18px] w-[18px]" />
-                      <span>{item.name}</span>
-                      {isActiveRoute(item.href) && (
-                        <ChevronRight className="w-4 h-4 ml-auto" />
-                      )}
-                    </>
-                  )}
-                </div>
-              </Link>
+              <NavItemComponent key={item.href} item={item} />
             ))}
           </div>
         </div>
@@ -386,32 +287,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
           </h3>
           <div className="space-y-1">
             {filteredSecondaryItems.map((item) => (
-              <Link key={item.href} href={item.href} onClick={handleLinkClick}>
-                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
-                  ${isActiveRoute(item.href) 
-                    ? 'bg-[#2170dd] text-white' 
-                    : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
-                >
-                  {collapsed && window.innerWidth >= 992 ? (
-                    <TooltipProvider>
-                      <Tooltip delayDuration={0} openDelay={200}>
-                        <TooltipTrigger>
-                          <item.icon className="h-[18px] w-[18px]" />
-                        </TooltipTrigger>
-                        <TooltipContent>{item.name}</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : (
-                    <>
-                      <item.icon className="h-[18px] w-[18px]" />
-                      <span>{item.name}</span>
-                      {isActiveRoute(item.href) && (
-                        <ChevronRight className="w-4 h-4 ml-auto" />
-                      )}
-                    </>
-                  )}
-                </div>
-              </Link>
+              <NavItemComponent key={item.href} item={item} />
             ))}
           </div>
         </div>
@@ -423,32 +299,13 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
               Administration
             </h3>
             <div className="space-y-1">
-              <Link href="/admin" onClick={handleLinkClick}>
-                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
-                  ${isActiveRoute('/admin') 
-                    ? 'bg-[#2170dd] text-white' 
-                    : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
-                >
-                  {collapsed && window.innerWidth >= 992 ? (
-                    <TooltipProvider>
-                      <Tooltip delayDuration={0} openDelay={200}>
-                        <TooltipTrigger>
-                          <ShieldAlert className="h-[18px] w-[18px]" />
-                        </TooltipTrigger>
-                        <TooltipContent>Admin Dashboard</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : (
-                    <>
-                      <ShieldAlert className="h-[18px] w-[18px]" />
-                      <span>Admin Dashboard</span>
-                      {isActiveRoute('/admin') && (
-                        <ChevronRight className="w-4 h-4 ml-auto" />
-                      )}
-                    </>
-                  )}
-                </div>
-              </Link>
+              <NavItemComponent 
+                item={{
+                  name: "Admin Dashboard",
+                  href: "/admin",
+                  icon: ShieldAlert
+                }} 
+              />
             </div>
           </div>
         )}
@@ -460,44 +317,20 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
               Teams
             </h3>
             <div className="space-y-1">
-              <Link href="/teams/sales" onClick={handleLinkClick}>
-                <div className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white transition-all">
-                  {collapsed && window.innerWidth >= 992 ? (
-                    <TooltipProvider>
-                      <Tooltip delayDuration={0} openDelay={200}>
-                        <TooltipTrigger>
-                          <Users className="h-[18px] w-[18px]" />
-                        </TooltipTrigger>
-                        <TooltipContent>Sales</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : (
-                    <>
-                      <Users className="h-[18px] w-[18px]" />
-                      <span>Sales</span>
-                    </>
-                  )}
-                </div>
-              </Link>
-              <Link href="/teams/dispatch" onClick={handleLinkClick}>
-                <div className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white transition-all">
-                  {collapsed && window.innerWidth >= 992 ? (
-                    <TooltipProvider>
-                      <Tooltip delayDuration={0} openDelay={200}>
-                        <TooltipTrigger>
-                          <Truck className="h-[18px] w-[18px]" />
-                        </TooltipTrigger>
-                        <TooltipContent>Dispatch</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : (
-                    <>
-                      <Truck className="h-[18px] w-[18px]" />
-                      <span>Dispatch</span>
-                    </>
-                  )}
-                </div>
-              </Link>
+              <NavItemComponent 
+                item={{
+                  name: "Sales",
+                  href: "/teams/sales",
+                  icon: Users
+                }} 
+              />
+              <NavItemComponent 
+                item={{
+                  name: "Dispatch",
+                  href: "/teams/dispatch",
+                  icon: Truck
+                }} 
+              />
             </div>
           </div>
         )}
