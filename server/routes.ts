@@ -18,6 +18,12 @@ import path from "path";
 import * as slackNotifications from "./slack";
 import * as notificationService from "./notifications";
 import { NotificationPreferences, defaultNotificationPreferences } from "./notifications";
+import { WebSocket, WebSocketServer } from "ws";
+
+// Helper function to handle date objects correctly for database insertion
+function createDateObject(dateString?: string | null) {
+  return dateString ? new Date(dateString) : null;
+}
 import { organizationMiddleware } from "./middleware/organizationMiddleware";
 
 // Socket.IO instance will be initialized in registerRoutes
@@ -212,7 +218,7 @@ async function addSeedDataIfNeeded() {
           status: "active",
           orgId: 1,
           notes: "Premium client, priority dispatch",
-          onboardingDate: new Date().toISOString(),
+          onboardingDate: new Date(),
           approvedBy: 1
         });
         
@@ -221,7 +227,7 @@ async function addSeedDataIfNeeded() {
           status: "active",
           orgId: 1,
           notes: "Regular client with consistent loads",
-          onboardingDate: new Date().toISOString(),
+          onboardingDate: new Date(),
           approvedBy: 1
         });
         
@@ -248,7 +254,7 @@ async function addSeedDataIfNeeded() {
           status: "lost",
           orgId: 1,
           notes: "Went with competitor due to pricing",
-          onboardingDate: new Date().toISOString(),
+          onboardingDate: new Date(),
           approvedBy: 1
         });
         
@@ -269,7 +275,7 @@ async function addSeedDataIfNeeded() {
             status,
             orgId: lead.orgId || 1,
             notes: `Client created from lead ${lead.companyName}`,
-            onboardingDate: status === "active" ? new Date().toISOString() : null,
+            onboardingDate: status === "active" ? new Date() : null,
             approvedBy: status === "active" ? 1 : null
           });
         }
