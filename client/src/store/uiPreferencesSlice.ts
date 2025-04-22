@@ -1,6 +1,6 @@
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { apiRequest } from '@/lib/utils';
+import { apiRequest } from '@/lib/queryClient';
 
 interface UiPreferences {
   sidebarPinned: boolean;

@@ -247,6 +247,25 @@ function Router() {
 }
 
 function App() {
+  return (
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <NotificationProvider>
+            <MessageProvider>
+              <AnimationProvider>
+                <AppContent />
+                <Toaster />
+              </AnimationProvider>
+            </MessageProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </Provider>
+  );
+}
+
+function AppContent() {
   const dispatch = useDispatch();
   const { socket } = useSocket();
 
@@ -258,23 +277,7 @@ function App() {
     }
   }, [socket, dispatch]);
 
-
-  return (
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <NotificationProvider>
-            <MessageProvider>
-              <AnimationProvider>
-                <Router />
-                <Toaster />
-              </AnimationProvider>
-            </MessageProvider>
-          </NotificationProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </Provider>
-  );
+  return <Router />;
 }
 
 export default App;
