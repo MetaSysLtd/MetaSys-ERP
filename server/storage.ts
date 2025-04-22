@@ -1516,11 +1516,22 @@ export class DatabaseStorage implements IStorage {
   async createDispatchClient(insertClient: InsertDispatchClient): Promise<DispatchClient> {
     const now = new Date();
     
+    // Make sure onboardingDate is properly formatted or null
+    let onboardingDate = insertClient.onboardingDate;
+    if (typeof onboardingDate === 'string') {
+      try {
+        // Try to validate it's a proper ISO string by parsing and reformatting
+        onboardingDate = new Date(onboardingDate).toISOString();
+      } catch (e) {
+        console.error('Invalid onboardingDate format:', onboardingDate);
+        onboardingDate = null;
+      }
+    }
+    
     // Create a clean object with proper date handling
     const clientData = {
       ...insertClient,
-      // If onboardingDate is present and it's a Date object, leave it as is
-      // Otherwise, it could be a string or null which is fine
+      onboardingDate, // Use our sanitized value
       createdAt: now,
       updatedAt: now
     };
@@ -1532,9 +1543,22 @@ export class DatabaseStorage implements IStorage {
   async updateDispatchClient(id: number, updates: Partial<DispatchClient>): Promise<DispatchClient | undefined> {
     const now = new Date();
     
+    // Process onboardingDate if it exists in updates
+    let onboardingDate = updates.onboardingDate;
+    if (onboardingDate && typeof onboardingDate === 'string') {
+      try {
+        // Try to validate it's a proper ISO string
+        onboardingDate = new Date(onboardingDate).toISOString();
+      } catch (e) {
+        console.error('Invalid onboardingDate format in updates:', onboardingDate);
+        onboardingDate = null;
+      }
+    }
+    
     // Create a clean update object
     const clientUpdates = {
       ...updates,
+      onboardingDate, // Use our sanitized value
       updatedAt: now
     };
     

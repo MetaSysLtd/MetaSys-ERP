@@ -218,7 +218,8 @@ async function addSeedDataIfNeeded() {
           status: "active",
           orgId: 1,
           notes: "Premium client, priority dispatch",
-          onboardingDate: new Date(),
+          // Don't pass a date object directly; the database handle will convert it properly
+          onboardingDate: safeDate(new Date()),
           approvedBy: 1
         });
         
@@ -227,7 +228,7 @@ async function addSeedDataIfNeeded() {
           status: "active",
           orgId: 1,
           notes: "Regular client with consistent loads",
-          onboardingDate: new Date(),
+          onboardingDate: safeDate(new Date()),
           approvedBy: 1
         });
         
@@ -254,7 +255,7 @@ async function addSeedDataIfNeeded() {
           status: "lost",
           orgId: 1,
           notes: "Went with competitor due to pricing",
-          onboardingDate: new Date(),
+          onboardingDate: safeDate(new Date()),
           approvedBy: 1
         });
         
@@ -275,7 +276,7 @@ async function addSeedDataIfNeeded() {
             status,
             orgId: lead.orgId || 1,
             notes: `Client created from lead ${lead.companyName}`,
-            onboardingDate: status === "active" ? new Date() : null,
+            onboardingDate: status === "active" ? safeDate(new Date()) : null,
             approvedBy: status === "active" ? 1 : null
           });
         }
