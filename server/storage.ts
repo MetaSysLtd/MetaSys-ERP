@@ -149,6 +149,16 @@ export interface IStorage {
   getClockEventsByUserAndDay(userId: number, date: Date): Promise<ClockEvent[]>;
   getCurrentClockStatus(userId: number): Promise<'IN' | 'OUT' | null>;
   createClockEvent(event: InsertClockEvent): Promise<ClockEvent>;
+  
+  // Team Management operations
+  getUsersByDepartment(department: string): Promise<User[]>;
+  getActiveLeadCountByUser(userId: number): Promise<number>;
+  getActiveLoadCountByUser(userId: number): Promise<number>;
+  getClosedDealCountByUserForMonth(userId: number, month: string): Promise<number>;
+  getGrossRevenueByUserForMonth(userId: number, month: string): Promise<number>;
+  getDirectGrossRevenueByUserForMonth(userId: number, month: string): Promise<number>;
+  getSalesUserKPIs(userId: number, month: string): Promise<any>;
+  getDispatchUserKPIs(userId: number, month: string): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
