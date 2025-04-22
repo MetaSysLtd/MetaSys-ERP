@@ -1,7 +1,12 @@
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
+import { Provider } from 'react-redux';
+import { store } from './store/store';
+import { queryClient } from "./lib/queryClient";
+import { useSocket } from './hooks/use-socket';
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { setPreferences } from './store/uiPreferencesSlice';
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/login";
 import ForgotPassword from "@/pages/auth/forgot-password";
@@ -34,6 +39,7 @@ import { AnimationProvider } from "@/contexts/AnimationContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
+import { Toaster } from "@/components/ui/toaster";
 
 // Import the Metio logo
 import metioIcon from "@/assets/metio-icon.svg";
@@ -52,13 +58,13 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     // Redirect to login
     window.location.href = "/login";
     return null;
   }
-  
+
   return <Component {...rest} />;
 }
 
@@ -74,7 +80,7 @@ function Router() {
       <Route path="/auth/forgot-password">
         <ForgotPassword />
       </Route>
-      
+
       <Route path="/">
         {() => (
           <AppLayout>
@@ -82,7 +88,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/crm">
         {() => (
           <AppLayout>
@@ -90,7 +96,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/crm/:id">
         {(params) => (
           <AppLayout>
@@ -98,7 +104,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/dispatch">
         {() => (
           <AppLayout>
@@ -106,7 +112,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/dispatch/clients">
         {() => (
           <AppLayout>
@@ -114,7 +120,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/dispatch/loads/new">
         {() => (
           <AppLayout>
@@ -122,7 +128,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/invoices">
         {() => (
           <AppLayout>
@@ -130,7 +136,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/invoices/:id">
         {(params) => (
           <AppLayout>
@@ -138,7 +144,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/reports">
         {() => (
           <AppLayout>
@@ -146,7 +152,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/settings">
         {() => (
           <AppLayout>
@@ -154,7 +160,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/settings/profile">
         {() => (
           <AppLayout>
@@ -162,7 +168,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/admin">
         {() => (
           <AppLayout>
@@ -218,7 +224,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/teams/sales">
         {() => (
           <AppLayout>
@@ -226,7 +232,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/teams/dispatch">
         {() => (
           <AppLayout>
@@ -234,26 +240,40 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route component={NotFound} />
     </Switch>
   );
 }
 
 function App() {
+  const dispatch = useDispatch();
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('uiPrefsUpdated', (prefs) => {
+        dispatch(setPreferences(prefs));
+      });
+    }
+  }, [socket, dispatch]);
+
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <NotificationProvider>
-          <MessageProvider>
-            <AnimationProvider>
-              <Router />
-              <Toaster />
-            </AnimationProvider>
-          </MessageProvider>
-        </NotificationProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <NotificationProvider>
+            <MessageProvider>
+              <AnimationProvider>
+                <Router />
+                <Toaster />
+              </AnimationProvider>
+            </MessageProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </Provider>
   );
 }
 
