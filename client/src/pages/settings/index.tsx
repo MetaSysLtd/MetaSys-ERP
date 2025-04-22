@@ -264,10 +264,10 @@ export default function SettingsPage() {
       
       {/* Page content */}
       <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
           {/* Sidebar */}
-          <Card className="md:col-span-1">
-            <CardHeader>
+          <Card className="lg:col-span-1 lg:sticky lg:top-4 h-fit">
+            <CardHeader className="lg:block flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="bg-primary-500 rounded-full h-12 w-12 flex items-center justify-center text-lg font-medium text-white">
                   {user.firstName.charAt(0)}{user.lastName.charAt(0)}
@@ -279,61 +279,103 @@ export default function SettingsPage() {
                   </p>
                 </div>
               </div>
+              
+              {/* Mobile menu button - visible on smaller screens */}
+              <div className="block lg:hidden">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="lg:hidden"
+                  onClick={() => {
+                    // Toggle mobile menu visibility
+                    const sidebar = document.getElementById('settings-sidebar');
+                    if (sidebar) {
+                      sidebar.classList.toggle('hidden');
+                      sidebar.classList.toggle('flex');
+                    }
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                    />
+                  </svg>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
-              <Tabs 
-                defaultValue={activeTab} 
-                orientation="vertical" 
-                onValueChange={handleTabChange}
-                className="flex flex-col"
-              >
-                <TabsList className="flex flex-col h-auto bg-transparent justify-start border-r border-gray-200 p-0">
-                  <TabsTrigger 
-                    value="profile" 
-                    className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
-                  >
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="account" 
-                    className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
-                  >
-                    <Lock className="h-4 w-4 mr-2" />
-                    Account & Security
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="notifications" 
-                    className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
-                  >
-                    <Bell className="h-4 w-4 mr-2" />
-                    Notifications
-                  </TabsTrigger>
-                  {role.level >= 4 && (
+              <div id="settings-sidebar" className="hidden lg:block">
+                <Tabs 
+                  defaultValue={activeTab} 
+                  orientation="vertical" 
+                  onValueChange={(value) => {
+                    handleTabChange(value);
+                    // Hide mobile menu after selection on small screens
+                    const sidebar = document.getElementById('settings-sidebar');
+                    if (sidebar && window.innerWidth < 992) {
+                      sidebar.classList.add('hidden');
+                      sidebar.classList.remove('flex');
+                    }
+                  }}
+                  className="flex flex-col"
+                >
+                  <TabsList className="flex flex-col h-auto bg-transparent justify-start border-r border-gray-200 p-0 transition-all duration-200">
                     <TabsTrigger 
-                      value="teams" 
+                      value="profile" 
                       className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
                     >
-                      <Users className="h-4 w-4 mr-2" />
-                      Teams
+                      <User className="h-4 w-4 mr-2" />
+                      Profile
                     </TabsTrigger>
-                  )}
-                  {role.level >= 5 && (
                     <TabsTrigger 
-                      value="admin" 
+                      value="account" 
                       className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
                     >
-                      <Shield className="h-4 w-4 mr-2" />
-                      Admin Settings
+                      <Lock className="h-4 w-4 mr-2" />
+                      Account & Security
                     </TabsTrigger>
-                  )}
-                </TabsList>
-              </Tabs>
+                    <TabsTrigger 
+                      value="notifications" 
+                      className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
+                    >
+                      <Bell className="h-4 w-4 mr-2" />
+                      Notifications
+                    </TabsTrigger>
+                    {role.level >= 4 && (
+                      <TabsTrigger 
+                        value="teams" 
+                        className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
+                      >
+                        <Users className="h-4 w-4 mr-2" />
+                        Teams
+                      </TabsTrigger>
+                    )}
+                    {role.level >= 5 && (
+                      <TabsTrigger 
+                        value="admin" 
+                        className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
+                      >
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Settings
+                      </TabsTrigger>
+                    )}
+                  </TabsList>
+                </Tabs>
+              </div>
             </CardContent>
           </Card>
           
           {/* Settings content */}
-          <div className="md:col-span-3">
+          <div className="lg:col-span-3">
             <Tabs 
               defaultValue={activeTab} 
               value={activeTab}
