@@ -1346,7 +1346,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createLead(insertLead: InsertLead): Promise<Lead> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const [lead] = await db.insert(leads).values({
       ...insertLead,
       createdAt: now,
@@ -1360,7 +1360,7 @@ export class DatabaseStorage implements IStorage {
       .update(leads)
       .set({
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date()
       })
       .where(eq(leads.id, id))
       .returning();
@@ -1389,7 +1389,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createLoad(insertLoad: InsertLoad): Promise<Load> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const [load] = await db.insert(loads).values({
       ...insertLoad,
       createdAt: now,
@@ -1403,7 +1403,7 @@ export class DatabaseStorage implements IStorage {
       .update(loads)
       .set({
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date()
       })
       .where(eq(loads.id, id))
       .returning();
@@ -1433,9 +1433,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
+    const now = new Date();
     const [invoice] = await db.insert(invoices).values({
       ...insertInvoice,
-      createdAt: new Date().toISOString()
+      createdAt: now,
+      updatedAt: now
     }).returning();
     return invoice;
   }
@@ -1616,7 +1618,7 @@ export class DatabaseStorage implements IStorage {
   async createActivity(insertActivity: InsertActivity): Promise<Activity> {
     const [activity] = await db.insert(activities).values({
       ...insertActivity,
-      timestamp: new Date().toISOString()
+      timestamp: new Date()
     }).returning();
     return activity;
   }
