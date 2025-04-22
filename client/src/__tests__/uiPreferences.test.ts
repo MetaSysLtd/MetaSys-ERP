@@ -129,10 +129,10 @@ describe('Sidebar Responsive Behavior', () => {
         <Sidebar mobile={true} />
       </Provider>
     );
-    
+
     // Trigger resize event
     window.dispatchEvent(new Event('resize'));
-    
+
     const state = store.getState().uiPreferences;
     expect(state.sidebarCollapsed).toBe(true);
   });
@@ -144,11 +144,41 @@ describe('Sidebar Responsive Behavior', () => {
         <Sidebar mobile={true} />
       </Provider>
     );
-    
+
     const link = getByText('Dashboard');
     fireEvent.click(link);
-    
+
     const state = store.getState().uiPreferences;
     expect(state.sidebarCollapsed).toBe(true);
+  });
+
+  describe('Active link highlighting', () => {
+    it('should highlight exact route match only', () => {
+      window.history.pushState({}, '', '/crm/sql');
+      const { container } = render(
+        <Provider store={store}>
+          <Sidebar mobile={false} />
+        </Provider>
+      );
+
+      const activeLink = container.querySelector('[href="/crm/sql"]');
+      const parentLink = container.querySelector('[href="/crm"]');
+
+      expect(activeLink?.className).toContain('bg-[#457B9D]');
+      expect(parentLink?.className).toContain('bg-[#1D3557]');
+    });
+
+    it('should not highlight parent route on exact match', () => {
+      window.history.pushState({}, '', '/crm');
+      const { container } = render(
+        <Provider store={store}>
+          <Sidebar mobile={false} />
+        </Provider>
+      );
+
+      const parentLink = container.querySelector('[href="/crm"]');
+      expect(parentLink?.className).toContain('bg-[#457B9D]');
+      expect(parentLink?.className).not.toContain('bg-[#1D3557]');
+    });
   });
 });

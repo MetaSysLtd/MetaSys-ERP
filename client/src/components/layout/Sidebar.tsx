@@ -53,9 +53,16 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   }
 
   const isActiveRoute = (route: string) => {
+    // Exact match for root
     if (route === "/" && location === "/") return true;
-    if (route !== "/" && location.startsWith(route)) return true;
+    // Exact match for other routes
+    if (route === location) return true;
     return false;
+  };
+
+  const isParentActive = (parentRoute: string) => {
+    // Check if any child route is active
+    return location.startsWith(parentRoute) && location !== parentRoute;
   };
 
   const mainNavItems = [
@@ -283,9 +290,11 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
                 <Link href={item.href} onClick={handleLinkClick}>
                   <div 
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
-                      ${isActiveRoute(item.href) 
-                        ? 'bg-[#2170dd] text-white' 
-                        : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
+                      ${isActiveRoute(item.href)
+                        ? 'bg-[#457B9D] text-white hover:bg-[#2EC4B6]'
+                        : isParentActive(item.href)
+                          ? 'bg-[#1D3557] text-white'
+                          : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
                   >
                     {collapsed && window.innerWidth >= 992 ? (
                       <TooltipProvider>
