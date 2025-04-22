@@ -93,3 +93,25 @@ describe('Logo Navigation', () => {
     expect(link).toHaveAttribute('href', '/dashboard');
   });
 });
+import { render } from '@testing-library/react';
+import { Button } from '../components/ui/button';
+
+describe('Brand Styling', () => {
+  it('button should have correct brand styles', () => {
+    const { container } = render(<Button>Test Button</Button>);
+    const button = container.firstChild as HTMLElement;
+    
+    expect(button.className).toContain('bg-[#457B9D]');
+    expect(button.className).toContain('hover:bg-[#2EC4B6]');
+    expect(button.className).toContain('text-white');
+    expect(button.className).toContain('rounded-md');
+    expect(button.className).toContain('duration-200');
+  });
+
+  it('sidebar should have correct brand background', () => {
+    const { container } = render(<Sidebar />);
+    const sidebar = container.firstChild as HTMLElement;
+    
+    expect(sidebar.className).toContain('bg-[#0B1D2F]');
+  });
+});
