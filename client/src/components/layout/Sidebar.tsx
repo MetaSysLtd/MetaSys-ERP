@@ -39,6 +39,7 @@ interface SidebarProps {
 
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
+import { setPreferences } from '@/store/uiPreferencesSlice';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip'
 import { useEffect, useCallback } from "react"; // Added imports
 import { cn } from "@/lib/utils";
