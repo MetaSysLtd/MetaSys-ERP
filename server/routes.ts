@@ -3417,8 +3417,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Team Management routes
+  const teamRouter = express.Router();
+  app.use("/api/teams", teamRouter);
+  
   // Get all team members by department
-  app.get("/api/teams/:department", createAuthMiddleware(2), async (req, res, next) => {
+  teamRouter.get("/department/:department", createAuthMiddleware(2), async (req, res, next) => {
     try {
       const department = req.params.department;
       
@@ -3427,7 +3430,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid department. Must be one of: sales, dispatch, admin, finance, hr" });
       }
       
-      const teamMembers = await storage.getTeamMembersByDepartment(department);
+      // Get users by role department
+      const users = await storage.getUsersByDepartment(department);
+      
+      // Enhance with role information and count metrics
+      const teamMembers = await Promise.all(users.map(async (user) => {
+        const role = await storage.getRole(user.roleId);
+        
+        // Add department-specific metrics
+        let metrics = {};
+        if (department === 'sales') {
+          const activeLeadCount = await storage.getActiveLeadCountByUser(user.id);
+          metrics = { activeLeadCount: activeLeadCount || 0 };
+        } else if (department === 'dispatch') {
+          const loadCount = await storage.getActiveLoadCountByUser(user.id);
+          metrics = { loadCount: loadCount || 0 };
+        }
+        
+        return {
+          ...user,
+          roleName: role?.name || 'Unknown',
+          ...metrics
+        };
+      }));
+      
+      res.json(teamMembers);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get all sales team members
+  teamRouter.get("/sales", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      // Get users with sales roles
+      const users = await storage.getUsersByDepartment('sales');
+      
+      // Enhance with role and lead information
+      const teamMembers = await Promise.all(users.map(async (user) => {
+        const role = await storage.getRole(user.roleId);
+        const activeLeadCount = await storage.getActiveLeadCountByUser(user.id);
+        
+        return {
+          ...user,
+          roleName: role?.name || 'Unknown',
+          activeLeadCount: activeLeadCount || 0
+        };
+      }));
+      
       res.json(teamMembers);
     } catch (error) {
       next(error);
@@ -3435,25 +3485,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get performance metrics for sales team members
-  app.get("/api/teams/sales/performance", createAuthMiddleware(2), async (req, res, next) => {
+  teamRouter.get("/sales/performance/:month?", createAuthMiddleware(2), async (req, res, next) => {
     try {
-      // Default to current month if not specified
-      const month = req.query.month as string || createDateString().substring(0, 7); // Format: YYYY-MM
+      // Get month parameter or default to current month
+      const month = req.params.month || safeDate(new Date())?.substring(0, 7); // Format: YYYY-MM
       
-      const performanceData = await storage.getSalesTeamPerformance(month);
+      // Get sales team members
+      const salesUsers = await storage.getUsersByDepartment('sales');
+      
+      // Build performance data for each team member
+      const performanceData = await Promise.all(salesUsers.map(async (user) => {
+        // Get commission data for the month
+        const commission = await storage.getUserCommissionByMonth(user.id, month);
+        
+        // Get active leads count and closed deals
+        const activeLeadsCount = await storage.getActiveLeadCountByUser(user.id);
+        const closedDealsCount = await storage.getClosedDealCountByUserForMonth(user.id, month);
+        
+        return {
+          id: user.id, 
+          userId: user.id,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImageUrl: user.profileImageUrl,
+          activeLeads: activeLeadsCount || 0,
+          closedDeals: closedDealsCount || 0,
+          invoiceTotal: commission?.invoiceTotal || 0,
+          ownLeadBonus: commission?.ownLeadBonus || 0,
+          totalCommission: commission?.totalCommission || 0
+        };
+      }));
+      
       res.json(performanceData);
     } catch (error) {
       next(error);
     }
   });
 
-  // Get performance metrics for dispatch team members
-  app.get("/api/teams/dispatch/performance", createAuthMiddleware(2), async (req, res, next) => {
+  // Get all dispatch team members
+  teamRouter.get("/dispatch", createAuthMiddleware(2), async (req, res, next) => {
     try {
-      // Default to current month if not specified
-      const month = req.query.month as string || createDateString().substring(0, 7); // Format: YYYY-MM
+      // Get users with dispatch roles
+      const users = await storage.getUsersByDepartment('dispatch');
       
-      const performanceData = await storage.getDispatchTeamPerformance(month);
+      // Enhance with role and load information
+      const teamMembers = await Promise.all(users.map(async (user) => {
+        const role = await storage.getRole(user.roleId);
+        const loadCount = await storage.getActiveLoadCountByUser(user.id);
+        
+        return {
+          ...user,
+          roleName: role?.name || 'Unknown',
+          loadCount: loadCount || 0
+        };
+      }));
+      
+      res.json(teamMembers);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get performance metrics for dispatch team members
+  teamRouter.get("/dispatch/performance/:month?", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      // Get month parameter or default to current month
+      const month = req.params.month || safeDate(new Date())?.substring(0, 7); // Format: YYYY-MM
+      
+      // Get dispatch team members
+      const dispatchUsers = await storage.getUsersByDepartment('dispatch');
+      
+      // Build performance data for each team member
+      const performanceData = await Promise.all(dispatchUsers.map(async (user) => {
+        // Get commission data for the month
+        const commission = await storage.getUserCommissionByMonth(user.id, month);
+        
+        // Get load count and revenue metrics
+        const loadCount = await storage.getActiveLoadCountByUser(user.id);
+        const grossRevenue = await storage.getGrossRevenueByUserForMonth(user.id, month);
+        const directGrossRevenue = await storage.getDirectGrossRevenueByUserForMonth(user.id, month);
+        
+        return {
+          id: user.id, 
+          userId: user.id,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImageUrl: user.profileImageUrl,
+          loadCount: loadCount || 0,
+          grossRevenue: grossRevenue || 0,
+          directGrossRevenue: directGrossRevenue || 0,
+          bonusAmount: commission?.tierFixed || 0,
+          totalCommission: commission?.totalCommission || 0
+        };
+      }));
+      
       res.json(performanceData);
     } catch (error) {
       next(error);
