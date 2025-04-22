@@ -42,6 +42,9 @@ export interface IStorage {
   getUsersByOrganization(orgId: number): Promise<User[]>;
   getAllUsers(): Promise<User[]>;
   getUsersByRole(roleId: number): Promise<User[]>;
+  getUsersByDepartment(department: string): Promise<User[]>;
+  getActiveLeadCountByUserIdAndMonth(userId: number, month: string): Promise<number>;
+  getBookedLoadCountByUserIdAndMonth(userId: number, month: string): Promise<number>;
   
   // User-Organization relationships
   getUserOrganizations(userId: number): Promise<Organization[]>;
@@ -487,6 +490,65 @@ export class MemStorage implements IStorage {
 
   async getUsersByRole(roleId: number): Promise<User[]> {
     return Array.from(this.users.values()).filter(user => user.roleId === roleId);
+  }
+  
+  async getUsersByDepartment(department: string): Promise<User[]> {
+    // Get all roles in this department
+    const deptRoles = Array.from(this.roles.values())
+      .filter(role => role.department.toLowerCase() === department.toLowerCase());
+    
+    // Get all users with those role IDs
+    const roleIds = deptRoles.map(role => role.id);
+    return Array.from(this.users.values())
+      .filter(user => roleIds.includes(user.roleId));
+  }
+  
+  async getActiveLeadCountByUserIdAndMonth(userId: number, month: string): Promise<number> {
+    // Parse month string (YYYY-MM)
+    const [year, monthNum] = month.split('-').map(Number);
+    
+    // Get active leads assigned to this user
+    const activeLeads = Array.from(this.leads.values())
+      .filter(lead => {
+        // Check if the lead is assigned to this user
+        if (lead.assignedTo !== userId) return false;
+        
+        // Check if the lead status is active
+        if (lead.status !== 'active' && lead.status !== 'qualified') return false;
+        
+        // Check if the lead was created or updated in the given month
+        const createdAt = new Date(lead.createdAt);
+        const updatedAt = new Date(lead.updatedAt);
+        
+        const isCreatedInMonth = createdAt.getFullYear() === year && createdAt.getMonth() + 1 === monthNum;
+        const isUpdatedInMonth = updatedAt.getFullYear() === year && updatedAt.getMonth() + 1 === monthNum;
+        
+        return isCreatedInMonth || isUpdatedInMonth;
+      });
+    
+    return activeLeads.length;
+  }
+  
+  async getBookedLoadCountByUserIdAndMonth(userId: number, month: string): Promise<number> {
+    // Parse month string (YYYY-MM)
+    const [year, monthNum] = month.split('-').map(Number);
+    
+    // Get loads booked by this user in the given month
+    const bookedLoads = Array.from(this.loads.values())
+      .filter(load => {
+        // Check if the load is assigned to this user
+        if (load.assignedTo !== userId) return false;
+        
+        // Check if the load status is at least booked
+        if (!['booked', 'in_transit', 'delivered', 'invoiced', 'paid'].includes(load.status)) return false;
+        
+        // Check if the load was created in the given month
+        const createdAt = new Date(load.createdAt);
+        
+        return createdAt.getFullYear() === year && createdAt.getMonth() + 1 === monthNum;
+      });
+    
+    return bookedLoads.length;
   }
 
   async getRole(id: number): Promise<Role | undefined> {

@@ -23,6 +23,10 @@ import AdminDashboard from "@/pages/admin";
 import HRPage from "@/pages/hr";
 import FinancePage from "@/pages/finance";
 import MarketingPage from "@/pages/marketing";
+import NotificationsPage from "@/pages/notifications";
+// Team pages
+import SalesTeamPage from "@/pages/teams/sales";
+import DispatchTeamPage from "@/pages/teams/dispatch";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { MessageProvider } from "@/contexts/MessageContext";
@@ -211,6 +215,22 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={TimeTrackingPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/teams/sales">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={SalesTeamPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/teams/dispatch">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={DispatchTeamPage} />
           </AppLayout>
         )}
       </Route>
