@@ -102,10 +102,10 @@ function createDateString(): string {
 }
 
 // Safe date handling - ensures any date value is processed correctly for db compatibility
-function safeDate(date: Date | string | null): Date | string | null {
+function safeDate(date: Date | string | null): Date | null {
   if (!date) return null;
   
-  // For Drizzle with PostgreSQL, we want to use Date objects
+  // For Drizzle with PostgreSQL, we always want to return a proper Date object
   // This creates a consistent format regardless of storage implementation
   
   // If already a string, parse it to a Date
@@ -139,7 +139,7 @@ async function addSeedDataIfNeeded() {
           contactName: "John Smith",
           email: "john@fastfreight.example",
           phoneNumber: "555-123-4567",
-          status: "active",
+          status: "Active",
           mcNumber: "MC-123456",
           dotNumber: "DOT-7890123",
           assignedTo: 1,
@@ -155,7 +155,7 @@ async function addSeedDataIfNeeded() {
           contactName: "Maria Rodriguez",
           email: "maria@highway-express.example",
           phoneNumber: "555-987-6543",
-          status: "active",
+          status: "Active",
           mcNumber: "MC-456789",
           dotNumber: "DOT-2345678",
           assignedTo: 1,
@@ -171,7 +171,7 @@ async function addSeedDataIfNeeded() {
           contactName: "Robert Chen",
           email: "robert@mountain-trucking.example",
           phoneNumber: "555-567-1234",
-          status: "active",
+          status: "Active",
           mcNumber: "MC-789012",
           dotNumber: "DOT-3456789",
           assignedTo: 1,
@@ -187,7 +187,7 @@ async function addSeedDataIfNeeded() {
           contactName: "Sarah Johnson",
           email: "sarah@coastal-shipping.example",
           phoneNumber: "555-222-3333",
-          status: "qualified",
+          status: "InProgress",
           mcNumber: "MC-345678",
           dotNumber: "DOT-9012345",
           assignedTo: 1,
@@ -203,7 +203,7 @@ async function addSeedDataIfNeeded() {
           contactName: "Michael Brown",
           email: "michael@midwest-haulers.example",
           phoneNumber: "555-444-5555",
-          status: "qualified",
+          status: "FollowUp",
           mcNumber: "MC-567890",
           dotNumber: "DOT-1234567",
           assignedTo: 1,
@@ -267,9 +267,9 @@ async function addSeedDataIfNeeded() {
         for (const lead of leads.slice(0, 5)) {
           // Determine a status based on lead status
           let status = "pending_onboard";
-          if (lead.status === "active") {
+          if (lead.status === "Active") {
             status = Math.random() > 0.3 ? "active" : "pending_onboard";
-          } else if (lead.status === "lost") {
+          } else if (lead.status === "Lost") {
             status = "lost";
           }
           
