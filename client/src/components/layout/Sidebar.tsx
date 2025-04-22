@@ -246,10 +246,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
     <div className="flex flex-col h-full bg-[#0a1825] text-[#f5f9fc]">
       {/* Logo */}
       <div className="px-6 pt-6 pb-5 flex items-center border-b border-[#0c1f33]">
-        <div className="flex items-center">
-          <img src={metioIcon} alt="Metio" className="h-9 w-9" />
-          <span className="ml-3 text-xl font-bold tracking-wide">Metio</span>
-        </div>
+        <Logo />
       </div>
 
       {/* User profile */}

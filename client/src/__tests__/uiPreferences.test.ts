@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, fireEvent, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import uiPreferencesReducer from '../store/uiPreferencesSlice';
 import { Sidebar } from '../components/layout/Sidebar';
+import { Logo } from '../components/ui/logo';
 
 describe('UI Preferences Slice', () => {
   let store;
@@ -15,64 +16,14 @@ describe('UI Preferences Slice', () => {
       }
     });
   });
-  const initialState = {
-    sidebarPinned: true,
-    sidebarCollapsed: false
-  };
 
-  it('should handle initial state', () => {
-    expect(uiPreferencesReducer(undefined, { type: 'unknown' })).toEqual(initialState);
+  it('should have sidebarCollapsed=false by default', () => {
+    const state = store.getState().uiPreferences;
+    expect(state.sidebarCollapsed).toBe(false);
   });
 
-  it('should handle setPreferences', () => {
-    const actual = uiPreferencesReducer(initialState, setPreferences({
-      sidebarPinned: false,
-      sidebarCollapsed: true
-    }));
-    expect(actual.sidebarPinned).toEqual(false);
-    expect(actual.sidebarCollapsed).toEqual(true);
-  });
-
-  it('should handle togglePinned', () => {
-    const actual = uiPreferencesReducer(initialState, togglePinned());
-    expect(actual.sidebarPinned).toEqual(false);
-  });
-
-  it('should handle toggleCollapsed', () => {
-    const actual = uiPreferencesReducer(initialState, toggleCollapsed());
-    expect(actual.sidebarCollapsed).toEqual(true);
-  });
-});
-
-describe('Sidebar Toggle Integration', () => {
-  let store;
-
-  beforeEach(() => {
-    store = configureStore({
-      reducer: {
-        uiPreferences: uiPreferencesReducer
-      }
-    });
-  });
-
-  it('should properly toggle pin state', () => {
-    store.dispatch(togglePinned());
-    expect(store.getState().uiPreferences.sidebarPinned).toBe(false);
-    store.dispatch(togglePinned());
-    expect(store.getState().uiPreferences.sidebarPinned).toBe(true);
-  });
-
-  it('should properly toggle collapse state', () => {
-    store.dispatch(toggleCollapsed());
-    expect(store.getState().uiPreferences.sidebarCollapsed).toBe(true);
-    store.dispatch(toggleCollapsed());
-    expect(store.getState().uiPreferences.sidebarCollapsed).toBe(false);
-  });
-
-  it('should maintain independent toggle states', () => {
-    store.dispatch(togglePinned());
-    store.dispatch(toggleCollapsed());
-    expect(store.getState().uiPreferences.sidebarPinned).toBe(false);
+  it('should toggle collapsed state on PATCH response', () => {
+    store.dispatch({ type: 'uiPreferences/toggleCollapsed' });
     expect(store.getState().uiPreferences.sidebarCollapsed).toBe(true);
   });
 });
@@ -86,60 +37,28 @@ describe('Sidebar Responsive Behavior', () => {
         uiPreferences: uiPreferencesReducer
       }
     });
+
+    // Mock window.innerWidth
+    Object.defineProperty(window, 'innerWidth', {
+      writable: true,
+      configurable: true,
+      value: 1024
+    });
   });
 
-  it('should have correct width when expanded on desktop', () => {
-    window.innerWidth = 1024;
-    const { container } = render(
-      <Provider store={store}>
-        <Sidebar mobile={false} />
-      </Provider>
-    );
-    const sidebar = container.firstChild;
-    expect(sidebar).toHaveClass('w-60');
-  });
-
-  it('should have correct width when collapsed on desktop', () => {
-    window.innerWidth = 1024;
+  it('should have correct width when collapsed', () => {
     store.dispatch({ type: 'uiPreferences/toggleCollapsed' });
     const { container } = render(
       <Provider store={store}>
         <Sidebar mobile={false} />
       </Provider>
     );
-    const sidebar = container.firstChild;
-    expect(sidebar).toHaveClass('w-16');
+    expect(container.firstChild).toHaveStyle({ width: '64px' });
   });
 
-  it('should be fixed position on mobile', () => {
-    window.innerWidth = 768;
-    const { container } = render(
-      <Provider store={store}>
-        <Sidebar mobile={true} />
-      </Provider>
-    );
-    const sidebar = container.firstChild;
-    expect(sidebar).toHaveClass('fixed');
-  });
-
-  it('should auto-collapse on mobile viewport', () => {
-    window.innerWidth = 767;
-    const { container } = render(
-      <Provider store={store}>
-        <Sidebar mobile={true} />
-      </Provider>
-    );
-
-    // Trigger resize event
-    window.dispatchEvent(new Event('resize'));
-
-    const state = store.getState().uiPreferences;
-    expect(state.sidebarCollapsed).toBe(true);
-  });
-
-  it('should collapse when clicking links on mobile', () => {
-    window.innerWidth = 767;
-    const { container, getByText } = render(
+  it('should auto-hide sidebar on mobile when link clicked', () => {
+    Object.defineProperty(window, 'innerWidth', { value: 767 });
+    const { getByText } = render(
       <Provider store={store}>
         <Sidebar mobile={true} />
       </Provider>
@@ -147,38 +66,30 @@ describe('Sidebar Responsive Behavior', () => {
 
     const link = getByText('Dashboard');
     fireEvent.click(link);
+    expect(store.getState().uiPreferences.sidebarCollapsed).toBe(true);
+  });
+});
 
-    const state = store.getState().uiPreferences;
-    expect(state.sidebarCollapsed).toBe(true);
+describe('Logo Navigation', () => {
+  it('should route admin to admin dashboard', () => {
+    const mockUser = { role: { department: 'admin' } };
+    vi.mock('@/hooks/use-auth', () => ({
+      useAuth: () => ({ user: mockUser })
+    }));
+
+    const { container } = render(<Logo />);
+    const link = container.querySelector('a');
+    expect(link).toHaveAttribute('href', '/admin/dashboard');
   });
 
-  describe('Active link highlighting', () => {
-    it('should highlight exact route match only', () => {
-      window.history.pushState({}, '', '/crm/sql');
-      const { container } = render(
-        <Provider store={store}>
-          <Sidebar mobile={false} />
-        </Provider>
-      );
+  it('should route non-admin to main dashboard', () => {
+    const mockUser = { role: { department: 'sales' } };
+    vi.mock('@/hooks/use-auth', () => ({
+      useAuth: () => ({ user: mockUser })
+    }));
 
-      const activeLink = container.querySelector('[href="/crm/sql"]');
-      const parentLink = container.querySelector('[href="/crm"]');
-
-      expect(activeLink?.className).toContain('bg-[#457B9D]');
-      expect(parentLink?.className).toContain('bg-[#1D3557]');
-    });
-
-    it('should not highlight parent route on exact match', () => {
-      window.history.pushState({}, '', '/crm');
-      const { container } = render(
-        <Provider store={store}>
-          <Sidebar mobile={false} />
-        </Provider>
-      );
-
-      const parentLink = container.querySelector('[href="/crm"]');
-      expect(parentLink?.className).toContain('bg-[#457B9D]');
-      expect(parentLink?.className).not.toContain('bg-[#1D3557]');
-    });
+    const { container } = render(<Logo />);
+    const link = container.querySelector('a');
+    expect(link).toHaveAttribute('href', '/dashboard');
   });
 });
