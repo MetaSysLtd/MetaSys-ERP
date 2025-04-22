@@ -36,20 +36,26 @@ interface SidebarProps {
   mobile: boolean;
 }
 
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/store';
+
+
 export function Sidebar({ mobile }: SidebarProps) {
   const [location] = useLocation();
-  const { user, role, logout } = useAuth();
-  
+  const { user, role } = useAuth();
+  const dispatch = useDispatch();
+  const preferences = useSelector((state: RootState) => state.uiPreferences);
+
   if (!user || !role) {
     return null;
   }
-  
+
   const isActiveRoute = (route: string) => {
     if (route === "/" && location === "/") return true;
     if (route !== "/" && location.startsWith(route)) return true;
     return false;
   };
-  
+
   const mainNavItems = [
     {
       name: "Dashboard",
@@ -121,7 +127,7 @@ export function Sidebar({ mobile }: SidebarProps) {
       icon: Bell,
     },
   ];
-  
+
   const secondaryNavItems = [
     {
       name: "Time Tracking",
@@ -168,19 +174,19 @@ export function Sidebar({ mobile }: SidebarProps) {
       icon: Settings,
     },
   ];
-  
+
   const filterItems = (items: typeof mainNavItems) => {
     return items.filter(item => {
       // Check if the item is restricted to certain departments
       if (item.showFor && !item.showFor.includes(role.department)) {
         return false;
       }
-      
+
       // Check if the item requires a minimum role level
       if (item.minLevel && role.level < item.minLevel) {
         return false;
       }
-      
+
       return true;
     });
   };
@@ -200,13 +206,13 @@ export function Sidebar({ mobile }: SidebarProps) {
       console.error("Logout error:", err);
     }
   };
-  
+
   // Colors based on metasysltd.com
   // Primary blue: #0a1825
   // Accent blue: #2170dd
   // Lighter accent: #3f8cff
   // Text color: #f5f9fc
-  
+
   return (
     <div className="flex flex-col h-full bg-[#0a1825] text-[#f5f9fc]">
       {/* Logo */}
@@ -216,7 +222,7 @@ export function Sidebar({ mobile }: SidebarProps) {
           <span className="ml-3 text-xl font-bold tracking-wide">Metio</span>
         </div>
       </div>
-      
+
       {/* User profile */}
       <div className="px-6 py-5 border-b border-[#0c1f33]">
         <div className="flex items-center">
@@ -241,7 +247,7 @@ export function Sidebar({ mobile }: SidebarProps) {
           </div>
         </div>
       </div>
-      
+
       {/* Navigation */}
       <nav className="pt-5 flex-1 overflow-y-auto">
         {/* Main navigation section */}
@@ -270,7 +276,7 @@ export function Sidebar({ mobile }: SidebarProps) {
                     )}
                   </div>
                 </Link>
-                
+
                 {/* Render submenu items if they exist */}
                 {item.subItems && item.subItems.length > 0 && (
                   <div className="mt-1 ml-7 space-y-1">
@@ -291,7 +297,7 @@ export function Sidebar({ mobile }: SidebarProps) {
             ))}
           </div>
         </div>
-        
+
         {/* Tasks section */}
         <div className="px-4 mb-6">
           <h3 className="px-2 text-xs font-semibold text-[#5a7a9a] uppercase tracking-wider mb-3">
@@ -315,7 +321,7 @@ export function Sidebar({ mobile }: SidebarProps) {
             ))}
           </div>
         </div>
-        
+
         {/* Secondary navigation section */}
         <div className="px-4 mb-6">
           <h3 className="px-2 text-xs font-semibold text-[#5a7a9a] uppercase tracking-wider mb-3">
@@ -339,7 +345,7 @@ export function Sidebar({ mobile }: SidebarProps) {
             ))}
           </div>
         </div>
-        
+
         {/* Admin section */}
         {role && role.department === "admin" && role.level >= 5 && (
           <div className="px-4 mb-6">
@@ -386,7 +392,7 @@ export function Sidebar({ mobile }: SidebarProps) {
             </div>
           </div>
         )}
-        
+
         {/* Logout button */}
         <div className="px-4 py-4 mt-auto">
           <button 
@@ -398,7 +404,7 @@ export function Sidebar({ mobile }: SidebarProps) {
           </button>
         </div>
       </nav>
-      
+
       {/* Version info */}
       <div className="px-5 py-3 border-t border-[#0c1f33] text-xs text-[#5a7a9a] text-center">
         Metio ERP v1.0
