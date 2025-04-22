@@ -1927,7 +1927,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createClockEvent(event: InsertClockEvent): Promise<ClockEvent> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const [clockEvent] = await db.insert(clockEvents).values({
       ...event,
       timestamp: now,
@@ -2004,8 +2004,8 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(leads.assignedTo, userId),
           eq(leads.status, 'active'),
-          gte(leads.updatedAt, startDate.toISOString()),
-          lt(leads.updatedAt, endOfMonth.toISOString())
+          gte(leads.updatedAt, startDate),
+          lt(leads.updatedAt, endOfMonth)
         )
       );
     
