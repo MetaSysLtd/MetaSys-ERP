@@ -147,7 +147,8 @@ async function addSeedDataIfNeeded() {
           notes: "Large carrier with national routes",
           equipmentType: "Dry Van",
           factoringStatus: "approved",
-          serviceCharges: 5
+          serviceCharges: 5,
+          createdBy: 1 // Admin user
         });
         
         const lead2 = await storage.createLead({
@@ -163,7 +164,8 @@ async function addSeedDataIfNeeded() {
           notes: "Mid-sized regional carrier",
           equipmentType: "Reefer",
           factoringStatus: "pending",
-          serviceCharges: 6
+          serviceCharges: 6,
+          createdBy: 1 // Admin user
         });
         
         const lead3 = await storage.createLead({
@@ -179,7 +181,8 @@ async function addSeedDataIfNeeded() {
           notes: "Specialized in refrigerated freight",
           equipmentType: "Reefer",
           factoringStatus: "not_required",
-          serviceCharges: 4
+          serviceCharges: 4,
+          createdBy: 1 // Admin user
         });
         
         const lead4 = await storage.createLead({
@@ -195,7 +198,8 @@ async function addSeedDataIfNeeded() {
           notes: "Interested in long-term partnership",
           equipmentType: "Flatbed",
           factoringStatus: "pending",
-          serviceCharges: 6
+          serviceCharges: 6,
+          createdBy: 1 // Admin user
         });
         
         const lead5 = await storage.createLead({
@@ -211,7 +215,8 @@ async function addSeedDataIfNeeded() {
           notes: "Family-owned business, established 1985",
           equipmentType: "Dry Van",
           factoringStatus: "approved",
-          serviceCharges: 5
+          serviceCharges: 5,
+          createdBy: 1 // Admin user
         });
         
         // Now create some dispatch clients linked to these leads
