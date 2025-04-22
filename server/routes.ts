@@ -95,6 +95,25 @@ function createDateString(): string {
   return new Date().toISOString();
 }
 
+// Safe date handling - ensures any date value is converted to ISO string for db compatibility
+function safeDate(date: Date | string | null): string | null {
+  if (!date) return null;
+  
+  // If already a string, ensure it's in ISO format
+  if (typeof date === 'string') {
+    try {
+      // Try to parse and convert back to ISO to ensure valid format
+      return new Date(date).toISOString();
+    } catch (e) {
+      console.error('Invalid date string:', date);
+      return new Date().toISOString(); // fallback
+    }
+  }
+  
+  // If it's a Date object, convert to ISO string
+  return date.toISOString();
+}
+
 async function addSeedDataIfNeeded() {
   try {
     // Check if we already have some dispatch clients

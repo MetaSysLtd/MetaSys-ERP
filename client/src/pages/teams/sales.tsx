@@ -1,193 +1,348 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Helmet } from "react-helmet";
-import { User } from "@shared/schema";
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, Users, BarChart3, Trophy } from "lucide-react";
-import { format } from "date-fns";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Users, DollarSign, Award, TrendingUp } from 'lucide-react';
 
-// Function to determine badge color based on percentile
-const getBadgeColor = (metric: number, avg: number) => {
-  if (metric >= avg * 1.5) return "bg-green-500";
-  if (metric >= avg * 1.2) return "bg-emerald-500";
-  if (metric >= avg) return "bg-blue-500";
-  if (metric >= avg * 0.8) return "bg-orange-500";
-  return "bg-red-500";
-};
+interface User {
+  id: number;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  profileImageUrl: string | null;
+}
 
 interface TeamMember extends User {
   roleName: string;
   activeLeadCount: number;
 }
 
+interface SalesPerformance {
+  id: number;
+  userId: number;
+  username: string;
+  firstName: string;
+  lastName: string;
+  profileImageUrl: string | null;
+  activeLeads: number;
+  closedDeals: number;
+  invoiceTotal: number;
+  ownLeadBonus: number;
+  totalCommission: number;
+}
+
 export default function SalesTeamPage() {
-  const currentDate = new Date();
-  const currentMonth = format(currentDate, "yyyy-MM");
+  const { toast } = useToast();
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7)); // Format: YYYY-MM
   
-  // Fetch Sales team members
+  // Get all team members
   const { 
     data: teamMembers, 
-    isLoading: isLoadingTeam 
-  } = useQuery<TeamMember[]>({
-    queryKey: ["/api/teams/sales/members"],
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    isLoading: isLoadingTeam,
+    error: teamError
+  } = useQuery({
+    queryKey: ['/api/teams/sales'],
+    staleTime: 60000, // 1 minute
   });
-  
-  // Calculate average metrics for comparison
-  const [avgActiveLeads, setAvgActiveLeads] = useState(0);
-  
-  useEffect(() => {
-    if (teamMembers && teamMembers.length > 0) {
-      const total = teamMembers.reduce((sum, member) => sum + (member.activeLeadCount || 0), 0);
-      setAvgActiveLeads(total / teamMembers.length);
+
+  // Get performance data
+  const { 
+    data: performanceData, 
+    isLoading: isLoadingPerformance,
+    error: performanceError,
+    refetch: refetchPerformance
+  } = useQuery({
+    queryKey: ['/api/teams/sales/performance', selectedMonth],
+    staleTime: 60000, // 1 minute
+  });
+
+  // Handle month change
+  const handleMonthChange = (value: string) => {
+    setSelectedMonth(value);
+  };
+
+  // Generate months for dropdown (12 months back from current)
+  const getMonthOptions = () => {
+    const options = [];
+    const today = new Date();
+    
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const value = date.toISOString().substring(0, 7);
+      const label = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+      options.push({ value, label });
     }
-  }, [teamMembers]);
+    
+    return options;
+  };
+
+  // Format currency values
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(amount);
+  };
+
+  // Get badge color based on performance metrics
+  const getLeadCountBadge = (count: number) => {
+    if (count >= 10) return <Badge className="bg-green-500 hover:bg-green-600">{count}</Badge>;
+    if (count >= 5) return <Badge className="bg-blue-500 hover:bg-blue-600">{count}</Badge>;
+    if (count >= 1) return <Badge className="bg-yellow-500 hover:bg-yellow-600">{count}</Badge>;
+    return <Badge variant="destructive">{count}</Badge>;
+  };
+
+  // Get badge color based on commission amount
+  const getCommissionBadge = (amount: number) => {
+    if (amount >= 5000) return <Badge className="bg-green-500 hover:bg-green-600">{formatCurrency(amount)}</Badge>;
+    if (amount >= 2000) return <Badge className="bg-blue-500 hover:bg-blue-600">{formatCurrency(amount)}</Badge>;
+    if (amount >= 500) return <Badge className="bg-yellow-500 hover:bg-yellow-600">{formatCurrency(amount)}</Badge>;
+    return <Badge variant="destructive">{formatCurrency(amount)}</Badge>;
+  };
   
+  if (isLoadingTeam || isLoadingPerformance) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (teamError || performanceError) {
+    return (
+      <div className="container mx-auto p-4 text-center">
+        <h1 className="text-2xl font-bold mb-4">Error Loading Team Data</h1>
+        <p className="text-destructive">
+          {(teamError as Error)?.message || (performanceError as Error)?.message || 'Failed to load team data'}
+        </p>
+        <Button 
+          variant="outline" 
+          className="mt-4"
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 space-y-6">
-      <Helmet>
-        <title>Sales Team | Metio ERP</title>
-      </Helmet>
-      
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="container mx-auto p-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Sales Team</h1>
-          <p className="text-muted-foreground mt-1">
-            Monitor sales team performance and active leads
-          </p>
+          <h1 className="text-3xl font-bold">Sales Team</h1>
+          <p className="text-muted-foreground">Performance metrics and KPIs for the sales department</p>
         </div>
         
-        <div className="flex items-center bg-muted p-2 rounded-md">
-          <CalendarDays className="mr-2 h-5 w-5 text-muted-foreground" />
-          <span>
-            Reporting for: <strong>{format(currentDate, "MMMM yyyy")}</strong>
-          </span>
+        <div className="mt-4 md:mt-0 w-full md:w-auto">
+          <Select
+            value={selectedMonth}
+            onValueChange={handleMonthChange}
+          >
+            <SelectTrigger className="w-full md:w-[200px]">
+              <SelectValue placeholder="Select month" />
+            </SelectTrigger>
+            <SelectContent>
+              {getMonthOptions().map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">Team Members</CardTitle>
-            <CardDescription>Total active sales personnel</CardDescription>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Team Members
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <Users className="h-8 w-8 text-primary mr-3" />
-              <div className="text-3xl font-bold">
-                {isLoadingTeam ? (
-                  <Skeleton className="h-9 w-16" />
-                ) : (
-                  teamMembers?.length || 0
-                )}
-              </div>
+              <Users className="mr-2 h-5 w-5 text-muted-foreground" />
+              <span className="text-2xl font-bold">{teamMembers?.length || 0}</span>
             </div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">Active Leads</CardTitle>
-            <CardDescription>Total active leads this month</CardDescription>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Active Leads
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <BarChart3 className="h-8 w-8 text-primary mr-3" />
-              <div className="text-3xl font-bold">
-                {isLoadingTeam ? (
-                  <Skeleton className="h-9 w-16" />
-                ) : (
-                  teamMembers?.reduce((sum, member) => sum + (member.activeLeadCount || 0), 0) || 0
-                )}
-              </div>
+              <TrendingUp className="mr-2 h-5 w-5 text-muted-foreground" />
+              <span className="text-2xl font-bold">
+                {performanceData?.reduce((sum, item) => sum + (item.activeLeads || 0), 0) || 0}
+              </span>
             </div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">Top Performer</CardTitle>
-            <CardDescription>Highest active leads</CardDescription>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Revenue
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <Trophy className="h-8 w-8 text-primary mr-3" />
-              <div className="text-3xl font-bold">
-                {isLoadingTeam ? (
-                  <Skeleton className="h-9 w-16" />
-                ) : (
-                  teamMembers && teamMembers.length > 0 ? 
-                    teamMembers.sort((a, b) => (b.activeLeadCount || 0) - (a.activeLeadCount || 0))[0]?.firstName || "N/A" 
-                    : "N/A"
-                )}
-              </div>
+              <DollarSign className="mr-2 h-5 w-5 text-muted-foreground" />
+              <span className="text-2xl font-bold">
+                {formatCurrency(performanceData?.reduce((sum, item) => sum + (item.invoiceTotal || 0), 0) || 0)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Commissions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <Award className="mr-2 h-5 w-5 text-muted-foreground" />
+              <span className="text-2xl font-bold">
+                {formatCurrency(performanceData?.reduce((sum, item) => sum + (item.totalCommission || 0), 0) || 0)}
+              </span>
             </div>
           </CardContent>
         </Card>
       </div>
-      
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>Team Member Performance</CardTitle>
-          <CardDescription>
-            Active leads and performance metrics for the sales team in {format(currentDate, "MMMM yyyy")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Team Member</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead className="text-right">Active Leads</TableHead>
-                <TableHead className="text-right">Performance</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoadingTeam ? (
-                Array(5).fill(0).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><Skeleton className="h-6 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-6 w-12 ml-auto" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-6 w-16 ml-auto" /></TableCell>
+
+      <Tabs defaultValue="performance" className="mb-8">
+        <TabsList className="mb-4">
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="roster">Team Roster</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="performance">
+          <Card>
+            <CardHeader>
+              <CardTitle>Sales Performance</CardTitle>
+              <CardDescription>
+                Performance metrics for {new Date(selectedMonth + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Active Leads</TableHead>
+                    <TableHead>Closed Deals</TableHead>
+                    <TableHead>Invoice Total</TableHead>
+                    <TableHead>Own Lead Bonus</TableHead>
+                    <TableHead>Total Commission</TableHead>
                   </TableRow>
-                ))
-              ) : teamMembers && teamMembers.length > 0 ? (
-                teamMembers.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell className="font-medium">
-                      {member.firstName} {member.lastName}
-                    </TableCell>
-                    <TableCell>{member.roleName}</TableCell>
-                    <TableCell className="text-right">{member.activeLeadCount || 0}</TableCell>
-                    <TableCell className="text-right">
-                      <Badge className={getBadgeColor(member.activeLeadCount || 0, avgActiveLeads)}>
-                        {member.activeLeadCount >= avgActiveLeads * 1.2
-                          ? "Excellent"
-                          : member.activeLeadCount >= avgActiveLeads
-                          ? "Good"
-                          : member.activeLeadCount >= avgActiveLeads * 0.8
-                          ? "Average"
-                          : "Needs Improvement"}
-                      </Badge>
-                    </TableCell>
+                </TableHeader>
+                <TableBody>
+                  {performanceData?.length ? (
+                    performanceData.map((member) => (
+                      <TableRow key={member.userId}>
+                        <TableCell className="font-medium">
+                          {member.firstName} {member.lastName}
+                        </TableCell>
+                        <TableCell>{getLeadCountBadge(member.activeLeads || 0)}</TableCell>
+                        <TableCell>{getLeadCountBadge(member.closedDeals || 0)}</TableCell>
+                        <TableCell>{formatCurrency(member.invoiceTotal || 0)}</TableCell>
+                        <TableCell>{formatCurrency(member.ownLeadBonus || 0)}</TableCell>
+                        <TableCell>{getCommissionBadge(member.totalCommission || 0)}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-4">
+                        No performance data available for this month
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="roster">
+          <Card>
+            <CardHeader>
+              <CardTitle>Team Roster</CardTitle>
+              <CardDescription>
+                All members of the sales department
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Active Leads</TableHead>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                    No team members found
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {teamMembers?.length ? (
+                    teamMembers.map((member: TeamMember) => (
+                      <TableRow key={member.id}>
+                        <TableCell className="font-medium">
+                          {member.firstName} {member.lastName}
+                        </TableCell>
+                        <TableCell>{member.username}</TableCell>
+                        <TableCell>{member.email}</TableCell>
+                        <TableCell>{member.roleName}</TableCell>
+                        <TableCell>{getLeadCountBadge(member.activeLeadCount || 0)}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-4">
+                        No team members found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
