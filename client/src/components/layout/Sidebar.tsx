@@ -40,6 +40,8 @@ interface SidebarProps {
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip'
+import { useEffect } from "react"; // Added import
+import { cn } from "@/lib/utils";
 
 
 export function Sidebar({ mobile, collapsed }: SidebarProps) {
