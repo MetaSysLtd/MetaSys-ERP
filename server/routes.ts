@@ -101,23 +101,25 @@ function createDateString(): string {
   return new Date().toISOString();
 }
 
-// Safe date handling - ensures any date value is converted to ISO string for db compatibility
-function safeDate(date: Date | string | null): string | null {
+// Safe date handling - ensures any date value is processed correctly for db compatibility
+function safeDate(date: Date | string | null): Date | string | null {
   if (!date) return null;
   
-  // If already a string, ensure it's in ISO format
+  // For Drizzle with PostgreSQL, we want to use Date objects
+  // This creates a consistent format regardless of storage implementation
+  
+  // If already a string, parse it to a Date
   if (typeof date === 'string') {
     try {
-      // Try to parse and convert back to ISO to ensure valid format
-      return new Date(date).toISOString();
+      return new Date(date);
     } catch (e) {
       console.error('Invalid date string:', date);
-      return new Date().toISOString(); // fallback
+      return new Date(); // fallback
     }
   }
   
-  // If it's a Date object, convert to ISO string
-  return date.toISOString();
+  // If it's already a Date object, return it as is
+  return date;
 }
 
 async function addSeedDataIfNeeded() {

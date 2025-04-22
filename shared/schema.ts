@@ -1,9 +1,13 @@
-import { pgTable, text, serial, integer, boolean, date, timestamp, real, jsonb, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, date, timestamp, real, jsonb, pgEnum, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Clock event types enum
 export const clockEventTypeEnum = pgEnum('clock_event_type', ['IN', 'OUT']);
+
+// CRM Lead enums
+export const leadSourceEnum = pgEnum('lead_source', ['SQL', 'MQL']);
+export const leadStatusEnum = pgEnum('lead_status', ['New', 'InProgress', 'FollowUp', 'HandToDispatch', 'Active', 'Lost']);
 
 // Organization Management
 export const organizations = pgTable("organizations", {
@@ -51,7 +55,7 @@ export const userOrganizations = pgTable("user_organizations", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Lead Management
+// Lead Management (CRM)
 export const leads = pgTable("leads", {
   id: serial("id").primaryKey(),
   companyName: text("company_name").notNull(),
@@ -66,10 +70,10 @@ export const leads = pgTable("leads", {
   email: text("email"),
   
   // Enhanced status values as per requirements
-  status: text("status").notNull(), // "New", "InProgress", "FollowUp", "HandToDispatch", "Active", "Lost"
+  status: leadStatusEnum("status").notNull().default("New"),
   
   // Enhanced lead source tracking
-  source: text("source").default("SQL").notNull(), // "SQL", "MQL"
+  source: leadSourceEnum("source").notNull().default("SQL"),
   
   assignedTo: integer("assigned_to").notNull(),
   orgId: integer("org_id").references(() => organizations.id),
@@ -80,6 +84,16 @@ export const leads = pgTable("leads", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   createdBy: integer("created_by").notNull(),
+}, (table) => {
+  return {
+    // Indexes for optimized queries
+    orgIdIdx: index("leads_org_id_idx").on(table.orgId),
+    statusIdx: index("leads_status_idx").on(table.status),
+    ownerIdx: index("leads_owner_idx").on(table.assignedTo),
+    createdAtIdx: index("leads_created_at_idx").on(table.createdAt),
+    // Combined index for frequently filtered queries
+    orgStatusOwnerIdx: index("leads_org_status_owner_idx").on(table.orgId, table.status, table.assignedTo)
+  };
 });
 
 // Lead remarks/history for tracking interactions
@@ -89,6 +103,15 @@ export const leadRemarks = pgTable("lead_remarks", {
   userId: integer("user_id").notNull().references(() => users.id),
   text: text("text").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    // Indexes for faster querying
+    leadIdIdx: index("lead_remarks_lead_id_idx").on(table.leadId),
+    userIdIdx: index("lead_remarks_user_id_idx").on(table.userId),
+    createdAtIdx: index("lead_remarks_created_at_idx").on(table.createdAt),
+    // Combined index for timeline queries
+    leadTimelineIdx: index("lead_remarks_timeline_idx").on(table.leadId, table.createdAt)
+  };
 });
 
 // Dispatch Management
