@@ -1412,6 +1412,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // UI Preferences routes
+  const uiPreferencesRouter = express.Router();
+  app.use("/api/ui-preferences", uiPreferencesRouter);
+
+  // Get user UI preferences
+  uiPreferencesRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const userId = req.user.id;
+      const prefs = await db.query.uiPreferences.findFirst({
+        where: eq(uiPreferences.userId, userId)
+      });
+      
+      if (!prefs) {
+        // Create default preferences
+        const newPrefs = await db.insert(uiPreferences).values({
+          userId,
+          sidebarPinned: true,
+          sidebarCollapsed: false
+        }).returning();
+        return res.json(newPrefs[0]);
+      }
+      
+      res.json(prefs);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Update UI preferences
+  uiPreferencesRouter.put("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const userId = req.user.id;
+      const updates = req.body;
+      
+      const updatedPrefs = await db.update(uiPreferences)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(uiPreferences.userId, userId))
+        .returning();
+
+      // Emit socket event for real-time updates
+      req.io.emit(`user:${userId}:ui-preferences-updated`, updatedPrefs[0]);
+      
+      res.json(updatedPrefs[0]);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Activity routes
   const activityRouter = express.Router();
   app.use("/api/activities", activityRouter);

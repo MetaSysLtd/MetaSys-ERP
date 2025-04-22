@@ -358,9 +358,28 @@ export const insertClockEventSchema = createInsertSchema(clockEvents).omit({ id:
 export const insertCommissionRuleSchema = createInsertSchema(commissionRules).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertCommissionMonthlySchema = createInsertSchema(commissionsMonthly).omit({ id: true, createdAt: true, updatedAt: true });
 
+// UI Preferences
+export const uiPreferences = pgTable("ui_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  sidebarPinned: boolean("sidebar_pinned").notNull().default(true),
+  sidebarCollapsed: boolean("sidebar_collapsed").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index("ui_prefs_user_id_idx").on(table.userId),
+  };
+});
+
+export const insertUiPreferencesSchema = createInsertSchema(uiPreferences).omit({ id: true, createdAt: true, updatedAt: true });
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+
+export type UiPreferences = typeof uiPreferences.$inferSelect;
+export type InsertUiPreferences = z.infer<typeof insertUiPreferencesSchema>;
 
 export type UserOrganization = typeof userOrganizations.$inferSelect;
 export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
