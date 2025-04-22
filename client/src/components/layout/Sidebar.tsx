@@ -34,13 +34,15 @@ import metioLogo from "@/assets/metio-logo.svg";
 
 interface SidebarProps {
   mobile: boolean;
+  collapsed: boolean; // Added collapsed state
 }
 
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip'
 
 
-export function Sidebar({ mobile }: SidebarProps) {
+export function Sidebar({ mobile, collapsed }: SidebarProps) {
   const [location] = useLocation();
   const { user, role } = useAuth();
   const dispatch = useDispatch();
@@ -207,6 +209,13 @@ export function Sidebar({ mobile }: SidebarProps) {
     }
   };
 
+  const handleLinkClick = () => {
+    // Add logic to hide the sidebar on mobile if needed
+    if (mobile) {
+      //Implement mobile sidebar hiding logic here.
+    }
+  };
+
   // Colors based on metasysltd.com
   // Primary blue: #0a1825
   // Accent blue: #2170dd
@@ -258,21 +267,34 @@ export function Sidebar({ mobile }: SidebarProps) {
           <div className="space-y-1">
             {filteredMainItems.map((item) => (
               <div key={item.href}>
-                <Link href={item.href}>
-                  <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
-                    ${isActiveRoute(item.href) 
-                      ? 'bg-[#2170dd] text-white' 
-                      : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
+                <Link href={item.href} onClick={handleLinkClick}>
+                  <div 
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
+                      ${isActiveRoute(item.href) 
+                        ? 'bg-[#2170dd] text-white' 
+                        : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
                   >
-                    <item.icon className="h-[18px] w-[18px]" />
-                    <span>{item.name}</span>
-                    {/* Show ChevronRight for active items or ChevronDown for items with subItems */}
-                    {(item.subItems && item.subItems.length > 0) ? (
-                      <ChevronDown className="w-4 h-4 ml-auto" />
+                    {collapsed && window.innerWidth >= 992 ? (
+                      <TooltipProvider>
+                        <Tooltip delayDuration={0} openDelay={200}>
+                          <TooltipTrigger>
+                            <item.icon className="h-[18px] w-[18px]" />
+                          </TooltipTrigger>
+                          <TooltipContent>{item.name}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     ) : (
-                      isActiveRoute(item.href) && (
-                        <ChevronRight className="w-4 h-4 ml-auto" />
-                      )
+                      <>
+                        <item.icon className="h-[18px] w-[18px]" />
+                        <span>{item.name}</span>
+                        {(item.subItems && item.subItems.length > 0) ? (
+                          <ChevronDown className="w-4 h-4 ml-auto" />
+                        ) : (
+                          isActiveRoute(item.href) && (
+                            <ChevronRight className="w-4 h-4 ml-auto" />
+                          )
+                        )}
+                      </>
                     )}
                   </div>
                 </Link>
@@ -281,7 +303,7 @@ export function Sidebar({ mobile }: SidebarProps) {
                 {item.subItems && item.subItems.length > 0 && (
                   <div className="mt-1 ml-7 space-y-1">
                     {item.subItems.map((subItem) => (
-                      <Link key={subItem.href} href={subItem.href}>
+                      <Link key={subItem.href} href={subItem.href} onClick={handleLinkClick}>
                         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-all
                           ${location === subItem.href || (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
                             ? 'bg-[#2170dd]/80 text-white' 
@@ -305,16 +327,29 @@ export function Sidebar({ mobile }: SidebarProps) {
           </h3>
           <div className="space-y-1">
             {filteredTaskItems.map((item) => (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href} href={item.href} onClick={handleLinkClick}>
                 <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
                   ${isActiveRoute(item.href) 
                     ? 'bg-[#2170dd] text-white' 
-                    : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
+                    : 'text-[#f5f9fc]/99 hover:bg-[#142c42] hover:text-white'}`}
                 >
-                  <item.icon className="h-[18px] w-[18px]" />
-                  <span>{item.name}</span>
-                  {isActiveRoute(item.href) && (
-                    <ChevronRight className="w-4 h-4 ml-auto" />
+                  {collapsed && window.innerWidth >= 992 ? (
+                    <TooltipProvider>
+                      <Tooltip delayDuration={0} openDelay={200}>
+                        <TooltipTrigger>
+                          <item.icon className="h-[18px] w-[18px]" />
+                        </TooltipTrigger>
+                        <TooltipContent>{item.name}</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <>
+                      <item.icon className="h-[18px] w-[18px]" />
+                      <span>{item.name}</span>
+                      {isActiveRoute(item.href) && (
+                        <ChevronRight className="w-4 h-4 ml-auto" />
+                      )}
+                    </>
                   )}
                 </div>
               </Link>
@@ -329,16 +364,29 @@ export function Sidebar({ mobile }: SidebarProps) {
           </h3>
           <div className="space-y-1">
             {filteredSecondaryItems.map((item) => (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href} href={item.href} onClick={handleLinkClick}>
                 <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
                   ${isActiveRoute(item.href) 
                     ? 'bg-[#2170dd] text-white' 
                     : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
                 >
-                  <item.icon className="h-[18px] w-[18px]" />
-                  <span>{item.name}</span>
-                  {isActiveRoute(item.href) && (
-                    <ChevronRight className="w-4 h-4 ml-auto" />
+                  {collapsed && window.innerWidth >= 992 ? (
+                    <TooltipProvider>
+                      <Tooltip delayDuration={0} openDelay={200}>
+                        <TooltipTrigger>
+                          <item.icon className="h-[18px] w-[18px]" />
+                        </TooltipTrigger>
+                        <TooltipContent>{item.name}</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <>
+                      <item.icon className="h-[18px] w-[18px]" />
+                      <span>{item.name}</span>
+                      {isActiveRoute(item.href) && (
+                        <ChevronRight className="w-4 h-4 ml-auto" />
+                      )}
+                    </>
                   )}
                 </div>
               </Link>
@@ -353,16 +401,29 @@ export function Sidebar({ mobile }: SidebarProps) {
               Administration
             </h3>
             <div className="space-y-1">
-              <Link href="/admin">
+              <Link href="/admin" onClick={handleLinkClick}>
                 <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
                   ${isActiveRoute('/admin') 
                     ? 'bg-[#2170dd] text-white' 
                     : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
                 >
-                  <ShieldAlert className="h-[18px] w-[18px]" />
-                  <span>Admin Dashboard</span>
-                  {isActiveRoute('/admin') && (
-                    <ChevronRight className="w-4 h-4 ml-auto" />
+                  {collapsed && window.innerWidth >= 992 ? (
+                    <TooltipProvider>
+                      <Tooltip delayDuration={0} openDelay={200}>
+                        <TooltipTrigger>
+                          <ShieldAlert className="h-[18px] w-[18px]" />
+                        </TooltipTrigger>
+                        <TooltipContent>Admin Dashboard</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <>
+                      <ShieldAlert className="h-[18px] w-[18px]" />
+                      <span>Admin Dashboard</span>
+                      {isActiveRoute('/admin') && (
+                        <ChevronRight className="w-4 h-4 ml-auto" />
+                      )}
+                    </>
                   )}
                 </div>
               </Link>
@@ -377,16 +438,42 @@ export function Sidebar({ mobile }: SidebarProps) {
               Teams
             </h3>
             <div className="space-y-1">
-              <Link href="/teams/sales">
+              <Link href="/teams/sales" onClick={handleLinkClick}>
                 <div className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white transition-all">
-                  <Users className="h-[18px] w-[18px]" />
-                  <span>Sales</span>
+                  {collapsed && window.innerWidth >= 992 ? (
+                    <TooltipProvider>
+                      <Tooltip delayDuration={0} openDelay={200}>
+                        <TooltipTrigger>
+                          <Users className="h-[18px] w-[18px]" />
+                        </TooltipTrigger>
+                        <TooltipContent>Sales</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <>
+                      <Users className="h-[18px] w-[18px]" />
+                      <span>Sales</span>
+                    </>
+                  )}
                 </div>
               </Link>
-              <Link href="/teams/dispatch">
+              <Link href="/teams/dispatch" onClick={handleLinkClick}>
                 <div className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white transition-all">
-                  <Truck className="h-[18px] w-[18px]" />
-                  <span>Dispatch</span>
+                  {collapsed && window.innerWidth >= 992 ? (
+                    <TooltipProvider>
+                      <Tooltip delayDuration={0} openDelay={200}>
+                        <TooltipTrigger>
+                          <Truck className="h-[18px] w-[18px]" />
+                        </TooltipTrigger>
+                        <TooltipContent>Dispatch</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <>
+                      <Truck className="h-[18px] w-[18px]" />
+                      <span>Dispatch</span>
+                    </>
+                  )}
                 </div>
               </Link>
             </div>
