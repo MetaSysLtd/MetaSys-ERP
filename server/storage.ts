@@ -1673,7 +1673,7 @@ export class DatabaseStorage implements IStorage {
             organizationIds.map(orgId => ({
               userId,
               organizationId: orgId,
-              createdAt: new Date().toISOString()
+              createdAt: new Date()
             }))
           );
       }
@@ -1695,7 +1695,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCommissionRule(rule: InsertCommissionRule): Promise<CommissionRule> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const [commissionRule] = await db.insert(commissionRules).values({
       ...rule,
       createdAt: now,
@@ -1709,7 +1709,7 @@ export class DatabaseStorage implements IStorage {
       .update(commissionRules)
       .set({
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date()
       })
       .where(eq(commissionRules.id, id))
       .returning();
@@ -1783,7 +1783,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCommissionMonthly(commission: InsertCommissionMonthly): Promise<CommissionMonthly> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const [commissionMonthly] = await db.insert(commissionsMonthly).values({
       ...commission,
       createdAt: now,
@@ -1797,7 +1797,7 @@ export class DatabaseStorage implements IStorage {
       .update(commissionsMonthly)
       .set({
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date()
       })
       .where(eq(commissionsMonthly.id, id))
       .returning();
@@ -1858,7 +1858,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createTask(insertTask: InsertTask): Promise<Task> {
-    const now = new Date().toISOString();
+    const now = new Date();
     const [task] = await db.insert(tasks).values({
       ...insertTask,
       createdAt: now,
@@ -1870,14 +1870,14 @@ export class DatabaseStorage implements IStorage {
   async updateTask(id: number, updates: Partial<Task>): Promise<Task | undefined> {
     // If we're completing a task now, set the completedAt timestamp
     if (updates.status === 'completed') {
-      updates.completedAt = new Date().toISOString();
+      updates.completedAt = new Date();
     }
     
     const [updatedTask] = await db
       .update(tasks)
       .set({
         ...updates,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date()
       })
       .where(eq(tasks.id, id))
       .returning();
