@@ -40,7 +40,7 @@ interface SidebarProps {
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@radix-ui/react-tooltip'
-import { useEffect } from "react"; // Added import
+import { useEffect, useCallback } from "react"; // Added imports
 import { cn } from "@/lib/utils";
 
 
@@ -225,11 +225,11 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   };
 
   // Handle window resize for mobile breakpoint
-  const handleResize = () => {
+  const handleResize = useCallback(() => {
     if (window.innerWidth < 768) {
       dispatch(setPreferences({ ...preferences, sidebarCollapsed: true }));
     }
-  };
+  }, [dispatch, preferences]);
 
   useEffect(() => {
     window.addEventListener('resize', handleResize);
