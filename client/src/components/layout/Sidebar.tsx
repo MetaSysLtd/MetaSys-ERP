@@ -225,18 +225,18 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   };
 
   // Handle window resize for mobile breakpoint
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        dispatch(setPreferences({ ...preferences, sidebarCollapsed: true }));
-      }
-    };
+  const handleResize = () => {
+    if (window.innerWidth < 768) {
+      dispatch(setPreferences({ ...preferences, sidebarCollapsed: true }));
+    }
+  };
 
+  useEffect(() => {
     window.addEventListener('resize', handleResize);
     handleResize(); // Check initial size
 
     return () => window.removeEventListener('resize', handleResize);
-  }, [dispatch, preferences]);
+  }, [handleResize]);
 
   // Colors based on metasysltd.com
   // Primary blue: #0a1825
