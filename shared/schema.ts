@@ -60,17 +60,35 @@ export const leads = pgTable("leads", {
   equipmentType: text("equipment_type").notNull(),
   truckCategory: text("truck_category"),
   factoringStatus: text("factoring_status").notNull(),
-  serviceCharges: real("service_charges").notNull(),
+  serviceCharges: real("service_charges"),
   contactName: text("contact_name").notNull(),
   phoneNumber: text("phone_number").notNull(),
   email: text("email"),
-  status: text("status").notNull(), // "unqualified", "qualified", "active", "lost", "won", "follow-up", "nurture"
+  
+  // Enhanced status values as per requirements
+  status: text("status").notNull(), // "New", "InProgress", "FollowUp", "HandToDispatch", "Active", "Lost"
+  
+  // Enhanced lead source tracking
+  source: text("source").default("SQL").notNull(), // "SQL", "MQL"
+  
   assignedTo: integer("assigned_to").notNull(),
   orgId: integer("org_id").references(() => organizations.id),
   notes: text("notes"),
+  
+  // Timestamps for better lead tracking
+  firstContactAt: timestamp("first_contact_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   createdBy: integer("created_by").notNull(),
+});
+
+// Lead remarks/history for tracking interactions
+export const leadRemarks = pgTable("lead_remarks", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull().references(() => leads.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  text: text("text").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 // Dispatch Management
@@ -298,7 +316,8 @@ export const commissionsMonthly = pgTable("commissions_monthly", {
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertRoleSchema = createInsertSchema(roles).omit({ id: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
-export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, createdAt: true, updatedAt: true, firstContactAt: true });
+export const insertLeadRemarkSchema = createInsertSchema(leadRemarks).omit({ id: true, createdAt: true });
 export const insertDispatchClientSchema = createInsertSchema(dispatch_clients).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLoadSchema = createInsertSchema(loads).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true, updatedAt: true });
@@ -331,6 +350,9 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export type Lead = typeof leads.$inferSelect;
 export type InsertLead = z.infer<typeof insertLeadSchema>;
+
+export type LeadRemark = typeof leadRemarks.$inferSelect;
+export type InsertLeadRemark = z.infer<typeof insertLeadRemarkSchema>;
 
 export type DispatchClient = typeof dispatch_clients.$inferSelect;
 export type InsertDispatchClient = z.infer<typeof insertDispatchClientSchema>;
