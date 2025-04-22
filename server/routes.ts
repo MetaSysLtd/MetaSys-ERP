@@ -597,7 +597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         // Dispatch can only see active leads
-        leads = await storage.getLeadsByStatus('active');
+        leads = await storage.getLeadsByStatus('Active');
       }
       
       // Filter by status if provided
@@ -632,7 +632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (req.userRole.level === 1 && lead.assignedTo !== req.user.id) {
           return res.status(403).json({ message: "Forbidden: You can only view your own leads" });
         }
-      } else if (req.userRole.department === 'dispatch' && lead.status !== 'active') {
+      } else if (req.userRole.department === 'dispatch' && lead.status !== 'Active') {
         return res.status(403).json({ message: "Forbidden: Dispatch can only view active leads" });
       }
       
@@ -714,7 +714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         // Step 7: Activation Workflow - Create dispatch client record when lead status changes to "Active"
-        if (req.body.status === 'active') {
+        if (req.body.status === 'Active') {
           // Check if this lead already has a dispatch client record
           const existingClient = await storage.getDispatchClientByLeadId(leadId);
           
@@ -858,7 +858,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid lead ID" });
       }
       
-      if (lead.status !== 'active') {
+      if (lead.status !== 'Active') {
         return res.status(400).json({ message: "Cannot create load for inactive lead" });
       }
       
