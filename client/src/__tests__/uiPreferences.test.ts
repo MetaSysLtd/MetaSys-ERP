@@ -121,4 +121,34 @@ describe('Sidebar Responsive Behavior', () => {
     const sidebar = container.firstChild;
     expect(sidebar).toHaveClass('fixed');
   });
+
+  it('should auto-collapse on mobile viewport', () => {
+    window.innerWidth = 767;
+    const { container } = render(
+      <Provider store={store}>
+        <Sidebar mobile={true} />
+      </Provider>
+    );
+    
+    // Trigger resize event
+    window.dispatchEvent(new Event('resize'));
+    
+    const state = store.getState().uiPreferences;
+    expect(state.sidebarCollapsed).toBe(true);
+  });
+
+  it('should collapse when clicking links on mobile', () => {
+    window.innerWidth = 767;
+    const { container, getByText } = render(
+      <Provider store={store}>
+        <Sidebar mobile={true} />
+      </Provider>
+    );
+    
+    const link = getByText('Dashboard');
+    fireEvent.click(link);
+    
+    const state = store.getState().uiPreferences;
+    expect(state.sidebarCollapsed).toBe(true);
+  });
 });

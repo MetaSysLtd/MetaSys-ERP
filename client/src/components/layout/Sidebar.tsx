@@ -210,11 +210,24 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   };
 
   const handleLinkClick = () => {
-    // Add logic to hide the sidebar on mobile if needed
     if (mobile) {
-      //Implement mobile sidebar hiding logic here.
+      dispatch(setPreferences({ ...preferences, sidebarCollapsed: true }));
     }
   };
+
+  // Handle window resize for mobile breakpoint
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        dispatch(setPreferences({ ...preferences, sidebarCollapsed: true }));
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Check initial size
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [dispatch, preferences]);
 
   // Colors based on metasysltd.com
   // Primary blue: #0a1825
