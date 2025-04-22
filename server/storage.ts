@@ -1514,22 +1514,33 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createDispatchClient(insertClient: InsertDispatchClient): Promise<DispatchClient> {
-    const now = new Date().toISOString();
-    const [client] = await db.insert(dispatch_clients).values({
+    const now = new Date();
+    
+    // Create a clean object with proper date handling
+    const clientData = {
       ...insertClient,
+      // If onboardingDate is present and it's a Date object, leave it as is
+      // Otherwise, it could be a string or null which is fine
       createdAt: now,
       updatedAt: now
-    }).returning();
+    };
+    
+    const [client] = await db.insert(dispatch_clients).values(clientData).returning();
     return client;
   }
   
   async updateDispatchClient(id: number, updates: Partial<DispatchClient>): Promise<DispatchClient | undefined> {
+    const now = new Date();
+    
+    // Create a clean update object
+    const clientUpdates = {
+      ...updates,
+      updatedAt: now
+    };
+    
     const [updatedClient] = await db
       .update(dispatch_clients)
-      .set({
-        ...updates,
-        updatedAt: new Date().toISOString()
-      })
+      .set(clientUpdates)
       .where(eq(dispatch_clients.id, id))
       .returning();
     return updatedClient;
