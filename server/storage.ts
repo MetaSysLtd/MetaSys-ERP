@@ -1900,6 +1900,165 @@ export class DatabaseStorage implements IStorage {
     }).returning();
     return clockEvent;
   }
+  
+  // Team Management operations
+  async getUsersByDepartment(department: string): Promise<User[]> {
+    // First get roles for this department
+    const departmentRoles = await db
+      .select()
+      .from(roles)
+      .where(eq(roles.department, department));
+    
+    if (departmentRoles.length === 0) {
+      return [];
+    }
+    
+    // Get users with these role IDs
+    const roleIds = departmentRoles.map(role => role.id);
+    return db
+      .select()
+      .from(users)
+      .where(
+        roleIds.length === 1 
+          ? eq(users.roleId, roleIds[0]) 
+          : inArray(users.roleId, roleIds)
+      );
+  }
+  
+  async getActiveLeadCountByUser(userId: number): Promise<number> {
+    // Count active leads assigned to this user
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(leads)
+      .where(
+        and(
+          eq(leads.assignedTo, userId),
+          inArray(leads.status, ['qualified', 'active', 'follow-up', 'nurture'])
+        )
+      );
+    
+    return result[0]?.count || 0;
+  }
+  
+  async getActiveLoadCountByUser(userId: number): Promise<number> {
+    // Count active loads assigned to this user
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(loads)
+      .where(
+        and(
+          eq(loads.assignedTo, userId),
+          inArray(loads.status, ['booked', 'in_transit', 'delivered'])
+        )
+      );
+    
+    return result[0]?.count || 0;
+  }
+  
+  async getClosedDealCountByUserForMonth(userId: number, month: string): Promise<number> {
+    // Month format is YYYY-MM
+    const startDate = new Date(month + '-01');
+    const endOfMonth = new Date(startDate);
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+    endOfMonth.setDate(0); // Last day of the month
+    
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(leads)
+      .where(
+        and(
+          eq(leads.assignedTo, userId),
+          eq(leads.status, 'active'),
+          gte(leads.updatedAt, startDate.toISOString()),
+          lt(leads.updatedAt, endOfMonth.toISOString())
+        )
+      );
+    
+    return result[0]?.count || 0;
+  }
+  
+  async getGrossRevenueByUserForMonth(userId: number, month: string): Promise<number> {
+    // Month format is YYYY-MM
+    const startDate = new Date(month + '-01');
+    const endOfMonth = new Date(startDate);
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+    endOfMonth.setDate(0); // Last day of the month
+    
+    const result = await db
+      .select({ sum: sql<number>`COALESCE(SUM(freight_amount), 0)` })
+      .from(loads)
+      .where(
+        and(
+          eq(loads.assignedTo, userId),
+          inArray(loads.status, ['delivered', 'invoiced', 'paid']),
+          gte(loads.deliveryDate, startDate.toISOString().split('T')[0]),
+          lte(loads.deliveryDate, endOfMonth.toISOString().split('T')[0])
+        )
+      );
+    
+    return result[0]?.sum || 0;
+  }
+  
+  async getDirectGrossRevenueByUserForMonth(userId: number, month: string): Promise<number> {
+    // Similar to gross revenue but only for direct sales (user is both creator and assignee)
+    // Month format is YYYY-MM
+    const startDate = new Date(month + '-01');
+    const endOfMonth = new Date(startDate);
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+    endOfMonth.setDate(0); // Last day of the month
+    
+    const result = await db
+      .select({ sum: sql<number>`COALESCE(SUM(freight_amount), 0)` })
+      .from(loads)
+      .where(
+        and(
+          eq(loads.assignedTo, userId),
+          eq(loads.createdBy, userId), // Direct sale - user both created and is assigned
+          inArray(loads.status, ['delivered', 'invoiced', 'paid']),
+          gte(loads.deliveryDate, startDate.toISOString().split('T')[0]),
+          lte(loads.deliveryDate, endOfMonth.toISOString().split('T')[0])
+        )
+      );
+    
+    return result[0]?.sum || 0;
+  }
+  
+  async getSalesUserKPIs(userId: number, month: string): Promise<any> {
+    // Month format is YYYY-MM
+    // Get general commission data
+    const commission = await this.getUserCommissionByMonth(userId, month);
+    
+    // Get active leads and closed deals
+    const activeLeadsCount = await this.getActiveLeadCountByUser(userId);
+    const closedDealsCount = await this.getClosedDealCountByUserForMonth(userId, month);
+    
+    return {
+      activeLeads: activeLeadsCount,
+      closedDeals: closedDealsCount,
+      invoiceTotal: commission?.invoiceTotal || 0,
+      ownLeadBonus: commission?.ownLeadBonus || 0,
+      totalCommission: commission?.totalCommission || 0
+    };
+  }
+  
+  async getDispatchUserKPIs(userId: number, month: string): Promise<any> {
+    // Month format is YYYY-MM
+    // Get general commission data
+    const commission = await this.getUserCommissionByMonth(userId, month);
+    
+    // Get load count and revenue metrics
+    const loadCount = await this.getActiveLoadCountByUser(userId);
+    const grossRevenue = await this.getGrossRevenueByUserForMonth(userId, month);
+    const directGrossRevenue = await this.getDirectGrossRevenueByUserForMonth(userId, month);
+    
+    return {
+      loadCount: loadCount,
+      grossRevenue: grossRevenue,
+      directGrossRevenue: directGrossRevenue,
+      bonusAmount: commission?.tierFixed || 0,
+      totalCommission: commission?.totalCommission || 0
+    };
+  }
 }
 
 // Use database storage instead of memory storage
