@@ -1775,6 +1775,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Generate a new dispatch report on demand
+  dispatchReportsRouter.post("/generate", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // The dispatcher can generate reports for themselves or others if they're admins
+      const dispatcherId = req.body.dispatcherId || req.user.id;
+      
+      // Check if user can generate for other dispatchers
+      if (dispatcherId !== req.user.id && req.userRole?.level < 3) {
+        return res.status(403).json({ 
+          message: "You don't have permission to generate reports for other dispatchers" 
+        });
+      }
+      
+      // If date is provided, use it; otherwise use today
+      const reportDate = req.body.date ? new Date(req.body.date) : new Date();
+      
+      // Generate the report
+      const report = await storage.generateDailyDispatchReport(dispatcherId, reportDate);
+      
+      // Get user name if it's a different dispatcher
+      let dispatcherName = `${req.user.firstName} ${req.user.lastName}`;
+      if (dispatcherId !== req.user.id) {
+        const dispatcher = await storage.getUser(dispatcherId);
+        if (dispatcher) {
+          dispatcherName = `${dispatcher.firstName} ${dispatcher.lastName}`;
+        }
+      }
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user.id,
+        action: 'generate',
+        entityType: 'dispatch_report',
+        entityId: report.id,
+        details: `Generated dispatch report for ${dispatcherName}`
+      });
+      
+      // Get performance target for context
+      const target = await storage.getPerformanceTargetByOrgAndType(
+        report.orgId, 
+        'daily'
+      );
+      
+      // Optional: send report to Slack if sendToSlack is true in request
+      if (req.body.sendToSlack) {
+        const { sendDailyDispatchReportToSlack } = await import('./slack');
+        await sendDailyDispatchReportToSlack(
+          report,
+          dispatcherName,
+          target?.minPct || undefined
+        );
+      }
+      
+      res.status(201).json({
+        report,
+        message: "Report generated successfully"
+      });
+    } catch (error) {
+      console.error('Error generating dispatch report:', error);
+      next(error);
+    }
+  });
+  
   dispatchReportsRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
     try {
       if (!req.user) {

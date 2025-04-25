@@ -22,6 +22,7 @@ import { FinanceOverview } from "@/components/dashboard/FinanceOverview";
 import { EmployeeSummary } from "@/components/dashboard/EmployeeSummary";
 import { DispatchPerformance } from "@/components/dashboard/DispatchPerformance";
 import { PerformanceAlertWidget } from "@/components/dispatch/performance-alert-widget";
+import { DispatchReportAutomation } from "@/components/dashboard/DispatchReportAutomation";
 import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
 import { AnimationSettings } from "@/components/ui/animation-settings";
 
@@ -95,9 +96,14 @@ export default function Dashboard() {
           />
         </MotionWrapper>
         {(role?.department === "dispatch" || role?.department === "admin") && (
-          <MotionWrapper animation="fade-up" delay={0.65}>
-            <PerformanceAlertWidget />
-          </MotionWrapper>
+          <>
+            <MotionWrapper animation="fade-up" delay={0.65}>
+              <PerformanceAlertWidget />
+            </MotionWrapper>
+            <MotionWrapper animation="fade-up" delay={0.7}>
+              <DispatchReportAutomation />
+            </MotionWrapper>
+          </>
         )}
         <MotionWrapper animation="fade-up" delay={0.7} className={role?.department === "dispatch" || role?.department === "admin" ? "lg:col-span-2" : "lg:col-span-1"}>
           <TeamPerformance 
