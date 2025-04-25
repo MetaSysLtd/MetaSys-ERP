@@ -1,0 +1,245 @@
+{GLOBAL RULES}
+
+──────────────────────────────────────────────────────────
+OVERVIEW
+──────────────────────────────────────────────────────────
+Goal: apply a **Canva-level glossy, modern aesthetic** to every Metio
+frontend view while strictly using our brand palette:
+
+• PRIMARY-1  #025E73   (Teal-Blue)  
+• PRIMARY-2  #011F26   (Rich Navy)  
+• SECONDARY-1  #F2A71B (Sun Yellow)  
+• SECONDARY-2  #412754 (Royal Plum)
+
+The design must feel **light, welcoming, techy-premium** (not heavy dark
+mode). Use soft gradients, subtle blurs, rounded corners, micro-animations
+and vibrant button states similar to Canva’s UI.
+
+──────────────────────────────────────────────────────────
+1 – THEME TOKENS (Tailwind / SCSS variables)
+──────────────────────────────────────────────────────────
+Define once in `/src/styles/theme.scss` or `tailwind.config.js`.
+
+
+
+Tailwind: extend `colors` with `brandNavy`, `brandTeal`, `brandYellow`,
+`brandPlum`. Use CSS variables in `theme.extend.colors`.
+
+──────────────────────────────────────────────────────────
+2 – BACKGROUND & LAYOUT
+──────────────────────────────────────────────────────────
+● **Body**: bg `var(--c-bg-primary)`; add diagonal radial gradient subtle
+  (`rgba(65,39,84,.05) top-left ➜ transparent 70%`).
+
+● **Sidebar** (`<aside>`):
+  - Fixed width 240 px; 64 px collapsed.  
+  - Background `var(--c-bg-nav-grad)` giving Canva-like Aurora feel.  
+  - Use `backdrop-filter: var(--blur-backdrop)` for frost-glass effect on
+    scroll overlay.
+
+● **Cards / Panels**:
+  - `background: var(--c-bg-card)`  
+  - border-radius `var(--radius-base)`  
+  - box-shadow `var(--shadow-card)`  
+  - On hover enlarge 1% scale & elevate shadow (`transition 150ms`).
+
+──────────────────────────────────────────────────────────
+3 – TYPOGRAPHY
+──────────────────────────────────────────────────────────
+• Font stack: `"Inter", "Poppins", "Segoe UI", sans-serif`.  
+• Headline‐XL: 28 / 36 semibold, color navy.  
+• H2-card: 18 / 26 semibold.  
+• Body-text: 14 / 22 regular, color text-main.  
+• Sub-text: 13 regular, color text-subtle.
+
+──────────────────────────────────────────────────────────
+4 – BUTTON SYSTEM
+──────────────────────────────────────────────────────────
+Variant | Default               | Hover                | Active             | Disabled
+------- | --------------------- | ---------------------| -------------------| ----------
+Primary | bg brandTeal (#025E73) text-white | bg brandYellow (#F2A71B) text-white | bg brandYellow-dark (#C78A14) | bg-gray-300
+Secondary| border brandTeal text brandTeal | bg rgba(2,94,115,.08) | bg rgba(2,94,115,.12)| opacity 0.4
+Danger  | bg #C93131 text-white | bg #A30F0F           | bg #8A0B0B         | opacity 0.4
+
+• All buttons: radius `var(--radius-base)`; shadow when `elevated` prop.
+
+Micro-interaction: `scale(1.03)` on hover (80 ms), spring back on
+active (50 ms).
+
+──────────────────────────────────────────────────────────
+5 – ICONS & ILLUSTRATIONS
+──────────────────────────────────────────────────────────
+• Use **Lucide** icon set `class="stroke-[1.5]"` color brandTeal.  
+• Icon backgrounds (e.g., sidebar) get translucent circles
+  `background: rgba(242,167,27,.15)` to echo Canva sparkles.  
+• For empty states: create simple SVG illustrations using brandYellow +
+  10% opacity teal blobs.
+
+──────────────────────────────────────────────────────────
+6 – COMPONENT OVERHAUL STEPS
+──────────────────────────────────────────────────────────
+### 6.1 NAVBAR / SIDEBAR
+  a) Replace solid navy with gradient var(--c-bg-nav-grad).  
+  b) Selected link: pill highlight (bg brandYellow 15% opacity, text
+     white) with left accent bar 3 px brandYellow.  
+  c) Hover ripple: use `after:scale-x-110` subtle.
+
+### 6.2 DASHBOARD KPI CARDS
+  a) Card bg white, inner top ribbon 4 px brandYellow.  
+  b) Large number font 36 bold navy; label small text-subtle.  
+  c) On hover: glow shadow brandYellow 25% opacity.
+
+### 6.3 TABLES
+  a) Header row bg `rgba(2,94,115,.05)`; text navy.  
+  b) Hover row highlight `rgba(65,39,84,.05)`.  
+  c) Checkbox uses brandTeal when checked.
+
+### 6.4 FORMS / INPUTS
+  a) Input border default `#D0D7DE`; focus border brandTeal 2 px.  
+  b) Invalid state border #C93131.
+
+### 6.5 MODALS & DRAWERS
+  a) Backdrop blur(4 px) + dark 30% navy overlay.  
+  b) Panel radius 16 px; top bar thin brandYellow progress accent.
+
+──────────────────────────────────────────────────────────
+7 – IMPLEMENTATION PATH
+──────────────────────────────────────────────────────────
+1. **Define tokens** in theme file; import into Tailwind config.  
+2. **Refactor** Sidebar component to consume colors + gradient.  
+3. Create **Button.tsx** shared component with variants table; replace
+   all `<button>` occurrences.  
+4. Add **theme provider** (Context) if not using Tailwind JIT.  
+5. For each page:
+   • wrap content in <PageContainer> applying bg gradient.  
+   • swap hard-coded colors for CSS vars.  
+6. **Run Storybook** (or dedicated style guide route) to preview:
+   Buttons, Form, Table, Card, Modal, Toast.
+
+──────────────────────────────────────────────────────────
+8 – REAL-TIME VISUAL FEEDBACK
+──────────────────────────────────────────────────────────
+When sockets push `commissionUpdated`, `leadActivated`, etc., show small
+bottom-right toasts:
+
+```css
+.toast {
+  background: rgba(65,39,84,.9);
+  color: #fff;
+  border-left: 4px solid var(--c-accent);
+  backdrop-filter: blur(12px);
+}
+
+Auto dismiss 4 s; slide-in animation translateY(10px) opacity 0 → 1.
+
+────────────────────────────────────────────────────────── 9 – ACCESSIBILITY & MOTION PREFERENCES ────────────────────────────────────────────────────────── • Ensure color-contrast AA (4.5:1) for text on teal/navy backgrounds.
+• Wrap animations in @media (prefers-reduced-motion:no-preference){}.
+• All interactive elements need focus-visible outline brandYellow.
+
+────────────────────────────────────────────────────────── 10 – RESPONSIVENESS BREAKPOINTS ────────────────────────────────────────────────────────── • ≤1280 px: KPI cards grid 2 × 2.
+• ≤992 px: sidebar collapses.
+• ≤768 px: switch to bottom nav bar with icons only.
+
+────────────────────────────────────────────────────────── 11 – TEST CHECKLIST (return screen captures) ────────────────────────────────────────────────────────── ☑ Theme tokens loaded; DevTools shows CSS vars.
+☑ Sidebar collapse / expand works; gradient visible.
+☑ Buttons hover to brandYellow color.
+☑ KPI card hover glow works.
+☑ Mobile 320 px shows bottom nav; no horizontal scroll.
+
+Return PASS + three screenshots:
+
+Full desktop dashboard,
+
+Collapsed sidebar state,
+
+Mobile view (<=375 px).
+
+{GLOBAL RULES}
+
+──────────────────────────────────────────────────────────
+12 – MODULE-SPECIFIC UI REWORK
+──────────────────────────────────────────────────────────
+### 12.1  CRM PAGES
+• **Kanban View**:
+  – Column headers use SECONDARY-1 (#F2A71B) background @10 % opacity.  
+  – Cards: white bg, left accent bar color per status:  
+      New #025E73, InProgress #F2A71B, HandToDispatch #412754,
+      Active #2EC4B6, Lost #C93131.  
+  – Drag shadow + slight rotate(-2deg→0) animation (100 ms).
+
+• **Lead Detail Drawer**:
+  – Header gradient top-left to bottom-right (navy→teal 30 % opacity).  
+  – Tabs: “Overview”, “Activity”, “Files”. Underline highlight brandTeal.
+
+### 12.2  DISPATCH MODULE
+• **Client List**:
+  – Table header sticky; subtle top-shadow brandTeal.  
+  – Status badges: pill-shape, bg brandTeal / brandYellow / brandPlum.
+
+• **Load Form**:
+  – Stepper component (Pickup → Drop → Rate Con → Completed).  
+  – Active step uses SECONDARY-1.
+
+### 12.3  INVOICES
+• Card-grid view with invoice status ribbon top-right (Paid green, Pending brandYellow, Overdue red).  
+• Generate-Pending modal: progress bar brandTeal 4 px height.
+
+### 12.4  HR
+• Position cards: gradient border (brandPlum → brandTeal).  
+• Leave-Calendar: full-width responsive, day cell hover bg rgba(2,94,115,.08).
+
+### 12.5  FINANCE
+• P&L graph: dual-tone area chart (Revenue brandTeal 60 % opacity,
+  Expenses brandPlum 30 %).  
+• Big numbers section: white card shadow, number font 48 bold navy.
+
+### 12.6  MARKETING
+• Campaign cards: banner bg diagonal gradient (90deg brandTeal→brandYellow).  
+• Email list table: tag pills with member count badge.
+
+──────────────────────────────────────────────────────────
+13 – ICONOGRAPHY & MICRO-ANIMATION
+──────────────────────────────────────────────────────────
+• Import Lucide icons only once in Icon.tsx; lazy code-split.
+
+• Micro-interactions:
+  – Button Press: `translateY(1px)` 50 ms.  
+  – Card Hover: VS Code-like subtle floating shadow.
+
+• Sparkle Particles:
+  – Add tiny SVG circles (brandYellow 20 % opacity) anchored absolutetop right of hero areas (login, dashboard header) with `@keyframes float` (6 s ease-in-out, alternate).
+
+──────────────────────────────────────────────────────────
+14 – RESPONSIVE NAV (≤768 px)
+──────────────────────────────────────────────────────────
+• Replace sidebar with bottom tab bar:
+  Icons only (Dashboard, CRM, Dispatch, More).  
+• “More” opens sheet with remaining nav items.  
+• Use CSS clamp() for font-sizes to keep legible 320–768 px.
+
+──────────────────────────────────────────────────────────
+15 – ACCESSIBILITY
+──────────────────────────────────────────────────────────
+• Run Lighthouse ➜ Contrast ≥ 4.5, Tab order logical.  
+• All form inputs have `<label>` with `for=` and aria-invalid on error.
+
+──────────────────────────────────────────────────────────
+16 – QA / VISUAL REGRESSION
+──────────────────────────────────────────────────────────
+• Integrate `@storybook/test-runner` snapshots for:
+  Button variants, Card, Modal, Sidebar expanded/collapsed.
+
+• Percy or Chromatic screenshots across breakpoints (320, 768, 1366).
+
+──────────────────────────────────────────────────────────
+17 – HAND-OFF CHECKLIST (Return in PASS)
+──────────────────────────────────────────────────────────
+☑ Tokens defined & imported  
+☑ Sidebar + bottom nav responsive  
+☑ Brand buttons across entire app  
+☑ Sample pages updated: Dashboard, CRM Lead List, Dispatch Client List  
+☑ 3 screenshots attached (desktop, collapsed, mobile)  
+☑ Unit + Cypress tests green  
+☑ Lighthouse score ≥ 90 Performance / 95 Accessibility
+
+Return **PASS** when all items green; else provide FAIL list with diffs.

@@ -11,6 +11,26 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        brandTeal: {
+          DEFAULT: "var(--c-brand-teal)",
+          light: "var(--c-brand-teal-light)",
+          dark: "var(--c-brand-teal-dark)",
+        },
+        brandNavy: {
+          DEFAULT: "var(--c-brand-navy)",
+          light: "var(--c-brand-navy-light)",
+          dark: "var(--c-brand-navy-dark)",
+        },
+        brandYellow: {
+          DEFAULT: "var(--c-brand-yellow)",
+          light: "var(--c-brand-yellow-light)",
+          dark: "var(--c-brand-yellow-dark)",
+        },
+        brandPlum: {
+          DEFAULT: "var(--c-brand-plum)",
+          light: "var(--c-brand-plum-light)",
+          dark: "var(--c-brand-plum-dark)",
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
