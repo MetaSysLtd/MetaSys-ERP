@@ -8,6 +8,7 @@ export const clockEventTypeEnum = pgEnum('clock_event_type', ['IN', 'OUT']);
 // CRM Lead enums
 export const leadSourceEnum = pgEnum('lead_source', ['SQL', 'MQL']);
 export const leadStatusEnum = pgEnum('lead_status', ['New', 'InProgress', 'FollowUp', 'HandToDispatch', 'Active', 'Lost']);
+export const callOutcomeEnum = pgEnum('call_outcome', ['Answered', 'Voicemail', 'No Answer', 'Wrong Number', 'Not Interested', 'Interested', 'Follow Up', 'Booked']);
 
 // Organization Management
 export const organizations = pgTable("organizations", {
@@ -168,6 +169,66 @@ export const leadRemarks = pgTable("lead_remarks", {
     createdAtIdx: index("lead_remarks_created_at_idx").on(table.createdAt),
     // Combined index for timeline queries
     leadTimelineIdx: index("lead_remarks_timeline_idx").on(table.leadId, table.createdAt)
+  };
+});
+
+// Call logs for tracking phone interactions with leads
+export const callLogs = pgTable("call_logs", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull().references(() => leads.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  duration: integer("duration").notNull(), // in seconds
+  outcome: callOutcomeEnum("outcome").notNull(),
+  notes: text("notes"),
+  scheduledFollowUp: boolean("scheduled_follow_up").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    leadIdIdx: index("call_logs_lead_id_idx").on(table.leadId),
+    userIdIdx: index("call_logs_user_id_idx").on(table.userId),
+    createdAtIdx: index("call_logs_created_at_idx").on(table.createdAt),
+    outcomeIdx: index("call_logs_outcome_idx").on(table.outcome),
+  };
+});
+
+// Follow-up scheduler for leads
+export const leadFollowUps = pgTable("lead_follow_ups", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull().references(() => leads.id),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  assignedTo: integer("assigned_to").notNull().references(() => users.id),
+  scheduledDate: timestamp("scheduled_date").notNull(),
+  completed: boolean("completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
+  notes: text("notes"),
+  priority: text("priority").notNull().default("medium"), // low, medium, high
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    leadIdIdx: index("lead_follow_ups_lead_id_idx").on(table.leadId),
+    assigneeIdx: index("lead_follow_ups_assignee_idx").on(table.assignedTo),
+    createdByIdx: index("lead_follow_ups_created_by_idx").on(table.createdBy),
+    scheduledDateIdx: index("lead_follow_ups_scheduled_date_idx").on(table.scheduledDate),
+    completedIdx: index("lead_follow_ups_completed_idx").on(table.completed),
+  };
+});
+
+// Customer feedback system for tracking satisfaction
+export const customerFeedback = pgTable("customer_feedback", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull().references(() => leads.id),
+  rating: integer("rating").notNull(), // 1-5 scale
+  feedback: text("feedback"),
+  surveyDate: timestamp("survey_date").notNull().defaultNow(),
+  respondedAt: timestamp("responded_at"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    leadIdIdx: index("customer_feedback_lead_id_idx").on(table.leadId),
+    ratingIdx: index("customer_feedback_rating_idx").on(table.rating),
+    surveyDateIdx: index("customer_feedback_survey_date_idx").on(table.surveyDate),
   };
 });
 
@@ -464,6 +525,9 @@ export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({ id:
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, lastLogin: true, invitedAt: true });
 export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, createdAt: true, updatedAt: true, firstContactAt: true });
 export const insertLeadRemarkSchema = createInsertSchema(leadRemarks).omit({ id: true, createdAt: true });
+export const insertCallLogSchema = createInsertSchema(callLogs).omit({ id: true, createdAt: true });
+export const insertLeadFollowUpSchema = createInsertSchema(leadFollowUps).omit({ id: true, createdAt: true, updatedAt: true, completedAt: true });
+export const insertCustomerFeedbackSchema = createInsertSchema(customerFeedback).omit({ id: true, createdAt: true, respondedAt: true });
 export const insertDispatchClientSchema = createInsertSchema(dispatch_clients).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLoadSchema = createInsertSchema(loads).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true, updatedAt: true });
@@ -529,6 +593,15 @@ export type InsertLead = z.infer<typeof insertLeadSchema>;
 
 export type LeadRemark = typeof leadRemarks.$inferSelect;
 export type InsertLeadRemark = z.infer<typeof insertLeadRemarkSchema>;
+
+export type CallLog = typeof callLogs.$inferSelect;
+export type InsertCallLog = z.infer<typeof insertCallLogSchema>;
+
+export type LeadFollowUp = typeof leadFollowUps.$inferSelect;
+export type InsertLeadFollowUp = z.infer<typeof insertLeadFollowUpSchema>;
+
+export type CustomerFeedback = typeof customerFeedback.$inferSelect;
+export type InsertCustomerFeedback = z.infer<typeof insertCustomerFeedbackSchema>;
 
 export type DispatchClient = typeof dispatch_clients.$inferSelect;
 export type InsertDispatchClient = z.infer<typeof insertDispatchClientSchema>;
