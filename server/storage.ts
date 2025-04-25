@@ -191,6 +191,7 @@ export interface IStorage {
   getDispatchReportByDispatcherAndDate(dispatcherId: number, date: Date): Promise<DispatchReport | undefined>;
   createDispatchReport(report: InsertDispatchReport): Promise<DispatchReport>;
   updateDispatchReport(id: number, report: Partial<DispatchReport>): Promise<DispatchReport | undefined>;
+  generateDailyDispatchReport(dispatcherId: number, date?: Date): Promise<DispatchReport>;
   
   // Performance Target operations
   getPerformanceTarget(id: number): Promise<PerformanceTarget | undefined>;

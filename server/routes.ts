@@ -1870,10 +1870,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const summaryDate = req.body.date ? new Date(req.body.date) : new Date();
       
       // Get all dispatchers
-      const dispatchers = await db.select()
-        .from(users)
-        .innerJoin(roles, eq(users.roleId, roles.id))
-        .where(eq(roles.department, 'dispatch'));
+      const dispatchers = await storage.getUsersByDepartment('dispatch');
       
       if (dispatchers.length === 0) {
         return res.status(404).json({ message: "No dispatchers found" });
@@ -1886,13 +1883,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           // Use existing report or generate a new one
           let report = await storage.getDispatchReportByDispatcherAndDate(
-            dispatcher.users.id, 
+            dispatcher.id, 
             summaryDate
           );
           
           if (!report) {
             report = await storage.generateDailyDispatchReport(
-              dispatcher.users.id, 
+              dispatcher.id, 
               summaryDate
             );
           }
@@ -1900,10 +1897,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Add to collection with dispatcher name
           reportsData.push({
             report,
-            dispatcherName: `${dispatcher.users.firstName} ${dispatcher.users.lastName}`
+            dispatcherName: `${dispatcher.firstName} ${dispatcher.lastName}`
           });
         } catch (error) {
-          console.error(`Error generating report for dispatcher ${dispatcher.users.id}:`, error);
+          console.error(`Error generating report for dispatcher ${dispatcher.id}:`, error);
         }
       }
       
@@ -1915,12 +1912,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { sendDailyDispatchSummaryToSlack } = await import('./slack');
       const result = await sendDailyDispatchSummaryToSlack(reportsData);
       
+      // Format the date using date-fns
+      const formatDate = (await import('date-fns')).format;
+      
       // Log the activity
       await storage.createActivity({
         userId: req.user.id,
         action: 'generate_summary',
         entityType: 'dispatch_report',
-        details: `Generated and sent dispatch summary report to Slack for ${format(summaryDate, 'yyyy-MM-dd')}`
+        entityId: 0, // No specific entity ID for summary
+        details: `Generated and sent dispatch summary report to Slack for ${formatDate(summaryDate, 'yyyy-MM-dd')}`
       });
       
       res.status(200).json({
