@@ -169,28 +169,224 @@ export function scheduleDailyReportReminder() {
 }
 
 /**
- * Archives dispatch reports older than 30 days
- * This runs once per week (Sunday at midnight)
+ * Generates monthly summary reports for all dispatchers
+ * This runs on the 1st of each month at 1:00 AM
  */
-export function scheduleReportArchiving() {
-  // Run at midnight on Sunday
-  return new CronJob('0 0 * * 0', async () => {
-    console.log('Running report archiving job');
+export function scheduleMonthlyReportGeneration() {
+  // Run at 1:00 AM on the 1st of each month (0 1 1 * *)
+  return new CronJob('0 1 1 * *', async () => {
+    console.log('Running monthly dispatch report generation');
     try {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      // Calculate previous month's date range
+      const today = new Date();
+      const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
       
-      // Get reports older than 30 days
-      const oldReports = await db.select()
-        .from(dispatchReports)
-        .where(lte(dispatchReports.date, thirtyDaysAgo));
+      // Format for logging
+      const monthLabel = format(lastMonth, 'MMMM yyyy');
+      console.log(`Generating monthly reports for ${monthLabel}`);
       
-      console.log(`Found ${oldReports.length} reports to archive`);
+      // Get all dispatchers from users
+      const dispatchers = await db.select()
+        .from(users)
+        .innerJoin(roles, eq(users.roleId, roles.id))
+        .where(eq(roles.department, 'dispatch'));
       
-      // In the future, archive these reports to a data warehouse or export them
+      if (dispatchers.length === 0) {
+        console.log('No dispatchers found for monthly report');
+        return;
+      }
+      
+      // Stats to collect for each dispatcher
+      const dispatcherStats = [];
+      
+      // For each dispatcher, get all their daily reports from last month
+      for (const user of dispatchers) {
+        try {
+          const dispatcherId = user.users.id;
+          
+          // Get all reports for this dispatcher from last month
+          const monthlyReports = await db.select()
+            .from(dispatchReports)
+            .where(
+              and(
+                eq(dispatchReports.dispatcherId, dispatcherId),
+                gte(dispatchReports.date, startOfDay(lastMonth)),
+                lte(dispatchReports.date, endOfDay(lastMonthEnd))
+              )
+            );
+          
+          if (monthlyReports.length === 0) {
+            console.log(`No reports found for dispatcher ${dispatcherId} for ${monthLabel}`);
+            continue;
+          }
+          
+          // Calculate monthly totals
+          const totalLoadsBooked = monthlyReports.reduce((sum, r) => sum + r.loadsBooked, 0);
+          const totalInvoiceUsd = monthlyReports.reduce((sum, r) => sum + r.invoiceUsd, 0);
+          const totalPaidInvoiceUsd = monthlyReports.reduce((sum, r) => sum + r.paidInvoiceUsd, 0);
+          const avgActiveLeads = Math.round(
+            monthlyReports.reduce((sum, r) => sum + r.activeLeads, 0) / monthlyReports.length
+          );
+          
+          // Find highest single day invoice amount
+          const highestDayInvoice = Math.max(...monthlyReports.map(r => r.invoiceUsd));
+          
+          // Count days where targets were met (if targets exist)
+          const target = await storage.getPerformanceTargetByOrgAndType(user.users.orgId || 1, 'daily');
+          let targetMetDays = 0;
+          
+          if (target) {
+            targetMetDays = monthlyReports.filter(r => r.loadsBooked >= target.minPct).length;
+          }
+          
+          // Store monthly stats
+          dispatcherStats.push({
+            dispatcherId,
+            dispatcherName: `${user.users.firstName} ${user.users.lastName}`,
+            totalLoadsBooked,
+            totalInvoiceUsd,
+            totalPaidInvoiceUsd,
+            avgActiveLeads,
+            highestDayInvoice,
+            totalReportDays: monthlyReports.length,
+            targetMetDays,
+            month: lastMonth
+          });
+          
+          console.log(`Generated monthly stats for ${user.users.firstName} ${user.users.lastName}`);
+        } catch (error) {
+          console.error(`Error generating monthly stats for dispatcher ${user.users.id}:`, error);
+        }
+      }
+      
+      if (dispatcherStats.length === 0) {
+        console.log('No monthly stats generated for any dispatcher');
+        return;
+      }
+      
+      // Send monthly summary to Slack
+      const { WebClient } = await import('@slack/web-api');
+      
+      if (!process.env.SLACK_BOT_TOKEN || !process.env.SLACK_DISPATCH_CHANNEL_ID) {
+        console.log('Slack credentials not found, skipping notification');
+        return;
+      }
+      
+      const slack = new WebClient(process.env.SLACK_BOT_TOKEN);
+      const dispatchChannel = process.env.SLACK_DISPATCH_CHANNEL_ID;
+      
+      // Sort dispatchers by total loads booked (highest first)
+      dispatcherStats.sort((a, b) => b.totalLoadsBooked - a.totalLoadsBooked);
+      
+      // Format currency
+      const formatCurrency = (amount: number): string => {
+        return new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD'
+        }).format(amount);
+      };
+      
+      // Generate dispatcher performance blocks
+      const dispatcherBlocks = dispatcherStats.map(stat => ({
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*${stat.dispatcherName}*`
+          },
+          {
+            type: "mrkdwn",
+            text: `Loads: ${stat.totalLoadsBooked} | Revenue: ${formatCurrency(stat.totalInvoiceUsd)}`
+          }
+        ]
+      }));
+      
+      // Calculate team totals
+      const teamLoads = dispatcherStats.reduce((sum, s) => sum + s.totalLoadsBooked, 0);
+      const teamRevenue = dispatcherStats.reduce((sum, s) => sum + s.totalInvoiceUsd, 0);
+      const teamPaid = dispatcherStats.reduce((sum, s) => sum + s.totalPaidInvoiceUsd, 0);
+      
+      // Send the monthly summary to Slack
+      await slack.chat.postMessage({
+        channel: dispatchChannel,
+        blocks: [
+          {
+            type: "header",
+            text: {
+              type: "plain_text",
+              text: `📊 Monthly Dispatch Report: ${monthLabel}`,
+              emoji: true
+            }
+          },
+          {
+            type: "section",
+            fields: [
+              {
+                type: "mrkdwn",
+                text: `*Total Team Loads:*\n${teamLoads}`
+              },
+              {
+                type: "mrkdwn",
+                text: `*Total Team Revenue:*\n${formatCurrency(teamRevenue)}`
+              }
+            ]
+          },
+          {
+            type: "section",
+            fields: [
+              {
+                type: "mrkdwn",
+                text: `*Total Paid:*\n${formatCurrency(teamPaid)}`
+              },
+              {
+                type: "mrkdwn",
+                text: `*Dispatchers:*\n${dispatcherStats.length}`
+              }
+            ]
+          },
+          {
+            type: "divider"
+          },
+          {
+            type: "header",
+            text: {
+              type: "plain_text",
+              text: "Dispatcher Performance",
+              emoji: true
+            }
+          },
+          ...dispatcherBlocks,
+          {
+            type: "context",
+            elements: [
+              {
+                type: "mrkdwn",
+                text: `Monthly report generated by MetaSys ERP on ${format(new Date(), 'MMM d, yyyy h:mm a')}`
+              }
+            ]
+          }
+        ],
+        attachments: [
+          {
+            color: "#025E73", // Brand navy color
+            blocks: [
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: "For detailed monthly analytics, visit the Dispatch Reports dashboard in MetaSys ERP."
+                }
+              }
+            ]
+          }
+        ]
+      });
+      
+      console.log(`Monthly report for ${monthLabel} sent to Slack`);
       
     } catch (error) {
-      console.error('Error in report archiving job:', error);
+      console.error('Error in monthly dispatch report generation:', error);
     }
   }, null, true, 'America/New_York');
 }
@@ -201,16 +397,16 @@ export function scheduleReportArchiving() {
 export function initializeDispatchReportAutomation() {
   const reportGenerationJob = scheduleDailyReportGeneration();
   const reportReminderJob = scheduleDailyReportReminder();
-  const reportArchivingJob = scheduleReportArchiving();
+  const monthlyReportJob = scheduleMonthlyReportGeneration();
   
   console.log('Dispatch Report Automation initialized with the following jobs:');
   console.log('- Daily Report Generation: runs at 18:00 daily');
   console.log('- Daily Report Reminder: runs at 16:45 daily');
-  console.log('- Report Archiving: runs at 00:00 on Sundays');
+  console.log('- Monthly Report Generation: runs at 01:00 on the 1st of each month');
   
   return {
     reportGenerationJob,
     reportReminderJob,
-    reportArchivingJob
+    monthlyReportJob
   };
 }
