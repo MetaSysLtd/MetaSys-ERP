@@ -221,6 +221,9 @@ export class MemStorage implements IStorage {
   private tasks: Map<number, Task>;
   private clockEvents: Map<number, ClockEvent>;
   private uiPreferences: Map<number, UiPreferences>;
+  private dispatchReports: Map<number, DispatchReport>;
+  private dispatchTasks: Map<number, DispatchTask>;
+  private performanceTargets: Map<number, PerformanceTarget>;
   
   private userIdCounter: number;
   private roleIdCounter: number;
@@ -264,6 +267,9 @@ export class MemStorage implements IStorage {
     this.tasks = new Map();
     this.clockEvents = new Map();
     this.uiPreferences = new Map();
+    this.dispatchReports = new Map();
+    this.dispatchTasks = new Map();
+    this.performanceTargets = new Map();
     
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
