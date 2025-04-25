@@ -242,6 +242,9 @@ export class MemStorage implements IStorage {
   private taskIdCounter: number;
   private clockEventIdCounter: number;
   private uiPreferencesIdCounter: number;
+  private dispatchReportIdCounter: number;
+  private dispatchTaskIdCounter: number;
+  private performanceTargetIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
@@ -288,6 +291,9 @@ export class MemStorage implements IStorage {
     this.taskIdCounter = 1;
     this.clockEventIdCounter = 1;
     this.uiPreferencesIdCounter = 1;
+    this.dispatchReportIdCounter = 1;
+    this.dispatchTaskIdCounter = 1;
+    this.performanceTargetIdCounter = 1;
     
     // Initialize with default roles
     this.initializeRoles();
