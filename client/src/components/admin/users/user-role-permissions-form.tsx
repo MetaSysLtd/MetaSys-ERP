@@ -34,11 +34,11 @@ export function UserRolePermissionsForm({
   const { updateUserMutation } = useUserManagement();
   const [selectedRoleId, setSelectedRoleId] = useState<number>(user.roleId);
   const [permissions, setPermissions] = useState({
-    canViewCRM: user.canViewCRM,
-    canEditLeads: user.canEditLeads,
-    canViewInvoices: user.canViewInvoices,
-    canApprovePayroll: user.canApprovePayroll,
-    canManageUsers: user.canManageUsers,
+    canViewCRM: user.canViewCRM || false,
+    canEditLeads: user.canEditLeads || false,
+    canViewInvoices: user.canViewInvoices || false,
+    canApprovePayroll: user.canApprovePayroll || false,
+    canManageUsers: user.canManageUsers || false,
   });
 
   const handleRoleChange = (roleId: string) => {

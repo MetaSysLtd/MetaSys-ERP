@@ -52,9 +52,22 @@ export function UserForm({ user, roles, organizations, onClose }: UserFormProps)
   const { createUserMutation, updateUserMutation } = useUserManagement();
   const [showPassword, setShowPassword] = useState(!isEditMode);
 
+  // Create a copy of the schema that's appropriate for edit mode
+  const editModeSchema = z.object({
+    ...userFormSchema.shape,
+    password: z.string().optional(),
+    confirmPassword: z.string().optional(),
+  }).refine(
+    data => !data.password || !data.confirmPassword || data.password === data.confirmPassword,
+    {
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    }
+  );
+
   // Set up the form with default values
   const form = useForm<UserFormValues>({
-    resolver: zodResolver(isEditMode ? userFormSchema.partial() : userFormSchema),
+    resolver: zodResolver(isEditMode ? editModeSchema : userFormSchema),
     defaultValues: user
       ? {
           ...user,
