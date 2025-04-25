@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 
 import {
   Card,
@@ -26,6 +26,10 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+// Import login banners
+import desktopBanner from "@/assets/banners/bg-login-desktop.png";
+import mobileBanner from "@/assets/banners/bg-login-mobile.png";
+
 const loginFormSchema = z.object({
   username: z.string().min(1, { message: "Username is required" }),
   password: z.string().min(1, { message: "Password is required" }),
@@ -34,9 +38,29 @@ const loginFormSchema = z.object({
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 export default function Login() {
-  const { login, error } = useAuth();
+  const { login, error, user } = useAuth();
   const [_, navigate] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Redirect if user is already logged in
+    if (user) {
+      navigate("/");
+    }
+    
+    // Set mobile state based on screen size
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+    
+    return () => {
+      window.removeEventListener("resize", checkIfMobile);
+    };
+  }, [user, navigate]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
@@ -58,26 +82,51 @@ export default function Login() {
     }
   };
 
+  // This is for redirecting to the right dashboard after login
+  const getRedirectPath = () => {
+    // Check if the user has an admin role, otherwise redirect to regular dashboard
+    return user?.role === 'admin' ? '/admin/dashboard' : '/dashboard';
+  };
+
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center md:justify-start lg:justify-end bg-no-repeat bg-cover bg-center relative p-4 md:p-8" 
-      style={{ 
-        backgroundImage: "url('/src/assets/auth-bg.jpg')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}
-    >
-      <div className="absolute inset-0 bg-blue-900/50" />
-      <div className="w-full max-w-[500px] relative z-10 mx-auto md:ml-24 lg:mr-24">
-        <div className="w-full flex flex-row items-center justify-start mb-8">
-          <img src="/src/assets/logos/MetaSys Logo-Light.png" alt="MetaSys ERP" className="h-14" />
+    <div className={`min-h-screen flex ${isMobile ? 'flex-col' : 'lg:flex-row md:flex-col-reverse'}`}>
+      {/* Left side - Banner Image (hidden on mobile) */}
+      {!isMobile && (
+        <div className="lg:w-1/2 hidden md:block">
+          <img 
+            src={desktopBanner} 
+            alt="MetaSys ERP" 
+            className="h-full w-full object-cover"
+          />
         </div>
-        <Card className="w-full bg-white/90 dark:bg-gray-900/95 backdrop-blur-sm border-0 shadow-2xl">
-          <div className="h-1 bg-gradient-to-r from-[#2170dd] to-[#4d9eff] rounded-t-lg"></div>
+      )}
+      
+      {/* Right side - Login Form */}
+      <div 
+        className={`lg:w-1/2 md:w-full flex flex-col justify-center items-center p-8
+                    ${isMobile ? 'bg-no-repeat bg-cover bg-center' : 'bg-white/80 backdrop-blur'}`}
+        style={isMobile ? { backgroundImage: `url(${mobileBanner})` } : {}}
+      >
+        {/* Logo at top */}
+        <div className="w-full max-w-md mb-8">
+          <Link to={getRedirectPath()}>
+            <img 
+              src="/src/assets/logos/MetaSys Logo-Light.png" 
+              alt="MetaSys ERP" 
+              className="h-14"
+            />
+          </Link>
+        </div>
+        
+        {/* Login form card */}
+        <Card 
+          className="w-full max-w-md border-0 shadow-lg animate-[fadeUp_.4s_ease-out_both] 
+                   bg-white/80 backdrop-blur dark:bg-gray-900/90"
+        >
           <CardHeader className="space-y-1 pt-6">
-            <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
-            <CardDescription className="text-center">
-              Sign in to your account to continue
+            <CardTitle className="text-2xl font-bold text-[#011F26]">Sign In</CardTitle>
+            <CardDescription className="text-[#411F26]/80">
+              Access your MetaSys ERP account
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
@@ -96,11 +145,11 @@ export default function Login() {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Username</FormLabel>
+                      <FormLabel className="text-[#011F26]">Username</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          className="h-11"
+                          className="h-11 border-gray-300 focus:ring-[#025E73] focus:border-[#025E73] dark:border-gray-600"
                           placeholder="Enter your username"
                           autoComplete="username"
                         />
@@ -114,12 +163,12 @@ export default function Login() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel className="text-[#011F26]">Password</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           type="password"
-                          className="h-11"
+                          className="h-11 border-gray-300 focus:ring-[#025E73] focus:border-[#025E73] dark:border-gray-600"
                           placeholder="Enter your password"
                           autoComplete="current-password"
                         />
@@ -131,7 +180,7 @@ export default function Login() {
                 <div className="flex justify-end mb-2">
                   <Button 
                     variant="link" 
-                    className="p-0 h-auto text-[#2170dd] hover:text-[#3984ea] font-medium"
+                    className="p-0 h-auto text-[#025E73] hover:text-[#412754] font-medium transition-colors"
                     onClick={() => navigate("/auth/forgot-password")}
                     type="button"
                   >
@@ -141,7 +190,8 @@ export default function Login() {
                 
                 <Button 
                   type="submit" 
-                  className="w-full h-11 mt-2 bg-[#2170dd] hover:bg-[#3984ea] transition-colors"
+                  className="w-full h-11 mt-2 bg-[#025E73] hover:bg-[#F2A71B] active:bg-[#C78A14] text-white 
+                           transition-all duration-150 hover:scale-[1.03]"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -160,6 +210,11 @@ export default function Login() {
             </Form>
           </CardContent>
         </Card>
+        
+        {/* Footer text */}
+        <div className="mt-8 text-center text-white text-sm">
+          <p>MetaSys ERP &copy; {new Date().getFullYear()} - Complete AI-driven Enterprise Suite</p>
+        </div>
       </div>
     </div>
   );

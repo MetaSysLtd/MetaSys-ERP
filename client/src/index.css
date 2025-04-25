@@ -468,6 +468,17 @@
       transform: rotate(360deg);
     }
   }
+  
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
   /* Card Component per Design */
   .card {
