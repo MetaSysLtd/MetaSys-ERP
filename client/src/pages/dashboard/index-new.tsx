@@ -109,7 +109,7 @@ export default function Dashboard() {
       </MotionList>
 
       <MotionWrapper animation="fade-in" delay={0.9}>
-        <CommissionBreakdown data={dashboardData?.commissions} />
+        <CommissionBreakdown userId={user?.id} isAdmin={role?.name === 'Admin'} />
       </MotionWrapper>
       
       <MotionWrapper animation="fade-in" delay={1.0}>

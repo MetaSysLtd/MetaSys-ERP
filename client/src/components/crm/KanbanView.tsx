@@ -59,7 +59,7 @@ export function KanbanView({ leads, isLoading, showFilter }: KanbanProps) {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const { socket, connected, subscribe } = useSocket();
+  const { socket, connected } = useSocket();
   
   const [statusColumns, setStatusColumns] = useState<{[key: string]: Lead[]}>({
     qualified: [],
@@ -105,18 +105,21 @@ export function KanbanView({ leads, isLoading, showFilter }: KanbanProps) {
   
   // Subscribe to lead updates
   useEffect(() => {
-    if (!connected) return;
+    if (!connected || !socket) return;
     
-    const unsubscribeLeadUpdate = subscribe('lead_updated', (data) => {
+    // Event handler function
+    const handleLeadUpdate = (data: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/leads'] });
-    });
-    
-    return () => {
-      if (unsubscribeLeadUpdate) {
-        unsubscribeLeadUpdate();
-      }
     };
-  }, [connected, subscribe, queryClient]);
+    
+    // Register event listener
+    socket.on('lead_updated', handleLeadUpdate);
+    
+    // Clean up listener on unmount
+    return () => {
+      socket.off('lead_updated', handleLeadUpdate);
+    };
+  }, [connected, socket, queryClient]);
   
   // Mutation to update lead status
   const updateLeadStatusMutation = useMutation({
