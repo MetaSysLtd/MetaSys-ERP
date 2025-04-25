@@ -2,7 +2,7 @@
 import { Link } from "wouter";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
 import { useAuth } from "@/hooks/use-auth";
-import metaSysLogoDark from "@/assets/logos/logo-dark.png";
+import metaSysLogoDark from "@assets/MetaSys Logo-Dark.png";
 
 export function Logo() {
   const { user } = useAuth();

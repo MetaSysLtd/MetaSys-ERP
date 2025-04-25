@@ -63,11 +63,15 @@ export function MetricCard({
   const displayIcon = icon || getDefaultIcon();
 
   return (
-    <Card className={`bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow ${className}`}>
+    <Card 
+      accent={true} 
+      accentPosition="left" 
+      className={`bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-all group ${className}`}
+    >
       <CardContent className="p-5">
         <div className="flex items-center">
-          <div className={`flex-shrink-0 ${iconBgColor} rounded-md p-3`}>
-            <div className={`h-6 w-6 ${iconColor}`}>{displayIcon}</div>
+          <div className={`flex-shrink-0 ${iconBgColor} rounded-md p-3 transition-colors group-hover:bg-[#F2A71B]/10`}>
+            <div className={`h-6 w-6 ${iconColor} transition-colors group-hover:text-[#F2A71B]`}>{displayIcon}</div>
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
@@ -89,9 +93,9 @@ export function MetricCard({
         <CardFooter className="bg-gray-50 px-5 py-3">
           <div className="text-sm">
             <Link href={href}>
-              <span className="font-medium text-blue-600 hover:text-blue-900 flex items-center cursor-pointer">
+              <span className="font-medium text-[#025E73] hover:text-[#F2A71B] flex items-center cursor-pointer transition-colors">
                 View details
-                <ArrowRight className="ml-1 h-4 w-4" />
+                <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
           </div>
@@ -105,7 +109,7 @@ export function MetricCard({
 export function CommissionBreakdown({ data }: { data?: any }) {
   if (!data) {
     return (
-      <Card className="shadow rounded-lg">
+      <Card accent={true} accentPosition="top" className="shadow rounded-lg group">
         <CardContent className="p-5 flex justify-center items-center h-32">
           <p className="text-gray-500">No commission data available</p>
         </CardContent>
@@ -114,9 +118,9 @@ export function CommissionBreakdown({ data }: { data?: any }) {
   }
   
   return (
-    <Card className="shadow rounded-lg">
+    <Card accent={true} accentPosition="top" className="shadow rounded-lg transition-all hover:shadow-md group">
       <CardContent className="p-5">
-        <h3 className="text-lg font-medium mb-4">Commission Breakdown</h3>
+        <h3 className="text-lg font-medium mb-4 text-[#025E73] group-hover:text-[#011F26] transition-colors">Commission Breakdown</h3>
         {/* Commission data would be rendered here */}
         <p>Commission data visualization would go here</p>
       </CardContent>
