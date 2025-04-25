@@ -1,0 +1,168 @@
+Instruction to Replit Bot: Platform Analysis and Required Fixes/Extensions
+You have shared the MetaSys ERP platform documentation above.
+However, after thorough analysis, the following critical gaps, missing functionalities, or incorrect implementations are found that MUST be addressed immediately.
+
+You must complete these before any new features are built.
+
+1. CRM Module — Missing Critical Functions
+✅ "Lead Management" is too basic.
+You must implement:
+
+Manual call logs (duration, outcome) against each lead
+
+Follow-up scheduler (auto-create call reminders after onboarding)
+
+Customer feedback system (monthly survey + rating out of 5)
+
+Lifecycle stage automation (New → In Progress → HandToDispatch → Active)
+
+Service charges / Deal amount entry before moving to Dispatch
+
+Auto-assignment to Marketing list when onboarded
+
+Pipeline metrics (conversion %) dashboard per agent
+
+Back-end missing endpoints: /api/leads/followups, /api/leads/feedback
+
+Real-time sockets: leadUpdated, followupDue
+
+2. Dispatch Management — Incomplete
+✅ "Load Tracking" alone is not Dispatch.
+You must build:
+
+First load onboarding logic: (No client status = Active until First Load done)
+
+Carrier remarks/status notes: ("Need Load", "Booked", "Will Let Us Know")
+
+Carrier pending invoice tracker
+
+Client engagement metrics for Dispatchers
+
+Daily Dispatch KPIs dashboard
+
+Socket events: loadBooked, clientActivated
+
+3. Financial Management — Dangerously Incomplete
+✅ "Invoice generation" is mentioned, but not really working.
+
+You must add:
+
+Pending invoice tracker per carrier
+
+Cleared invoice reporting
+
+Automated invoice reminder system after 3 days
+
+Mass auto-generate pending invoices every Sunday
+
+Real dispatcher commissions linking to invoices cleared
+
+Missing endpoints: /api/invoices/generatePending, /api/invoices/reminders
+
+4. Task Management — Very Basic
+✅ "Task creation/assignment" is too basic.
+
+You must implement:
+
+CRM / Dispatch task sync: Tasks linked directly to leads/clients
+
+Auto-create Tasks from missed follow-ups
+
+Deadline escalation notification
+
+Socket events: taskOverdue
+
+5. Time Tracking — Only Skeleton
+✅ "Clock-in/Clock-out" is not enough.
+
+You must complete:
+
+Timesheet approvals for Admins
+
+Monthly hours report per employee
+
+Warning if < minimum hours / day clocked
+
+Missing logic: Auto-warnings, Slack summary.
+
+6. HR Management — Needs Full Structure
+✅ "Employee records" exists but:
+
+You must add:
+
+Hiring Pipeline: Job posts → Applications → Interviews → Hiring
+
+Leave calendar: View team members' leaves in monthly calendar
+
+Onboarding checklists for new hires
+
+Offboarding process
+
+Missing collections: applications, onboarding_tasks
+
+7. Notification System — Incomplete Workflows
+✅ "Real-time notifications" exists, but:
+
+You must add:
+
+Color-coded notifications (Success: Green, Warning: Yellow, Danger: Red)
+
+Slack notifications for:
+
+New onboarded carrier
+
+Cleared invoices
+
+Overdue daily reports
+
+Weekly performance milestones
+
+Missing socket events: invoiceCleared, clientOnboarded, performanceAlert
+
+8. Admin Controls — Missing Flexibility
+✅ Role-based access exists, but:
+
+You must add:
+
+Fine-grained permissions system (canEditLeads, canApproveInvoices, etc.)
+
+Admin Dashboard view per Organization
+
+Multi-org management at top level
+
+9. Reporting System — Very Thin
+✅ Only "basic reporting" exists.
+
+You must build:
+
+Daily Dispatch Report automation (covered earlier)
+
+Daily Sales Report automation
+
+Weekly team performance summaries
+
+Financial reports: Revenue vs Target vs Actual cleared
+
+HR reports: Leaves summary, Hiring stats
+
+10. UI & UX — Half-done
+✅ Branding colors partially applied.
+
+You must:
+
+Apply consistent primary/secondary colors:
+(Primary Teal #025E73, Navy #011F26; Secondary Yellow #F2A71B, Plum #412754)
+
+Make all buttons consistent
+
+Correct sidebar behavior (expand/collapse correctly, active highlights)
+
+Fully mobile responsive in sidebar, tables, forms
+
+Apply Canva-inspired modern, clean, light design principles
+
+FINAL REQUIREMENT:
+✅ Before building any new features, fix the missing implementations first.
+✅ Ensure that both backend logic AND frontend display are completed.
+✅ Add Cypress & unit tests after each module update.
+✅ Confirm real-time sockets work.

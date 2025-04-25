@@ -563,14 +563,28 @@ export class MemStorage implements IStorage {
   }
   
   async getUsersByDepartment(department: string): Promise<User[]> {
-    // Get all roles in this department
-    const deptRoles = Array.from(this.roles.values())
-      .filter(role => role.department.toLowerCase() === department.toLowerCase());
-    
-    // Get all users with those role IDs
-    const roleIds = deptRoles.map(role => role.id);
-    return Array.from(this.users.values())
-      .filter(user => roleIds.includes(user.roleId));
+    try {
+      // First try to find users by their department field
+      const usersByDept = Array.from(this.users.values())
+        .filter(user => user.department && user.department.toLowerCase() === department.toLowerCase());
+      
+      if (usersByDept.length > 0) {
+        return usersByDept;
+      }
+      
+      // Fallback: Get all roles in this department
+      const deptRoles = Array.from(this.roles.values())
+        .filter(role => role.department && role.department.toLowerCase() === department.toLowerCase());
+      
+      // Get all users with those role IDs
+      const roleIds = deptRoles.map(role => role.id);
+      return Array.from(this.users.values())
+        .filter(user => roleIds.includes(user.roleId));
+    } catch (error) {
+      console.error('Error in getUsersByDepartment:', error);
+      // Final fallback - return empty array
+      return [];
+    }
   }
   
   async getActiveLeadCountByUserIdAndMonth(userId: number, month: string): Promise<number> {
