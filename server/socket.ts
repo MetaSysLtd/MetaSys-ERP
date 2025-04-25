@@ -1,8 +1,8 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server } from 'http';
 import { db } from './db';
-import { users, notifications } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { users, notifications, roles } from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
 
 export let io: SocketIOServer;
 
@@ -102,11 +102,13 @@ export async function sendSocketNotification(type: string, userId: number, data:
   try {
     // Store notification in database
     await db.insert(notifications).values({
-      userId,
+      title: data.title || type,
       type,
-      content: JSON.stringify(data),
+      userId,
+      message: data.message || JSON.stringify(data),
       read: false,
       createdAt: new Date(),
+      updatedAt: new Date()
     });
 
     // Send via socket if user is connected
@@ -115,6 +117,149 @@ export async function sendSocketNotification(type: string, userId: number, data:
     return true;
   } catch (error) {
     console.error(`Error sending ${type} notification:`, error);
+    return false;
+  }
+}
+
+/**
+ * Send a notification to all team leads and admins in both sales and dispatch departments
+ */
+export async function notifyTeamLeadsAndAdmins(type: string, data: any) {
+  try {
+    // Find all team leads and admin users
+    const teamLeadsAndAdmins = await db.select()
+      .from(users)
+      .innerJoin(roles, eq(users.roleId, roles.id))
+      .where(
+        or(
+          eq(roles.name, 'Admin'),
+          eq(roles.name, 'Sales Team Lead'),
+          eq(roles.name, 'Dispatch Team Lead')
+        )
+      );
+    
+    // Send notification to each team lead and admin
+    for (const user of teamLeadsAndAdmins) {
+      await sendSocketNotification(type, user.users.id, data);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error notifying team leads and admins (${type}):`, error);
+    return false;
+  }
+}
+
+/**
+ * Send lead assigned notification to a dispatcher
+ */
+export async function sendLeadAssignedNotification(dispatcherId: number, leadData: any) {
+  try {
+    const notificationData = {
+      title: 'New Lead Assigned',
+      message: `A new lead (${leadData.name}) has been assigned to you. Please review and follow up.`,
+      leadId: leadData.id,
+      leadName: leadData.name,
+      clientName: leadData.clientName,
+      assignedBy: leadData.assignedBy,
+      assignedAt: new Date(),
+      status: leadData.status
+    };
+    
+    // Send to the specific dispatcher
+    await sendSocketNotification('leadAssigned', dispatcherId, notificationData);
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending lead assigned notification:', error);
+    return false;
+  }
+}
+
+/**
+ * Send follow-up reminder for leads that are still in HandToDispatch status after 24 hours
+ */
+export async function sendLeadFollowUpReminder(dispatcherId: number, leadData: any) {
+  try {
+    const notificationData = {
+      title: 'Lead Follow-Up Required',
+      message: `Lead ${leadData.name} is still in HandToDispatch status. Immediate follow-up required.`,
+      leadId: leadData.id,
+      leadName: leadData.name,
+      clientName: leadData.clientName,
+      assignedAt: leadData.assignedAt,
+      status: leadData.status
+    };
+    
+    // Send to the specific dispatcher
+    await sendSocketNotification('leadFollowUpReminder', dispatcherId, notificationData);
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending lead follow-up reminder:', error);
+    return false;
+  }
+}
+
+/**
+ * Send weekly inactive leads reminder
+ */
+export async function sendWeeklyInactiveLeadsReminder(dispatcherId: number, leadData: any) {
+  try {
+    const notificationData = {
+      title: 'Weekly Inactive Leads Reminder',
+      message: `You have ${leadData.count} inactive lead(s) in HandToDispatch status for more than a week. Please take action.`,
+      leadIds: leadData.leadIds,
+      leadNames: leadData.leadNames,
+      count: leadData.count
+    };
+    
+    // Send to the specific dispatcher
+    await sendSocketNotification('weeklyInactiveLeadsReminder', dispatcherId, notificationData);
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending weekly inactive leads reminder:', error);
+    return false;
+  }
+}
+
+/**
+ * Send lead status change notification
+ */
+export async function sendLeadStatusChangeNotification(leadData: any) {
+  try {
+    const notificationData = {
+      title: 'Lead Status Changed',
+      message: `Lead ${leadData.name} status changed to ${leadData.status}`,
+      leadId: leadData.id,
+      leadName: leadData.name,
+      clientName: leadData.clientName,
+      previousStatus: leadData.previousStatus,
+      status: leadData.status,
+      changedBy: leadData.changedBy,
+      changedAt: new Date()
+    };
+    
+    // Send to team leads and admins
+    await notifyTeamLeadsAndAdmins('leadStatusChange', notificationData);
+    
+    // Send specific notification to sales team if status is Active or Unqualified
+    if (leadData.status === 'Active' || leadData.status === 'Unqualified') {
+      await db.select()
+        .from(users)
+        .innerJoin(roles, eq(users.roleId, roles.id))
+        .where(eq(roles.department, 'sales'))
+        .then(salesUsers => {
+          salesUsers.forEach(user => {
+            sendSocketNotification('leadStatusChange', user.users.id, notificationData);
+          });
+        });
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending lead status change notification:', error);
     return false;
   }
 }

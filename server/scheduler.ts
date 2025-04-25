@@ -1,10 +1,33 @@
 import { CronJob } from 'cron';
 import { db } from './db';
 import { io } from './socket';
-import { users, dispatchTasks, dispatchReports, invoices, performanceTargets } from '@shared/schema';
-import { eq, and, gte, lte } from 'drizzle-orm';
+import { 
+  users, 
+  dispatchTasks, 
+  dispatchReports, 
+  invoices, 
+  performanceTargets, 
+  leads,
+  roles
+} from '@shared/schema';
+import { eq, and, gte, lte, or, ne, sql } from 'drizzle-orm';
 import { storage } from './storage';
-import { addHours, startOfWeek, endOfWeek, format, subMinutes } from 'date-fns';
+import { 
+  addHours, 
+  startOfWeek, 
+  endOfWeek, 
+  format, 
+  subMinutes,
+  subDays,
+  subWeeks,
+  isAfter
+} from 'date-fns';
+import { 
+  sendLeadAssignedNotification, 
+  sendLeadFollowUpReminder, 
+  sendWeeklyInactiveLeadsReminder, 
+  sendLeadStatusChangeNotification
+} from './socket';
 
 /**
  * Creates daily tasks for dispatchers at the start of their shift
@@ -206,21 +229,114 @@ export function scheduleWeeklyInvoiceTargetCheck() {
 }
 
 /**
+ * Check for leads that are still in HandToDispatch status after 24 hours
+ * Sends a follow-up reminder to the assigned dispatcher
+ * Runs at 10:00 AM every day
+ */
+export function scheduleLeadFollowUpCheck() {
+  return new CronJob('0 10 * * *', async () => {
+    console.log('Running lead follow-up check cron job');
+    try {
+      // Find all leads that are still in HandToDispatch status and were assigned more than 24 hours ago
+      const oneDayAgo = subDays(new Date(), 1);
+      
+      const handToDispatchLeads = await db.select()
+        .from(leads)
+        .where(
+          and(
+            eq(leads.status, 'HandToDispatch'),
+            not(isNull(leads.assignedTo)),
+            lte(leads.updatedAt, oneDayAgo)
+          )
+        );
+      
+      console.log(`Found ${handToDispatchLeads.length} leads in HandToDispatch status for more than 24 hours`);
+      
+      // Send reminder for each lead
+      for (const lead of handToDispatchLeads) {
+        if (lead.assignedTo) {
+          await sendLeadFollowUpReminder(lead.assignedTo, {
+            id: lead.id,
+            name: lead.name,
+            clientName: lead.clientName,
+            assignedAt: lead.updatedAt,
+            status: lead.status
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error in lead follow-up check cron job:', error);
+    }
+  }, null, true, 'America/New_York');
+}
+
+/**
+ * Send weekly reminders for inactive leads that are still in HandToDispatch status
+ * Runs at 10:00 AM every Monday
+ */
+export function scheduleWeeklyInactiveLeadsReminder() {
+  return new CronJob('0 10 * * 1', async () => {
+    console.log('Running weekly inactive leads reminder cron job');
+    try {
+      // Get all dispatchers
+      const dispatchers = await db.select()
+        .from(users)
+        .innerJoin(roles, eq(users.roleId, roles.id))
+        .where(eq(roles.department, 'dispatch'));
+      
+      // For each dispatcher, find their inactive leads
+      for (const dispatcher of dispatchers) {
+        const inactiveLeads = await db.select()
+          .from(leads)
+          .where(
+            and(
+              eq(leads.assignedTo, dispatcher.users.id),
+              eq(leads.status, 'HandToDispatch')
+            )
+          )
+          .orderBy(desc(leads.updatedAt));
+        
+        // Only send reminder if there are inactive leads
+        if (inactiveLeads.length > 0) {
+          // Format data for notification
+          const leadIds = inactiveLeads.map(lead => lead.id);
+          const leadNames = inactiveLeads.map(lead => lead.name);
+          
+          await sendWeeklyInactiveLeadsReminder(dispatcher.users.id, {
+            count: inactiveLeads.length,
+            leadIds,
+            leadNames
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error in weekly inactive leads reminder cron job:', error);
+    }
+  }, null, true, 'America/New_York');
+}
+
+/**
  * Initializes all scheduler jobs
  */
 export function initializeScheduler() {
   const dailyTasksJob = scheduleDailyTasksReminder();
   const dailyReportJob = scheduleDailyReportReminder();
   const weeklyInvoiceJob = scheduleWeeklyInvoiceTargetCheck();
+  const leadFollowUpJob = scheduleLeadFollowUpCheck();
+  const weeklyInactiveLeadsJob = scheduleWeeklyInactiveLeadsReminder();
 
   console.log('Scheduler initialized with the following jobs:');
   console.log('- Daily Tasks Reminder: runs at 09:00 daily');
   console.log('- Daily Report Reminder: runs at 16:45 daily');
   console.log('- Weekly Invoice Target Check: runs at 23:00 on Fridays');
+  console.log('- Lead Follow-up Check: runs at 10:00 daily');
+  console.log('- Weekly Inactive Leads Reminder: runs at 10:00 on Mondays');
 
   return {
     dailyTasksJob,
     dailyReportJob,
-    weeklyInvoiceJob
+    weeklyInvoiceJob,
+    leadFollowUpJob,
+    weeklyInactiveLeadsJob
   };
 }
