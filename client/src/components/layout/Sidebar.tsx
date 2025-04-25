@@ -21,8 +21,8 @@ import {
   Megaphone
 } from "lucide-react";
 import { useDispatch, useSelector } from 'react-redux';
-import { setPreferences } from '@/store/uiPreferencesSlice';
-import { useEffect, useCallback, useState } from "react";
+import { setPreferences, syncToggleDropdown } from '@/store/uiPreferencesSlice';
+import { useEffect, useCallback, useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Logo } from '@/components/ui/logo';
 

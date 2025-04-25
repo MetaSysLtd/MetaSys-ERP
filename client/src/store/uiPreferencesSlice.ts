@@ -5,11 +5,13 @@ import { apiRequest } from '@/lib/queryClient';
 interface UiPreferences {
   sidebarPinned: boolean;
   sidebarCollapsed: boolean;
+  expandedDropdown: string | null;
 }
 
 const initialState: UiPreferences = {
   sidebarPinned: true,
-  sidebarCollapsed: false
+  sidebarCollapsed: false,
+  expandedDropdown: null
 };
 
 /**
@@ -25,20 +27,30 @@ const uiPreferencesSlice = createSlice({
   name: 'uiPreferences',
   initialState,
   reducers: {
-    setPreferences: (state, action: PayloadAction<UiPreferences>) => {
-      state.sidebarPinned = action.payload.sidebarPinned;
-      state.sidebarCollapsed = action.payload.sidebarCollapsed;
+    setPreferences: (state, action: PayloadAction<Partial<UiPreferences>>) => {
+      if (action.payload.sidebarPinned !== undefined) {
+        state.sidebarPinned = action.payload.sidebarPinned;
+      }
+      if (action.payload.sidebarCollapsed !== undefined) {
+        state.sidebarCollapsed = action.payload.sidebarCollapsed;
+      }
+      if (action.payload.expandedDropdown !== undefined) {
+        state.expandedDropdown = action.payload.expandedDropdown;
+      }
     },
     togglePinned: (state) => {
       state.sidebarPinned = !state.sidebarPinned;
     },
     toggleCollapsed: (state) => {
       state.sidebarCollapsed = !state.sidebarCollapsed;
+    },
+    toggleDropdown: (state, action: PayloadAction<string>) => {
+      state.expandedDropdown = state.expandedDropdown === action.payload ? null : action.payload;
     }
   }
 });
 
-export const { setPreferences, togglePinned, toggleCollapsed } = uiPreferencesSlice.actions;
+export const { setPreferences, togglePinned, toggleCollapsed, toggleDropdown } = uiPreferencesSlice.actions;
 export default uiPreferencesSlice.reducer;
 
 // Thunks for asynchronous operations
@@ -108,4 +120,20 @@ export const syncToggleCollapsed = () => async (dispatch: any, getState: any) =>
   dispatch(toggleCollapsed());
   const state = getState().uiPreferences;
   dispatch(updatePreferences({ sidebarCollapsed: state.sidebarCollapsed }));
+};
+
+/**
+ * Toggle sidebar dropdown expanded state and sync with local storage
+ */
+export const syncToggleDropdown = (name: string) => (dispatch: any, getState: any) => {
+  dispatch(toggleDropdown(name));
+  
+  // We don't need to sync this with the server as it's more of a UI state
+  // Just store in localStorage for persistence across page refreshes
+  try {
+    const state = getState().uiPreferences;
+    localStorage.setItem('metasys_expanded_dropdown', state.expandedDropdown || '');
+  } catch (error) {
+    console.error('Failed to save dropdown state to localStorage:', error);
+  }
 };
