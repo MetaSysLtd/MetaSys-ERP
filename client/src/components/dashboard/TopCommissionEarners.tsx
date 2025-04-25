@@ -77,7 +77,7 @@ export default function TopCommissionEarners({
   useEffect(() => {
     if (!socket || !connected) return;
     
-    // Event handler function
+    // Event handler function and registration
     const handleCommissionUpdate = (data: any) => {
       console.log('Received admin commission update:', data);
       
