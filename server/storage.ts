@@ -1,5 +1,5 @@
 import {
-  users, roles, leads, loads, invoices, invoiceItems, commissions, activities, tasks,
+  users, roles, leads, leadRemarks, loads, invoices, invoiceItems, commissions, activities, tasks,
   dispatch_clients, organizations, userOrganizations, commissionRules, commissionsMonthly,
   clockEvents, clockEventTypeEnum, uiPreferences, dispatchTasks, dispatchReports, performanceTargets,
   type User, type InsertUser, type Role, type InsertRole,
@@ -16,7 +16,8 @@ import {
   type UiPreferences, type InsertUiPreferences,
   type DispatchTask, type InsertDispatchTask,
   type DispatchReport, type InsertDispatchReport,
-  type PerformanceTarget, type InsertPerformanceTarget
+  type PerformanceTarget, type InsertPerformanceTarget,
+  type LeadRemark
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -67,6 +68,12 @@ export interface IStorage {
   getLeadsByAssignee(userId: number): Promise<Lead[]>;
   createLead(lead: InsertLead): Promise<Lead>;
   updateLead(id: number, lead: Partial<Lead>): Promise<Lead | undefined>;
+  
+  // Lead remarks operations
+  getLeadRemark(id: number): Promise<LeadRemark | undefined>;
+  getLeadRemarks(): Promise<LeadRemark[]>;
+  getLeadRemarksByLeadId(leadId: number): Promise<LeadRemark[]>;
+  createLeadRemark(remark: { leadId: number; userId: number; text: string; }): Promise<LeadRemark>;
   
   // Load operations
   getLoad(id: number): Promise<Load | undefined>;
@@ -627,6 +634,44 @@ export class MemStorage implements IStorage {
 
   async getLeads(): Promise<Lead[]> {
     return Array.from(this.leads.values());
+  }
+  
+  // Lead remarks operations
+  async getLeadRemark(id: number): Promise<LeadRemark | undefined> {
+    return this.leadRemarks.get(id);
+  }
+  
+  async getLeadRemarks(): Promise<LeadRemark[]> {
+    return Array.from(this.leadRemarks.values());
+  }
+  
+  async getLeadRemarksByLeadId(leadId: number): Promise<LeadRemark[]> {
+    return Array.from(this.leadRemarks.values())
+      .filter(remark => remark.leadId === leadId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  
+  async createLeadRemark(insertRemark: {
+    leadId: number;
+    userId: number;
+    text: string;
+  }): Promise<LeadRemark> {
+    const id = this.leadRemarkIdCounter++;
+    const now = new Date();
+    const remark: LeadRemark = {
+      ...insertRemark,
+      id,
+      createdAt: now
+    };
+    this.leadRemarks.set(id, remark);
+    
+    // Also update the lead's updatedAt field
+    const lead = await this.getLead(insertRemark.leadId);
+    if (lead) {
+      await this.updateLead(lead.id, { updatedAt: now });
+    }
+    
+    return remark;
   }
 
   async getLeadsByStatus(status: string): Promise<Lead[]> {
