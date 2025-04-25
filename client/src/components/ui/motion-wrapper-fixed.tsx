@@ -90,3 +90,31 @@ export function MotionWrapper({
     </motion.div>
   );
 }
+
+// MotionList component for animating lists/groups of content
+export function MotionList({
+  children,
+  animation = "fade",
+  delay = 0,
+  duration = 0.3,
+  className = ""
+}: MotionWrapperProps) {
+  const animationProps = animations[animation];
+
+  return (
+    <motion.div
+      initial={animationProps.initial}
+      animate={animationProps.animate}
+      exit={animationProps.exit}
+      transition={{ 
+        duration, 
+        delay,
+        ease: [0.16, 1, 0.3, 1],
+        staggerChildren: 0.1 // Adds staggered animation to children
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
