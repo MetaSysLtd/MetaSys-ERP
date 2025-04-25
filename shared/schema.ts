@@ -27,13 +27,13 @@ export const organizations = pgTable("organizations", {
 
 // User and Role Management
 export const roleEnum = pgEnum('role_type', ['agent', 'TL', 'manager', 'head', 'admin']);
-export const departmentEnum = pgEnum('department_type', ['sales', 'dispatch', 'hr', 'finance', 'marketing']);
+export const departmentEnum = pgEnum('department_type', ['sales', 'dispatch', 'hr', 'finance', 'marketing', 'accounting', 'admin']);
 export const userStatusEnum = pgEnum('user_status', ['active', 'invited', 'inactive']);
 
 export const roles = pgTable("roles", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
-  department: departmentEnum("department").notNull(), // "sales", "dispatch", "hr", "finance", "marketing"
+  department: text("department").notNull(), // Text in DB: "sales", "dispatch", "hr", "finance", "marketing", "accounting", "admin"
   level: integer("level").notNull(), // 1 = Rep, 2 = Team Lead, 3 = Manager, 4 = Head, 5 = Super Admin
   permissions: text("permissions").array().notNull(),
 });
@@ -48,7 +48,7 @@ export const users = pgTable("users", {
   phoneNumber: text("phone_number"),
   roleId: integer("role_id").notNull().references(() => roles.id),
   orgId: integer("org_id").references(() => organizations.id),
-  department: departmentEnum("department"),
+  department: text("department"), // Text in DB: "sales", "dispatch", "hr", "finance", "marketing", "accounting", "admin"
   teamId: integer("team_id"),
   status: userStatusEnum("status").notNull().default("active"),
   
@@ -94,7 +94,7 @@ export const teams = pgTable("teams", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   orgId: integer("org_id").notNull().references(() => organizations.id),
-  department: departmentEnum("department").notNull(),
+  department: text("department").notNull(),  // Text in DB
   teamLeadId: integer("team_lead_id").references(() => users.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
