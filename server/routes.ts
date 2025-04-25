@@ -358,23 +358,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username and password are required" });
       }
 
+      // Add verbose logging to debug the issue
+      console.log(`Login attempt for username: ${username}`);
+      
       const user = await storage.getUserByUsername(username);
-      if (!user || user.password !== password) { // In a real app, use bcrypt to compare passwords
+      if (!user) {
+        console.log(`User not found: ${username}`);
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
+      
+      // Simple password comparison - in a real app, use bcrypt
+      if (user.password !== password) {
+        console.log(`Invalid password for user: ${username}`);
         return res.status(401).json({ message: "Invalid username or password" });
       }
 
       // Store user in session
       req.session.userId = user.id;
       
-      const role = await storage.getRole(user.roleId);
-      
-      // Return user info (except password)
-      const { password: _, ...userInfo } = user;
-      return res.status(200).json({ 
-        user: userInfo,
-        role
-      });
+      try {
+        // Try to get role information, but handle any errors
+        const role = await storage.getRole(user.roleId);
+        
+        // Return user info (except password)
+        const { password: _, ...userInfo } = user;
+        
+        // Log successful login
+        console.log(`User ${username} logged in successfully`);
+        
+        return res.status(200).json({ 
+          user: userInfo,
+          role: role ? role : null
+        });
+      } catch (roleError) {
+        console.error(`Error fetching role for user ${username}:`, roleError);
+        
+        // Return user info without role if there's an error getting role
+        const { password: _, ...userInfo } = user;
+        
+        return res.status(200).json({ 
+          user: userInfo,
+          role: null,
+          message: "Authentication successful but role data is unavailable"
+        });
+      }
     } catch (error) {
+      console.error("Login error:", error);
       next(error);
     }
   });
@@ -390,25 +419,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   authRouter.get("/me", async (req, res, next) => {
     try {
       if (!req.session.userId) {
+        console.log("No userId in session");
         return res.status(401).json({ authenticated: false });
       }
 
       const user = await storage.getUser(req.session.userId);
       if (!user) {
+        console.log(`User with id ${req.session.userId} not found`);
         req.session.destroy(() => {});
         return res.status(401).json({ authenticated: false });
       }
 
-      const role = await storage.getRole(user.roleId);
-      
-      // Return user info (except password)
-      const { password: _, ...userInfo } = user;
-      return res.status(200).json({ 
-        authenticated: true,
-        user: userInfo,
-        role
-      });
+      // Try to get role information but handle errors gracefully
+      try {
+        const role = await storage.getRole(user.roleId);
+        
+        // Return user info (except password)
+        const { password: _, ...userInfo } = user;
+        return res.status(200).json({ 
+          authenticated: true,
+          user: userInfo,
+          role
+        });
+      } catch (roleError) {
+        console.error(`Error fetching role for user ${user.username}:`, roleError);
+        
+        // Return user info without role
+        const { password: _, ...userInfo } = user;
+        return res.status(200).json({ 
+          authenticated: true,
+          user: userInfo,
+          role: null,
+          message: "Authentication successful but role data is unavailable"
+        });
+      }
     } catch (error) {
+      console.error("Auth check error:", error);
       next(error);
     }
   });

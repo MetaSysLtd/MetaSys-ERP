@@ -90,6 +90,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     
     try {
+      // Log the attempt for debugging
+      console.log(`Attempting to login with username: ${username}`);
+      
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -100,9 +103,14 @@ function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       const data = await res.json();
+      console.log("Login response:", { status: res.status, data });
       
       if (!res.ok) {
-        throw new Error(data.message || "Failed to login");
+        throw new Error(data.message || "Invalid username or password");
+      }
+      
+      if (!data.user) {
+        throw new Error("Server returned no user data");
       }
       
       setIsAuthenticated(true);
@@ -114,6 +122,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(false);
       setUser(null);
       setRole(null);
+      // Re-throw the error so the login form component can also handle it
+      throw err;
     } finally {
       setIsLoading(false);
     }

@@ -73,11 +73,20 @@ export default function Login() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
+    console.log(`Login form submitted with username: ${data.username}`);
     try {
+      // Attempt to login
       await login(data.username, data.password);
+      
+      // Navigate only if login was successful
       navigate("/");
-    } catch (err) {
-      // Auth context already handles the error
+    } catch (err: any) {
+      console.error("Login error caught in form:", err);
+      // Error already handled in context, but we can add logic here if needed
+      // For example, we could add form-specific error handling
+      
+      // Reset form password field for security
+      form.setValue('password', '');
     } finally {
       setIsLoading(false);
     }
