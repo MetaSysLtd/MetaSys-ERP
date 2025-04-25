@@ -28,7 +28,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Importing assets for login page
 import desktopBannerPath from "@/assets/banners/bg-login-desktop.png";
-import mobileBannerPath from "@/assets/banners/bg-login-mobile.png";
+import mobileBannerPath from "@/assets/backgrounds/gradient-bg.png"; // New gradient background
 import logoLightPath from "@/assets/logos/MetaSys-Logo-Light.png";
 
 const loginFormSchema = z.object({
