@@ -2680,6 +2680,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const notificationSettingsRouter = express.Router();
   app.use("/api/notification-settings", notificationSettingsRouter);
   
+  // Lead notifications routes
+  const leadNotificationsRouter = express.Router();
+  app.use("/api/notifications/leads", leadNotificationsRouter);
+  
+  // Get lead notifications for a user
+  leadNotificationsRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const userId = req.user.id;
+      const role = req.userRole;
+      const rangeParam = req.query.range as string || '30d'; // Default to 30 days
+      
+      // Parse range parameter for date filtering
+      let daysAgo = 30;
+      if (rangeParam.endsWith('d')) {
+        daysAgo = parseInt(rangeParam.replace('d', ''));
+      }
+      
+      // Calculate the date 'daysAgo' days ago
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - daysAgo);
+      
+      // Initialize result structure
+      const result = {
+        assigned: [],
+        followUp: [],
+        inactive: [],
+        statusChanges: []
+      };
+      
+      // Determine which leads to fetch based on role
+      let leads;
+      if (role.department === 'admin' || role.level >= 4 || req.user.can_access_all_orgs) {
+        // Admins or higher-level roles can see all leads
+        leads = await storage.getLeads();
+      } else {
+        // Regular users see only their assigned leads
+        leads = await storage.getLeadsByAssignee(userId);
+      }
+      
+      if (leads.length > 0) {
+        const now = new Date();
+        
+        // Filter for each category
+        
+        // 1. Assigned Leads: assigned to current user and with status New or HandToDispatch in last 3 days
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(now.getDate() - 3);
+        
+        result.assigned = leads.filter(lead => 
+          lead.assignedTo === userId &&
+          (lead.status === 'New' || lead.status === 'HandToDispatch') &&
+          new Date(lead.createdAt) >= threeDaysAgo
+        );
+        
+        // 2. Follow-up: leads where last update was more than 7 days ago AND status is not Active/Lost
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(now.getDate() - 7);
+        
+        result.followUp = leads.filter(lead => 
+          lead.status !== 'Active' && 
+          lead.status !== 'Lost' &&
+          new Date(lead.updatedAt) <= sevenDaysAgo
+        );
+        
+        // 3. Inactive: leads with status InProgress or HandToDispatch with no updates in 10+ days
+        const tenDaysAgo = new Date();
+        tenDaysAgo.setDate(now.getDate() - 10);
+        
+        result.inactive = leads.filter(lead => 
+          (lead.status === 'InProgress' || lead.status === 'HandToDispatch') &&
+          new Date(lead.updatedAt) <= tenDaysAgo
+        );
+        
+        // 4. Status Changes: leads with status change in last 2 days
+        const twoDaysAgo = new Date();
+        twoDaysAgo.setDate(now.getDate() - 2);
+        
+        // For status changes, we need to query lead activities or remarks
+        const recentActivities = await storage.getActivitiesByEntityType('lead', twoDaysAgo);
+        const statusChangeActivities = recentActivities.filter(activity => 
+          activity.action === 'status_changed'
+        );
+        
+        const statusChangedLeadIds = statusChangeActivities.map(activity => activity.entityId);
+        result.statusChanges = leads.filter(lead => statusChangedLeadIds.includes(lead.id));
+      }
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   // Performance metrics routes
   const performanceRouter = express.Router();
   app.use("/api/dispatch/performance", performanceRouter);

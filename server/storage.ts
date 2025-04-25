@@ -2275,6 +2275,23 @@ export class DatabaseStorage implements IStorage {
     
     return query;
   }
+  
+  async getActivitiesByEntityType(entityType: string, since?: Date, limit?: number): Promise<Activity[]> {
+    let query = db.select()
+      .from(activities)
+      .where(eq(activities.entityType, entityType))
+      .orderBy(desc(activities.timestamp));
+    
+    if (since) {
+      query = query.where(gte(activities.timestamp, since));
+    }
+    
+    if (limit) {
+      query = query.limit(limit);
+    }
+    
+    return query;
+  }
 
   async createActivity(insertActivity: InsertActivity): Promise<Activity> {
     const [activity] = await db.insert(activities).values({
