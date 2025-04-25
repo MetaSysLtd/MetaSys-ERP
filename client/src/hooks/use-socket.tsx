@@ -1,79 +1,74 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { useToast } from '@/hooks/use-toast';
 
-export function useSocket() {
-  const [connected, setConnected] = useState(false);
-  const socketRef = useRef<Socket | null>(null);
-  const { toast } = useToast();
+interface SocketContextType {
+  socket: Socket | null;
+  connected: boolean;
+  emit: (event: string, ...args: any[]) => void;
+}
+
+const SocketContext = createContext<SocketContextType | undefined>(undefined);
+
+export function SocketProvider({ children }: { children: ReactNode }) {
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [connected, setConnected] = useState<boolean>(false);
 
   useEffect(() => {
-    // Create socket connection
+    // Determine WebSocket URL based on current environment
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const hostWithoutPort = window.location.host.split(':')[0];
-    const port = window.location.port || (protocol === 'wss:' ? '443' : '80');
+    const wsUrl = `${protocol}//${window.location.host}`;
     
-    // Use the same host and port as the current page
-    const socketUrl = `${protocol}//${window.location.host}`;
+    console.log('Connecting to socket at:', wsUrl);
     
-    console.log('Connecting to socket at:', socketUrl);
+    // Create socket connection
+    const socketInstance = io();
     
-    const socket = io(socketUrl);
-    socketRef.current = socket;
-
-    socket.on('connect', () => {
-      console.log('Socket connected:', socket.id);
+    // Set up event listeners
+    socketInstance.on('connect', () => {
+      console.log('Socket connected:', socketInstance.id);
       setConnected(true);
-      
-      toast({
-        title: "Real-time Updates Active",
-        description: "You'll receive instant updates when commission data changes.",
-        duration: 3000,
-      });
     });
-
-    socket.on('disconnect', () => {
+    
+    socketInstance.on('disconnect', () => {
       console.log('Socket disconnected');
       setConnected(false);
     });
-
-    socket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+    
+    socketInstance.on('error', (error) => {
+      console.error('Socket error:', error);
       setConnected(false);
     });
-
-    // Clean up socket on unmount
+    
+    // Save socket instance in state
+    setSocket(socketInstance);
+    
+    // Clean up on unmount
     return () => {
-      if (socket) {
-        socket.disconnect();
-        socketRef.current = null;
-      }
+      socketInstance.disconnect();
     };
   }, []);
 
-  // Subscribe to events
-  const subscribe = useCallback((event: string, callback: (...args: any[]) => void) => {
-    if (!socketRef.current) return;
-    
-    socketRef.current.on(event, callback);
-    
-    // Return unsubscribe function
-    return () => {
-      if (!socketRef.current) return;
-      socketRef.current.off(event, callback);
-    };
-  }, []);
-
-  // Emit events
-  const emit = useCallback((event: string, ...args: any[]) => {
-    if (!socketRef.current) return;
-    socketRef.current.emit(event, ...args);
-  }, []);
-
-  return {
-    connected,
-    socket: socketRef.current,
-    subscribe,
-    emit
+  // Helper function to emit events safely
+  const emit = (event: string, ...args: any[]) => {
+    if (socket && connected) {
+      socket.emit(event, ...args);
+    } else {
+      console.warn('Cannot emit event, socket is not connected:', event);
+    }
   };
+
+  return (
+    <SocketContext.Provider value={{ socket, connected, emit }}>
+      {children}
+    </SocketContext.Provider>
+  );
+}
+
+// Hook to use socket connection
+export function useSocket() {
+  const context = useContext(SocketContext);
+  if (context === undefined) {
+    throw new Error('useSocket must be used within a SocketProvider');
+  }
+  return context;
 }
