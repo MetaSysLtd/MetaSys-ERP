@@ -10,6 +10,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { useSocket } from './use-socket';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 // Types of lead notifications
 export enum LeadNotificationType {
@@ -71,6 +73,19 @@ export const LeadNotificationProvider = ({ children }: { children: ReactNode }) 
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<LeadNotification[]>([]);
   
+  // Fetch notifications from API
+  const { data: apiNotifications, isLoading } = useQuery({
+    queryKey: ['/api/notifications/leads'],
+    queryFn: async () => {
+      if (!user) return null;
+      const res = await apiRequest('GET', '/api/notifications/leads');
+      return res.json();
+    },
+    enabled: !!user,
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    staleTime: 2 * 60 * 1000, // Consider data stale after 2 minutes
+  });
+  
   // Utility to store notifications in local storage
   const saveNotifications = useCallback((notifs: LeadNotification[]) => {
     if (user) {
@@ -97,6 +112,98 @@ export const LeadNotificationProvider = ({ children }: { children: ReactNode }) 
       }
     }
   }, [user]);
+  
+  // Process API notifications when they arrive
+  useEffect(() => {
+    if (!apiNotifications || !user) return;
+    
+    const newNotifications: LeadNotification[] = [];
+    
+    // Process assigned leads notifications
+    if (apiNotifications.assigned && apiNotifications.assigned.length > 0) {
+      apiNotifications.assigned.forEach((lead: any) => {
+        const company = lead.companyName || 'Unknown';
+        newNotifications.push({
+          id: `assigned-${lead.id}-${Date.now()}`,
+          type: LeadNotificationType.LEAD_ASSIGNED,
+          title: 'New Lead Assigned',
+          message: `Lead '${company}' was assigned to you recently`,
+          leadId: lead.id,
+          leadName: company,
+          status: lead.status,
+          timestamp: new Date(),
+          read: false
+        });
+      });
+    }
+    
+    // Process follow-up reminders
+    if (apiNotifications.followUp && apiNotifications.followUp.length > 0) {
+      apiNotifications.followUp.forEach((lead: any) => {
+        const company = lead.companyName || 'Unknown';
+        newNotifications.push({
+          id: `followup-${lead.id}-${Date.now()}`,
+          type: LeadNotificationType.LEAD_FOLLOW_UP,
+          title: 'Lead Follow-up Required',
+          message: `Lead '${company}' needs follow-up. Last updated ${new Date(lead.updatedAt).toLocaleDateString()}`,
+          leadId: lead.id,
+          leadName: company,
+          status: lead.status,
+          timestamp: new Date(),
+          read: false
+        });
+      });
+    }
+    
+    // Process inactive leads
+    if (apiNotifications.inactive && apiNotifications.inactive.length > 0) {
+      const count = apiNotifications.inactive.length;
+      newNotifications.push({
+        id: `inactive-${Date.now()}`,
+        type: LeadNotificationType.INACTIVE_LEADS,
+        title: 'Inactive Leads Reminder',
+        message: `You have ${count} inactive leads that need attention`,
+        leadIds: apiNotifications.inactive.map((lead: any) => lead.id),
+        leadNames: apiNotifications.inactive.map((lead: any) => lead.companyName || 'Unknown'),
+        count,
+        timestamp: new Date(),
+        read: false
+      });
+    }
+    
+    // Process status changes
+    if (apiNotifications.statusChanges && apiNotifications.statusChanges.length > 0) {
+      apiNotifications.statusChanges.forEach((lead: any) => {
+        const company = lead.companyName || 'Unknown';
+        newNotifications.push({
+          id: `status-${lead.id}-${Date.now()}`,
+          type: LeadNotificationType.LEAD_STATUS_CHANGE,
+          title: 'Lead Status Changed',
+          message: `Lead '${company}' status changed to ${lead.status}`,
+          leadId: lead.id,
+          leadName: company,
+          status: lead.status,
+          timestamp: new Date(),
+          read: false
+        });
+      });
+    }
+    
+    // Merge new notifications with existing ones (avoid duplicates)
+    if (newNotifications.length > 0) {
+      setNotifications(prev => {
+        // Get IDs of existing notifications to avoid duplicates
+        const existingIds = new Set(prev.map(n => n.id));
+        const uniqueNew = newNotifications.filter(n => !existingIds.has(n.id));
+        
+        if (uniqueNew.length === 0) return prev;
+        
+        const updated = [...uniqueNew, ...prev];
+        saveNotifications(updated);
+        return updated;
+      });
+    }
+  }, [apiNotifications, user, saveNotifications]);
   
   // Socket event handlers for different notification types
   useEffect(() => {
