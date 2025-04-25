@@ -185,12 +185,12 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
         <div 
           className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
             ${isActiveRoute(item.href)
-              ? 'bg-[#457B9D] text-white hover:bg-[#2EC4B6]'
+              ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
               : isParentActive(item.href)
-                ? 'bg-[#1D3557] text-white'
-                : 'text-[#f5f9fc]/90 hover:bg-[#142c42] hover:text-white'}`}
+                ? 'bg-[#F2A71B] text-white'
+                : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}
         >
-          <item.icon className="h-[18px] w-[18px]" />
+          <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
           {!collapsed || window.innerWidth < 992 ? (
             <>
               <span>{item.name}</span>
@@ -213,8 +213,8 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
             <Link key={subItem.href} href={subItem.href} onClick={handleLinkClick}>
               <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-all
                 ${location === subItem.href || (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
-                  ? 'bg-[#2170dd]/80 text-white' 
-                  : 'text-[#f5f9fc]/80 hover:bg-[#142c42] hover:text-white'}`}
+                  ? 'bg-[#F2A71B]/80 text-white' 
+                  : 'text-gray-700 bg-white/30 hover:bg-[#025E73]/10 hover:text-[#025E73]'}`}
               >
                 <span>{subItem.name}</span>
               </div>
