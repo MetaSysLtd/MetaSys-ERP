@@ -21,7 +21,7 @@ import {
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { eq, and, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray, gte, lte, lt, sql } from "drizzle-orm";
 import createMemoryStore from "memorystore";
 import { db, pgPool, pool } from './db';
 
@@ -2026,27 +2026,50 @@ export class DatabaseStorage implements IStorage {
   // Team Management operations
   async getUsersByDepartment(department: string): Promise<User[]> {
     try {
-      // Use a more resilient approach since the department column may be missing
-      // Get all roles and filter manually
-      const allRoles = await db.select().from(roles);
-      
-      // Filter roles by department string contained in the name or other fields
-      // This is a workaround if department column doesn't exist or has issues
-      const departmentRoles = allRoles.filter(role => {
-        // If department exists and matches
-        if (role.department && role.department.toLowerCase() === department.toLowerCase()) {
-          return true;
+      // Try to find roles with matching department - handle column exists or not
+      try {
+        // First attempt - try to directly match the department column
+        const departmentRoles = await db
+          .select()
+          .from(roles)
+          .where(sql`department ILIKE ${`%${department}%`}`);
+        
+        if (departmentRoles.length > 0) {
+          // Get role IDs for the department roles
+          const roleIds = departmentRoles.map(role => role.id);
+          
+          // Get all users with these role IDs
+          return await db
+            .select()
+            .from(users)
+            .where(
+              roleIds.length === 1 
+                ? eq(users.roleId, roleIds[0]) 
+                : inArray(users.roleId, roleIds)
+            );
         }
-        // Fallback: check if role name contains department name
-        return role.name.toLowerCase().includes(department.toLowerCase());
-      });
-      
-      if (departmentRoles.length === 0) {
-        return [];
+      } catch (err) {
+        // If department column doesn't exist or there's another issue, 
+        // we'll fall through to the more robust approach below
+        console.log("First attempt at getUsersByDepartment failed, trying fallback:", err);
       }
       
-      // Get users with these role IDs
-      const roleIds = departmentRoles.map(role => role.id);
+      // Fallback approach: Get all roles and filter by name
+      const allRoles = await db.select().from(roles);
+      
+      // Filter roles by name containing the department
+      const matchedRoles = allRoles.filter(role => 
+        role.name.toLowerCase().includes(department.toLowerCase())
+      );
+      
+      if (matchedRoles.length === 0) {
+        return []; // No matching roles found
+      }
+      
+      // Get role IDs for the matched roles
+      const roleIds = matchedRoles.map(role => role.id);
+      
+      // Get all users with these role IDs
       return await db
         .select()
         .from(users)
@@ -2056,8 +2079,26 @@ export class DatabaseStorage implements IStorage {
             : inArray(users.roleId, roleIds)
         );
     } catch (error) {
+      // Handle the database error more gracefully
       console.error('Error getting users by department:', error);
-      return [];
+      
+      // Try the most basic approach as final fallback
+      try {
+        // Get all users and roles directly
+        const allUsers = await db.select().from(users);
+        const allRoles = await db.select().from(roles);
+        
+        // Filter users by matching their role's name including department
+        return allUsers.filter(user => {
+          const userRole = allRoles.find(role => role.id === user.roleId);
+          if (!userRole) return false;
+          
+          return userRole.name.toLowerCase().includes(department.toLowerCase());
+        });
+      } catch (innerError) {
+        console.error('Ultimate fallback method failed:', innerError);
+        return [];
+      }
     }
   }
   
