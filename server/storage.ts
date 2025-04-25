@@ -1931,17 +1931,150 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getUsersByOrganization(orgId: number): Promise<User[]> {
-    return await db.select().from(users).where(eq(users.orgId, orgId));
+    try {
+      // Explicitly select only the columns we know exist in the database
+      return await db.select({
+        id: users.id,
+        username: users.username,
+        password: users.password,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        roleId: users.roleId,
+        orgId: users.orgId,
+        status: users.status,
+        canViewCRM: users.canViewCRM,
+        canEditLeads: users.canEditLeads,
+        canViewInvoices: users.canViewInvoices,
+        canApprovePayroll: users.canApprovePayroll,
+        canManageUsers: users.canManageUsers,
+        isSystemAdmin: users.isSystemAdmin,
+        canManageRoles: users.canManageRoles,
+        canAccessAllOrgs: users.canAccessAllOrgs,
+        canManageSettings: users.canManageSettings,
+        canViewAuditLog: users.canViewAuditLog,
+        canManageLeadAssignments: users.canManageLeadAssignments,
+        canDeleteLeads: users.canDeleteLeads,
+        canExportLeads: users.canExportLeads,
+        canCreateInvoices: users.canCreateInvoices,
+        canApproveInvoices: users.canApproveInvoices,
+        canManageAccounting: users.canManageAccounting,
+        canManageLoads: users.canManageLoads,
+        canManageCarriers: users.canManageCarriers,
+        canApproveDispatchReports: users.canApproveDispatchReports,
+        active: users.active,
+        profileImageUrl: users.profileImageUrl,
+        createdAt: users.createdAt,
+        invitedAt: users.invitedAt,
+        lastLogin: users.lastLogin
+      })
+      .from(users)
+      .where(eq(users.orgId, orgId));
+    } catch (error) {
+      console.error('Error in getUsersByOrganization:', error);
+      throw error;
+    }
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    try {
+      // Explicitly select only the columns we know exist in the database
+      // Avoid selecting the 'department' column which doesn't exist
+      const [user] = await db.select({
+        id: users.id,
+        username: users.username,
+        password: users.password,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        roleId: users.roleId,
+        orgId: users.orgId,
+        status: users.status,
+        canViewCRM: users.canViewCRM,
+        canEditLeads: users.canEditLeads,
+        canViewInvoices: users.canViewInvoices,
+        canApprovePayroll: users.canApprovePayroll,
+        canManageUsers: users.canManageUsers,
+        isSystemAdmin: users.isSystemAdmin,
+        canManageRoles: users.canManageRoles,
+        canAccessAllOrgs: users.canAccessAllOrgs,
+        canManageSettings: users.canManageSettings,
+        canViewAuditLog: users.canViewAuditLog,
+        canManageLeadAssignments: users.canManageLeadAssignments,
+        canDeleteLeads: users.canDeleteLeads,
+        canExportLeads: users.canExportLeads,
+        canCreateInvoices: users.canCreateInvoices,
+        canApproveInvoices: users.canApproveInvoices,
+        canManageAccounting: users.canManageAccounting,
+        canManageLoads: users.canManageLoads,
+        canManageCarriers: users.canManageCarriers,
+        canApproveDispatchReports: users.canApproveDispatchReports,
+        active: users.active,
+        profileImageUrl: users.profileImageUrl,
+        createdAt: users.createdAt,
+        invitedAt: users.invitedAt,
+        lastLogin: users.lastLogin
+      })
+      .from(users)
+      .where(eq(users.id, id));
+      
+      return user;
+    } catch (error) {
+      console.error('Error in getUser:', error);
+      throw error;
+    }
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+    try {
+      // Explicitly select only the columns we know exist in the database
+      // Avoid selecting the 'department' column which doesn't exist
+      const [user] = await db.select({
+        id: users.id,
+        username: users.username,
+        password: users.password,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        roleId: users.roleId,
+        orgId: users.orgId,
+        status: users.status,
+        canViewCRM: users.canViewCRM,
+        canEditLeads: users.canEditLeads,
+        canViewInvoices: users.canViewInvoices,
+        canApprovePayroll: users.canApprovePayroll,
+        canManageUsers: users.canManageUsers,
+        isSystemAdmin: users.isSystemAdmin,
+        canManageRoles: users.canManageRoles,
+        canAccessAllOrgs: users.canAccessAllOrgs,
+        canManageSettings: users.canManageSettings,
+        canViewAuditLog: users.canViewAuditLog,
+        canManageLeadAssignments: users.canManageLeadAssignments,
+        canDeleteLeads: users.canDeleteLeads,
+        canExportLeads: users.canExportLeads,
+        canCreateInvoices: users.canCreateInvoices,
+        canApproveInvoices: users.canApproveInvoices,
+        canManageAccounting: users.canManageAccounting,
+        canManageLoads: users.canManageLoads,
+        canManageCarriers: users.canManageCarriers,
+        canApproveDispatchReports: users.canApproveDispatchReports,
+        active: users.active,
+        profileImageUrl: users.profileImageUrl,
+        createdAt: users.createdAt,
+        invitedAt: users.invitedAt,
+        lastLogin: users.lastLogin
+      })
+      .from(users)
+      .where(eq(users.username, username));
+      
+      return user;
+    } catch (error) {
+      console.error('Error in getUserByUsername:', error);
+      throw error;
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -1959,15 +2092,142 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsers(): Promise<User[]> {
-    return db.select().from(users);
+    try {
+      // Explicitly select only the columns we know exist in the database
+      return await db.select({
+        id: users.id,
+        username: users.username,
+        password: users.password,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        roleId: users.roleId,
+        orgId: users.orgId,
+        status: users.status,
+        canViewCRM: users.canViewCRM,
+        canEditLeads: users.canEditLeads,
+        canViewInvoices: users.canViewInvoices,
+        canApprovePayroll: users.canApprovePayroll,
+        canManageUsers: users.canManageUsers,
+        isSystemAdmin: users.isSystemAdmin,
+        canManageRoles: users.canManageRoles,
+        canAccessAllOrgs: users.canAccessAllOrgs,
+        canManageSettings: users.canManageSettings,
+        canViewAuditLog: users.canViewAuditLog,
+        canManageLeadAssignments: users.canManageLeadAssignments,
+        canDeleteLeads: users.canDeleteLeads,
+        canExportLeads: users.canExportLeads,
+        canCreateInvoices: users.canCreateInvoices,
+        canApproveInvoices: users.canApproveInvoices,
+        canManageAccounting: users.canManageAccounting,
+        canManageLoads: users.canManageLoads,
+        canManageCarriers: users.canManageCarriers,
+        canApproveDispatchReports: users.canApproveDispatchReports,
+        active: users.active,
+        profileImageUrl: users.profileImageUrl,
+        createdAt: users.createdAt,
+        invitedAt: users.invitedAt,
+        lastLogin: users.lastLogin
+      })
+      .from(users);
+    } catch (error) {
+      console.error('Error in getUsers:', error);
+      throw error;
+    }
   }
   
   async getAllUsers(): Promise<User[]> {
-    return db.select().from(users);
+    try {
+      // Explicitly select only the columns we know exist in the database
+      return await db.select({
+        id: users.id,
+        username: users.username,
+        password: users.password,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        roleId: users.roleId,
+        orgId: users.orgId,
+        status: users.status,
+        canViewCRM: users.canViewCRM,
+        canEditLeads: users.canEditLeads,
+        canViewInvoices: users.canViewInvoices,
+        canApprovePayroll: users.canApprovePayroll,
+        canManageUsers: users.canManageUsers,
+        isSystemAdmin: users.isSystemAdmin,
+        canManageRoles: users.canManageRoles,
+        canAccessAllOrgs: users.canAccessAllOrgs,
+        canManageSettings: users.canManageSettings,
+        canViewAuditLog: users.canViewAuditLog,
+        canManageLeadAssignments: users.canManageLeadAssignments,
+        canDeleteLeads: users.canDeleteLeads,
+        canExportLeads: users.canExportLeads,
+        canCreateInvoices: users.canCreateInvoices,
+        canApproveInvoices: users.canApproveInvoices,
+        canManageAccounting: users.canManageAccounting,
+        canManageLoads: users.canManageLoads,
+        canManageCarriers: users.canManageCarriers,
+        canApproveDispatchReports: users.canApproveDispatchReports,
+        active: users.active,
+        profileImageUrl: users.profileImageUrl,
+        createdAt: users.createdAt,
+        invitedAt: users.invitedAt,
+        lastLogin: users.lastLogin
+      })
+      .from(users);
+    } catch (error) {
+      console.error('Error in getAllUsers:', error);
+      throw error;
+    }
   }
 
   async getUsersByRole(roleId: number): Promise<User[]> {
-    return db.select().from(users).where(eq(users.roleId, roleId));
+    try {
+      // Explicitly select only the columns we know exist in the database
+      return await db.select({
+        id: users.id,
+        username: users.username,
+        password: users.password,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        roleId: users.roleId,
+        orgId: users.orgId,
+        status: users.status,
+        canViewCRM: users.canViewCRM,
+        canEditLeads: users.canEditLeads,
+        canViewInvoices: users.canViewInvoices,
+        canApprovePayroll: users.canApprovePayroll,
+        canManageUsers: users.canManageUsers,
+        isSystemAdmin: users.isSystemAdmin,
+        canManageRoles: users.canManageRoles,
+        canAccessAllOrgs: users.canAccessAllOrgs,
+        canManageSettings: users.canManageSettings,
+        canViewAuditLog: users.canViewAuditLog,
+        canManageLeadAssignments: users.canManageLeadAssignments,
+        canDeleteLeads: users.canDeleteLeads,
+        canExportLeads: users.canExportLeads,
+        canCreateInvoices: users.canCreateInvoices,
+        canApproveInvoices: users.canApproveInvoices,
+        canManageAccounting: users.canManageAccounting,
+        canManageLoads: users.canManageLoads,
+        canManageCarriers: users.canManageCarriers,
+        canApproveDispatchReports: users.canApproveDispatchReports,
+        active: users.active,
+        profileImageUrl: users.profileImageUrl,
+        createdAt: users.createdAt,
+        invitedAt: users.invitedAt,
+        lastLogin: users.lastLogin
+      })
+      .from(users)
+      .where(eq(users.roleId, roleId));
+    } catch (error) {
+      console.error('Error in getUsersByRole:', error);
+      throw error;
+    }
   }
 
   async getRole(id: number): Promise<Role | undefined> {
