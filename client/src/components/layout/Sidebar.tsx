@@ -272,8 +272,8 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
         {/* Navigation */}
         <nav className="pt-5 flex-1 overflow-y-auto">
           {/* Main navigation section */}
-          <div className="px-4 mb-6">
-            <h3 className="px-2 text-xs font-semibold text-[#412754] uppercase tracking-wider mb-3">
+          <div className="px-4 mb-6 pt-4">
+            <h3 className="px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1">
               Main
             </h3>
             <div className="space-y-1">
@@ -284,8 +284,8 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
           </div>
 
           {/* Tasks section */}
-          <div className="px-4 mb-6">
-            <h3 className="px-2 text-xs font-semibold text-[#412754] uppercase tracking-wider mb-3">
+          <div className="px-4 mb-6 pt-4">
+            <h3 className="px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1">
               Tasks
             </h3>
             <div className="space-y-1">
@@ -296,8 +296,8 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
           </div>
 
           {/* Secondary navigation section */}
-          <div className="px-4 mb-6">
-            <h3 className="px-2 text-xs font-semibold text-[#412754] uppercase tracking-wider mb-3">
+          <div className="px-4 mb-6 pt-4">
+            <h3 className="px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1">
               Management
             </h3>
             <div className="space-y-1">
@@ -309,8 +309,8 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
 
           {/* Admin section */}
           {role && role.department === "admin" && role.level >= 5 && (
-            <div className="px-4 mb-6">
-              <h3 className="px-2 text-xs font-semibold text-[#412754] uppercase tracking-wider mb-3">
+            <div className="px-4 mb-6 pt-4">
+              <h3 className="px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1">
                 Administration
               </h3>
               <div className="space-y-1">
@@ -327,8 +327,8 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
 
           {/* Team switcher for admin users */}
           {role && role.department === "admin" && (
-            <div className="px-4 mb-6">
-              <h3 className="px-2 text-xs font-semibold text-[#412754] uppercase tracking-wider mb-3">
+            <div className="px-4 mb-6 pt-4">
+              <h3 className="px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1">
                 Teams
               </h3>
               <div className="space-y-1">

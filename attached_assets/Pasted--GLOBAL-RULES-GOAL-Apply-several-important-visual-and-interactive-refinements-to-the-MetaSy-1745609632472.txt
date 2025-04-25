@@ -1,0 +1,63 @@
+{GLOBAL RULES}
+
+### GOAL
+Apply several important visual and interactive refinements to the MetaSys ERP interface based on recent screen capture and branding consistency.
+
+────────────────────────────────────
+1 – LOGO: Dark Mode Variant
+────────────────────────────────────
+• Replace logo in sidebar with `logo-metasys-dark.svg` or `.png` from brand asset pack.
+• Ensure high-res PNG or SVG version with white/transparent background is placed under:
+  → `/assets/logos/logo-dark.png`
+
+• Logo links to homepage:
+  If user.role === "admin" → `/admin/dashboard`
+  Else → `/dashboard`
+
+────────────────────────────────────
+2 – FONT COLOR: Section Headings
+────────────────────────────────────
+• All section headers in the sidebar (“Main”, “Tasks”, “Management”, etc.) use:
+  → `text-#F2A71B` (Secondary Brand Yellow)
+  → Font weight: `600`
+  → Letter-spacing: `.5px`  
+  → Transform: `uppercase`
+  → Padding top: `1rem` for clear separation.
+
+────────────────────────────────────
+3 – BRAND YELLOW: Integration Across UI
+────────────────────────────────────
+• Add subtle uses of yellow into the UI for identity consistency:
+  a. Tooltip background → `#F2A71B` with white text.
+  b. Tab pills (e.g., in “Lead Notifications”) → active bg `#F2A71B`, text `#011F26`
+  c. Highlight or accent bar on KPI cards → border-left or top-4px stripe in yellow.
+  d. Icons on hover → brandYellow tint (`filter hue-rotate(-35deg)` or fill class override).
+
+────────────────────────────────────
+4 – SIDEBAR DROPDOWN (CRM, Dispatch)
+────────────────────────────────────
+• Fix behavior:
+  a. Expand/Collapse only one category at a time.
+  b. Clicking “CRM” or “Dispatch” toggles the child menu visibility with `max-height` animation.
+  c. Store open state in memory (use Redux/Pinia or localStorage) so dropdown stays sticky across views.
+
+• UX:
+  - Chevron icon rotates (`transform rotate-90`) when expanded.
+  - Dropdown panel:
+    → smooth animation: `transition-[max-height] duration-200 ease-in-out`
+    → bg color: slightly lighter than parent (e.g., `bg-[#012F3E]`)
+    → padding `py-1 pl-6` for items.
+
+────────────────────────────────────
+5 – TEST CASES (Cypress / Manual)
+────────────────────────────────────
+☑ Logo renders correctly in dark mode layout  
+☑ “Main” sidebar header appears in yellow  
+☑ “Lead Notifications” pill switch has yellow highlight on selected  
+☑ CRM menu collapsed by default, expands on click and stays  
+☑ Chevron rotates on CRM expand/collapse  
+
+Return **PASS** with screenshot of:
+1. Sidebar (expanded CRM)
+2. Dashboard with yellow-influenced elements
+3. Logo region (dark logo applied)
