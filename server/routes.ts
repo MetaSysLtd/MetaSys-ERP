@@ -1415,6 +1415,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // UI Preferences routes
   const uiPreferencesRouter = express.Router();
   app.use("/api/ui-prefs", uiPreferencesRouter);
+  
+  // Dispatch automation routes
+  const dispatchTasksRouter = express.Router();
+  const dispatchReportsRouter = express.Router();
+  const performanceTargetsRouter = express.Router();
+  
+  app.use("/api/dispatch/tasks", dispatchTasksRouter);
+  app.use("/api/dispatch/reports", dispatchReportsRouter);
+  app.use("/api/performance-targets", performanceTargetsRouter);
 
   // Get user UI preferences
   uiPreferencesRouter.get("/me", createAuthMiddleware(1), async (req, res, next) => {
@@ -1474,6 +1483,542 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // For backwards compatibility (temporary)
   app.use("/api/ui-preferences", uiPreferencesRouter);
+  
+  // Dispatch Tasks Routes
+  dispatchTasksRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      let tasks;
+      if (req.query.dispatcherId) {
+        tasks = await storage.getDispatchTasksByDispatcher(Number(req.query.dispatcherId));
+      } else if (req.query.date) {
+        tasks = await storage.getDispatchTasksByDate(new Date(String(req.query.date)));
+      } else {
+        // Return current user's tasks if no query parameters are provided
+        tasks = await storage.getDispatchTasksByDispatcher(req.user.id);
+      }
+      
+      res.json(tasks);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  dispatchTasksRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const task = await storage.getDispatchTask(Number(req.params.id));
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
+      res.json(task);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  dispatchTasksRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const taskData = {
+        ...req.body,
+        dispatcherId: req.body.dispatcherId || req.user.id,
+        orgId: req.body.orgId || req.user.orgId
+      };
+      
+      const newTask = await storage.createDispatchTask(taskData);
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user.id,
+        action: 'create',
+        entityType: 'dispatch_task',
+        entityId: newTask.id,
+        details: JSON.stringify(newTask)
+      });
+      
+      // Send real-time notification to relevant users
+      io.emit('dispatch-task-created', newTask);
+      
+      res.status(201).json(newTask);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  dispatchTasksRouter.put("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const taskId = Number(req.params.id);
+      const task = await storage.getDispatchTask(taskId);
+      
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      
+      // Only allow updates if user is the task owner or an admin
+      if (task.dispatcherId !== req.user.id && req.userRole?.department !== 'admin') {
+        return res.status(403).json({ message: "You don't have permission to update this task" });
+      }
+      
+      const updatedTask = await storage.updateDispatchTask(taskId, req.body);
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user.id,
+        action: 'update',
+        entityType: 'dispatch_task',
+        entityId: taskId,
+        details: JSON.stringify(updatedTask)
+      });
+      
+      // Send real-time notification
+      io.emit('dispatch-task-updated', updatedTask);
+      
+      // If the task is now submitted, create a notification for managers
+      if (req.body.status === 'Submitted' && task.status === 'Pending') {
+        // Find managers to notify
+        const managers = await storage.getUsersByRole(8); // Head of Dispatch role id
+        
+        // Create notifications for each manager
+        for (const manager of managers) {
+          await storage.createNotification({
+            userId: manager.id,
+            type: 'dispatch_task_submitted',
+            message: `Dispatch task submitted by ${req.user.firstName} ${req.user.lastName}`,
+            entityType: 'dispatch_task',
+            entityId: taskId,
+            read: false
+          });
+          
+          // Send real-time notification
+          io.to(`user:${manager.id}`).emit('notification', {
+            type: 'dispatch_task_submitted',
+            message: `Dispatch task submitted by ${req.user.firstName} ${req.user.lastName}`,
+            taskId
+          });
+        }
+      }
+      
+      res.json(updatedTask);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Dispatch Reports Routes
+  dispatchReportsRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      let reports;
+      if (req.query.dispatcherId) {
+        reports = await storage.getDispatchReportsByDispatcher(Number(req.query.dispatcherId));
+      } else if (req.query.date) {
+        reports = await storage.getDispatchReportsByDate(new Date(String(req.query.date)));
+      } else {
+        // Return current user's reports if no query parameters are provided
+        reports = await storage.getDispatchReportsByDispatcher(req.user.id);
+      }
+      
+      res.json(reports);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  dispatchReportsRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const report = await storage.getDispatchReport(Number(req.params.id));
+      if (!report) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+      
+      res.json(report);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  dispatchReportsRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const reportData = {
+        ...req.body,
+        dispatcherId: req.body.dispatcherId || req.user.id,
+        orgId: req.body.orgId || req.user.orgId
+      };
+      
+      const newReport = await storage.createDispatchReport(reportData);
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user.id,
+        action: 'create',
+        entityType: 'dispatch_report',
+        entityId: newReport.id,
+        details: JSON.stringify(newReport)
+      });
+      
+      // Get performance targets to check against
+      const performanceTarget = await storage.getPerformanceTargetByOrgAndType(newReport.orgId, 'daily');
+      
+      // Send real-time notification to relevant users
+      io.emit('dispatch-report-created', newReport);
+      
+      // Create color-coded performance notifications if targets are set
+      if (performanceTarget) {
+        // Calculate performance percentages based on targets
+        const loadsTarget = performanceTarget.minPct; // Use minPct as baseline for loads booked
+        const invoiceTarget = performanceTarget.maxPct; // Use maxPct as goal for invoice amounts
+        
+        // Check if we need to send performance alerts
+        if (newReport.loadsBooked < loadsTarget) {
+          // Red alert - below minimum target for loads booked
+          io.to(`user:${newReport.dispatcherId}`).emit('performance-alert', {
+            type: 'below_target',
+            message: `Performance Alert: Loads booked (${newReport.loadsBooked}) below daily target of ${loadsTarget}`,
+            color: '#C93131', // Red color for negative alerts
+            metric: 'loadsBooked',
+            value: newReport.loadsBooked,
+            target: loadsTarget
+          });
+          
+          // Create notification
+          await storage.createNotification({
+            userId: newReport.dispatcherId,
+            type: 'performance_alert',
+            message: `Performance Alert: Loads booked (${newReport.loadsBooked}) below daily target of ${loadsTarget}`,
+            entityType: 'dispatch_report',
+            entityId: newReport.id,
+            read: false,
+            metadata: JSON.stringify({
+              color: '#C93131',
+              metric: 'loadsBooked',
+              value: newReport.loadsBooked,
+              target: loadsTarget
+            })
+          });
+        } else if (newReport.loadsBooked >= performanceTarget.maxPct) {
+          // Green alert - exceeded target for loads booked
+          io.to(`user:${newReport.dispatcherId}`).emit('performance-alert', {
+            type: 'above_target',
+            message: `Great job! Loads booked (${newReport.loadsBooked}) exceeded daily target of ${performanceTarget.maxPct}`,
+            color: '#2EC4B6', // Green color for positive alerts
+            metric: 'loadsBooked',
+            value: newReport.loadsBooked,
+            target: performanceTarget.maxPct
+          });
+          
+          // Create notification
+          await storage.createNotification({
+            userId: newReport.dispatcherId,
+            type: 'performance_achievement',
+            message: `Great job! Loads booked (${newReport.loadsBooked}) exceeded daily target of ${performanceTarget.maxPct}`,
+            entityType: 'dispatch_report',
+            entityId: newReport.id,
+            read: false,
+            metadata: JSON.stringify({
+              color: '#2EC4B6',
+              metric: 'loadsBooked',
+              value: newReport.loadsBooked,
+              target: performanceTarget.maxPct
+            })
+          });
+        }
+        
+        // Check invoice amounts against targets
+        if (newReport.invoiceUsd < invoiceTarget) {
+          // Red alert - below invoice target
+          io.to(`user:${newReport.dispatcherId}`).emit('performance-alert', {
+            type: 'below_target',
+            message: `Performance Alert: Invoice amount ($${newReport.invoiceUsd}) below daily target of $${invoiceTarget}`,
+            color: '#C93131', // Red color for negative alerts
+            metric: 'invoiceUsd',
+            value: newReport.invoiceUsd,
+            target: invoiceTarget
+          });
+          
+          // Create notification
+          await storage.createNotification({
+            userId: newReport.dispatcherId,
+            type: 'performance_alert',
+            message: `Performance Alert: Invoice amount ($${newReport.invoiceUsd}) below daily target of $${invoiceTarget}`,
+            entityType: 'dispatch_report',
+            entityId: newReport.id,
+            read: false,
+            metadata: JSON.stringify({
+              color: '#C93131',
+              metric: 'invoiceUsd',
+              value: newReport.invoiceUsd,
+              target: invoiceTarget
+            })
+          });
+        } else if (newReport.invoiceUsd >= performanceTarget.maxPct) {
+          // Green alert - exceeded invoice target
+          io.to(`user:${newReport.dispatcherId}`).emit('performance-alert', {
+            type: 'above_target',
+            message: `Great job! Invoice amount ($${newReport.invoiceUsd}) exceeded daily target of $${performanceTarget.maxPct}`,
+            color: '#2EC4B6', // Green color for positive alerts
+            metric: 'invoiceUsd',
+            value: newReport.invoiceUsd,
+            target: performanceTarget.maxPct
+          });
+          
+          // Create notification
+          await storage.createNotification({
+            userId: newReport.dispatcherId,
+            type: 'performance_achievement',
+            message: `Great job! Invoice amount ($${newReport.invoiceUsd}) exceeded daily target of $${performanceTarget.maxPct}`,
+            entityType: 'dispatch_report',
+            entityId: newReport.id,
+            read: false,
+            metadata: JSON.stringify({
+              color: '#2EC4B6',
+              metric: 'invoiceUsd',
+              value: newReport.invoiceUsd,
+              target: performanceTarget.maxPct
+            })
+          });
+        }
+      }
+      
+      res.status(201).json(newReport);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  dispatchReportsRouter.put("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const reportId = Number(req.params.id);
+      const report = await storage.getDispatchReport(reportId);
+      
+      if (!report) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+      
+      // Only allow updates if user is the report owner or an admin
+      if (report.dispatcherId !== req.user.id && req.userRole?.department !== 'admin') {
+        return res.status(403).json({ message: "You don't have permission to update this report" });
+      }
+      
+      const updatedReport = await storage.updateDispatchReport(reportId, req.body);
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user.id,
+        action: 'update',
+        entityType: 'dispatch_report',
+        entityId: reportId,
+        details: JSON.stringify(updatedReport)
+      });
+      
+      // Send real-time notification
+      io.emit('dispatch-report-updated', updatedReport);
+      
+      // If the report is now submitted, create a notification for managers
+      if (req.body.status === 'Submitted' && report.status === 'Pending') {
+        // Find managers to notify
+        const managers = await storage.getUsersByRole(8); // Head of Dispatch role id
+        
+        // Create notifications for each manager
+        for (const manager of managers) {
+          await storage.createNotification({
+            userId: manager.id,
+            type: 'dispatch_report_submitted',
+            message: `Dispatch report submitted by ${req.user.firstName} ${req.user.lastName}`,
+            entityType: 'dispatch_report',
+            entityId: reportId,
+            read: false
+          });
+          
+          // Send real-time notification
+          io.to(`user:${manager.id}`).emit('notification', {
+            type: 'dispatch_report_submitted',
+            message: `Dispatch report submitted by ${req.user.firstName} ${req.user.lastName}`,
+            reportId
+          });
+        }
+      }
+      
+      res.json(updatedReport);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Performance Targets Routes
+  performanceTargetsRouter.get("/", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Only allow admin or manager access to performance targets
+      if (req.userRole?.level < 3) {
+        return res.status(403).json({ message: "Access denied: Insufficient permissions" });
+      }
+      
+      let targets;
+      if (req.query.type) {
+        targets = await storage.getPerformanceTargetsByType(req.query.type as 'daily' | 'weekly');
+      } else if (req.query.orgId) {
+        const orgId = Number(req.query.orgId);
+        const type = (req.query.type as 'daily' | 'weekly') || 'daily';
+        const target = await storage.getPerformanceTargetByOrgAndType(orgId, type);
+        return res.json(target || null);
+      } else {
+        // Get all targets for the current user's organization
+        const orgId = req.user.orgId;
+        if (!orgId) {
+          return res.status(400).json({ message: "User is not associated with an organization" });
+        }
+        
+        const dailyTarget = await storage.getPerformanceTargetByOrgAndType(orgId, 'daily');
+        const weeklyTarget = await storage.getPerformanceTargetByOrgAndType(orgId, 'weekly');
+        
+        return res.json({
+          daily: dailyTarget || null,
+          weekly: weeklyTarget || null
+        });
+      }
+      
+      res.json(targets);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  performanceTargetsRouter.post("/", createAuthMiddleware(4), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Only allow admin or manager access to create performance targets
+      if (req.userRole?.level < 4) {
+        return res.status(403).json({ message: "Access denied: Insufficient permissions" });
+      }
+      
+      const targetData = {
+        ...req.body,
+        orgId: req.body.orgId || req.user.orgId
+      };
+      
+      if (!targetData.orgId) {
+        return res.status(400).json({ message: "Organization ID is required" });
+      }
+      
+      // Check if a target for this org and type already exists
+      const existingTarget = await storage.getPerformanceTargetByOrgAndType(
+        targetData.orgId, 
+        targetData.type
+      );
+      
+      if (existingTarget) {
+        // Update existing target instead of creating a new one
+        const updatedTarget = await storage.updatePerformanceTarget(existingTarget.id, targetData);
+        return res.json(updatedTarget);
+      }
+      
+      const newTarget = await storage.createPerformanceTarget(targetData);
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user.id,
+        action: 'create',
+        entityType: 'performance_target',
+        entityId: newTarget.id,
+        details: JSON.stringify(newTarget)
+      });
+      
+      // Notify all users in the organization about the new performance targets
+      const orgUsers = await storage.getUsersByOrganization(targetData.orgId);
+      for (const user of orgUsers) {
+        io.to(`user:${user.id}`).emit('performance-target-updated', {
+          type: targetData.type,
+          minPct: newTarget.minPct,
+          maxPct: newTarget.maxPct
+        });
+      }
+      
+      res.status(201).json(newTarget);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  performanceTargetsRouter.put("/:id", createAuthMiddleware(4), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Only allow admin or manager access to update performance targets
+      if (req.userRole?.level < 4) {
+        return res.status(403).json({ message: "Access denied: Insufficient permissions" });
+      }
+      
+      const targetId = Number(req.params.id);
+      const target = await storage.getPerformanceTarget(targetId);
+      
+      if (!target) {
+        return res.status(404).json({ message: "Performance target not found" });
+      }
+      
+      const updatedTarget = await storage.updatePerformanceTarget(targetId, req.body);
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user.id,
+        action: 'update',
+        entityType: 'performance_target',
+        entityId: targetId,
+        details: JSON.stringify(updatedTarget)
+      });
+      
+      // Notify all users in the organization about the updated performance targets
+      const orgUsers = await storage.getUsersByOrganization(target.orgId);
+      for (const user of orgUsers) {
+        io.to(`user:${user.id}`).emit('performance-target-updated', {
+          type: updatedTarget!.type,
+          minPct: updatedTarget!.minPct,
+          maxPct: updatedTarget!.maxPct
+        });
+      }
+      
+      res.json(updatedTarget);
+    } catch (error) {
+      next(error);
+    }
+  });
 
   // Activity routes
   const activityRouter = express.Router();

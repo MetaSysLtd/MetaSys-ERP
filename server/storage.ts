@@ -2211,6 +2211,236 @@ export class DatabaseStorage implements IStorage {
       };
     }
   }
+
+  // Dispatch Task operations
+  async getDispatchTask(id: number): Promise<DispatchTask | undefined> {
+    try {
+      const [task] = await db.select().from(dispatchTasks).where(eq(dispatchTasks.id, id));
+      return task;
+    } catch (error) {
+      console.error('Error fetching dispatch task:', error);
+      return undefined;
+    }
+  }
+
+  async getDispatchTasksByDate(date: Date): Promise<DispatchTask[]> {
+    try {
+      // Format date to ISO string for date comparison (year, month, day only)
+      const startDate = new Date(date);
+      startDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(date);
+      endDate.setHours(23, 59, 59, 999);
+      
+      return await db.select().from(dispatchTasks)
+        .where(and(
+          gte(dispatchTasks.date, startDate),
+          lte(dispatchTasks.date, endDate)
+        ));
+    } catch (error) {
+      console.error('Error fetching dispatch tasks by date:', error);
+      return [];
+    }
+  }
+
+  async getDispatchTasksByDispatcher(dispatcherId: number): Promise<DispatchTask[]> {
+    try {
+      return await db.select().from(dispatchTasks).where(eq(dispatchTasks.dispatcherId, dispatcherId));
+    } catch (error) {
+      console.error('Error fetching dispatch tasks by dispatcher:', error);
+      return [];
+    }
+  }
+
+  async getDispatchTaskByDispatcherAndDate(dispatcherId: number, date: Date): Promise<DispatchTask | undefined> {
+    try {
+      // Format date to ISO string for date comparison (year, month, day only)
+      const startDate = new Date(date);
+      startDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(date);
+      endDate.setHours(23, 59, 59, 999);
+      
+      const [task] = await db.select().from(dispatchTasks)
+        .where(and(
+          eq(dispatchTasks.dispatcherId, dispatcherId),
+          gte(dispatchTasks.date, startDate),
+          lte(dispatchTasks.date, endDate)
+        ));
+      return task;
+    } catch (error) {
+      console.error('Error fetching dispatch task by dispatcher and date:', error);
+      return undefined;
+    }
+  }
+
+  async createDispatchTask(task: InsertDispatchTask): Promise<DispatchTask> {
+    try {
+      const [newTask] = await db.insert(dispatchTasks).values(task).returning();
+      return newTask;
+    } catch (error) {
+      console.error('Error creating dispatch task:', error);
+      throw error;
+    }
+  }
+
+  async updateDispatchTask(id: number, task: Partial<DispatchTask>): Promise<DispatchTask | undefined> {
+    try {
+      const [updatedTask] = await db
+        .update(dispatchTasks)
+        .set(task)
+        .where(eq(dispatchTasks.id, id))
+        .returning();
+      return updatedTask;
+    } catch (error) {
+      console.error('Error updating dispatch task:', error);
+      return undefined;
+    }
+  }
+
+  // Dispatch Report operations
+  async getDispatchReport(id: number): Promise<DispatchReport | undefined> {
+    try {
+      const [report] = await db.select().from(dispatchReports).where(eq(dispatchReports.id, id));
+      return report;
+    } catch (error) {
+      console.error('Error fetching dispatch report:', error);
+      return undefined;
+    }
+  }
+
+  async getDispatchReportsByDate(date: Date): Promise<DispatchReport[]> {
+    try {
+      // Format date to ISO string for date comparison (year, month, day only)
+      const startDate = new Date(date);
+      startDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(date);
+      endDate.setHours(23, 59, 59, 999);
+      
+      return await db.select().from(dispatchReports)
+        .where(and(
+          gte(dispatchReports.date, startDate),
+          lte(dispatchReports.date, endDate)
+        ));
+    } catch (error) {
+      console.error('Error fetching dispatch reports by date:', error);
+      return [];
+    }
+  }
+
+  async getDispatchReportsByDispatcher(dispatcherId: number): Promise<DispatchReport[]> {
+    try {
+      return await db.select().from(dispatchReports).where(eq(dispatchReports.dispatcherId, dispatcherId));
+    } catch (error) {
+      console.error('Error fetching dispatch reports by dispatcher:', error);
+      return [];
+    }
+  }
+
+  async getDispatchReportByDispatcherAndDate(dispatcherId: number, date: Date): Promise<DispatchReport | undefined> {
+    try {
+      // Format date to ISO string for date comparison (year, month, day only)
+      const startDate = new Date(date);
+      startDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(date);
+      endDate.setHours(23, 59, 59, 999);
+      
+      const [report] = await db.select().from(dispatchReports)
+        .where(and(
+          eq(dispatchReports.dispatcherId, dispatcherId),
+          gte(dispatchReports.date, startDate),
+          lte(dispatchReports.date, endDate)
+        ));
+      return report;
+    } catch (error) {
+      console.error('Error fetching dispatch report by dispatcher and date:', error);
+      return undefined;
+    }
+  }
+
+  async createDispatchReport(report: InsertDispatchReport): Promise<DispatchReport> {
+    try {
+      const [newReport] = await db.insert(dispatchReports).values(report).returning();
+      return newReport;
+    } catch (error) {
+      console.error('Error creating dispatch report:', error);
+      throw error;
+    }
+  }
+
+  async updateDispatchReport(id: number, report: Partial<DispatchReport>): Promise<DispatchReport | undefined> {
+    try {
+      const [updatedReport] = await db
+        .update(dispatchReports)
+        .set(report)
+        .where(eq(dispatchReports.id, id))
+        .returning();
+      return updatedReport;
+    } catch (error) {
+      console.error('Error updating dispatch report:', error);
+      return undefined;
+    }
+  }
+
+  // Performance Target operations
+  async getPerformanceTarget(id: number): Promise<PerformanceTarget | undefined> {
+    try {
+      const [target] = await db.select().from(performanceTargets).where(eq(performanceTargets.id, id));
+      return target;
+    } catch (error) {
+      console.error('Error fetching performance target:', error);
+      return undefined;
+    }
+  }
+
+  async getPerformanceTargetsByType(type: 'daily' | 'weekly'): Promise<PerformanceTarget[]> {
+    try {
+      return await db.select().from(performanceTargets).where(eq(performanceTargets.type, type));
+    } catch (error) {
+      console.error('Error fetching performance targets by type:', error);
+      return [];
+    }
+  }
+
+  async getPerformanceTargetByOrgAndType(orgId: number, type: 'daily' | 'weekly'): Promise<PerformanceTarget | undefined> {
+    try {
+      const [target] = await db.select().from(performanceTargets)
+        .where(and(
+          eq(performanceTargets.orgId, orgId),
+          eq(performanceTargets.type, type)
+        ));
+      return target;
+    } catch (error) {
+      console.error('Error fetching performance target by org and type:', error);
+      return undefined;
+    }
+  }
+
+  async createPerformanceTarget(target: InsertPerformanceTarget): Promise<PerformanceTarget> {
+    try {
+      const [newTarget] = await db.insert(performanceTargets).values(target).returning();
+      return newTarget;
+    } catch (error) {
+      console.error('Error creating performance target:', error);
+      throw error;
+    }
+  }
+
+  async updatePerformanceTarget(id: number, target: Partial<PerformanceTarget>): Promise<PerformanceTarget | undefined> {
+    try {
+      const [updatedTarget] = await db
+        .update(performanceTargets)
+        .set(target)
+        .where(eq(performanceTargets.id, id))
+        .returning();
+      return updatedTarget;
+    } catch (error) {
+      console.error('Error updating performance target:', error);
+      return undefined;
+    }
+  }
 }
 
 // Use database storage instead of memory storage
