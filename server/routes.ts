@@ -1132,6 +1132,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         details: `Scheduled follow-up for lead: ${lead.companyName} on ${new Date(followUp.scheduledDate).toLocaleDateString()}`
       });
       
+      // Send notification
+      notificationService.sendLeadFollowUpNotification(
+        lead.id,
+        'created',
+        followUp.id
+      ).catch(err => console.error('Error sending follow-up notification:', err));
+      
       res.status(201).json(followUp);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -1175,6 +1182,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ? `Completed follow-up for lead #${followUp.leadId}` 
           : `Updated follow-up for lead #${followUp.leadId}`
       });
+      
+      // Send notification if follow-up was completed
+      if (updates.completed === true && updates.completedAt) {
+        notificationService.sendLeadFollowUpNotification(
+          followUp.leadId,
+          'completed',
+          followUp.id
+        ).catch(err => console.error('Error sending follow-up completion notification:', err));
+      }
       
       res.json(updatedFollowUp);
     } catch (error) {
@@ -1255,6 +1271,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         action: 'added_feedback',
         details: `Added customer feedback (${feedback.rating}/5) for lead: ${lead.companyName}`
       });
+      
+      // Send notification
+      notificationService.sendCustomerFeedbackNotification(
+        lead.id,
+        feedback.id
+      ).catch(err => console.error('Error sending customer feedback notification:', err));
       
       res.status(201).json(feedback);
     } catch (error) {

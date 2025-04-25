@@ -1,0 +1,221 @@
+GLOBAL SYSTEM ERROR HANDLING PLAN (MetaSys ERP)
+{GLOBAL RULES: Apply to Entire Platform}
+
+Every action (click, API call, save, update, etc.) must now have proper, user-friendly error handling — NOT silent console errors, NOT crashes, NOT white screens.
+
+Errors must be captured, logged, and surfaced gracefully at every level.
+
+1. FRONTEND – REACT ERROR BOUNDARIES
+✅ Wrap the entire app inside an ErrorBoundary component.
+
+tsx
+Copy
+Edit
+<ErrorBoundary fallback={<GenericErrorPage />}>
+  <AppRoutes />
+</ErrorBoundary>
+If any unexpected crash happens, show a friendly page: “Oops, something went wrong. Please refresh or contact support.”
+
+✅ Auto-capture errors into a centralized error-logger (like Sentry later).
+
+2. API ERROR HANDLING – AXIOS & API FETCHES
+✅ Add global Axios Interceptors:
+
+tsx
+Copy
+Edit
+axios.interceptors.response.use(
+  res => res,
+  err => {
+    if (err.response.status === 401) {
+      logoutUser();
+      redirectToLogin();
+    }
+    if (err.response.status === 403) {
+      showToast("You do not have permission for this action.", "error");
+    }
+    if (err.response.status === 500) {
+      showToast("Server error. Please try again later.", "error");
+    }
+    return Promise.reject(err);
+  }
+);
+✅ Every API call should:
+
+Catch .catch(err => showToast("Failed to [action]", "error"))
+
+Retry automatically once if 500 error (optional)
+
+Show user-friendly messages, NOT raw server errors
+
+3. BACKEND SERVER ERROR HANDLING
+✅ Every backend Express route must:
+
+Wrap async code in try/catch
+
+Log errors server-side
+
+Return standardized JSON error:
+
+json
+Copy
+Edit
+{
+  "error": "Something went wrong",
+  "details": "Optional debug info for Admin"
+}
+✅ HTTP Status Codes usage:
+
+200 = OK
+
+201 = Created
+
+400 = Validation Error
+
+401 = Unauthorized
+
+403 = Forbidden
+
+404 = Not Found
+
+409 = Conflict
+
+422 = Unprocessable Entity
+
+500 = Internal Server Error
+
+✅ Example route pattern:
+
+ts
+Copy
+Edit
+router.post("/api/users", async (req, res) => {
+  try {
+    const user = await User.create(req.body);
+    return res.status(201).json(user);
+  } catch (error) {
+    console.error("Error creating user", error);
+    return res.status(500).json({error: "Server Error"});
+  }
+});
+4. TOAST NOTIFICATIONS FOR ERRORS
+✅ Any front-end failure must trigger a toast popup like:
+
+tsx
+Copy
+Edit
+showToast("Failed to fetch leads. Please try again.", "error");
+Color Codes:
+
+Success: Green
+
+Warning: Yellow
+
+Error: Red
+
+Info: Blue
+
+Toast must auto-dismiss after 4s.
+
+5. FORM VALIDATION ERRORS
+✅ Forms must:
+
+Validate client-side (React Hook Form + Yup / Zod)
+
+Validate server-side (Express validator / DB rules)
+
+Highlight fields in RED with error text below
+
+Scroll user to first error field if possible
+
+✅ Example:
+
+tsx
+Copy
+Edit
+<TextInput
+  error={errors?.email ? "Invalid email address" : undefined}
+  {...register('email')}
+/>
+6. EMPTY STATES / NO DATA
+✅ Instead of blank screens:
+
+If no leads → Show icon + text “No leads found. Add your first lead.”
+
+If no tasks → “All caught up! No pending tasks.”
+
+✅ Positive, friendly messages — encourage usage.
+
+7. NETWORK OFFLINE / SLOW DETECTION
+✅ Detect if the browser goes offline:
+
+tsx
+Copy
+Edit
+window.addEventListener('offline', () => {
+  showToast("You are offline. Changes may not save.", "warning");
+});
+✅ Also detect network slowdowns and warn users ("Slow connection detected").
+
+8. SOCKET ERRORS
+✅ If WebSocket disconnects, auto-reconnect after 5s.
+
+✅ Show mini banner “Real-time updates lost. Reconnecting...”
+
+✅ If reconnection fails after 30s → "Real-time updates not available."
+
+9. FILE UPLOAD ERRORS
+✅ When uploading documents, invoices, attachments:
+
+Validate file type (PDF, JPG, DOCX etc)
+
+Validate file size (e.g., <10MB)
+
+Show progress bar
+
+Handle upload failures gracefully with retry option
+
+10. CRITICAL ACTION CONFIRMATIONS
+✅ When user tries to:
+
+Delete lead/client
+
+Deactivate user
+
+Delete invoice
+
+Remove load
+
+✅ Show confirmation modal:
+
+“Are you sure you want to [action]? This cannot be undone.”
+
+Button Styles:
+
+Cancel: White/Gray
+
+Confirm: Red (bg-C93131)
+
+FINAL RETURN
+✅ Only PASS if:
+
+No unhandled promise rejections in frontend
+
+No silent server 500s without logging
+
+All forms gracefully show validation errors
+
+All major modules have user-friendly errors
+
+User always understands what happened and what next
+
+✅ And include screenshot proof of:
+
+API error toast
+
+Form validation error
+
+ErrorBoundary page
+
+Offline detection toast
+
