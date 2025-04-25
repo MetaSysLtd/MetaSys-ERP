@@ -17,6 +17,9 @@ import ContactDetails from "@/pages/crm/[id]";
 import DispatchPage from "@/pages/dispatch";
 import DispatchClientsPage from "@/pages/dispatch/clients";
 import NewLoadPage from "@/pages/dispatch/loads/new";
+import DispatchTasksPage from "@/pages/dispatch/tasks";
+import DispatchReportsPage from "@/pages/dispatch/reports";
+import PerformanceTargetsPage from "@/pages/dispatch/targets";
 import InvoicesPage from "@/pages/invoices";
 import InvoiceDetailsPage from "@/pages/invoices/[id]";
 import TasksPage from "@/pages/tasks";
@@ -125,6 +128,30 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={NewLoadPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/dispatch/tasks">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={DispatchTasksPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/dispatch/reports">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={DispatchReportsPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/dispatch/targets">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={PerformanceTargetsPage} />
           </AppLayout>
         )}
       </Route>
