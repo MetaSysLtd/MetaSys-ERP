@@ -1,8 +1,17 @@
-import { useEffect, useState, createContext, useContext, ReactNode } from 'react';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+  useCallback
+} from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { useSocket } from './use-socket';
-import { useToast } from './use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 
-// Lead notification types
+// Types of lead notifications
 export enum LeadNotificationType {
   LEAD_ASSIGNED = 'leadAssigned',
   LEAD_FOLLOW_UP = 'leadFollowUpReminder',
@@ -10,6 +19,7 @@ export enum LeadNotificationType {
   LEAD_STATUS_CHANGE = 'leadStatusChange'
 }
 
+// Lead notification data structure
 export interface LeadNotification {
   id: string;
   type: LeadNotificationType;
@@ -29,32 +39,75 @@ export interface LeadNotification {
   count?: number;
 }
 
+// Provider props for the context
 interface LeadNotificationContextProps {
   notifications: LeadNotification[];
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearNotification: (id: string) => void;
   clearAllNotifications: () => void;
+  hasUnreadNotifications: boolean;
+  unreadCount: number;
+  resetWeeklyInactiveLeads: () => void;
 }
 
-const LeadNotificationContext = createContext<LeadNotificationContextProps | undefined>(undefined);
+// Create context with default values
+const LeadNotificationContext = createContext<LeadNotificationContextProps>({
+  notifications: [],
+  markAsRead: () => {},
+  markAllAsRead: () => {},
+  clearNotification: () => {},
+  clearAllNotifications: () => {},
+  hasUnreadNotifications: false,
+  unreadCount: 0,
+  resetWeeklyInactiveLeads: () => {}
+});
 
+// Provider component
 export const LeadNotificationProvider = ({ children }: { children: ReactNode }) => {
-  const [notifications, setNotifications] = useState<LeadNotification[]>([]);
   const { socket } = useSocket();
+  const { user } = useAuth();
   const { toast } = useToast();
+  const [notifications, setNotifications] = useState<LeadNotification[]>([]);
+  
+  // Utility to store notifications in local storage
+  const saveNotifications = useCallback((notifs: LeadNotification[]) => {
+    if (user) {
+      localStorage.setItem(`lead_notifications_${user.id}`, JSON.stringify(notifs));
+    }
+  }, [user]);
 
-  // Listen for socket notifications
+  // Load notifications from local storage on user change
   useEffect(() => {
-    if (!socket) return;
+    if (user) {
+      const savedNotifications = localStorage.getItem(`lead_notifications_${user.id}`);
+      if (savedNotifications) {
+        try {
+          const parsed = JSON.parse(savedNotifications);
+          // Convert string timestamps to Date objects
+          const notifs = parsed.map((n: any) => ({
+            ...n,
+            timestamp: new Date(n.timestamp)
+          }));
+          setNotifications(notifs);
+        } catch (err) {
+          console.error('Error parsing saved notifications:', err);
+        }
+      }
+    }
+  }, [user]);
+  
+  // Socket event handlers for different notification types
+  useEffect(() => {
+    if (!socket || !user) return;
 
-    // Handler for new lead assignment
+    // Handler for lead assigned notification
     const handleLeadAssigned = (data: any) => {
       const notification: LeadNotification = {
-        id: `lead-assigned-${Date.now()}`,
+        id: uuidv4(),
         type: LeadNotificationType.LEAD_ASSIGNED,
-        title: data.title || 'New Lead Assigned',
-        message: data.message || `New lead ${data.leadName} assigned`,
+        title: 'New Lead Assigned',
+        message: `A new lead '${data.leadName}' has been assigned to you.`,
         leadId: data.leadId,
         leadName: data.leadName,
         clientName: data.clientName,
@@ -63,143 +116,180 @@ export const LeadNotificationProvider = ({ children }: { children: ReactNode }) 
         timestamp: new Date(),
         read: false
       };
-
-      setNotifications(prev => [notification, ...prev]);
       
-      // Show toast notification
+      setNotifications(prev => {
+        const updated = [notification, ...prev];
+        saveNotifications(updated);
+        return updated;
+      });
+      
       toast({
-        title: notification.title,
-        description: notification.message,
-        variant: "default",
+        title: 'New Lead Assigned',
+        description: `A new lead '${data.leadName}' has been assigned to you.`,
+        variant: "warning",
+        duration: 8000
       });
     };
-
-    // Handler for lead follow-up reminder
+    
+    // Handler for follow-up reminder
     const handleLeadFollowUp = (data: any) => {
       const notification: LeadNotification = {
-        id: `lead-followup-${Date.now()}`,
+        id: uuidv4(),
         type: LeadNotificationType.LEAD_FOLLOW_UP,
-        title: data.title || 'Lead Follow-Up Required',
-        message: data.message || `Lead ${data.leadName} requires follow-up`,
+        title: 'Lead Follow-up Required',
+        message: `Lead '${data.leadName}' requires follow-up. It has been in HandToDispatch status for over 24 hours.`,
         leadId: data.leadId,
         leadName: data.leadName,
         clientName: data.clientName,
         status: data.status,
-        assignedAt: data.assignedAt,
         timestamp: new Date(),
         read: false
       };
-
-      setNotifications(prev => [notification, ...prev]);
       
-      // Show toast notification
+      setNotifications(prev => {
+        const updated = [notification, ...prev];
+        saveNotifications(updated);
+        return updated;
+      });
+      
       toast({
-        title: notification.title,
-        description: notification.message,
-        variant: "destructive", // Using red for follow-up reminders
+        title: 'Lead Follow-up Required',
+        description: `Lead '${data.leadName}' requires follow-up. It has been in HandToDispatch status for over 24 hours.`,
+        variant: "destructive",
+        duration: 10000
       });
     };
-
+    
     // Handler for weekly inactive leads reminder
-    const handleInactiveLeads = (data: any) => {
+    const handleWeeklyInactiveLeads = (data: any) => {
       const notification: LeadNotification = {
-        id: `inactive-leads-${Date.now()}`,
+        id: uuidv4(),
         type: LeadNotificationType.INACTIVE_LEADS,
-        title: data.title || 'Inactive Leads Reminder',
-        message: data.message || `${data.count} inactive lead(s) need attention`,
+        title: 'Inactive Leads Reminder',
+        message: `You have ${data.count} inactive leads in HandToDispatch status that need attention.`,
         leadIds: data.leadIds,
         leadNames: data.leadNames,
         count: data.count,
         timestamp: new Date(),
         read: false
       };
-
-      setNotifications(prev => [notification, ...prev]);
       
-      // Show toast notification
+      setNotifications(prev => {
+        const updated = [notification, ...prev];
+        saveNotifications(updated);
+        return updated;
+      });
+      
       toast({
-        title: notification.title,
-        description: notification.message,
-        variant: "warning", // Using yellow for reminders
+        title: 'Inactive Leads Reminder',
+        description: `You have ${data.count} inactive leads in HandToDispatch status that need attention.`,
+        variant: "default",
+        duration: 8000
       });
     };
-
+    
     // Handler for lead status changes
     const handleLeadStatusChange = (data: any) => {
       const notification: LeadNotification = {
-        id: `status-change-${Date.now()}`,
+        id: uuidv4(),
         type: LeadNotificationType.LEAD_STATUS_CHANGE,
-        title: data.title || 'Lead Status Changed',
-        message: data.message || `Lead ${data.leadName} status changed to ${data.status}`,
+        title: 'Lead Status Change',
+        message: `Lead '${data.leadName}' status changed from ${data.previousStatus} to ${data.newStatus}.`,
         leadId: data.leadId,
         leadName: data.leadName,
-        status: data.status,
+        clientName: data.clientName,
+        status: data.newStatus,
         previousStatus: data.previousStatus,
         changedAt: data.changedAt,
         timestamp: new Date(),
         read: false
       };
-
-      setNotifications(prev => [notification, ...prev]);
       
-      // Calculate variant based on status
-      let variant: "default" | "destructive" | "success" = "default";
-      if (data.status === 'Active') {
-        variant = "success";
-      } else if (data.status === 'Unqualified') {
-        variant = "destructive";
-      }
+      setNotifications(prev => {
+        const updated = [notification, ...prev];
+        saveNotifications(updated);
+        return updated;
+      });
       
-      // Show toast notification
+      // Color the toast by the new status
+      const variant = 
+        data.newStatus === 'Active' ? 'success' :
+        data.newStatus === 'Unqualified' ? 'destructive' : 'default';
+      
       toast({
-        title: notification.title,
-        description: notification.message,
-        variant: variant,
+        title: 'Lead Status Change',
+        description: `Lead '${data.leadName}' status changed from ${data.previousStatus} to ${data.newStatus}.`,
+        variant,
+        duration: 6000
       });
     };
 
-    // Register event handlers
+    // Register event listeners
     socket.on(LeadNotificationType.LEAD_ASSIGNED, handleLeadAssigned);
     socket.on(LeadNotificationType.LEAD_FOLLOW_UP, handleLeadFollowUp);
-    socket.on(LeadNotificationType.INACTIVE_LEADS, handleInactiveLeads);
+    socket.on(LeadNotificationType.INACTIVE_LEADS, handleWeeklyInactiveLeads);
     socket.on(LeadNotificationType.LEAD_STATUS_CHANGE, handleLeadStatusChange);
-
-    // Clean up event listeners
+    
+    // Clean up listeners on unmount
     return () => {
       socket.off(LeadNotificationType.LEAD_ASSIGNED, handleLeadAssigned);
       socket.off(LeadNotificationType.LEAD_FOLLOW_UP, handleLeadFollowUp);
-      socket.off(LeadNotificationType.INACTIVE_LEADS, handleInactiveLeads);
+      socket.off(LeadNotificationType.INACTIVE_LEADS, handleWeeklyInactiveLeads);
       socket.off(LeadNotificationType.LEAD_STATUS_CHANGE, handleLeadStatusChange);
     };
-  }, [socket, toast]);
+  }, [socket, user, toast, saveNotifications]);
 
   // Mark a notification as read
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
-  };
+  const markAsRead = useCallback((id: string) => {
+    setNotifications(prev => {
+      const updated = prev.map(notification => 
+        notification.id === id ? { ...notification, read: true } : notification
+      );
+      saveNotifications(updated);
+      return updated;
+    });
+  }, [saveNotifications]);
 
   // Mark all notifications as read
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, read: true }))
-    );
-  };
+  const markAllAsRead = useCallback(() => {
+    setNotifications(prev => {
+      const updated = prev.map(notification => ({ ...notification, read: true }));
+      saveNotifications(updated);
+      return updated;
+    });
+  }, [saveNotifications]);
 
-  // Clear a notification
-  const clearNotification = (id: string) => {
-    setNotifications(prev => 
-      prev.filter(notif => notif.id !== id)
-    );
-  };
+  // Clear a notification by ID
+  const clearNotification = useCallback((id: string) => {
+    setNotifications(prev => {
+      const updated = prev.filter(notification => notification.id !== id);
+      saveNotifications(updated);
+      return updated;
+    });
+  }, [saveNotifications]);
 
   // Clear all notifications
-  const clearAllNotifications = () => {
+  const clearAllNotifications = useCallback(() => {
     setNotifications([]);
-  };
+    if (user) {
+      localStorage.removeItem(`lead_notifications_${user.id}`);
+    }
+  }, [user]);
+  
+  // Reset weekly inactive leads notifications to prevent duplicates
+  const resetWeeklyInactiveLeads = useCallback(() => {
+    setNotifications(prev => {
+      const updated = prev.filter(n => n.type !== LeadNotificationType.INACTIVE_LEADS);
+      saveNotifications(updated);
+      return updated;
+    });
+  }, [saveNotifications]);
+
+  // Calculate if there are unread notifications
+  const hasUnreadNotifications = notifications.some(n => !n.read);
+  
+  // Count unread notifications
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <LeadNotificationContext.Provider
@@ -208,7 +298,10 @@ export const LeadNotificationProvider = ({ children }: { children: ReactNode }) 
         markAsRead,
         markAllAsRead,
         clearNotification,
-        clearAllNotifications
+        clearAllNotifications,
+        hasUnreadNotifications,
+        unreadCount,
+        resetWeeklyInactiveLeads
       }}
     >
       {children}
@@ -219,7 +312,7 @@ export const LeadNotificationProvider = ({ children }: { children: ReactNode }) 
 // Hook to use lead notifications
 export const useLeadNotifications = () => {
   const context = useContext(LeadNotificationContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useLeadNotifications must be used within a LeadNotificationProvider');
   }
   return context;

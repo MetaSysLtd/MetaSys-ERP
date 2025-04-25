@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { X } from "lucide-react";
+import { LeadNotificationContainer } from "../dispatch/lead-notification-container";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -58,7 +59,10 @@ export function AppLayout({ children }: AppLayoutProps) {
         <Header setSidebarOpen={setSidebarOpen} />
         
         <main className="flex-1 relative overflow-y-auto focus:outline-none bg-white dark:bg-gray-900">
-          {children}
+          <div className="px-4 py-6">
+            <LeadNotificationContainer />
+            {children}
+          </div>
         </main>
       </div>
     </div>

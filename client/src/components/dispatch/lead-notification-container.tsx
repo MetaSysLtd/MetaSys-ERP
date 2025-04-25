@@ -1,271 +1,280 @@
-import { useState, useMemo } from 'react';
-import { useLeadNotifications, LeadNotificationType } from '@/hooks/use-lead-notifications';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Bell, 
-  CheckCircle2, 
-  AlertTriangle, 
-  AlertCircle, 
-  X, 
-  RefreshCw,
-  Clock,
-  CheckCheck
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { LeadAlertBanner } from '@/components/crm/lead-alert-banner';
-import { MotionWrapper } from '@/components/ui/motion-wrapper-fixed';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import { CheckCheck, Bell } from 'lucide-react';
+import { LeadAlertBanner } from '../crm/lead-alert-banner';
+import { useLeadNotifications, LeadNotificationType, LeadNotification } from '@/hooks/use-lead-notifications';
+import { format } from 'date-fns';
 
+// Framer motion variants for animations
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.3
+    }
+  }
+};
+
+/**
+ * Container for lead-related notifications and alerts
+ * Shows different tabs for assigned leads, follow-up reminders and status changes
+ */
 export function LeadNotificationContainer() {
-  const { notifications, markAsRead, clearNotification, markAllAsRead, clearAllNotifications } = useLeadNotifications();
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const {
+    notifications,
+    markAsRead,
+    markAllAsRead,
+    clearNotification
+  } = useLeadNotifications();
+  
+  const [activeTab, setActiveTab] = useState<string>('assigned');
 
-  // Group notifications by type
-  const groupedNotifications = useMemo(() => {
-    const assigned = notifications.filter(n => n.type === LeadNotificationType.LEAD_ASSIGNED);
-    const followUp = notifications.filter(n => n.type === LeadNotificationType.LEAD_FOLLOW_UP);
-    const inactive = notifications.filter(n => n.type === LeadNotificationType.INACTIVE_LEADS);
-    const statusChange = notifications.filter(n => n.type === LeadNotificationType.LEAD_STATUS_CHANGE);
-    
-    return {
-      all: notifications,
-      assigned,
-      followUp,
-      inactive,
-      statusChange
-    };
-  }, [notifications]);
+  // Filter notifications based on active tab
+  const filteredNotifications = notifications.filter(notification => {
+    if (activeTab === 'assigned') {
+      return notification.type === LeadNotificationType.LEAD_ASSIGNED;
+    } else if (activeTab === 'follow-up') {
+      return notification.type === LeadNotificationType.LEAD_FOLLOW_UP;
+    } else if (activeTab === 'inactive') {
+      return notification.type === LeadNotificationType.INACTIVE_LEADS;
+    } else if (activeTab === 'status') {
+      return notification.type === LeadNotificationType.LEAD_STATUS_CHANGE;
+    }
+    return false;
+  });
 
-  // Get the currently displayed notifications based on active tab
-  const currentNotifications = useMemo(() => {
-    return groupedNotifications[activeTab as keyof typeof groupedNotifications] || [];
-  }, [groupedNotifications, activeTab]);
-
-  // Handle tab change
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
+  // Count unread notifications by type
+  const unreadCounts = {
+    assigned: notifications.filter(
+      n => n.type === LeadNotificationType.LEAD_ASSIGNED && !n.read
+    ).length,
+    followUp: notifications.filter(
+      n => n.type === LeadNotificationType.LEAD_FOLLOW_UP && !n.read
+    ).length,
+    inactive: notifications.filter(
+      n => n.type === LeadNotificationType.INACTIVE_LEADS && !n.read
+    ).length,
+    status: notifications.filter(
+      n => n.type === LeadNotificationType.LEAD_STATUS_CHANGE && !n.read
+    ).length
   };
 
-  // Calculate counts for badge displays
-  const counts = useMemo(() => ({
-    all: notifications.length,
-    assigned: groupedNotifications.assigned.length,
-    followUp: groupedNotifications.followUp.length,
-    inactive: groupedNotifications.inactive.length,
-    statusChange: groupedNotifications.statusChange.length,
-    unread: notifications.filter(n => !n.read).length
-  }), [notifications, groupedNotifications]);
+  // Mark all visible notifications as read when tab changes
+  useEffect(() => {
+    const visibleNotifications = filteredNotifications.filter(n => !n.read);
+    visibleNotifications.forEach(notification => {
+      markAsRead(notification.id);
+    });
+  }, [activeTab, filteredNotifications, markAsRead]);
 
-  if (notifications.length === 0) {
-    return null;
-  }
-
-  return (
-    <Card className="fixed bottom-4 right-4 w-96 shadow-lg bg-white z-50 overflow-hidden">
-      <div className="flex items-center justify-between bg-primary p-3 text-white">
-        <div className="flex items-center gap-2">
-          <Bell className="h-5 w-5" />
-          <h3 className="font-semibold">Lead Notifications</h3>
-          {counts.unread > 0 && (
-            <Badge variant="destructive" className="ml-2">
-              {counts.unread} unread
-            </Badge>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={markAllAsRead}
-            title="Mark all as read"
-            className="h-7 w-7 text-white hover:bg-primary/50"
-          >
-            <CheckCheck className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={clearAllNotifications}
-            title="Clear all notifications"
-            className="h-7 w-7 text-white hover:bg-primary/50"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="w-full grid grid-cols-5">
-          <TabsTrigger value="all">
-            All 
-            {counts.all > 0 && <Badge variant="secondary" className="ml-1">{counts.all}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="assigned">
-            New
-            {counts.assigned > 0 && <Badge variant="secondary" className="ml-1">{counts.assigned}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="followUp">
-            Follow-up
-            {counts.followUp > 0 && <Badge variant="secondary" className="ml-1">{counts.followUp}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="inactive">
-            Inactive
-            {counts.inactive > 0 && <Badge variant="secondary" className="ml-1">{counts.inactive}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="statusChange">
-            Status
-            {counts.statusChange > 0 && <Badge variant="secondary" className="ml-1">{counts.statusChange}</Badge>}
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value={activeTab} className="p-0 m-0">
-          <ScrollArea className="h-[350px]">
-            <div className="p-3 space-y-3">
-              {currentNotifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                  <Bell className="h-10 w-10 mb-2 opacity-20" />
-                  <p>No notifications in this category</p>
-                </div>
-              ) : (
-                currentNotifications.map((notification) => (
-                  <NotificationItem 
-                    key={notification.id}
-                    notification={notification}
-                    onMarkAsRead={markAsRead}
-                    onDismiss={clearNotification}
-                  />
-                ))
-              )}
-            </div>
-          </ScrollArea>
-        </TabsContent>
-      </Tabs>
-    </Card>
-  );
-}
-
-const getTypeIcon = (type: LeadNotificationType) => {
-  switch (type) {
-    case LeadNotificationType.LEAD_ASSIGNED:
-      return <Bell className="h-5 w-5 text-blue-500" />;
-    case LeadNotificationType.LEAD_FOLLOW_UP:
-      return <AlertTriangle className="h-5 w-5 text-red-500" />;
-    case LeadNotificationType.INACTIVE_LEADS:
-      return <Clock className="h-5 w-5 text-amber-500" />;
-    case LeadNotificationType.LEAD_STATUS_CHANGE:
-      return <RefreshCw className="h-5 w-5 text-green-500" />;
-    default:
-      return <AlertCircle className="h-5 w-5 text-gray-500" />;
-  }
-};
-
-// Show a banner for lead follow-up reminders
-const shouldShowBanner = (type: LeadNotificationType) => {
-  return type === LeadNotificationType.LEAD_FOLLOW_UP;
-};
-
-// Notification item component
-function NotificationItem({ 
-  notification, 
-  onMarkAsRead, 
-  onDismiss 
-}: { 
-  notification: any, 
-  onMarkAsRead: (id: string) => void, 
-  onDismiss: (id: string) => void 
-}) {
-  const handleMarkAsRead = () => {
-    onMarkAsRead(notification.id);
+  // Returns the right color for notification type
+  const getTypeIcon = (type: LeadNotificationType) => {
+    switch (type) {
+      case LeadNotificationType.LEAD_ASSIGNED:
+        return 'text-amber-500';
+      case LeadNotificationType.LEAD_FOLLOW_UP:
+        return 'text-red-500';
+      case LeadNotificationType.INACTIVE_LEADS:
+        return 'text-blue-500';
+      case LeadNotificationType.LEAD_STATUS_CHANGE:
+        return 'text-green-500';
+      default:
+        return 'text-gray-500';
+    }
   };
 
-  const handleDismiss = () => {
-    onDismiss(notification.id);
-  };
-
-  // For lead follow-ups, render a special banner component
-  if (shouldShowBanner(notification.type)) {
+  // Returns true if the notification should show a banner
+  const shouldShowBanner = (type: LeadNotificationType) => {
     return (
-      <MotionWrapper 
-        animation="fade-up" 
-        delay={0.1}
-        className="relative"
+      type === LeadNotificationType.LEAD_ASSIGNED ||
+      type === LeadNotificationType.LEAD_FOLLOW_UP
+    );
+  };
+
+  // Individual notification item
+  function NotificationItem({ notification }: { notification: LeadNotification }) {
+    // Format timestamp as relative time
+    const formattedTime = format(
+      new Date(notification.timestamp),
+      'MMM d, h:mm a'
+    );
+
+    if (shouldShowBanner(notification.type)) {
+      // Return a lead alert banner for assigned leads and follow-up reminders
+      return (
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          animate="visible"
+          exit={{ opacity: 0, y: -10 }}
+          layout
+        >
+          <LeadAlertBanner
+            leadId={notification.leadId!}
+            leadName={notification.leadName!}
+            clientName={notification.clientName}
+            status={notification.status}
+            onDismiss={() => clearNotification(notification.id)}
+            color={notification.type === LeadNotificationType.LEAD_FOLLOW_UP ? 'red' : 'yellow'}
+          />
+        </motion.div>
+      );
+    }
+
+    // For other notifications, show a card-based design
+    return (
+      <motion.div
+        variants={itemVariants}
+        initial="hidden"
+        animate="visible"
+        exit={{ opacity: 0, y: -10 }}
+        layout
+        className="mb-2"
       >
-        <LeadAlertBanner 
-          leadId={notification.leadId} 
-          leadName={notification.leadName}
-          clientName={notification.clientName}
-          status={notification.status}
-          onDismiss={handleDismiss}
-          color="red"
-        />
-      </MotionWrapper>
+        <Card className="p-4 shadow-sm">
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Bell className={`h-4 w-4 ${getTypeIcon(notification.type)}`} />
+                <h4 className="font-medium text-gray-900">{notification.title}</h4>
+                {!notification.read && (
+                  <Badge variant="secondary" className="text-xs">New</Badge>
+                )}
+              </div>
+              <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
+              <div className="text-xs text-gray-400">{formattedTime}</div>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-gray-400 hover:text-gray-500"
+              onClick={() => clearNotification(notification.id)}
+            >
+              Dismiss
+            </Button>
+          </div>
+        </Card>
+      </motion.div>
     );
   }
 
+  const hasNotifications = filteredNotifications.length > 0;
+
   return (
-    <MotionWrapper 
-      animation="fade-up" 
-      delay={0.1}
-    >
-      <Card className={`relative p-3 ${!notification.read ? 'bg-muted/30 border-l-4 border-l-primary' : ''}`}>
-        <div className="absolute top-2 right-2 flex space-x-1">
-          {!notification.read && (
+    <Card className="w-full max-w-3xl mx-auto mb-6 shadow-md border border-gray-200">
+      <div className="p-4 pb-0">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-gray-900">Lead Notifications</h2>
+          {hasNotifications && (
             <Button
-              size="icon"
-              variant="ghost"
-              className="h-6 w-6"
-              onClick={handleMarkAsRead}
-              title="Mark as read"
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-1"
+              onClick={markAllAsRead}
             >
-              <CheckCircle2 className="h-4 w-4" />
+              <CheckCheck className="h-4 w-4" />
+              <span>Mark all as read</span>
             </Button>
           )}
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6"
-            onClick={handleDismiss}
-            title="Dismiss"
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </div>
-        
-        <div className="flex gap-3 items-start mb-2 pr-16">
-          <div className="mt-1">
-            {getTypeIcon(notification.type)}
-          </div>
-          <div>
-            <h4 className="font-medium text-sm">{notification.title}</h4>
-            <p className="text-sm text-muted-foreground">{notification.message}</p>
-          </div>
-        </div>
-        
-        {notification.leadId && (
-          <div className="text-xs text-muted-foreground ml-8 mt-1">
-            Lead ID: {notification.leadId}
-          </div>
-        )}
-        
-        <div className="flex justify-between items-center mt-2">
-          <div className="text-xs text-muted-foreground ml-8">
-            {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
-          </div>
-          
-          {notification.status && (
-            <Badge variant={
-              notification.status === 'Active' ? 'success' : 
-              notification.status === 'Unqualified' ? 'destructive' : 
-              'secondary'
-            }>
-              {notification.status}
-            </Badge>
-          )}
-        </div>
-      </Card>
-    </MotionWrapper>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-4 mb-4">
+            <TabsTrigger value="assigned" className="relative">
+              Assigned Leads
+              {unreadCounts.assigned > 0 && (
+                <Badge 
+                  variant="secondary" 
+                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                >
+                  {unreadCounts.assigned}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="follow-up" className="relative">
+              Follow-up
+              {unreadCounts.followUp > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                >
+                  {unreadCounts.followUp}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="inactive" className="relative">
+              Inactive
+              {unreadCounts.inactive > 0 && (
+                <Badge 
+                  variant="secondary" 
+                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                >
+                  {unreadCounts.inactive}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="status" className="relative">
+              Status Changes
+              {unreadCounts.status > 0 && (
+                <Badge 
+                  variant="success" 
+                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                >
+                  {unreadCounts.status}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          {['assigned', 'follow-up', 'inactive', 'status'].map((tabId) => (
+            <TabsContent key={tabId} value={tabId} className="mt-0">
+              <div className="p-4">
+                {filteredNotifications.length > 0 ? (
+                  <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    {filteredNotifications.map((notification) => (
+                      <NotificationItem
+                        key={notification.id}
+                        notification={notification}
+                      />
+                    ))}
+                  </motion.div>
+                ) : (
+                  <div className="py-8 text-center">
+                    <Bell className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                    <h3 className="text-gray-500 font-medium">No notifications</h3>
+                    <p className="text-gray-400 text-sm mt-1">
+                      {activeTab === 'assigned' && "You don't have any assigned leads to follow up."}
+                      {activeTab === 'follow-up' && "No leads require immediate follow-up."}
+                      {activeTab === 'inactive' && "No inactive leads to review."}
+                      {activeTab === 'status' && "No recent lead status changes."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+    </Card>
   );
 }

@@ -279,18 +279,18 @@ function App() {
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <NotificationProvider>
-            <MessageProvider>
-              <AnimationProvider>
-                <SocketProvider>
+          <SocketProvider>
+            <NotificationProvider>
+              <MessageProvider>
+                <AnimationProvider>
                   <LeadNotificationProvider>
                     <AppContent />
                     <Toaster />
                   </LeadNotificationProvider>
-                </SocketProvider>
-              </AnimationProvider>
-            </MessageProvider>
-          </NotificationProvider>
+                </AnimationProvider>
+              </MessageProvider>
+            </NotificationProvider>
+          </SocketProvider>
         </AuthProvider>
       </QueryClientProvider>
     </Provider>
