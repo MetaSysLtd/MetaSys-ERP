@@ -132,6 +132,8 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
         { name: "Loads", href: "/dispatch" },
         { name: "Clients", href: "/dispatch/clients" },
         { name: "New Load", href: "/dispatch/loads/new" },
+        { name: "Daily Tasks", href: "/dispatch/tasks" },
+        { name: "Performance", href: "/dispatch/reports" },
       ],
     },
     {

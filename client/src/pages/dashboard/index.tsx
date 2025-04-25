@@ -21,6 +21,7 @@ import { RevenueCard } from "@/components/dashboard/RevenueCard";
 import { FinanceOverview } from "@/components/dashboard/FinanceOverview";
 import { EmployeeSummary } from "@/components/dashboard/EmployeeSummary";
 import { DispatchPerformance } from "@/components/dashboard/DispatchPerformance";
+import { PerformanceAlertWidget } from "@/components/dispatch/performance-alert-widget";
 import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
 import { AnimationSettings } from "@/components/ui/animation-settings";
 
@@ -84,8 +85,8 @@ export default function Dashboard() {
         </MotionWrapper>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MotionWrapper animation="fade-up" delay={0.6}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <MotionWrapper animation="fade-up" delay={0.6} className="lg:col-span-2">
           <TeamPerformance 
             title="Sales Team Performance" 
             type="sales" 
@@ -93,7 +94,12 @@ export default function Dashboard() {
             className="border-blue-500 dark:border-blue-400"
           />
         </MotionWrapper>
-        <MotionWrapper animation="fade-up" delay={0.7}>
+        {(role?.department === "dispatch" || role?.department === "admin") && (
+          <MotionWrapper animation="fade-up" delay={0.65}>
+            <PerformanceAlertWidget />
+          </MotionWrapper>
+        )}
+        <MotionWrapper animation="fade-up" delay={0.7} className={role?.department === "dispatch" || role?.department === "admin" ? "lg:col-span-2" : "lg:col-span-1"}>
           <TeamPerformance 
             title="Dispatch Team Performance" 
             type="dispatch" 

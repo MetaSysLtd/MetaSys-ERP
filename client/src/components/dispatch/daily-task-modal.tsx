@@ -10,11 +10,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ToastAlert } from "@/components/ui/toast-alert";
+import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 
 const taskSchema = z.object({
-  carriersUpdated: z.number().min(0, "Must be a positive number"),
-  deadLeadsArchived: z.number().min(0, "Must be a positive number"),
+  loadNumbers: z.string().min(3, "Please enter at least one load number"),
+  clientFollowups: z.number().min(0, "Must be a positive number"),
+  newLeads: z.number().min(0, "Must be a positive number"),
+  notes: z.string().optional(),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
@@ -32,16 +35,18 @@ export function DailyTaskModal({ isOpen, onClose, taskId }: DailyTaskModalProps)
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
-      carriersUpdated: 0,
-      deadLeadsArchived: 0,
+      loadNumbers: "",
+      clientFollowups: 0,
+      newLeads: 0,
+      notes: "",
     },
   });
 
   const submitMutation = useMutation({
     mutationFn: async (values: TaskFormValues) => {
       const response = await apiRequest(
-        "POST",
-        `/api/dispatch/tasks/${taskId}/submit`,
+        "POST", 
+        `/api/dispatch/tasks/${taskId}/submit`, 
         values
       );
       return response.json();
@@ -85,17 +90,33 @@ export function DailyTaskModal({ isOpen, onClose, taskId }: DailyTaskModalProps)
           <DialogTitle className="text-xl font-bold">Daily Task Submission</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="carriersUpdated"
+              name="loadNumbers"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Carriers Updated Today</FormLabel>
+                  <FormLabel>Load Numbers (comma separated)</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter load numbers (e.g. L-1234, L-5678)"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="clientFollowups"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client Follow-ups</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter number of carriers updated"
+                      placeholder="Enter number of client follow-ups"
                       {...field}
                       onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                     />
@@ -106,16 +127,33 @@ export function DailyTaskModal({ isOpen, onClose, taskId }: DailyTaskModalProps)
             />
             <FormField
               control={form.control}
-              name="deadLeadsArchived"
+              name="newLeads"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Dead Leads Archived</FormLabel>
+                  <FormLabel>New Leads</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      placeholder="Enter number of dead leads archived"
+                      placeholder="Enter number of new leads"
                       {...field}
                       onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter any notes (optional)"
+                      className="resize-none"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -124,7 +162,7 @@ export function DailyTaskModal({ isOpen, onClose, taskId }: DailyTaskModalProps)
             />
             <Button
               type="submit"
-              className="w-full bg-[#457B9D] hover:bg-[#2EC4B6] text-white rounded-md transition-all duration-200"
+              className="w-full bg-[#457B9D] hover:bg-[#2EC4B6] text-white rounded-md transition-all duration-200 mt-6"
               disabled={submitMutation.isPending}
             >
               {submitMutation.isPending ? (
