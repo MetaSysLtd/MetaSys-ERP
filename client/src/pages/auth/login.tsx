@@ -26,9 +26,10 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-// Import login banners
-import desktopBanner from "@/assets/banners/bg-login-desktop.png";
-import mobileBanner from "@/assets/banners/bg-login-mobile.png";
+// Importing assets for login page
+import desktopBannerPath from "@/assets/banners/bg-login-desktop.png";
+import mobileBannerPath from "@/assets/banners/bg-login-mobile.png";
+import logoLightPath from "@/assets/logos/MetaSys Logo-Light.png";
 
 const loginFormSchema = z.object({
   username: z.string().min(1, { message: "Username is required" }),
@@ -84,8 +85,9 @@ export default function Login() {
 
   // This is for redirecting to the right dashboard after login
   const getRedirectPath = () => {
-    // Check if the user has an admin role, otherwise redirect to regular dashboard
-    return user?.role === 'admin' ? '/admin/dashboard' : '/dashboard';
+    // Check if the user has admin role by checking the roleId
+    // Admin roles usually have higher roleId values
+    return user?.roleId >= 3 ? '/admin/dashboard' : '/dashboard';
   };
 
   return (
@@ -94,7 +96,7 @@ export default function Login() {
       {!isMobile && (
         <div className="lg:w-1/2 hidden md:block">
           <img 
-            src={desktopBanner} 
+            src={desktopBannerPath} 
             alt="MetaSys ERP" 
             className="h-full w-full object-cover"
           />
@@ -105,13 +107,13 @@ export default function Login() {
       <div 
         className={`lg:w-1/2 md:w-full flex flex-col justify-center items-center p-8
                     ${isMobile ? 'bg-no-repeat bg-cover bg-center' : 'bg-white/80 backdrop-blur'}`}
-        style={isMobile ? { backgroundImage: `url(${mobileBanner})` } : {}}
+        style={isMobile ? { backgroundImage: `url(${mobileBannerPath})` } : {}}
       >
         {/* Logo at top */}
         <div className="w-full max-w-md mb-8">
           <Link to={getRedirectPath()}>
             <img 
-              src="/src/assets/logos/MetaSys Logo-Light.png" 
+              src={logoLightPath} 
               alt="MetaSys ERP" 
               className="h-14"
             />
