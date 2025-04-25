@@ -1456,25 +1456,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.id;
       const updates = req.body;
       
-      // Find existing preferences or create them
-      const existingPrefs = await storage.getUserPreferences(userId);
-      
-      let updatedPrefs;
-      
-      if (existingPrefs) {
-        // Update existing preferences
-        updatedPrefs = await storage.updateUserPreferences(userId, {
-          ...updates
-        });
-      } else {
-        // Create new preferences
-        updatedPrefs = await storage.createUserPreferences({
-          userId,
-          ...updates,
-          sidebarPinned: updates.sidebarPinned !== undefined ? updates.sidebarPinned : true,
-          sidebarCollapsed: updates.sidebarCollapsed !== undefined ? updates.sidebarCollapsed : false
-        });
-      }
+      // The updateUserPreferences method now handles everything
+      // It will create new preferences if they don't exist or
+      // update existing ones if they do exist
+      const updatedPrefs = await storage.updateUserPreferences(userId, {
+        ...updates
+      });
 
       // Emit socket event for real-time updates
       io.emit("uiPrefsUpdated", updatedPrefs);
