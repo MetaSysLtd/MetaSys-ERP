@@ -199,6 +199,7 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private roles: Map<number, Role>;
   private leads: Map<number, Lead>;
+  private leadRemarks: Map<number, LeadRemark>;
   private dispatchClients: Map<number, DispatchClient>;
   private loads: Map<number, Load>;
   private invoices: Map<number, Invoice>;
@@ -216,6 +217,7 @@ export class MemStorage implements IStorage {
   private userIdCounter: number;
   private roleIdCounter: number;
   private leadIdCounter: number;
+  private leadRemarkIdCounter: number;
   private dispatchClientIdCounter: number;
   private loadIdCounter: number;
   private invoiceIdCounter: number;
@@ -240,6 +242,7 @@ export class MemStorage implements IStorage {
     this.users = new Map();
     this.roles = new Map();
     this.leads = new Map();
+    this.leadRemarks = new Map();
     this.dispatchClients = new Map();
     this.loads = new Map();
     this.invoices = new Map();
@@ -257,6 +260,7 @@ export class MemStorage implements IStorage {
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
     this.leadIdCounter = 1;
+    this.leadRemarkIdCounter = 1;
     this.dispatchClientIdCounter = 1;
     this.loadIdCounter = 1;
     this.invoiceIdCounter = 1;
