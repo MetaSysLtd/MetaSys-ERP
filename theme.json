@@ -2,5 +2,12 @@
   "variant": "tint",
   "primary": "#025E73",
   "appearance": "light",
-  "radius": 0.75
+  "radius": 0.75,
+  "secondary": "#F2A71B",
+  "colors": {
+    "brand-navy": "#011F26",
+    "brand-teal": "#025E73",
+    "brand-yellow": "#F2A71B", 
+    "brand-plum": "#412754"
+  }
 }
