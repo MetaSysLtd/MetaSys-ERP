@@ -2,18 +2,17 @@
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
-import metioLogo from "@/assets/metio-logo.svg";
+import metaSysLogo from "@/assets/logos/MetaSys Logo-Light.png";
+import { useTheme } from "@/hooks/use-theme";
 
 export function Logo() {
-  const { user } = useAuth();
-  const dashboardPath = user?.role?.department === "admin" ? "/admin/dashboard" : "/dashboard";
-
+  // Simplified logo component without dependencies on user role
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link href={dashboardPath}>
-            <img src={metioLogo} alt="Metio" className="h-9" />
+          <Link href="/">
+            <img src={metaSysLogo} alt="MetaSys" className="h-10" />
           </Link>
         </TooltipTrigger>
         <TooltipContent>Go to Dashboard</TooltipContent>

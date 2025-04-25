@@ -45,8 +45,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 
-// Import the Metio logo
-import metioIcon from "@/assets/metio-icon.svg";
+// Import the MetaSys logo
+import metaSysLogo from "@/assets/logos/MetaSys.png";
 
 function ProtectedRoute({ component: Component, ...rest }: any) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -54,7 +54,7 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center flex-col bg-[#F1FAFB]">
-        <img src={metioIcon} alt="Metio" className="w-16 h-16 mb-4 animate-pulse" />
+        <img src={metaSysLogo} alt="MetaSys" className="w-40 mb-4 animate-pulse" />
         <div className="flex items-center gap-2">
           <Loader2 className="h-5 w-5 animate-spin text-[#1D3557]" />
           <span className="text-[#1D3557] font-medium">Loading...</span>

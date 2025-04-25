@@ -351,7 +351,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
 
       {/* Version info */}
       <div className="px-5 py-3 border-t border-[#0c1f33] text-xs text-[#5a7a9a] text-center">
-        Metio ERP v1.0
+        MetaSys ERP v1.0
       </div>
     </div>
   );
