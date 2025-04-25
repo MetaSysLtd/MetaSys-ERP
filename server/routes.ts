@@ -19,7 +19,7 @@ import * as slackNotifications from "./slack";
 import * as notificationService from "./notifications";
 import { NotificationPreferences, defaultNotificationPreferences } from "./notifications";
 import { WebSocket, WebSocketServer } from "ws";
-import { registerErrorRoutes } from "./routes/error-logging";
+import errorLoggingRoutes from "./routes/error-logging";
 
 // Helper function to handle date objects correctly for database insertion
 function createDateObject(dateString?: string | null) {
@@ -320,7 +320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api', organizationMiddleware);
   
   // Register error logging routes
-  registerErrorRoutes(app);
+  app.use('/api', errorLoggingRoutes);
   
   // Add seed data if needed
   await addSeedDataIfNeeded();

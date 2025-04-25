@@ -1,202 +1,174 @@
-import { useState } from 'react';
+import React from 'react';
+import { AlertCircle, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { getErrorMessage } from '@/lib/error-utils';
-import { AlertTriangle, BadgeInfo, Ban, LucideIcon, RefreshCw, ServerCrash, Wifi, XCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-export type ErrorType = 
-  | 'api' 
-  | 'network' 
-  | 'server' 
-  | 'auth' 
-  | 'validation'
-  | 'unknown';
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { createUserFriendlyErrorMessage, formatErrorMessage } from '@/lib/error-utils';
 
 interface ErrorModalProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
+  error: Error | string | null | unknown;
   title?: string;
   description?: string;
-  error?: Error | null;
-  type?: ErrorType;
-  onRetry?: () => void;
+  showDetails?: boolean;
+  primaryAction?: {
+    label: string;
+    onClick: () => void;
+  };
+  secondaryAction?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
-function getErrorIcon(type: ErrorType): LucideIcon {
-  switch (type) {
-    case 'api':
-      return BadgeInfo;
-    case 'network':
-      return Wifi;
-    case 'server':
-      return ServerCrash;
-    case 'auth':
-      return Ban;
-    case 'validation':
-      return XCircle;
-    case 'unknown':
-    default:
-      return AlertTriangle;
-  }
-}
-
+/**
+ * A reusable modal component for displaying errors with configurable details and actions
+ */
 export function ErrorModal({
   open,
-  onOpenChange,
-  title,
-  description,
+  onClose,
   error,
-  type = 'unknown',
-  onRetry,
+  title = "An Error Occurred",
+  description = "We encountered a problem while processing your request.",
+  showDetails = true,
+  primaryAction,
+  secondaryAction,
 }: ErrorModalProps) {
-  const message = error ? getErrorMessage(error) : description;
-  const ErrorIcon = getErrorIcon(type);
+  const errorMessage = error
+    ? createUserFriendlyErrorMessage(error)
+    : "Unknown error";
+
+  const formattedError = formatErrorMessage(error);
   
+  // Get stack trace if available
+  const stack = error instanceof Error ? error.stack : null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <div className="flex items-center gap-2">
-            <ErrorIcon className="h-5 w-5 text-destructive" />
-            <DialogTitle>{title || 'Error Occurred'}</DialogTitle>
+    <Dialog open={open} onOpenChange={() => onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="flex items-center">
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertCircle className="h-5 w-5" />
+            <DialogTitle>{title}</DialogTitle>
           </div>
-          <DialogDescription className="pt-2">
-            {message || 'An unexpected error has occurred'}
-          </DialogDescription>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         
-        {error && (
-          <div className="bg-muted/50 p-3 rounded-md text-xs font-mono overflow-auto max-h-[200px]">
-            {error.stack || error.message}
-          </div>
-        )}
+        <div className="py-4">
+          <Alert variant="destructive" className="mb-4">
+            <AlertTitle className="font-medium">{errorMessage}</AlertTitle>
+            <AlertDescription className="mt-2 text-sm">
+              {formattedError}
+            </AlertDescription>
+          </Alert>
+          
+          {showDetails && stack && (
+            <div className="mt-4">
+              <h4 className="text-sm font-medium mb-2">Technical Details</h4>
+              <ScrollArea className="h-[100px]">
+                <pre className="text-xs bg-muted p-2 rounded overflow-auto whitespace-pre-wrap">
+                  {stack}
+                </pre>
+              </ScrollArea>
+            </div>
+          )}
+        </div>
         
-        <DialogFooter className="sm:justify-between">
-          <Button 
-            variant="outline" 
-            onClick={() => onOpenChange(false)}
-          >
-            Close
-          </Button>
-          {onRetry && (
-            <Button 
-              onClick={() => {
-                onRetry();
-                onOpenChange(false);
-              }}
-              className="gap-2"
+        <DialogFooter className="flex sm:justify-between">
+          {secondaryAction && (
+            <Button
+              variant="outline"
+              onClick={secondaryAction.onClick}
+              className="mt-2 sm:mt-0"
             >
-              <RefreshCw className="h-4 w-4" />
-              Retry
+              {secondaryAction.label}
             </Button>
           )}
+          <Button
+            onClick={primaryAction ? primaryAction.onClick : onClose}
+            className="bg-destructive hover:bg-destructive/90"
+          >
+            {primaryAction ? primaryAction.label : "Close"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-/**
- * Hook to use error modal
- */
 export function useErrorModal() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [errorState, setErrorState] = useState<{
-    error: Error | null;
-    type?: ErrorType;
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [errorState, setErrorState] = React.useState<{
+    error: Error | string | null | unknown;
     title?: string;
     description?: string;
-    onRetry?: () => void;
+    showDetails?: boolean;
+    primaryAction?: {
+      label: string;
+      onClick: () => void;
+    };
+    secondaryAction?: {
+      label: string;
+      onClick: () => void;
+    };
   }>({
-    error: null
+    error: null,
   });
-  
-  const { toast } = useToast();
-  
-  const showError = ({
-    error,
-    type = 'unknown',
-    title,
-    description,
-    onRetry,
-    showToast = true
-  }: {
-    error?: Error;
-    type?: ErrorType;
-    title?: string;
-    description?: string;
-    onRetry?: () => void;
-    showToast?: boolean;
-  }) => {
-    const errorMessage = error ? getErrorMessage(error) : description;
-    
-    // Update the error state
-    setErrorState({
-      error: error || null,
-      type,
-      title: title || getDefaultTitle(type),
-      description: errorMessage,
-      onRetry
-    });
-    
-    // Show toast notification if requested
-    if (showToast && errorMessage) {
-      toast({
-        title: title || getDefaultTitle(type),
-        description: errorMessage,
-        variant: 'destructive'
-      });
+
+  const showError = (
+    error: Error | string | unknown,
+    options?: {
+      title?: string;
+      description?: string;
+      showDetails?: boolean;
+      primaryAction?: {
+        label: string;
+        onClick: () => void;
+      };
+      secondaryAction?: {
+        label: string;
+        onClick: () => void;
+      };
     }
-    
-    // Open the modal
+  ) => {
+    setErrorState({
+      error,
+      ...options,
+    });
     setIsOpen(true);
   };
-  
+
   const closeError = () => {
     setIsOpen(false);
   };
-  
-  // Helper function to get a default title based on error type
-  function getDefaultTitle(type: ErrorType): string {
-    switch (type) {
-      case 'api':
-        return 'API Error';
-      case 'network':
-        return 'Network Error';
-      case 'server':
-        return 'Server Error';
-      case 'auth':
-        return 'Authentication Error';
-      case 'validation':
-        return 'Validation Error';
-      default:
-        return 'Error';
-    }
-  }
-  
+
+  const ErrorModalComponent = () => (
+    <ErrorModal
+      open={isOpen}
+      onClose={closeError}
+      error={errorState.error}
+      title={errorState.title}
+      description={errorState.description}
+      showDetails={errorState.showDetails}
+      primaryAction={errorState.primaryAction}
+      secondaryAction={errorState.secondaryAction}
+    />
+  );
+
   return {
-    isErrorModalOpen: isOpen,
-    errorModalState: errorState,
     showError,
     closeError,
-    ErrorModalComponent: (
-      <ErrorModal
-        open={isOpen}
-        onOpenChange={setIsOpen}
-        error={errorState.error}
-        type={errorState.type}
-        title={errorState.title}
-        description={errorState.description}
-        onRetry={errorState.onRetry}
-      />
-    )
+    ErrorModal: ErrorModalComponent,
   };
 }
+
+export default ErrorModal;

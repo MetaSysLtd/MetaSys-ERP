@@ -276,15 +276,30 @@ function Router() {
 
 // Import the ErrorBoundary component
 import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { setupAxiosInterceptors, setupNetworkStatusListeners } from '@/lib/api-error-handler';
+import { api } from '@/lib/api-error-handler';
 
-// Initialize axios interceptors for global error handling
-setupAxiosInterceptors();
+// api is already set up with interceptors in api-error-handler.ts
 
 function App() {
-  // Setup network status listeners
+  // Setup network status listeners for offline/online events
   useEffect(() => {
-    setupNetworkStatusListeners();
+    const handleOnline = () => {
+      console.log('App is back online');
+      // You could dispatch an action or show a toast here
+    };
+
+    const handleOffline = () => {
+      console.log('App is offline');
+      // You could dispatch an action or show a toast here
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   return (

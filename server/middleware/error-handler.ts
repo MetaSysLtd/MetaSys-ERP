@@ -1,196 +1,221 @@
 import { Request, Response, NextFunction } from 'express';
-import { log } from '../vite';
+import { ZodError } from 'zod';
+import { fromZodError } from 'zod-validation-error';
+import { storage } from '../storage';
 
-/**
- * Custom error class with standardized structure
- */
-export class AppError extends Error {
-  statusCode: number;
-  code: string;
+interface ErrorDetails {
+  message: string;
+  status: number;
   details?: any;
+  code?: string;
+  source?: string;
+}
 
-  constructor(message: string, statusCode: number = 500, code: string = 'SERVER_ERROR', details?: any) {
+/**
+ * Custom API error class for consistent error handling
+ */
+export class APIError extends Error {
+  status: number;
+  details?: any;
+  code?: string;
+  source?: string;
+
+  constructor(
+    message: string,
+    status: number = 500,
+    details?: any,
+    code?: string,
+    source?: string
+  ) {
     super(message);
-    this.statusCode = statusCode;
-    this.code = code;
+    this.name = 'APIError';
+    this.status = status;
     this.details = details;
-    
-    // Maintain proper stack trace
-    Error.captureStackTrace(this, this.constructor);
+    this.code = code;
+    this.source = source;
   }
 }
 
 /**
- * Custom error for validation failures
+ * Logs an error to the database and console
  */
-export class ValidationError extends AppError {
-  constructor(message: string, details?: any) {
-    super(message, 422, 'VALIDATION_ERROR', details);
+async function logErrorToStorage(
+  req: Request,
+  error: Error,
+  status: number,
+  details?: any
+): Promise<void> {
+  try {
+    // Get user ID from session if available
+    const userId = req.session?.userId || null;
+
+    // Log to console for immediate visibility
+    console.error(
+      `[${new Date().toISOString()}] ${status} ERROR:`,
+      error.message,
+      userId ? `User: ${userId}` : 'Unauthenticated',
+      `Path: ${req.method} ${req.path}`,
+      details ? `Details: ${JSON.stringify(details)}` : ''
+    );
+
+    // If verbose logging, also log stack trace
+    if (process.env.NODE_ENV === 'development') {
+      console.error(error.stack);
+    }
+
+    // Log to database if appropriate storage method exists
+    if (storage.createErrorLog) {
+      await storage.createErrorLog({
+        userId,
+        errorType: error.name || 'Error',
+        message: error.message,
+        status,
+        path: req.path,
+        method: req.method,
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+        details: details ? JSON.stringify(details) : null,
+        stack: error.stack,
+        timestamp: new Date(),
+      });
+    } else if (storage.createActivity) {
+      // Fallback to activity log if specialized error log isn't available
+      await storage.createActivity({
+        userId: userId || 0,
+        entityType: 'server_error',
+        entityId: 0,
+        action: 'server_error',
+        details: JSON.stringify({
+          error: error.message,
+          status,
+          path: req.path,
+          method: req.method,
+          timestamp: new Date().toISOString(),
+          details,
+        }),
+      });
+    }
+  } catch (loggingError) {
+    // Don't let logging errors affect the response
+    console.error('Error while logging error:', loggingError);
   }
 }
 
 /**
- * Custom error for not found resources
+ * Formats API error for consistent client response
  */
-export class NotFoundError extends AppError {
-  constructor(message: string = 'Resource not found', details?: any) {
-    super(message, 404, 'NOT_FOUND_ERROR', details);
-  }
-}
-
-/**
- * Custom error for unauthorized access
- */
-export class UnauthorizedError extends AppError {
-  constructor(message: string = 'Unauthorized access', details?: any) {
-    super(message, 401, 'UNAUTHORIZED_ERROR', details);
-  }
-}
-
-/**
- * Custom error for forbidden actions
- */
-export class ForbiddenError extends AppError {
-  constructor(message: string = 'Forbidden action', details?: any) {
-    super(message, 403, 'FORBIDDEN_ERROR', details);
-  }
-}
-
-/**
- * Custom error for conflict situations
- */
-export class ConflictError extends AppError {
-  constructor(message: string, details?: any) {
-    super(message, 409, 'CONFLICT_ERROR', details);
-  }
-}
-
-/**
- * Custom error for database errors
- */
-export class DatabaseError extends AppError {
-  constructor(message: string = 'Database error', details?: any) {
-    super(message, 500, 'DATABASE_ERROR', details);
-  }
-}
-
-/**
- * Custom error for external service errors
- */
-export class ExternalServiceError extends AppError {
-  constructor(message: string, details?: any) {
-    super(message, 502, 'EXTERNAL_SERVICE_ERROR', details);
-  }
-}
-
-/**
- * Async route handler wrapper to catch errors from async functions
- * @param fn - The async route handler function to wrap
- * @returns A wrapped function that forwards errors to the error handler middleware
- */
-export const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+function formatErrorResponse(error: Error, status: number = 500): ErrorDetails {
+  let errorDetails: ErrorDetails = {
+    message: error.message || 'An unexpected error occurred',
+    status: status,
   };
-};
+
+  // For custom API errors, add additional details
+  if (error instanceof APIError) {
+    errorDetails = {
+      message: error.message,
+      status: error.status,
+      details: error.details,
+      code: error.code,
+      source: error.source,
+    };
+  }
+
+  // For validation errors, format them consistently
+  if (error instanceof ZodError) {
+    const validationError = fromZodError(error);
+    errorDetails = {
+      message: validationError.message,
+      status: 400,
+      details: error.errors,
+      code: 'VALIDATION_ERROR',
+      source: 'zod',
+    };
+  }
+
+  // Clean up error message for production
+  if (process.env.NODE_ENV === 'production') {
+    // Remove sensitive details or stack traces
+    delete errorDetails.details;
+    if (status >= 500) {
+      errorDetails.message = 'Internal server error';
+    }
+  }
+
+  return errorDetails;
+}
 
 /**
  * Global error handler middleware
  */
-export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-  // Log the error for server-side debugging
-  log(`[ERROR] ${new Date().toISOString()} - ${req.method} ${req.path}`);
-  console.error(err);
+export const errorHandler = async (
+  error: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  let status = 500;
+  let details;
 
-  // Default error values if not an AppError
-  let statusCode = err.statusCode || 500;
-  let message = err.message || 'Internal Server Error';
-  let code = err.code || 'SERVER_ERROR';
-  let details = err.details;
-
-  // Handle specific error types
-  if (err.name === 'ZodError') {
-    statusCode = 422;
-    message = 'Validation Error';
-    code = 'VALIDATION_ERROR';
-    details = err.errors;
-  } else if (err.code === 'P2002') {
-    // Drizzle ORM - unique constraint violation
-    statusCode = 409;
-    message = 'This record already exists';
-    code = 'CONFLICT_ERROR';
-  } else if (err.code === 'P2025') {
-    // Drizzle ORM - not found
-    statusCode = 404;
-    message = 'Record not found';
-    code = 'NOT_FOUND_ERROR';
+  // Determine appropriate status code
+  if (error instanceof APIError) {
+    status = error.status;
+    details = error.details;
+  } else if (error instanceof ZodError) {
+    status = 400;
+    details = error.errors;
+  } else if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+    status = 401;
+  } else if (error.message.includes('ECONNREFUSED') || error.message.includes('getaddrinfo')) {
+    status = 503; // Service Unavailable for database connection issues
   }
 
-  // Send the error response
-  res.status(statusCode).json({
-    error: {
-      message,
-      code,
-      ...(details && { details }),
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  // Log the error
+  await logErrorToStorage(req, error, status, details);
+
+  // Format the error for client response
+  const errorResponse = formatErrorResponse(error, status);
+
+  // Notify admin if critical error
+  if (status >= 500 && process.env.ADMIN_ERROR_NOTIFICATION === 'true') {
+    try {
+      // If user is logged in, include their info
+      const userInfo = req.session?.userId
+        ? await storage.getUser(req.session.userId)
+        : null;
+
+      // Send notification
+      // This is just placeholder code - replace with your notification system
+      console.error(`CRITICAL ERROR NOTIFICATION: ${errorResponse.message}`, {
+        user: userInfo ? `${userInfo.firstName} ${userInfo.lastName} (${userInfo.email})` : 'Unauthenticated',
+        path: req.path,
+        method: req.method,
+        timestamp: new Date().toISOString()
+      });
+    } catch (notificationError) {
+      console.error('Failed to send admin notification:', notificationError);
     }
-  });
+  }
+
+  // Send response
+  res.status(errorResponse.status).json(errorResponse);
 };
 
 /**
- * Handle 404 errors for undefined routes
+ * 404 Not Found handler
  */
 export const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
-  if (req.path.startsWith('/api/')) {
-    // Only treat API routes as potentially missing
-    next(new NotFoundError('Route not found'));
-  } else {
-    // For non-API routes, let the frontend router handle it
-    next();
+  // Skip for non-API routes (let the frontend handle those)
+  if (!req.path.startsWith('/api')) {
+    return next();
   }
-};
 
-/**
- * Authorization middleware to check if user is authenticated
- */
-export const requireAuth = (req: Request & { isAuthenticated?: () => boolean }, res: Response, next: NextFunction) => {
-  if (!req.isAuthenticated || !req.isAuthenticated()) {
-    return next(new UnauthorizedError('Authentication required'));
-  }
-  next();
-};
-
-/**
- * Authorization middleware to check if user has required role
- * @param allowedRoles - Array of role names that can access this route
- */
-export const requireRole = (allowedRoles: string[]) => {
-  return (req: Request & { isAuthenticated?: () => boolean, userRole?: { name: string } }, res: Response, next: NextFunction) => {
-    if (!req.isAuthenticated || !req.isAuthenticated()) {
-      return next(new UnauthorizedError('Authentication required'));
-    }
-
-    const userRole = req.userRole?.name;
-    
-    if (!userRole || !allowedRoles.includes(userRole)) {
-      return next(new ForbiddenError(`Required role: ${allowedRoles.join(' or ')}`));
-    }
-    
-    next();
-  };
-};
-
-/**
- * Middleware to validate request body against Zod schema
- * @param schema - Zod schema to validate against
- */
-export const validateBody = (schema: any) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      req.body = schema.parse(req.body);
-      next();
-    } catch (error) {
-      next(new ValidationError('Invalid request data', error));
-    }
-  };
+  const error = new APIError(`Route not found: ${req.method} ${req.path}`, 404);
+  logErrorToStorage(req, error, 404);
+  
+  res.status(404).json({
+    message: `Route not found: ${req.method} ${req.path}`,
+    status: 404,
+    code: 'NOT_FOUND',
+  });
 };

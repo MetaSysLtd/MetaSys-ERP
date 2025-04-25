@@ -1,137 +1,184 @@
-import axios, { AxiosError } from 'axios';
-import { logError } from './error-utils';
-import { toast } from '@/hooks/use-toast';
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import { useToast } from '@/hooks/use-toast';
+import { formatErrorMessage } from './error-utils';
 
-/**
- * Configure global axios interceptors for consistent error handling
- */
-export function setupAxiosInterceptors() {
-  // Request interceptor - add authorization headers, etc.
-  axios.interceptors.request.use(
-    async (config) => {
-      // Set common headers or transform request data here if needed
-      return config;
-    },
-    (error) => {
-      logError(error, { source: 'axios-request-interceptor' });
-      return Promise.reject(error);
-    }
-  );
+// Base configuration for API requests
+const config: AxiosRequestConfig = {
+  baseURL: '',
+  timeout: 30000, // 30 seconds
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true, // Send cookies with requests
+};
 
-  // Response interceptor - handle errors consistently
-  axios.interceptors.response.use(
-    (response) => {
-      return response;
-    },
-    (error: AxiosError) => {
-      handleAxiosError(error);
-      return Promise.reject(error);
-    }
-  );
+// Create a centralized Axios instance for all API calls
+export const api = axios.create(config);
+
+// Setup for the toast notification (to be called from components)
+let toastFunction: ((props: { title: string; description: string; variant: 'default' | 'destructive' | 'success' }) => void) | null = null;
+
+export function useApiErrorHandler() {
+  const { toast } = useToast();
+  
+  // Make toast function available to the error handler
+  toastFunction = toast;
+  
+  return { api };
 }
 
-/**
- * Handle Axios errors in a standard way
- */
-function handleAxiosError(error: AxiosError) {
-  // Determine error type and message
-  let title = 'Request Error';
-  let message = 'An error occurred while processing your request.';
-  let errorType = 'api';
+// Helper function to handle online/offline transitions
+export function handleNetworkStatusChange(isOnline: boolean) {
+  if (!isOnline && toastFunction) {
+    toastFunction({
+      title: 'Network Connection Lost',
+      description: 'Please check your internet connection and try again.',
+      variant: 'destructive',
+    });
+  } else if (isOnline && toastFunction) {
+    toastFunction({
+      title: 'Network Connection Restored',
+      description: 'You are back online!',
+      variant: 'success',
+    });
+  }
+}
 
-  if (!error.response) {
-    // Network error (no response from server)
-    title = 'Network Error';
-    message = 'Could not connect to the server. Please check your internet connection.';
-    errorType = 'network';
-  } else {
-    const status = error.response.status;
-    const responseData = error.response.data as any;
+// Request interceptor - add authentication headers or other pre-request logic
+api.interceptors.request.use(
+  (config) => {
+    // Add any auth tokens or other headers here
+    // For example:
+    // const token = localStorage.getItem('token');
+    // if (token) {
+    //   config.headers.Authorization = `Bearer ${token}`;
+    // }
     
-    // Handle specific status codes
+    return config;
+  },
+  (error) => {
+    console.error('Request preparation error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor - handle common error responses
+api.interceptors.response.use(
+  (response: AxiosResponse) => {
+    // You can process successful responses here if needed
+    return response;
+  },
+  (error: AxiosError) => {
+    if (!error.response) {
+      // Network error
+      const errorMessage = 'Network error occurred. Please check your connection and try again.';
+      console.error(errorMessage, error);
+      
+      if (toastFunction) {
+        toastFunction({
+          title: 'Connection Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
+      
+      // You could also redirect to an offline page or display a modal
+      return Promise.reject(new Error(errorMessage));
+    }
+    
+    const { status, data } = error.response;
+    
+    // Handle specific HTTP status codes
     switch (status) {
       case 401:
-        title = 'Authentication Required';
-        message = 'Please log in to continue.';
-        errorType = 'auth';
+        // Unauthorized - redirect to login or refresh token
+        console.error('Authentication error:', error);
+        
+        if (toastFunction) {
+          toastFunction({
+            title: 'Authentication Error',
+            description: 'Your session has expired. Please log in again.',
+            variant: 'destructive',
+          });
+        }
+        
+        // Optional: Redirect to login page
+        // window.location.href = '/login';
         break;
+        
       case 403:
-        title = 'Permission Denied';
-        message = 'You do not have permission to perform this action.';
-        errorType = 'auth';
+        // Forbidden - user doesn't have permission
+        console.error('Permission error:', error);
+        
+        if (toastFunction) {
+          toastFunction({
+            title: 'Permission Denied',
+            description: 'You do not have permission to perform this action.',
+            variant: 'destructive',
+          });
+        }
         break;
+        
       case 404:
-        title = 'Not Found';
-        message = 'The requested resource was not found.';
-        errorType = 'api';
+        // Not found
+        console.error('Resource not found:', error);
         break;
+        
       case 422:
-        title = 'Validation Error';
-        message = responseData?.message || 'Please check your input and try again.';
-        errorType = 'validation';
+        // Validation error (common in form submissions)
+        console.error('Validation error:', error);
         break;
+        
+      case 429:
+        // Rate limiting
+        console.error('Rate limit exceeded:', error);
+        
+        if (toastFunction) {
+          toastFunction({
+            title: 'Too Many Requests',
+            description: 'Please slow down and try again in a moment.',
+            variant: 'destructive',
+          });
+        }
+        break;
+        
       case 500:
       case 502:
       case 503:
       case 504:
-        title = 'Server Error';
-        message = 'Something went wrong on our servers. Please try again later.';
-        errorType = 'server';
-        break;
-      default:
-        if (responseData?.message) {
-          message = responseData.message;
+        // Server errors
+        console.error('Server error:', error);
+        
+        if (toastFunction) {
+          toastFunction({
+            title: 'Server Error',
+            description: 'Our servers are experiencing issues. Please try again later.',
+            variant: 'destructive',
+          });
         }
         break;
+        
+      default:
+        // Other errors
+        console.error(`Error ${status}:`, error);
     }
+    
+    // Format error message for better user experience
+    const errorMessage = formatErrorMessage(data) || 'An error occurred. Please try again.';
+    
+    // Create a new error with the formatted message
+    const enhancedError = new Error(errorMessage);
+    
+    // Add additional properties to the error
+    Object.assign(enhancedError, {
+      status,
+      data,
+      originalError: error,
+    });
+    
+    return Promise.reject(enhancedError);
   }
+);
 
-  // Log the error to our logging service
-  logError(error, { 
-    source: 'axios-error-handler',
-    status: error.response?.status,
-    type: errorType
-  });
-
-  // Standard notification for all API errors
-  toast({
-    title,
-    description: message,
-    variant: 'destructive'
-  });
-}
-
-/**
- * Set up listeners for network status changes
- */
-export function setupNetworkStatusListeners() {
-  window.addEventListener('online', handleOnline);
-  window.addEventListener('offline', handleOffline);
-
-  // Clean up function
-  return () => {
-    window.removeEventListener('online', handleOnline);
-    window.removeEventListener('offline', handleOffline);
-  };
-}
-
-/**
- * Handler for when the app regains internet connection
- */
-function handleOnline() {
-  toast({
-    title: 'Connection Restored',
-    description: 'Your internet connection has been restored.',
-  });
-}
-
-/**
- * Handler for when the app loses internet connection
- */
-function handleOffline() {
-  toast({
-    title: 'Connection Lost',
-    description: 'You are currently offline. Some features may not be available.',
-    variant: 'destructive'
-  });
-}
+// Export a wrapped API instance for use in components
+export default api;

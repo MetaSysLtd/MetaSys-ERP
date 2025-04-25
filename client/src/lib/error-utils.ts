@@ -1,110 +1,103 @@
-import axios from 'axios';
+import { api } from "./api-error-handler";
 
-interface ErrorLogData {
-  message: string;
-  type: string;
-  stack?: string;
-  componentStack?: string;
-  url?: string;
-  timestamp?: string;
-  userAgent?: string;
-  [key: string]: any;
-}
-
+/**
+ * Interface for additional error logging options
+ */
 interface LogErrorOptions {
   source?: string;
   status?: number;
-  type?: string;
   context?: Record<string, any>;
 }
 
 /**
- * Send an error to the server-side error logging endpoint
+ * Logs an error to the server for centralized error tracking
+ * @param error - The error object to log
+ * @param options - Optional additional information about the error
  */
-export async function logError(
-  error: Error | any,
-  options: LogErrorOptions = {}
-): Promise<void> {
+export async function logError(error: Error, options: LogErrorOptions = {}): Promise<void> {
   try {
-    // Prepare error data for logging
-    const errorData: ErrorLogData = {
-      message: error?.message || 'Unknown error',
-      type: options.type || error?.name || 'Error',
-      stack: error?.stack,
-      componentStack: error?.componentStack, // For React errors
-      url: window.location.href,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      ...options.context
+    // Get relevant error data
+    const errorData = {
+      error: {
+        message: error.message,
+        type: error.name || 'Error',
+        stack: error.stack,
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        ...options.source && { source: options.source },
+        ...options.status && { status: options.status },
+      },
+      context: options.context
     };
 
-    // Add response details if it's an API error
-    if (error?.response) {
-      errorData.status = error.response.status;
-      errorData.statusText = error.response.statusText;
-      errorData.responseData = error.response.data;
-      errorData.endpoint = error.config?.url;
-      errorData.method = error.config?.method;
-    }
-
-    // Add source information
-    if (options.source) {
-      errorData.source = options.source;
-    }
-
-    // Send error to server logging endpoint
-    await axios.post('/api/log-client-error', {
-      error: errorData,
-      context: options.context
-    });
-
-    // Also log to console in development
+    // Send to server - don't await to avoid blocking UI
+    // Use a separate instance to avoid interceptors causing recursion
+    await api.post('/api/log-client-error', errorData);
+    
+    // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.error('[Error Logger]', errorData);
+      console.group('Error Logged to Server');
+      console.error(error);
+      console.info('Context:', options);
+      console.groupEnd();
     }
   } catch (loggingError) {
-    // Fallback to console if error logging fails
-    console.error('[Error Logging Failed]', error);
-    console.error('[Logging Error]', loggingError);
+    // Fallback to console if server logging fails
+    console.error('Failed to log error to server:', loggingError);
+    console.error('Original error:', error);
   }
 }
 
 /**
- * Format an error message for display to users
+ * Formats an error message for display to users
+ * @param error - Error object, string, or API response data
+ * @returns Formatted error message string
  */
 export function formatErrorMessage(error: any): string {
+  // Handle different error formats
   if (!error) {
     return 'An unknown error occurred';
   }
 
-  // If it's a string, return it directly
+  // String error
   if (typeof error === 'string') {
     return error;
   }
 
-  // For axios or network errors
-  if (error.response?.data?.message) {
-    return error.response.data.message;
+  // Error object
+  if (error instanceof Error) {
+    return error.message || 'An unexpected error occurred';
   }
 
-  // For validation errors from server
-  if (error.response?.data?.errors) {
-    const errors = error.response.data.errors;
-    if (Array.isArray(errors)) {
-      return errors.map(e => e.message || e).join('. ');
+  // API error response object
+  if (typeof error === 'object') {
+    // Try to extract message from common API error formats
+    if (error.message) {
+      return error.message;
     }
-    return Object.values(errors).flat().join('. ');
-  }
 
-  // For Zod validation errors
-  if (error.formErrors?.fieldErrors) {
-    const fieldErrors = error.formErrors.fieldErrors;
-    return Object.values(fieldErrors).flat().join('. ');
-  }
+    if (error.error?.message) {
+      return error.error.message;
+    }
 
-  // For regular errors with message property
-  if (error.message) {
-    return error.message;
+    if (error.errors && Array.isArray(error.errors)) {
+      return error.errors.map((e: any) => e.message || e).join(', ');
+    }
+
+    // For validation errors that return multiple field errors
+    if (error.data?.errors) {
+      return Object.values(error.data.errors)
+        .flat()
+        .join(', ');
+    }
+
+    // Fallback to JSON stringifying the error
+    try {
+      return JSON.stringify(error);
+    } catch (e) {
+      return 'An unexpected error occurred';
+    }
   }
 
   // Default fallback
@@ -112,21 +105,65 @@ export function formatErrorMessage(error: any): string {
 }
 
 /**
- * Get the appropriate variant for toast notifications based on error type
+ * Check if an object is an error
+ * @param error - Object to check
+ * @returns True if object is an Error instance
  */
-export function getErrorVariant(error: any): 'destructive' | 'default' {
-  if (!error) return 'destructive';
+export function isError(error: any): error is Error {
+  return error instanceof Error;
+}
 
-  // Network or server errors are destructive
-  if (error.status >= 500 || !error.response) {
-    return 'destructive';
+/**
+ * Create a descriptive user-facing error message
+ * @param error - The error object or string
+ * @param fallbackMessage - Fallback message if error cannot be parsed
+ * @returns User-facing error message
+ */
+export function createUserFriendlyErrorMessage(
+  error: any,
+  fallbackMessage: string = 'Something went wrong. Please try again later.'
+): string {
+  // Network errors
+  if (
+    error?.message?.includes('Network Error') ||
+    error?.message?.includes('Failed to fetch') ||
+    error?.message?.includes('NetworkError')
+  ) {
+    return 'Unable to connect to the server. Please check your internet connection and try again.';
   }
 
-  // Validation errors (400, 422) use default style
-  if (error.status === 400 || error.status === 422) {
-    return 'default';
+  // Authentication errors
+  if (error?.status === 401 || error?.statusCode === 401) {
+    return 'Your session has expired. Please log in again.';
   }
 
-  // Default to destructive for auth errors and others
-  return 'destructive';
+  // Permission errors
+  if (error?.status === 403 || error?.statusCode === 403) {
+    return 'You do not have permission to perform this action.';
+  }
+
+  // Not found errors
+  if (error?.status === 404 || error?.statusCode === 404) {
+    return 'The requested resource was not found.';
+  }
+
+  // Validation errors
+  if (error?.status === 422 || error?.statusCode === 422) {
+    return formatErrorMessage(error) || 'Validation failed. Please check your input and try again.';
+  }
+
+  // Server errors
+  if (
+    error?.status >= 500 ||
+    error?.statusCode >= 500 ||
+    error?.message?.includes('Internal Server Error')
+  ) {
+    return 'The server encountered an error. Our team has been notified and is working on a fix.';
+  }
+
+  // Use formatted message if available, otherwise fall back
+  const formattedMessage = formatErrorMessage(error);
+  return formattedMessage !== 'An unexpected error occurred'
+    ? formattedMessage
+    : fallbackMessage;
 }
