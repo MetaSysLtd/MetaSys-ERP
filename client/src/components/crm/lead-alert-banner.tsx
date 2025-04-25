@@ -1,22 +1,24 @@
-import { useLocation } from 'wouter';
-import { Card } from '@/components/ui/card';
+import { useState } from 'react';
+import { Link } from 'wouter';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, X, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { X, AlertTriangle, Clock, ArrowRight } from 'lucide-react';
-import { MotionWrapper } from '@/components/ui/motion-wrapper-fixed';
+import { Card } from '@/components/ui/card';
 
-type LeadAlertBannerProps = {
+interface LeadAlertBannerProps {
   leadId: number;
   leadName: string;
-  clientName?: string;
-  status?: string;
+  clientName: string;
+  status: string;
   onDismiss: () => void;
-  color?: 'yellow' | 'red' | 'green';
-  message?: string;
-};
+  color: 'yellow' | 'red';
+}
 
 /**
- * Alert banner for leads that require attention
- * Used for lead follow-up reminders and assigned leads
+ * AlertBanner component for lead notifications
+ * Shows critical notifications for leads that require attention or follow-up
+ * Yellow banners indicate newly assigned leads
+ * Red banners indicate leads requiring urgent follow-up
  */
 export function LeadAlertBanner({
   leadId,
@@ -24,105 +26,87 @@ export function LeadAlertBanner({
   clientName,
   status,
   onDismiss,
-  color = 'yellow',
-  message
+  color = 'yellow'
 }: LeadAlertBannerProps) {
-  const [, navigate] = useLocation();
+  const [isVisible, setIsVisible] = useState(true);
 
-  // Define colors based on alert type
-  const colorStyles = {
-    yellow: {
-      bg: 'bg-amber-50',
-      border: 'border-amber-200',
-      icon: 'text-amber-500',
-      button: 'bg-amber-500 hover:bg-amber-600'
-    },
-    red: {
-      bg: 'bg-red-50',
-      border: 'border-red-200',
-      icon: 'text-red-500',
-      button: 'bg-red-500 hover:bg-red-600'
-    },
-    green: {
-      bg: 'bg-green-50',
-      border: 'border-green-200',
-      icon: 'text-green-500',
-      button: 'bg-green-500 hover:bg-green-600'
-    }
+  const handleDismiss = () => {
+    setIsVisible(false);
+    // Delay the actual dismiss callback to allow the animation to complete
+    setTimeout(onDismiss, 300);
   };
 
-  const styles = colorStyles[color];
+  // Different styling based on alert type
+  const bgColor = color === 'red' 
+    ? 'bg-red-50 border-red-300' 
+    : 'bg-amber-50 border-amber-300';
   
-  // Navigate to lead detail page
-  const handleViewLead = () => {
-    navigate(`/dispatch/leads/${leadId}`);
-  };
+  const iconColor = color === 'red' 
+    ? 'text-red-500' 
+    : 'text-amber-500';
+  
+  const headingColor = color === 'red' 
+    ? 'text-red-800' 
+    : 'text-amber-800';
+  
+  const textColor = color === 'red' 
+    ? 'text-red-700' 
+    : 'text-amber-700';
+  
+  const StatusIcon = color === 'red' ? AlertCircle : AlertTriangle;
 
   return (
-    <MotionWrapper 
-      animation="fade-up" 
-      delay={0.1}
-    >
-      <Card className={`mb-3 ${styles.bg} ${styles.border} border-l-4 shadow-sm`}>
-        <div className="relative p-4">
-          <div className="absolute top-2 right-2">
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-6 w-6 text-gray-400 hover:text-gray-500"
-              onClick={onDismiss}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="flex items-start">
-            <div className={`mr-3 mt-1 ${styles.icon}`}>
-              {color === 'yellow' && <Clock className="h-5 w-5" />}
-              {color === 'red' && <AlertTriangle className="h-5 w-5" />}
-              {color === 'green' && <ArrowRight className="h-5 w-5" />}
-            </div>
-            
-            <div className="flex-1 pr-8">
-              <h4 className="font-semibold text-gray-900">
-                {message || (color === 'red' 
-                  ? 'Urgent: Lead Requires Follow-up' 
-                  : 'Lead Follow-up Reminder')}
-              </h4>
-              
-              <div className="mt-1 text-sm text-gray-600">
-                <p><span className="font-medium">Lead:</span> {leadName}</p>
-                {clientName && (
-                  <p><span className="font-medium">Client:</span> {clientName}</p>
-                )}
-                {status && (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.3 }}
+          className="mb-4"
+        >
+          <Card className={`${bgColor} border p-4 shadow-sm`}>
+            <div className="flex items-start">
+              <div className={`${iconColor} flex-shrink-0`}>
+                <StatusIcon className="h-5 w-5" />
+              </div>
+              <div className="ml-3 flex-1">
+                <h3 className={`text-sm font-medium ${headingColor}`}>
+                  {color === 'red' ? 'Lead Follow-up Required' : 'New Lead Assigned'}
+                </h3>
+                <div className={`mt-2 text-sm ${textColor}`}>
                   <p>
-                    <span className="font-medium">Status:</span>{' '}
-                    <span className={`
-                      ${status === 'HandToDispatch' ? 'text-amber-500' : ''}
-                      ${status === 'Active' ? 'text-green-500' : ''}
-                      ${status === 'Unqualified' ? 'text-red-500' : ''}
-                      font-medium
-                    `}>
-                      {status}
-                    </span>
+                    {color === 'red' 
+                      ? `Lead "${leadName}" for ${clientName} requires follow-up. It has been in ${status} status for over 24 hours.` 
+                      : `New lead "${leadName}" for ${clientName} has been assigned to you. Current status: ${status}`
+                    }
                   </p>
-                )}
+                </div>
+                <div className="mt-3 flex gap-x-3">
+                  <Link href={`/crm/${leadId}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className={`font-medium ${color === 'red' ? 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100' : 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100'}`}
+                    >
+                      View Lead <ArrowRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
-              
-              <div className="mt-3">
-                <Button 
-                  size="sm" 
-                  className={`${styles.button} text-white`}
-                  onClick={handleViewLead}
-                >
-                  View Lead Details
-                </Button>
-              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className={`${textColor} hover:bg-transparent`}
+                onClick={handleDismiss}
+              >
+                <span className="sr-only">Dismiss</span>
+                <X className="h-5 w-5" />
+              </Button>
             </div>
-          </div>
-        </div>
-      </Card>
-    </MotionWrapper>
+          </Card>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
