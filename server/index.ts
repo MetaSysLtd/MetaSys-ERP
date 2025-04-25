@@ -48,13 +48,14 @@ app.use((req, res, next) => {
   const { initializeScheduler } = await import('./scheduler');
   const schedulerJobs = initializeScheduler();
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
+  // Import and use the error handling middleware
+  const { errorHandler, notFoundHandler } = await import('./middleware/error-handler');
+  
+  // Route not found handler - must be before the errorHandler
+  app.use(notFoundHandler);
+  
+  // Global error handler - must be registered last
+  app.use(errorHandler);
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route

@@ -33,7 +33,7 @@ export const userStatusEnum = pgEnum('user_status', ['active', 'invited', 'inact
 export const roles = pgTable("roles", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
-  department: text("department").notNull(), // "sales", "dispatch", "admin"
+  department: departmentEnum("department").notNull(), // "sales", "dispatch", "hr", "finance", "marketing"
   level: integer("level").notNull(), // 1 = Rep, 2 = Team Lead, 3 = Manager, 4 = Head, 5 = Super Admin
   permissions: text("permissions").array().notNull(),
 });

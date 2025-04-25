@@ -274,31 +274,45 @@ function Router() {
   );
 }
 
+// Import the ErrorBoundary component
+import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { setupAxiosInterceptors, setupNetworkStatusListeners } from '@/lib/api-error-handler';
+
+// Initialize axios interceptors for global error handling
+setupAxiosInterceptors();
+
 function App() {
+  // Setup network status listeners
+  useEffect(() => {
+    setupNetworkStatusListeners();
+  }, []);
+
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <SocketProvider>
-            <NotificationProvider>
-              <MessageProvider>
-                <AnimationProvider>
-                  <LeadNotificationProvider>
-                    <AppContent />
-                    <Toaster />
-                  </LeadNotificationProvider>
-                </AnimationProvider>
-              </MessageProvider>
-            </NotificationProvider>
-          </SocketProvider>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <SocketProvider>
+              <NotificationProvider>
+                <MessageProvider>
+                  <AnimationProvider>
+                    <LeadNotificationProvider>
+                      <AppContent />
+                      <Toaster />
+                    </LeadNotificationProvider>
+                  </AnimationProvider>
+                </MessageProvider>
+              </NotificationProvider>
+            </SocketProvider>
+          </AuthProvider>
+        </ErrorBoundary>
       </QueryClientProvider>
     </Provider>
   );
 }
 
 function AppContent() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<any>();
   const { socket } = useSocket();
   const { user } = useAuth();
 
