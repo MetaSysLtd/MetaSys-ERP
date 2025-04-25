@@ -22,7 +22,7 @@ import { FinanceOverview } from "@/components/dashboard/FinanceOverview";
 import { EmployeeSummary } from "@/components/dashboard/EmployeeSummary";
 import { DispatchPerformance } from "@/components/dashboard/DispatchPerformance";
 import { PerformanceAlertWidget } from "@/components/dispatch/performance-alert-widget";
-import { MotionWrapper } from "@/components/ui/motion-wrapper-fixed";
+import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
 import { AnimationSettings } from "@/components/ui/animation-settings";
 
 export default function Dashboard() {
