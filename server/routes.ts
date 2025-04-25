@@ -2709,9 +2709,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         statusChanges: []
       };
       
-      // Determine which leads to fetch based on role
+      // Determine which leads to fetch based on role level instead of department
       let leads;
-      if (role.department === 'admin' || role.level >= 4 || req.user.can_access_all_orgs) {
+      if (role.level >= 4 || req.user.can_access_all_orgs) {
         // Admins or higher-level roles can see all leads
         leads = await storage.getLeads();
       } else {
@@ -3005,8 +3005,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes
   app.get("/api/admin", createAuthMiddleware(5), async (req, res, next) => {
     try {
-      // Verify user is an admin
-      if (req.userRole?.department !== 'admin' || req.userRole?.level < 5) {
+      // Verify user level only, not department
+      if (req.userRole?.level < 5) {
         return res.status(403).json({ message: "Forbidden: Admin access required" });
       }
       
