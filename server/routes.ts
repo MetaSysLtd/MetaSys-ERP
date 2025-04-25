@@ -2028,6 +2028,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const notificationSettingsRouter = express.Router();
   app.use("/api/notification-settings", notificationSettingsRouter);
   
+  // Performance metrics routes
+  const performanceRouter = express.Router();
+  app.use("/api/dispatch/performance", performanceRouter);
+  
+  // Get performance metrics for a specific range (daily/weekly)
+  performanceRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const range = req.query.range as string || 'daily';
+      
+      if (range !== 'daily' && range !== 'weekly') {
+        return res.status(400).json({ message: "Invalid range parameter. Use 'daily' or 'weekly'." });
+      }
+      
+      const userId = req.user?.id;
+      
+      // Get user's reports
+      let reports;
+      if (req.userRole?.level >= 4 && req.query.userId) {
+        // Admins and team leads can view reports for specific users
+        reports = await storage.getDispatchReportsByDispatcher(Number(req.query.userId));
+      } else if (req.userRole?.level >= 4 && !req.query.userId) {
+        // Admins and team leads see all reports by default
+        reports = await storage.getDispatchReports();
+      } else {
+        // Regular users only see their own reports
+        reports = await storage.getDispatchReportsByDispatcher(userId);
+      }
+      
+      // Get performance targets for the requested range
+      const targets = await storage.getPerformanceTargets(range);
+      const target = targets[0];
+      
+      // Calculate averages and totals
+      const result = {
+        range,
+        targets: target || null,
+        metrics: {
+          totalLoads: 0,
+          totalInvoice: 0,
+          totalLeads: 0,
+          averageLoadsPerDay: 0,
+          averageInvoicePerDay: 0,
+          averageLeadsPerDay: 0,
+          daysAboveTarget: 0,
+          daysBelowTarget: 0
+        },
+        dailyData: [] as any[]
+      };
+      
+      if (reports && reports.length > 0) {
+        // Calculate metrics
+        result.metrics.totalLoads = reports.reduce((sum, r) => sum + r.loadsBooked, 0);
+        result.metrics.totalInvoice = reports.reduce((sum, r) => sum + r.invoiceUsd, 0);
+        result.metrics.totalLeads = reports.reduce((sum, r) => sum + r.newLeads, 0);
+        result.metrics.averageLoadsPerDay = result.metrics.totalLoads / reports.length;
+        result.metrics.averageInvoicePerDay = result.metrics.totalInvoice / reports.length;
+        result.metrics.averageLeadsPerDay = result.metrics.totalLeads / reports.length;
+        
+        if (target) {
+          result.metrics.daysAboveTarget = reports.filter(r => r.loadsBooked >= target.minPct).length;
+          result.metrics.daysBelowTarget = reports.filter(r => r.loadsBooked < target.minPct).length;
+        }
+        
+        // Format daily data for charts
+        result.dailyData = reports.map(r => ({
+          date: r.date,
+          loads: r.loadsBooked,
+          invoice: r.invoiceUsd,
+          leads: r.newLeads,
+          status: r.status,
+          isAboveLoadTarget: target ? r.loadsBooked >= target.minPct : null,
+          isAboveInvoiceTarget: target ? r.invoiceUsd >= target.maxPct : null
+        }));
+      }
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   // Store notification settings in memory since we aren't using a DB yet
   const userNotificationSettings = new Map<number, NotificationPreferences>();
   

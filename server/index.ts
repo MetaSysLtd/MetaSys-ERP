@@ -39,6 +39,14 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+  
+  // Initialize socket.io server
+  const { initializeSocketServer } = await import('./socket');
+  const io = initializeSocketServer(server);
+  
+  // Initialize scheduler
+  const { initializeScheduler } = await import('./scheduler');
+  const schedulerJobs = initializeScheduler();
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
