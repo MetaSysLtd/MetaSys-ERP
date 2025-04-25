@@ -409,6 +409,7 @@ export const dispatchReports = pgTable("dispatch_reports", {
   activeLeads: integer("active_leads").notNull().default(0),
   pendingInvoiceUsd: real("pending_invoice_usd").notNull().default(0),
   highestInvoiceUsd: real("highest_invoice_usd").notNull().default(0),
+  paidInvoiceUsd: real("paid_invoice_usd").notNull().default(0),
   status: dispatchReportStatusEnum("status").notNull().default("Pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (table) => {
