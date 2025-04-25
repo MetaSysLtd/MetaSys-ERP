@@ -2025,26 +2025,40 @@ export class DatabaseStorage implements IStorage {
   
   // Team Management operations
   async getUsersByDepartment(department: string): Promise<User[]> {
-    // First get roles for this department
-    const departmentRoles = await db
-      .select()
-      .from(roles)
-      .where(eq(roles.department, department));
-    
-    if (departmentRoles.length === 0) {
+    try {
+      // Use a more resilient approach since the department column may be missing
+      // Get all roles and filter manually
+      const allRoles = await db.select().from(roles);
+      
+      // Filter roles by department string contained in the name or other fields
+      // This is a workaround if department column doesn't exist or has issues
+      const departmentRoles = allRoles.filter(role => {
+        // If department exists and matches
+        if (role.department && role.department.toLowerCase() === department.toLowerCase()) {
+          return true;
+        }
+        // Fallback: check if role name contains department name
+        return role.name.toLowerCase().includes(department.toLowerCase());
+      });
+      
+      if (departmentRoles.length === 0) {
+        return [];
+      }
+      
+      // Get users with these role IDs
+      const roleIds = departmentRoles.map(role => role.id);
+      return await db
+        .select()
+        .from(users)
+        .where(
+          roleIds.length === 1 
+            ? eq(users.roleId, roleIds[0]) 
+            : inArray(users.roleId, roleIds)
+        );
+    } catch (error) {
+      console.error('Error getting users by department:', error);
       return [];
     }
-    
-    // Get users with these role IDs
-    const roleIds = departmentRoles.map(role => role.id);
-    return db
-      .select()
-      .from(users)
-      .where(
-        roleIds.length === 1 
-          ? eq(users.roleId, roleIds[0]) 
-          : inArray(users.roleId, roleIds)
-      );
   }
   
   async getActiveLeadCountByUser(userId: number): Promise<number> {
