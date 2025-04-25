@@ -48,7 +48,8 @@ export const users = pgTable("users", {
   phoneNumber: text("phone_number"),
   roleId: integer("role_id").notNull().references(() => roles.id),
   orgId: integer("org_id").references(() => organizations.id),
-  department: text("department"), // Text in DB: "sales", "dispatch", "hr", "finance", "marketing", "accounting", "admin"
+  // IMPORTANT: The users table does not have a department column in the actual database
+  // department field removed as it's not in the actual database
   teamId: integer("team_id"),
   status: userStatusEnum("status").notNull().default("active"),
   
