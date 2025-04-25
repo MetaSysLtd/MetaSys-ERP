@@ -1,0 +1,175 @@
+Daily Dispatch Report Automation – Instructions for Replit AI Bot
+GOAL
+You must automate the full Dispatch Daily Tasks & Report into the ERP.
+
+The system must:
+
+Auto-generate the report daily (evening, based on time-zone)
+
+Fetch live data from Loads, Leads, and Invoices modules
+
+Calculate targets, achievements, pending follow-ups
+
+Break it down per dispatcher
+
+Send the finalized report automatically to Slack channel(s)
+
+1. DATABASE STRUCTURE
+✅ No need for new collections if loads, invoices, and dispatch_clients exist.
+
+But you must aggregate across:
+
+loads
+
+invoices
+
+pendingInvoices
+
+activeLeads
+
+2. WHAT THE DAILY REPORT MUST INCLUDE (PER DISPATCHER)
+Target Invoice (today) → pre-set per dispatcher (default $400; editable later)
+
+Generated Invoice (today) → sum of invoices today
+
+Biggest Invoice of the day → highest single invoice booked today
+
+Today Active Leads → number of active clients handled today
+
+Today Loads Booked → total loads booked today
+
+Cleared Invoices (today) → invoices marked "Paid" today
+
+Pending Invoices → total outstanding $ linked to dispatcher
+
+Invoice Follow-ups → list of carriers + pending amount
+
+3. HOW TO FETCH/GENERATE
+✅ For each dispatcher:
+
+Query all loads booked createdAt: today
+
+Query invoices createdAt: today and status: Paid
+
+Sum invoiceValue where invoice.status = Paid
+
+Sum invoiceValue where invoice.status = Pending
+
+Find single highest value load today
+
+Match dispatcher-client assignments to properly attribute loads/invoices
+
+Pull Carrier Statuses ("Need Load", "Booked", "Will Let Us Know") via remarks/status updates on dispatch_clients today.
+
+4. FRONTEND (Admin/Team Lead Panel)
+Dispatch > Reports tab
+
+Daily tab
+
+Table grouped by Dispatcher:
+
+Name
+
+Target Invoice
+
+Generated Invoice
+
+Today's Loads
+
+Pending Invoice
+
+Top Carrier with Pending Invoice (optional)
+
+Status notes (can be manually updated later)
+
+5. AUTOMATED SLACK NOTIFICATION
+✅ At shift end (7:00pm local time), post a Slack message:
+
+Example format:
+
+MetaSys Dispatch Daily Report — 24 April 2025
+
+Brandon
+
+Target Invoice: $400
+
+Generated Invoice: $154
+
+Biggest Invoice: Sam $93
+
+Today Active Leads: 3
+
+Today Loads Booked: 0
+
+Cleared Invoice Today: $0
+
+Pending Invoice: $983
+
+Follow-ups:
+Eduardo — $408
+Kevin — $276
+Tylar — $87
+Mannan — $51
+
+Alan
+
+Target Invoice: $100
+
+Generated Invoice: $23
+
+...etc
+
+✅ Use Slack blocks layout for neat formatting.
+✅ If no loads/invoices booked, show "0" clearly.
+
+6. MISSING FUNCTIONALITIES TO BUILD FIRST (Pre-requisite!)
+Before sending this report, the following must be fixed or built:
+
+Load booking module must correctly link to dispatchers and carriers
+
+Invoicing module must track createdBy or dispatcherId correctly
+
+Status or comments against carriers/leads (e.g., "Need Load", "Booked") must be retrievable
+
+Daily targets should be adjustable per dispatcher (simple admin UI page later)
+
+7. SPECIAL CASES
+No Data for Dispatcher? → still show them with 0’s instead of skipping them.
+
+Multiple Loads or Invoices? → sum properly; only show highest invoice separately.
+
+8. TEST CASES
+✅ Insert test data:
+
+3 dispatchers, 5 loads today, 3 invoices (2 pending, 1 paid)
+
+✅ Expected output:
+
+Correct sums
+
+Correct attribution of carrier pending amounts
+
+Correct Slack notification format
+
+✅ Cypress Tests:
+
+Simulate new load booking → check real-time report update
+
+Close invoice → report shows updated cleared $ today
+
+9. EXTENSION (FUTURE WORK)
+Allow Manager override before sending Slack post (small approve button)
+
+Automatically update KPIs and bonus eligibility (commission triggers)
+
+FINAL RETURN
+Return PASS when:
+
+/api/reports/daily/dispatch endpoint returns correct structure
+
+Slack notification sends properly
+
+Admin panel > Dispatch Reports shows today's breakdown
+
+Screenshot + Slack message proof attached
+
