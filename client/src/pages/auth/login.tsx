@@ -29,7 +29,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 // Importing assets for login page
 import desktopBannerPath from "@/assets/banners/bg-login-desktop.png";
 import mobileBannerPath from "@/assets/banners/bg-login-mobile.png";
-import logoLightPath from "@/assets/logos/MetaSys Logo-Light.png";
+import logoLightPath from "@/assets/logos/MetaSys-Logo-Light.png";
 
 const loginFormSchema = z.object({
   username: z.string().min(1, { message: "Username is required" }),
@@ -85,9 +85,10 @@ export default function Login() {
 
   // This is for redirecting to the right dashboard after login
   const getRedirectPath = () => {
-    // Check if the user has admin role by checking the roleId
+    // Check if the user has admin role by checking the roleId (if user exists)
     // Admin roles usually have higher roleId values
-    return user?.roleId >= 3 ? '/admin/dashboard' : '/dashboard';
+    const roleId = user?.roleId || 1; // Default to regular user role if user not found
+    return roleId >= 3 ? '/admin/dashboard' : '/dashboard';
   };
 
   return (
