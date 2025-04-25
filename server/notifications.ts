@@ -12,6 +12,11 @@ export enum NotificationType {
   LEAD_UPDATED = 'lead_updated',
   LEAD_STATUS_CHANGED = 'lead_status_changed',
   LEAD_REMARK_ADDED = 'lead_remark_added',
+  LEAD_CALL_LOGGED = 'lead_call_logged',
+  LEAD_FOLLOW_UP_CREATED = 'lead_follow_up_created',
+  LEAD_FOLLOW_UP_COMPLETED = 'lead_follow_up_completed',
+  LEAD_FOLLOW_UP_DUE = 'lead_follow_up_due',
+  CUSTOMER_FEEDBACK_ADDED = 'customer_feedback_added',
   LOAD_CREATED = 'load_created',
   LOAD_UPDATED = 'load_updated',
   LOAD_STATUS_CHANGED = 'load_status_changed',
@@ -273,6 +278,365 @@ export const sendInvoiceNotification = async (
 };
 
 // Send daily summary notifications to all users who have opted in
+
+// Send a call log notification
+export const sendCallLogNotification = async (
+  leadId: number,
+  callLogId: number,
+  data: {
+    userId: number;
+    userName: string;
+    outcome: string;
+  }
+): Promise<void> => {
+  try {
+    const lead = await storage.getLead(leadId);
+    if (!lead) {
+      log(`Call log notification failed: Lead ${leadId} not found`);
+      return;
+    }
+
+    // Get the creator's info
+    const creator = await storage.getUser(data.userId);
+    if (!creator) {
+      log(`Call log notification failed: User ${data.userId} not found`);
+      return;
+    }
+
+    // Construct notification message
+    const message = {
+      type: NotificationType.LEAD_CALL_LOGGED,
+      title: 'New Call Log Added',
+      body: `${creator.firstName} ${creator.lastName} logged a call (${data.outcome}) for lead: ${lead.companyName}`,
+      details: {
+        leadId: lead.id,
+        companyName: lead.companyName,
+        callLogId: callLogId,
+        outcome: data.outcome,
+        createdBy: creator ? `${creator.firstName} ${creator.lastName}` : 'Unknown',
+        assignedTo: lead.assignedTo,
+        status: lead.status
+      }
+    };
+
+    // Get relevant users to notify
+    const allUsers = await storage.getUsers();
+    
+    // For call logs, we want to notify:
+    // 1. The lead owner (assignedTo user)
+    // 2. Team leads in the same department
+    // 3. Admins
+    
+    const notifyUserIds = new Set<number>();
+    
+    // Always notify the lead owner
+    if (lead.assignedTo) {
+      notifyUserIds.add(lead.assignedTo);
+    }
+    
+    // Find team leads and admins
+    const salesTeamLeads = allUsers.filter(user => {
+      const role = user.roleId;
+      return user.active && (role === 2 || role === 4); // Sales Team Lead (2) or Admin (4)
+    });
+    
+    // Add them to the notification list
+    salesTeamLeads.forEach(user => notifyUserIds.add(user.id));
+    
+    // Send notifications to the users
+    for (const userId of notifyUserIds) {
+      // Get user preferences
+      const preferences = getUserNotificationPreferences(userId);
+      
+      // Check if user wants lead notifications
+      if (preferences.teamNotifications.leadUpdates) {
+        // Send through enabled channels
+        if (preferences.inApp) {
+          log(`Would store in-app notification for user ${userId} about call log on lead ${leadId}`);
+          // In a real app, we would store this in a notifications collection
+          
+          // Emit socket event
+          const io = (global as any).io;
+          if (io) {
+            io.to(`user_${userId}`).emit('leadCallLogged', message);
+          }
+        }
+        
+        if (preferences.email) {
+          const user = allUsers.find(u => u.id === userId);
+          if (user && user.email) {
+            log(`Would send email to ${user.email} about call log on lead ${leadId}`);
+            // emailService.sendEmail(user.email, message.title, message.body);
+          }
+        }
+        
+        if (preferences.slack) {
+          const user = allUsers.find(u => u.id === userId);
+          if (user) {
+            log(`Would send Slack message to ${user.username} about call log on lead ${leadId}`);
+            // slackService.sendMessage(user.username, message.title, message.body);
+          }
+        }
+      }
+    }
+    
+    log(`Notifications sent for call log on lead ${leadId}`);
+  } catch (error) {
+    log(`Failed to send call log notification: ${error}`);
+  }
+};
+
+// Send a lead follow-up notification
+export const sendLeadFollowUpNotification = async (
+  leadId: number,
+  action: 'created' | 'completed' | 'due',
+  followUpId: number
+): Promise<void> => {
+  try {
+    const lead = await storage.getLead(leadId);
+    if (!lead) {
+      log(`Lead follow-up notification failed: Lead ${leadId} not found`);
+      return;
+    }
+
+    const followUp = await storage.getLeadFollowUp(followUpId);
+    if (!followUp) {
+      log(`Lead follow-up notification failed: Follow-up ${followUpId} not found`);
+      return;
+    }
+
+    // Get the relevant users
+    const creator = await storage.getUser(followUp.createdBy);
+    const assignee = followUp.assignedTo ? await storage.getUser(followUp.assignedTo) : null;
+
+    // Determine notification type
+    let notificationType;
+    let title;
+    let body;
+
+    if (action === 'created') {
+      notificationType = NotificationType.LEAD_FOLLOW_UP_CREATED;
+      title = 'New Follow-Up Scheduled';
+      body = `Follow-up for ${lead.companyName} has been scheduled for ${new Date(followUp.scheduledDate).toLocaleDateString()}`;
+    } else if (action === 'completed') {
+      notificationType = NotificationType.LEAD_FOLLOW_UP_COMPLETED;
+      title = 'Follow-Up Completed';
+      body = `Follow-up for ${lead.companyName} has been marked as completed`;
+    } else {
+      notificationType = NotificationType.LEAD_FOLLOW_UP_DUE;
+      title = 'Follow-Up Due Today';
+      body = `Follow-up for ${lead.companyName} is due today`;
+    }
+
+    // Construct notification message
+    const message = {
+      type: notificationType,
+      title,
+      body,
+      details: {
+        leadId: lead.id,
+        companyName: lead.companyName,
+        followUpId: followUp.id,
+        scheduledDate: followUp.scheduledDate,
+        completed: followUp.completed,
+        priority: followUp.priority,
+        notes: followUp.notes,
+        createdBy: creator ? `${creator.firstName} ${creator.lastName}` : 'Unknown',
+        assignedTo: assignee ? `${assignee.firstName} ${assignee.lastName}` : 'Unassigned'
+      }
+    };
+
+    // Get relevant users to notify
+    const allUsers = await storage.getUsers();
+    
+    // For follow-ups, we want to notify:
+    // 1. The follow-up assignee
+    // 2. The lead owner if different from assignee
+    // 3. Team leads in the same department
+    // 4. Admins for high priority follow-ups
+    
+    const notifyUserIds = new Set<number>();
+    
+    // Always notify the follow-up assignee
+    if (followUp.assignedTo) {
+      notifyUserIds.add(followUp.assignedTo);
+    }
+    
+    // Notify lead owner if different from assignee
+    if (lead.assignedTo && lead.assignedTo !== followUp.assignedTo) {
+      notifyUserIds.add(lead.assignedTo);
+    }
+    
+    // For high priority or due follow-ups, notify team leads and admins
+    if (followUp.priority === 'high' || action === 'due') {
+      // Find team leads and admins
+      const salesLeadership = allUsers.filter(user => {
+        const role = user.roleId;
+        return user.active && (role === 2 || role === 3 || role === 4); // Team Lead (2), Manager (3) or Admin (4)
+      });
+      
+      // Add them to the notification list
+      salesLeadership.forEach(user => notifyUserIds.add(user.id));
+    }
+    
+    // Send notifications to the users
+    for (const userId of notifyUserIds) {
+      // Get user preferences
+      const preferences = getUserNotificationPreferences(userId);
+      
+      // Check if user wants lead notifications
+      if (preferences.teamNotifications.leadUpdates) {
+        // Send through enabled channels
+        if (preferences.inApp) {
+          log(`Would store in-app notification for user ${userId} about follow-up on lead ${leadId}`);
+          
+          // Emit socket event
+          const io = (global as any).io;
+          if (io) {
+            io.to(`user_${userId}`).emit('leadFollowUpNotification', message);
+          }
+        }
+        
+        if (preferences.email) {
+          const user = allUsers.find(u => u.id === userId);
+          if (user && user.email) {
+            log(`Would send email to ${user.email} about follow-up on lead ${leadId}`);
+            // emailService.sendEmail(user.email, message.title, message.body);
+          }
+        }
+        
+        if (preferences.slack) {
+          const user = allUsers.find(u => u.id === userId);
+          if (user) {
+            log(`Would send Slack message to ${user.username} about follow-up on lead ${leadId}`);
+            // slackService.sendMessage(user.username, message.title, message.body);
+          }
+        }
+      }
+    }
+    
+    log(`Notifications sent for follow-up ${action} on lead ${leadId}`);
+  } catch (error) {
+    log(`Failed to send follow-up notification: ${error}`);
+  }
+};
+
+// Send a customer feedback notification
+export const sendCustomerFeedbackNotification = async (
+  leadId: number,
+  feedbackId: number
+): Promise<void> => {
+  try {
+    const lead = await storage.getLead(leadId);
+    if (!lead) {
+      log(`Customer feedback notification failed: Lead ${leadId} not found`);
+      return;
+    }
+
+    const feedback = await storage.getCustomerFeedback(feedbackId);
+    if (!feedback) {
+      log(`Customer feedback notification failed: Feedback ${feedbackId} not found`);
+      return;
+    }
+
+    // Get the creator's info
+    const creator = await storage.getUser(feedback.createdBy);
+    if (!creator) {
+      log(`Customer feedback notification failed: User ${feedback.createdBy} not found`);
+      return;
+    }
+
+    // Construct notification message
+    const message = {
+      type: NotificationType.CUSTOMER_FEEDBACK_ADDED,
+      title: 'New Customer Feedback Added',
+      body: `${creator.firstName} ${creator.lastName} added feedback (${feedback.rating}/5) for lead: ${lead.companyName}`,
+      details: {
+        leadId: lead.id,
+        companyName: lead.companyName,
+        feedbackId: feedback.id,
+        rating: feedback.rating,
+        comments: feedback.comments,
+        createdBy: creator ? `${creator.firstName} ${creator.lastName}` : 'Unknown',
+        assignedTo: lead.assignedTo,
+        createdAt: feedback.createdAt
+      }
+    };
+
+    // Get relevant users to notify
+    const allUsers = await storage.getUsers();
+    
+    // For customer feedback, we want to notify:
+    // 1. The lead owner
+    // 2. Team leads and managers
+    // 3. Admins for low ratings (1-2) or high ratings (5)
+    
+    const notifyUserIds = new Set<number>();
+    
+    // Always notify the lead owner
+    if (lead.assignedTo) {
+      notifyUserIds.add(lead.assignedTo);
+    }
+    
+    // For extreme ratings, notify leadership
+    const isExtremeRating = feedback.rating <= 2 || feedback.rating === 5;
+    
+    // Find team leads and managers
+    const salesLeadership = allUsers.filter(user => {
+      const role = user.roleId;
+      // For extreme ratings, include all leadership
+      if (isExtremeRating) {
+        return user.active && (role === 2 || role === 3 || role === 4); // Team Lead (2), Manager (3), or Admin (4)
+      }
+      // For regular ratings, just include team leads
+      return user.active && role === 2; // Team Lead (2)
+    });
+    
+    // Add them to the notification list
+    salesLeadership.forEach(user => notifyUserIds.add(user.id));
+    
+    // Send notifications to the users
+    for (const userId of notifyUserIds) {
+      // Get user preferences
+      const preferences = getUserNotificationPreferences(userId);
+      
+      // Check if user wants lead notifications
+      if (preferences.teamNotifications.leadUpdates) {
+        // Send through enabled channels
+        if (preferences.inApp) {
+          log(`Would store in-app notification for user ${userId} about customer feedback on lead ${leadId}`);
+          
+          // Emit socket event
+          const io = (global as any).io;
+          if (io) {
+            io.to(`user_${userId}`).emit('customerFeedbackAdded', message);
+          }
+        }
+        
+        if (preferences.email) {
+          const user = allUsers.find(u => u.id === userId);
+          if (user && user.email) {
+            log(`Would send email to ${user.email} about customer feedback on lead ${leadId}`);
+            // emailService.sendEmail(user.email, message.title, message.body);
+          }
+        }
+        
+        if (preferences.slack) {
+          const user = allUsers.find(u => u.id === userId);
+          if (user) {
+            log(`Would send Slack message to ${user.username} about customer feedback on lead ${leadId}`);
+            // slackService.sendMessage(user.username, message.title, message.body);
+          }
+        }
+      }
+    }
+    
+    log(`Notifications sent for customer feedback on lead ${leadId}`);
+  } catch (error) {
+    log(`Failed to send customer feedback notification: ${error}`);
+  }
+};
+
 // Send a lead remark notification
 export const sendLeadRemarkNotification = async (
   leadId: number,

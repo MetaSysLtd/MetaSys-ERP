@@ -910,6 +910,360 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(error);
     }
   });
+  
+  // Call Log routes
+  const callLogRouter = express.Router();
+  app.use("/api/call-logs", callLogRouter);
+  
+  // Get all call logs for a specific lead
+  callLogRouter.get("/lead/:leadId", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const leadId = Number(req.params.leadId);
+      const lead = await storage.getLead(leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Check if user has permission to view this lead's call logs
+      if (req.userRole.department === 'sales' || req.userRole.department === 'admin') {
+        if (req.userRole.level === 1 && lead.assignedTo !== req.user.id) {
+          return res.status(403).json({ message: "Forbidden: You can only view call logs for your own leads" });
+        }
+      } else if (req.userRole.department === 'dispatch' && lead.status !== 'Active') {
+        return res.status(403).json({ message: "Forbidden: Dispatch can only view call logs for active leads" });
+      }
+      
+      const callLogs = await storage.getCallLogsByLeadId(leadId);
+      res.json(callLogs);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Get all call logs
+  callLogRouter.get("/", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const callLogs = await storage.getCallLogs();
+      res.json(callLogs);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Create a new call log
+  callLogRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const callLogData = insertCallLogSchema.parse({
+        ...req.body,
+        userId: req.user.id
+      });
+      
+      const lead = await storage.getLead(callLogData.leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Check if user has permission to add call logs to this lead
+      if (req.userRole.department === 'sales' || req.userRole.department === 'admin') {
+        if (req.userRole.level === 1 && lead.assignedTo !== req.user.id) {
+          return res.status(403).json({ message: "Forbidden: You can only add call logs to your own leads" });
+        }
+      } else if (req.userRole.department === 'dispatch' && lead.status !== 'Active') {
+        return res.status(403).json({ message: "Forbidden: Dispatch can only add call logs to active leads" });
+      }
+      
+      const callLog = await storage.createCallLog(callLogData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: 'lead',
+        entityId: lead.id,
+        action: 'added_call_log',
+        details: `Added call log (${callLog.outcome}) to lead: ${lead.companyName}`
+      });
+      
+      // Send notification
+      notificationService.sendCallLogNotification(
+        lead.id,
+        callLog.id,
+        {
+          userId: req.user.id,
+          userName: `${req.user.firstName} ${req.user.lastName}`,
+          outcome: callLog.outcome
+        }
+      ).catch(err => console.error('Error sending call log notification:', err));
+      
+      // If scheduled follow-up is true, create a follow-up task
+      if (callLog.scheduledFollowUp && req.body.followUpDate) {
+        const followUpData = {
+          leadId: callLog.leadId,
+          createdBy: req.user.id,
+          assignedTo: lead.assignedTo || req.user.id,
+          scheduledDate: new Date(req.body.followUpDate),
+          notes: req.body.notes || `Follow-up from call on ${new Date().toLocaleDateString()}`,
+          priority: req.body.priority || "medium"
+        };
+        
+        const followUp = await storage.createLeadFollowUp(followUpData);
+        
+        // Send follow-up created notification
+        notificationService.sendLeadFollowUpNotification(
+          lead.id,
+          'created',
+          followUp.id
+        ).catch(err => console.error('Error sending follow-up notification:', err));
+      }
+      
+      res.status(201).json(callLog);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+  
+  // Lead Follow-Up routes
+  const leadFollowUpRouter = express.Router();
+  app.use("/api/lead-follow-ups", leadFollowUpRouter);
+  
+  // Get all follow-ups for a specific lead
+  leadFollowUpRouter.get("/lead/:leadId", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const leadId = Number(req.params.leadId);
+      const lead = await storage.getLead(leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Check if user has permission to view this lead's follow-ups
+      if (req.userRole.department === 'sales' || req.userRole.department === 'admin') {
+        if (req.userRole.level === 1 && lead.assignedTo !== req.user.id) {
+          return res.status(403).json({ message: "Forbidden: You can only view follow-ups for your own leads" });
+        }
+      } else if (req.userRole.department === 'dispatch' && lead.status !== 'Active') {
+        return res.status(403).json({ message: "Forbidden: Dispatch can only view follow-ups for active leads" });
+      }
+      
+      const followUps = await storage.getLeadFollowUpsByLeadId(leadId);
+      res.json(followUps);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Get all follow-ups assigned to current user
+  leadFollowUpRouter.get("/assigned", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const followUps = await storage.getLeadFollowUpsByAssignee(req.user.id);
+      res.json(followUps);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Get all due follow-ups
+  leadFollowUpRouter.get("/due", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      let dueDate = undefined;
+      if (req.query.date) {
+        dueDate = new Date(req.query.date as string);
+      }
+      
+      const followUps = await storage.getDueLeadFollowUps(dueDate);
+      
+      // Filter based on user permissions
+      const filteredFollowUps = followUps.filter(followUp => {
+        // Admin sees all follow-ups
+        if (req.userRole.department === 'admin') {
+          return true;
+        }
+        
+        // Sales reps see only their assigned follow-ups
+        if (req.userRole.department === 'sales' && req.userRole.level === 1) {
+          return followUp.assignedTo === req.user.id;
+        }
+        
+        // Team leads and managers see all follow-ups in their department
+        return true;
+      });
+      
+      res.json(filteredFollowUps);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Create a new follow-up
+  leadFollowUpRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const followUpData = insertLeadFollowUpSchema.parse({
+        ...req.body,
+        createdBy: req.user.id
+      });
+      
+      const lead = await storage.getLead(followUpData.leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Check if user has permission to add follow-ups to this lead
+      if (req.userRole.department === 'sales' || req.userRole.department === 'admin') {
+        if (req.userRole.level === 1 && lead.assignedTo !== req.user.id) {
+          return res.status(403).json({ message: "Forbidden: You can only add follow-ups to your own leads" });
+        }
+      } else if (req.userRole.department === 'dispatch' && lead.status !== 'Active') {
+        return res.status(403).json({ message: "Forbidden: Dispatch can only add follow-ups to active leads" });
+      }
+      
+      const followUp = await storage.createLeadFollowUp(followUpData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: 'lead',
+        entityId: lead.id,
+        action: 'added_follow_up',
+        details: `Scheduled follow-up for lead: ${lead.companyName} on ${new Date(followUp.scheduledDate).toLocaleDateString()}`
+      });
+      
+      res.status(201).json(followUp);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+  
+  // Update a follow-up (mark as complete or edit)
+  leadFollowUpRouter.patch("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const followUpId = Number(req.params.id);
+      const followUp = await storage.getLeadFollowUp(followUpId);
+      
+      if (!followUp) {
+        return res.status(404).json({ message: "Follow-up not found" });
+      }
+      
+      // Check if user has permission to update this follow-up
+      if (req.userRole.level === 1 && followUp.assignedTo !== req.user.id) {
+        return res.status(403).json({ message: "Forbidden: You can only update your assigned follow-ups" });
+      }
+      
+      const updates: Partial<LeadFollowUp> = req.body;
+      
+      // If marking as complete, set completedAt
+      if (updates.completed === true && !followUp.completedAt) {
+        updates.completedAt = new Date();
+      }
+      
+      const updatedFollowUp = await storage.updateLeadFollowUp(followUpId, updates);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: 'follow_up',
+        entityId: followUp.id,
+        action: updates.completedAt ? 'completed_follow_up' : 'updated_follow_up',
+        details: updates.completedAt 
+          ? `Completed follow-up for lead #${followUp.leadId}` 
+          : `Updated follow-up for lead #${followUp.leadId}`
+      });
+      
+      res.json(updatedFollowUp);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Customer Feedback routes
+  const customerFeedbackRouter = express.Router();
+  app.use("/api/customer-feedback", customerFeedbackRouter);
+  
+  // Get all feedback for a specific lead
+  customerFeedbackRouter.get("/lead/:leadId", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const leadId = Number(req.params.leadId);
+      const lead = await storage.getLead(leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Check if user has permission to view this lead's feedback
+      if (req.userRole.department === 'sales' || req.userRole.department === 'admin') {
+        if (req.userRole.level === 1 && lead.assignedTo !== req.user.id) {
+          return res.status(403).json({ message: "Forbidden: You can only view feedback for your own leads" });
+        }
+      } else if (req.userRole.department === 'dispatch' && lead.status !== 'Active') {
+        return res.status(403).json({ message: "Forbidden: Dispatch can only view feedback for active leads" });
+      }
+      
+      const feedback = await storage.getCustomerFeedbacksByLeadId(leadId);
+      res.json(feedback);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Get all customer feedback
+  customerFeedbackRouter.get("/", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const feedback = await storage.getCustomerFeedbacks();
+      res.json(feedback);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Create new customer feedback
+  customerFeedbackRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const feedbackData = insertCustomerFeedbackSchema.parse({
+        ...req.body,
+        createdBy: req.user.id
+      });
+      
+      const lead = await storage.getLead(feedbackData.leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Check if user has permission to add feedback to this lead
+      if (req.userRole.department === 'sales' || req.userRole.department === 'admin') {
+        if (req.userRole.level === 1 && lead.assignedTo !== req.user.id) {
+          return res.status(403).json({ message: "Forbidden: You can only add feedback to your own leads" });
+        }
+      } else if (req.userRole.department === 'dispatch' && lead.status !== 'Active') {
+        return res.status(403).json({ message: "Forbidden: Dispatch can only add feedback to active leads" });
+      }
+      
+      const feedback = await storage.createCustomerFeedback(feedbackData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: 'lead',
+        entityId: lead.id,
+        action: 'added_feedback',
+        details: `Added customer feedback (${feedback.rating}/5) for lead: ${lead.companyName}`
+      });
+      
+      res.status(201).json(feedback);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
 
   loadRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
