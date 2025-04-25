@@ -28,6 +28,7 @@ import {
   sendWeeklyInactiveLeadsReminder, 
   sendLeadStatusChangeNotification
 } from './socket';
+import { initializeDispatchReportAutomation } from './dispatch-report-automation';
 
 /**
  * Creates daily tasks for dispatchers at the start of their shift
@@ -325,18 +326,24 @@ export function initializeScheduler() {
   const leadFollowUpJob = scheduleLeadFollowUpCheck();
   const weeklyInactiveLeadsJob = scheduleWeeklyInactiveLeadsReminder();
 
+  // Initialize the dispatch report automation jobs
+  const dispatchReportJobs = initializeDispatchReportAutomation();
+
   console.log('Scheduler initialized with the following jobs:');
   console.log('- Daily Tasks Reminder: runs at 09:00 daily');
   console.log('- Daily Report Reminder: runs at 16:45 daily');
   console.log('- Weekly Invoice Target Check: runs at 23:00 on Fridays');
   console.log('- Lead Follow-up Check: runs at 10:00 daily');
   console.log('- Weekly Inactive Leads Reminder: runs at 10:00 on Mondays');
+  console.log('- Daily Report Generation: runs at 18:00 daily');
+  console.log('- Report Archiving: runs at 00:00 on Sundays');
 
   return {
     dailyTasksJob,
     dailyReportJob,
     weeklyInvoiceJob,
     leadFollowUpJob,
-    weeklyInactiveLeadsJob
+    weeklyInactiveLeadsJob,
+    dispatchReportJobs
   };
 }
