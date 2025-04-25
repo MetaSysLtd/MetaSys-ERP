@@ -97,6 +97,30 @@ export function DispatchReportAutomation() {
     }
   });
   
+  // Send summary report to Slack mutation (admin only)
+  const sendSummaryMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/dispatch-reports/generate-summary', {
+        date: format(new Date(), 'yyyy-MM-dd'),
+      });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Summary Sent to Slack",
+        description: `Team summary report with ${data.reportCount} dispatchers sent to Slack.`,
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Summary Sending Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
   // Calculate performance percentages if we have a report and targets
   const getLoadProgress = () => {
     if (!todayReport || !dailyTarget) return 0;
@@ -248,6 +272,26 @@ export function DispatchReportAutomation() {
             Send to Slack
           </Button>
         </div>
+        
+        {/* Admin-only summary button */}
+        {user?.roleId && [1, 2, 3, 8].includes(user.roleId) && (
+          <div className="pt-2 border-t border-border mt-1">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="w-full text-xs"
+              onClick={() => sendSummaryMutation.mutate()}
+              disabled={sendSummaryMutation.isPending}
+            >
+              {sendSummaryMutation.isPending ? (
+                <RefreshCwIcon className="h-3 w-3 mr-1 animate-spin" />
+              ) : (
+                <Share2Icon className="h-3 w-3 mr-1" />
+              )}
+              Generate Team Summary Report
+            </Button>
+          </div>
+        )}
       </CardFooter>
     </Card>
   );

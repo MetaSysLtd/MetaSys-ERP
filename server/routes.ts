@@ -1858,6 +1858,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(error);
     }
   });
+
+  // Generate and send daily summary report to Slack
+  dispatchReportsRouter.post("/generate-summary", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // The date to generate a summary for - defaults to today
+      const summaryDate = req.body.date ? new Date(req.body.date) : new Date();
+      
+      // Get all dispatchers
+      const dispatchers = await db.select()
+        .from(users)
+        .innerJoin(roles, eq(users.roleId, roles.id))
+        .where(eq(roles.department, 'dispatch'));
+      
+      if (dispatchers.length === 0) {
+        return res.status(404).json({ message: "No dispatchers found" });
+      }
+      
+      const reportsData = [];
+      
+      // Generate or get reports for each dispatcher
+      for (const dispatcher of dispatchers) {
+        try {
+          // Use existing report or generate a new one
+          let report = await storage.getDispatchReportByDispatcherAndDate(
+            dispatcher.users.id, 
+            summaryDate
+          );
+          
+          if (!report) {
+            report = await storage.generateDailyDispatchReport(
+              dispatcher.users.id, 
+              summaryDate
+            );
+          }
+          
+          // Add to collection with dispatcher name
+          reportsData.push({
+            report,
+            dispatcherName: `${dispatcher.users.firstName} ${dispatcher.users.lastName}`
+          });
+        } catch (error) {
+          console.error(`Error generating report for dispatcher ${dispatcher.users.id}:`, error);
+        }
+      }
+      
+      if (reportsData.length === 0) {
+        return res.status(500).json({ message: "Failed to generate any reports" });
+      }
+      
+      // Send summary to Slack
+      const { sendDailyDispatchSummaryToSlack } = await import('./slack');
+      const result = await sendDailyDispatchSummaryToSlack(reportsData);
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user.id,
+        action: 'generate_summary',
+        entityType: 'dispatch_report',
+        details: `Generated and sent dispatch summary report to Slack for ${format(summaryDate, 'yyyy-MM-dd')}`
+      });
+      
+      res.status(200).json({
+        success: !!result,
+        reportCount: reportsData.length,
+        message: result ? "Summary report sent to Slack" : "Failed to send summary to Slack"
+      });
+    } catch (error) {
+      console.error('Error generating summary report:', error);
+      next(error);
+    }
+  });
   
   dispatchReportsRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
