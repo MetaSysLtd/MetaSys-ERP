@@ -1,0 +1,62 @@
+{GLOBAL RULES}
+
+### 1 – UI_PREFERENCES COLLECTION  (back‑end)
+If not present, create:
+ui_prefs {
+  _id,
+  userId,
+  sidebarPinned: Boolean,   // true = sticky (expanded)
+  sidebarCollapsed: Boolean // collapsed on desktop
+}
+
+### 2 – STORE & SOCKET (front‑end)
+• Add Redux / Pinia slice `uiPrefs` with {pinned, collapsed}.  
+• On login, GET /api/ui-prefs/me → hydrate store.  
+• Any change PATCHes server + emits socket "uiPrefsUpdated".  
+• Other tabs receive socket and sync.
+
+### 3 – SIDEBAR COMPONENT
+A. **Toggle Buttons**  
+   • Pin/Unpin (push‑pin icon) ⇒ toggles `pinned`.  
+   • Collapse/Expand (hamburger) ⇒ toggles `collapsed`.  
+
+B. **Desktop Breakpoints**  
+   • ≥992 px  
+     - If `collapsed` false → width = 240 px; text + icons.  
+     - If `collapsed` true  → width = 64 px; icons only; tool‑tips on hover.  
+   • <992 px  
+     - Sidebar auto overlays (position:fixed left‑0).  
+     - Clicking outside or selecting a link hides sidebar.  
+
+C. **Mobile Auto‑Hide**  
+   If viewport <768 px, collapsing always sets `collapsed=true` regardless of pinned.  
+
+### 4 – ACTIVE‑LINK HIGHLIGHT FIX
+• Replace current “selected = parent” logic with `useLocation()` path match.  
+• Only highlight the exact route (e.g. `/crm/sql`).  
+• Parent accordion header (`CRM`) gets `bg‑#1D3557` when *any* child active.
+
+### 5 – LOGO / HOME NAV
+• `<Logo/>` top‑left wrapped in `Link`:
+  - If user.role === "admin" ➜ `/admin/dashboard`
+  - Else ➜ `/dashboard`
+• Tooltip “Go to Dashboard”.
+
+### 6 – UNIT & E2E TESTS
+1. Jest:  
+   • sidebarCollapsed default=false on new user.  
+   • PATCH /api/ui-prefs toggles values.  
+2. Cypress:  
+   • Click collapse ⇒ sidebar width 64 px.  
+   • Mobile (<768) selecting link auto‑hides sidebar.  
+   • Logo click routes to correct dashboard.
+
+### 7 – CSS / STYLE
+• Use brand classes: `bg-#0B1D2F` default, hover `bg-#1D3557`.  
+• Buttons: `bg-#457B9D hover:bg-#2EC4B6 text-white rounded-md duration-200`.
+
+### 8 – RETURN
+Return **PASS** with:
+• Updated component list  
+• New /api/ui-prefs endpoints  
+• Screenshot or log confirming active‑link fix.

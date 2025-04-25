@@ -1414,10 +1414,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // UI Preferences routes
   const uiPreferencesRouter = express.Router();
-  app.use("/api/ui-preferences", uiPreferencesRouter);
+  app.use("/api/ui-prefs", uiPreferencesRouter);
 
   // Get user UI preferences
-  uiPreferencesRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+  uiPreferencesRouter.get("/me", createAuthMiddleware(1), async (req, res, next) => {
     try {
       const userId = req.user.id;
       const prefs = await db.query.uiPreferences.findFirst({
@@ -1441,24 +1441,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update UI preferences
-  uiPreferencesRouter.put("/", createAuthMiddleware(1), async (req, res, next) => {
+  uiPreferencesRouter.patch("/me", createAuthMiddleware(1), async (req, res, next) => {
     try {
       const userId = req.user.id;
       const updates = req.body;
       
-      const updatedPrefs = await db.update(uiPreferences)
-        .set({ ...updates, updatedAt: new Date() })
-        .where(eq(uiPreferences.userId, userId))
-        .returning();
+      // Find existing preferences or create them
+      const existingPrefs = await db.query.uiPreferences.findFirst({
+        where: eq(uiPreferences.userId, userId)
+      });
+      
+      let updatedPrefs;
+      
+      if (existingPrefs) {
+        // Update existing preferences
+        updatedPrefs = await db.update(uiPreferences)
+          .set({ ...updates, updatedAt: new Date() })
+          .where(eq(uiPreferences.userId, userId))
+          .returning();
+      } else {
+        // Create new preferences
+        updatedPrefs = await db.insert(uiPreferences).values({
+          userId,
+          ...updates,
+          sidebarPinned: updates.sidebarPinned !== undefined ? updates.sidebarPinned : true,
+          sidebarCollapsed: updates.sidebarCollapsed !== undefined ? updates.sidebarCollapsed : false
+        }).returning();
+      }
 
       // Emit socket event for real-time updates
-      req.io.emit(`user:${userId}:ui-preferences-updated`, updatedPrefs[0]);
+      io.emit("uiPrefsUpdated", updatedPrefs[0]);
       
       res.json(updatedPrefs[0]);
     } catch (error) {
       next(error);
     }
   });
+  
+  // For backwards compatibility (temporary)
+  app.use("/api/ui-preferences", uiPreferencesRouter);
 
   // Activity routes
   const activityRouter = express.Router();

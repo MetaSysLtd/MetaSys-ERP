@@ -6,7 +6,7 @@ import { queryClient } from "./lib/queryClient";
 import { useSocket } from './hooks/use-socket';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setPreferences } from './store/uiPreferencesSlice';
+import { setPreferences, fetchPreferences } from './store/uiPreferencesSlice';
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/login";
 import ForgotPassword from "@/pages/auth/forgot-password";
@@ -268,12 +268,25 @@ function App() {
 function AppContent() {
   const dispatch = useDispatch();
   const { socket } = useSocket();
+  const { user } = useAuth();
 
+  // Load UI preferences when user logs in
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchPreferences());
+    }
+  }, [user, dispatch]);
+
+  // Listen for UI preferences updates from other tabs via socket
   useEffect(() => {
     if (socket) {
       socket.on('uiPrefsUpdated', (prefs) => {
         dispatch(setPreferences(prefs));
       });
+
+      return () => {
+        socket.off('uiPrefsUpdated');
+      };
     }
   }, [socket, dispatch]);
 
