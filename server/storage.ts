@@ -1217,6 +1217,373 @@ export class MemStorage implements IStorage {
     this.commissionsMonthly.set(id, updatedCommission);
     return updatedCommission;
   }
+
+  // UI Preferences operations
+  async getUserPreferences(userId: number): Promise<UiPreferences | undefined> {
+    return this.uiPreferences.get(userId);
+  }
+  
+  async createUserPreferences(prefs: InsertUiPreferences): Promise<UiPreferences> {
+    const id = this.uiPreferencesIdCounter++;
+    const now = new Date();
+    
+    const newPrefs: UiPreferences = {
+      id,
+      userId: prefs.userId,
+      createdAt: now,
+      updatedAt: now,
+      sidebar: prefs.sidebar || {},
+      dataTables: prefs.dataTables || {},
+      theme: prefs.theme || {},
+      notifications: prefs.notifications || {}
+    };
+    
+    this.uiPreferences.set(id, newPrefs);
+    return newPrefs;
+  }
+  
+  async updateUserPreferences(userId: number, updates: Partial<UiPreferences>): Promise<UiPreferences> {
+    // First check if preferences exist
+    let prefs = Array.from(this.uiPreferences.values())
+      .find(p => p.userId === userId);
+    
+    if (prefs) {
+      // Update existing preferences
+      const updatedPrefs = {
+        ...prefs,
+        ...updates,
+        updatedAt: new Date()
+      };
+      this.uiPreferences.set(prefs.id, updatedPrefs);
+      return updatedPrefs;
+    } else {
+      // Create new preferences
+      return this.createUserPreferences({
+        userId,
+        ...updates
+      });
+    }
+  }
+
+  // Dispatch Report operations
+  async getDispatchReport(id: number): Promise<DispatchReport | undefined> {
+    return this.dispatchReports.get(id);
+  }
+
+  async getDispatchReportsByDate(date: Date): Promise<DispatchReport[]> {
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+    
+    return Array.from(this.dispatchReports.values())
+      .filter(report => {
+        const reportDate = new Date(report.date);
+        return reportDate >= startDate && reportDate <= endDate;
+      });
+  }
+
+  async getDispatchReportsByDispatcher(dispatcherId: number): Promise<DispatchReport[]> {
+    return Array.from(this.dispatchReports.values())
+      .filter(report => report.dispatcherId === dispatcherId);
+  }
+
+  async getDispatchReportByDispatcherAndDate(dispatcherId: number, date: Date): Promise<DispatchReport | undefined> {
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+    
+    return Array.from(this.dispatchReports.values())
+      .find(report => {
+        const reportDate = new Date(report.date);
+        return report.dispatcherId === dispatcherId && 
+               reportDate >= startDate && 
+               reportDate <= endDate;
+      });
+  }
+
+  async createDispatchReport(report: InsertDispatchReport): Promise<DispatchReport> {
+    // Generate a new ID
+    const id = this.dispatchReportIdCounter++;
+    
+    const newReport: DispatchReport = {
+      id,
+      ...report,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      // Set default values for any missing fields
+      activeLeads: report.activeLeads || 0,
+      clientsOnboarded: report.clientsOnboarded || 0,
+      highestInvoiceUsd: report.highestInvoiceUsd || 0,
+      invoiceUsd: report.invoiceUsd || 0,
+      invoicesGenerated: report.invoicesGenerated || 0,
+      loadsBooked: report.loadsBooked || 0,
+      paidInvoiceUsd: report.paidInvoiceUsd || 0,
+      pendingInvoiceUsd: report.pendingInvoiceUsd || 0,
+      status: report.status || 'Pending',
+      orgId: report.orgId || 1,
+    };
+    
+    this.dispatchReports.set(id, newReport);
+    return newReport;
+  }
+
+  async updateDispatchReport(id: number, updates: Partial<DispatchReport>): Promise<DispatchReport | undefined> {
+    const report = await this.getDispatchReport(id);
+    if (!report) return undefined;
+    
+    const updatedReport = {
+      ...report,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.dispatchReports.set(id, updatedReport);
+    return updatedReport;
+  }
+
+  async generateDailyDispatchReport(dispatcherId: number, date: Date = new Date()): Promise<DispatchReport> {
+    // Get existing report for today if it exists
+    const existingReport = await this.getDispatchReportByDispatcherAndDate(dispatcherId, date);
+    if (existingReport) {
+      return await this.updateDailyDispatchReport(existingReport.id, date);
+    }
+    
+    // Get dispatcher info
+    const dispatcher = await this.getUser(dispatcherId);
+    if (!dispatcher) {
+      throw new Error(`Dispatcher with ID ${dispatcherId} not found`);
+    }
+    
+    // Format date for queries
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+    
+    // Get all loads booked by this dispatcher today
+    const todayLoads = Array.from(this.loads.values())
+      .filter(load => 
+        load.assignedTo === dispatcherId && 
+        new Date(load.createdAt) >= startDate && 
+        new Date(load.createdAt) <= endDate
+      );
+    
+    // Get all invoices generated by this dispatcher today
+    const allInvoices = Array.from(this.invoices.values());
+    const todayInvoicesData = [];
+    
+    for (const invoice of allInvoices) {
+      const lead = this.leads.get(invoice.leadId);
+      if (!lead) continue;
+      
+      const loadsForLead = Array.from(this.loads.values())
+        .find(load => load.leadId === lead.id && load.assignedTo === dispatcherId);
+      
+      if (loadsForLead && 
+          new Date(invoice.createdAt) >= startDate && 
+          new Date(invoice.createdAt) <= endDate) {
+        todayInvoicesData.push({
+          invoice,
+          load: loadsForLead
+        });
+      }
+    }
+    
+    // Get all active leads assigned to this dispatcher
+    const activeLeads = Array.from(this.leads.values())
+      .filter(lead => 
+        lead.assignedTo === dispatcherId && 
+        lead.status === 'Active'
+      );
+    
+    // Get all pending invoices for this dispatcher
+    const pendingInvoicesData = [];
+    
+    for (const invoice of allInvoices) {
+      if (invoice.status !== 'pending') continue;
+      
+      const lead = this.leads.get(invoice.leadId);
+      if (!lead) continue;
+      
+      const loadsForLead = Array.from(this.loads.values())
+        .find(load => load.leadId === lead.id && load.assignedTo === dispatcherId);
+      
+      if (loadsForLead) {
+        pendingInvoicesData.push({
+          invoice,
+          load: loadsForLead
+        });
+      }
+    }
+    
+    // Calculate totals
+    const loadsBookedToday = todayLoads.length;
+    const invoicesGeneratedToday = todayInvoicesData.length;
+    
+    const invoiceAmountToday = todayInvoicesData.reduce((sum, item) => sum + Number(item.invoice.totalAmount), 0);
+    const pendingInvoiceAmount = pendingInvoicesData.reduce((sum, item) => sum + Number(item.invoice.totalAmount), 0);
+    
+    // Calculate highest invoice amount
+    let highestInvoiceUsd = 0;
+    if (todayInvoicesData.length > 0) {
+      highestInvoiceUsd = Math.max(...todayInvoicesData.map(item => Number(item.invoice.totalAmount)));
+    }
+    
+    // Get paid invoices
+    const paidInvoices = allInvoices.filter(invoice => {
+      if (invoice.status !== 'paid' || !invoice.paidDate) return false;
+      
+      const paidDate = new Date(invoice.paidDate);
+      if (!(paidDate >= startDate && paidDate <= endDate)) return false;
+      
+      const load = Array.from(this.loads.values())
+        .find(load => load.leadId === invoice.leadId && load.assignedTo === dispatcherId);
+      
+      return !!load;
+    });
+    
+    const paidInvoiceUsd = paidInvoices.reduce((sum, invoice) => sum + Number(invoice.totalAmount), 0);
+    
+    // Get all clients onboarded by this dispatcher
+    const dispatchClientsList = Array.from(this.dispatchClients.values())
+      .filter(client => client.assignedTo === dispatcherId);
+    
+    // Create the report
+    const newReport = await this.createDispatchReport({
+      dispatcherId,
+      date: date,
+      orgId: dispatcher.orgId || 1,
+      loadsBooked: loadsBookedToday,
+      invoicesGenerated: invoicesGeneratedToday,
+      activeLeads: activeLeads.length,
+      invoiceUsd: invoiceAmountToday,
+      pendingInvoiceUsd: pendingInvoiceAmount,
+      highestInvoiceUsd: highestInvoiceUsd,
+      paidInvoiceUsd: paidInvoiceUsd,
+      clientsOnboarded: dispatchClientsList.length,
+      status: 'Pending'
+    });
+    
+    return newReport;
+  }
+
+  async updateDailyDispatchReport(reportId: number, date: Date = new Date()): Promise<DispatchReport> {
+    const report = await this.getDispatchReport(reportId);
+    if (!report) {
+      throw new Error(`Report with ID ${reportId} not found`);
+    }
+    
+    // Re-calculate all metrics for the report
+    const dispatcherId = report.dispatcherId;
+    
+    // Format date for database queries
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+    
+    // Get all loads booked by this dispatcher today
+    const todayLoads = Array.from(this.loads.values())
+      .filter(load => 
+        load.assignedTo === dispatcherId && 
+        new Date(load.createdAt) >= startDate && 
+        new Date(load.createdAt) <= endDate
+      );
+    
+    // Get all invoices generated by this dispatcher today
+    const allInvoices = Array.from(this.invoices.values());
+    const todayInvoicesData = [];
+    
+    for (const invoice of allInvoices) {
+      const lead = this.leads.get(invoice.leadId);
+      if (!lead) continue;
+      
+      const loadsForLead = Array.from(this.loads.values())
+        .find(load => load.leadId === lead.id && load.assignedTo === dispatcherId);
+      
+      if (loadsForLead && 
+          new Date(invoice.createdAt) >= startDate && 
+          new Date(invoice.createdAt) <= endDate) {
+        todayInvoicesData.push({
+          invoice,
+          load: loadsForLead
+        });
+      }
+    }
+    
+    // Get all active leads assigned to this dispatcher
+    const activeLeads = Array.from(this.leads.values())
+      .filter(lead => 
+        lead.assignedTo === dispatcherId && 
+        lead.status === 'Active'
+      );
+    
+    // Get all pending invoices for this dispatcher
+    const pendingInvoicesData = [];
+    
+    for (const invoice of allInvoices) {
+      if (invoice.status !== 'pending') continue;
+      
+      const lead = this.leads.get(invoice.leadId);
+      if (!lead) continue;
+      
+      const loadsForLead = Array.from(this.loads.values())
+        .find(load => load.leadId === lead.id && load.assignedTo === dispatcherId);
+      
+      if (loadsForLead) {
+        pendingInvoicesData.push({
+          invoice,
+          load: loadsForLead
+        });
+      }
+    }
+    
+    // Calculate metrics
+    const loadsBooked = todayLoads.length;
+    const invoiceUsd = todayInvoicesData.reduce((sum, item) => sum + Number(item.invoice.totalAmount), 0);
+    const activeLeadsCount = activeLeads.length;
+    const pendingInvoiceUsd = pendingInvoicesData.reduce((sum, item) => sum + Number(item.invoice.totalAmount), 0);
+    
+    // Get highest invoice amount (if any invoices exist)
+    let highestInvoiceUsd = 0;
+    if (todayInvoicesData.length > 0) {
+      highestInvoiceUsd = Math.max(...todayInvoicesData.map(item => Number(item.invoice.totalAmount)));
+    }
+    
+    // Get paid invoices
+    const paidInvoices = allInvoices.filter(invoice => {
+      if (invoice.status !== 'paid' || !invoice.paidDate) return false;
+      
+      const paidDate = new Date(invoice.paidDate);
+      if (!(paidDate >= startDate && paidDate <= endDate)) return false;
+      
+      const load = Array.from(this.loads.values())
+        .find(load => load.leadId === invoice.leadId && load.assignedTo === dispatcherId);
+      
+      return !!load;
+    });
+    
+    const paidInvoiceUsd = paidInvoices.reduce((sum, invoice) => sum + Number(invoice.totalAmount), 0);
+    
+    // Update the report
+    const updatedData = {
+      loadsBooked,
+      invoiceUsd,
+      activeLeads: activeLeadsCount,
+      pendingInvoiceUsd,
+      highestInvoiceUsd,
+      paidInvoiceUsd,
+      updatedAt: new Date()
+    };
+    
+    return await this.updateDispatchReport(reportId, updatedData) as DispatchReport;
+  }
 }
 
 export class DatabaseStorage implements IStorage {
