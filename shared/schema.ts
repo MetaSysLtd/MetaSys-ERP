@@ -51,12 +51,36 @@ export const users = pgTable("users", {
   department: departmentEnum("department"),
   teamId: integer("team_id"),
   status: userStatusEnum("status").notNull().default("active"),
-  // Granular permissions
+  
+  // Basic permissions
   canViewCRM: boolean("can_view_crm").notNull().default(false),
   canEditLeads: boolean("can_edit_leads").notNull().default(false),
   canViewInvoices: boolean("can_view_invoices").notNull().default(false),
   canApprovePayroll: boolean("can_approve_payroll").notNull().default(false),
   canManageUsers: boolean("can_manage_users").notNull().default(false),
+  
+  // System administration permissions
+  isSystemAdmin: boolean("is_system_admin").notNull().default(false),
+  canManageRoles: boolean("can_manage_roles").notNull().default(false),
+  canAccessAllOrgs: boolean("can_access_all_orgs").notNull().default(false),
+  canManageSettings: boolean("can_manage_settings").notNull().default(false),
+  canViewAuditLog: boolean("can_view_audit_log").notNull().default(false),
+  
+  // CRM permissions
+  canManageLeadAssignments: boolean("can_manage_lead_assignments").notNull().default(false),
+  canDeleteLeads: boolean("can_delete_leads").notNull().default(false),
+  canExportLeads: boolean("can_export_leads").notNull().default(false),
+  
+  // Finance permissions
+  canCreateInvoices: boolean("can_create_invoices").notNull().default(false),
+  canApproveInvoices: boolean("can_approve_invoices").notNull().default(false),
+  canManageAccounting: boolean("can_manage_accounting").notNull().default(false),
+  
+  // Dispatch permissions
+  canManageLoads: boolean("can_manage_loads").notNull().default(false),
+  canManageCarriers: boolean("can_manage_carriers").notNull().default(false),
+  canApproveDispatchReports: boolean("can_approve_dispatch_reports").notNull().default(false),
+  
   // Extended fields
   active: boolean("active").notNull().default(true),
   profileImageUrl: text("profile_image_url"),
