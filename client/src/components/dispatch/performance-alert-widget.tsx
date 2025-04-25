@@ -1,110 +1,87 @@
 import { useEffect, useState } from "react";
 import { useSocketNotifications } from "@/hooks/use-socket-notifications";
-import { ToastAlert } from "@/components/ui/toast-alert";
-import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, AlertTriangle, TrendingUp } from "lucide-react";
-
-interface RecentAlert {
-  id: string;
-  color: 'Red' | 'Green';
-  message: string;
-  timestamp: Date;
-  target: number;
-  actual: number;
-}
+import { ArrowUp, ArrowDown, AlertTriangle } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function PerformanceAlertWidget() {
-  const [recentAlerts, setRecentAlerts] = useState<RecentAlert[]>([]);
-  const { performanceAlert } = useSocketNotifications();
-  const { toast } = useToast();
-  
-  // Handle incoming performance alerts
+  const { performanceAlertData, resetPerformanceAlert } = useSocketNotifications();
+  const [visible, setVisible] = useState(false);
+  const [data, setData] = useState<{
+    color: "Red" | "Green"; 
+    message: string;
+    percentOfGoal: number;
+    target: number;
+    actual: number;
+  } | null>(null);
+
+  // Update state when data changes
   useEffect(() => {
-    if (performanceAlert) {
-      // Create a new alert object
-      const newAlert: RecentAlert = {
-        id: Date.now().toString(), // Use timestamp as ID
-        color: performanceAlert.color,
-        message: performanceAlert.message,
-        timestamp: new Date(),
-        target: performanceAlert.target,
-        actual: performanceAlert.actual,
-      };
-      
-      // Show toast notification 
-      toast({
-        description: (
-          <ToastAlert color={performanceAlert.color.toLowerCase() as 'red' | 'green'}>
-            {performanceAlert.message}
-          </ToastAlert>
-        ),
-      });
-      
-      // Add to recent alerts (keep most recent 5)
-      setRecentAlerts(prev => {
-        const updated = [newAlert, ...prev];
-        return updated.slice(0, 5);
-      });
+    if (performanceAlertData) {
+      setData(performanceAlertData);
+      setVisible(true);
     }
-  }, [performanceAlert, toast]);
-  
-  // Function to determine percentage for progress display
-  const calculatePercentage = (actual: number, target: number) => {
-    const percentage = Math.round((actual / target) * 100);
-    return Math.min(100, Math.max(0, percentage)); // Clamp between 0-100
-  };
-  
-  if (recentAlerts.length === 0) {
-    return null; // Don't show the widget if there are no alerts
-  }
-  
+  }, [performanceAlertData]);
+
+  // Auto-dismiss after 8 seconds
+  useEffect(() => {
+    if (!visible) return;
+    
+    const timer = setTimeout(() => {
+      setVisible(false);
+      resetPerformanceAlert();
+    }, 8000);
+    
+    return () => clearTimeout(timer);
+  }, [visible, resetPerformanceAlert]);
+
+  if (!visible || !data) return null;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <TrendingUp className="mr-2 h-5 w-5" />
-          Recent Performance Alerts
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {recentAlerts.map(alert => (
-            <div key={alert.id} className="border-b pb-3 mb-3 last:border-b-0 last:mb-0 last:pb-0">
-              <div className="flex justify-between items-center mb-2">
-                <Badge className={`${alert.color === 'Green' ? 'bg-[#2EC4B6]' : 'bg-[#C93131]'}`}>
-                  {alert.color === 'Green' ? (
-                    <CheckCircle className="mr-1 h-3 w-3" />
-                  ) : (
-                    <AlertTriangle className="mr-1 h-3 w-3" />
-                  )}
-                  {alert.color} Alert
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  {alert.timestamp.toLocaleTimeString()}
-                </span>
-              </div>
-              
-              <p className="text-sm mb-2">{alert.message}</p>
-              
-              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
-                <div 
-                  className={`h-2.5 rounded-full ${
-                    alert.color === 'Green' ? 'bg-[#2EC4B6]' : 'bg-[#C93131]'
-                  }`}
-                  style={{ width: `${calculatePercentage(alert.actual, alert.target)}%` }}
-                />
-              </div>
-              
-              <div className="flex justify-between text-xs">
-                <span>Target: {alert.target}</span>
-                <span>Actual: {alert.actual}</span>
-              </div>
-            </div>
-          ))}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      className={`rounded-lg p-4 ${
+        data.color === "Red" 
+          ? "bg-red-50 border border-red-200" 
+          : "bg-green-50 border border-green-200"
+      }`}
+    >
+      <div className="flex items-center">
+        <div className={`p-2 rounded-full mr-3 ${
+          data.color === "Red" 
+            ? "bg-red-100" 
+            : "bg-green-100"
+        }`}>
+          {data.color === "Red" ? (
+            <ArrowDown className="h-5 w-5 text-red-500" />
+          ) : (
+            <ArrowUp className="h-5 w-5 text-green-500" />
+          )}
         </div>
-      </CardContent>
-    </Card>
+        
+        <div className="flex-1">
+          <h3 className={`font-medium text-sm ${
+            data.color === "Red" 
+              ? "text-red-800" 
+              : "text-green-800"
+          }`}>
+            {data.message}
+          </h3>
+          
+          <div className="flex justify-between mt-1">
+            <p className="text-xs text-gray-600">Target: ${data.target.toLocaleString()}</p>
+            <p className="text-xs text-gray-600">Actual: ${data.actual.toLocaleString()}</p>
+            <p className={`text-xs font-semibold ${
+              data.color === "Red" 
+                ? "text-red-600" 
+                : "text-green-600"
+            }`}>
+              {data.percentOfGoal}% of target
+            </p>
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }

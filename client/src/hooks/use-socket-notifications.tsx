@@ -1,124 +1,177 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { useSocket } from "@/hooks/use-socket";
+import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAlert } from "@/components/ui/toast-alert";
-import { io, Socket } from "socket.io-client";
 
-interface PerformanceAlert {
-  color: 'Red' | 'Green';
-  message: string;
-  target: number;
-  actual: number;
-}
-
-interface TaskReminder {
+export type TaskReminderData = {
   taskId: number;
   message: string;
-}
+  date: string;
+};
 
-interface ReportReminder {
+export type ReportReminderData = {
   reportId: number;
   message: string;
-}
+  date: string;
+};
+
+export type PerformanceAlertData = {
+  color: "Red" | "Green";
+  message: string;
+  percentOfGoal: number;
+  target: number;
+  actual: number;
+};
+
+export type LeadAssignedData = {
+  leadId: number;
+  message: string;
+  leadName: string;
+  clientName: string;
+  assignedBy: number;
+  assignedAt: string;
+  status: string;
+};
+
+export type LeadStatusChangeData = {
+  leadId: number;
+  message: string;
+  leadName: string;
+  clientName: string;
+  previousStatus: string;
+  status: string;
+  changedBy: number;
+  changedAt: string;
+};
+
+export type FollowUpReminderData = {
+  leadId: number;
+  message: string;
+  leadName: string;
+  clientName: string;
+  assignedAt: string;
+  status: string;
+};
+
+export type WeeklyInactiveLeadsData = {
+  message: string;
+  leadIds: number[];
+  leadNames: string[];
+  count: number;
+};
 
 export function useSocketNotifications() {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [connected, setConnected] = useState(false);
-  const [taskReminder, setTaskReminder] = useState<TaskReminder | null>(null);
-  const [reportReminder, setReportReminder] = useState<ReportReminder | null>(null);
-  const [performanceAlert, setPerformanceAlert] = useState<PerformanceAlert | null>(null);
+  const { socket } = useSocket();
+  const { user } = useAuth();
   const { toast } = useToast();
+  
+  const [taskReminderData, setTaskReminderData] = useState<TaskReminderData | null>(null);
+  const [reportReminderData, setReportReminderData] = useState<ReportReminderData | null>(null);
+  const [performanceAlertData, setPerformanceAlertData] = useState<PerformanceAlertData | null>(null);
+  const [leadAssignedData, setLeadAssignedData] = useState<LeadAssignedData | null>(null);
+  const [leadStatusChangeData, setLeadStatusChangeData] = useState<LeadStatusChangeData | null>(null);
+  const [followUpReminderData, setFollowUpReminderData] = useState<FollowUpReminderData | null>(null);
+  const [weeklyInactiveLeadsData, setWeeklyInactiveLeadsData] = useState<WeeklyInactiveLeadsData | null>(null);
 
   useEffect(() => {
-    // Determine the appropriate protocol (ws or wss) based on the current location
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const socketUrl = `${protocol}//${window.location.host}`;
-    
-    console.log("Connecting to socket at:", socketUrl);
-    
-    // Create a new socket connection
-    const newSocket = io(socketUrl);
-    
-    // Set up event listeners
-    newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id);
-      setConnected(true);
-    });
-    
-    newSocket.on("disconnect", () => {
-      console.log("Socket disconnected");
-      setConnected(false);
-    });
-    
-    newSocket.on("error", (error) => {
-      console.error("Socket error:", error);
-    });
-    
-    // Listen for task reminders
-    newSocket.on("taskReminder", (data: TaskReminder) => {
-      console.log("Task reminder received:", data);
-      setTaskReminder(data);
-      
+    if (!socket || !user) return;
+
+    // Task reminder handler
+    const handleTaskReminder = (data: TaskReminderData) => {
+      setTaskReminderData(data);
       toast({
         description: (
-          <ToastAlert color="green">
+          <ToastAlert color="amber">
             {data.message}
           </ToastAlert>
         ),
       });
-    });
-    
-    // Listen for report reminders
-    newSocket.on("reportReminder", (data: ReportReminder) => {
-      console.log("Report reminder received:", data);
-      setReportReminder(data);
-      
-      toast({
-        description: (
-          <ToastAlert color="green">
-            {data.message}
-          </ToastAlert>
-        ),
-      });
-    });
-    
-    // Listen for performance alerts
-    newSocket.on("perfAlert", (data: PerformanceAlert) => {
-      console.log("Performance alert received:", data);
-      setPerformanceAlert(data);
-      
-      toast({
-        description: (
-          <ToastAlert color={data.color.toLowerCase() as 'red' | 'green'}>
-            {data.message}
-          </ToastAlert>
-        ),
-      });
-    });
-    
-    // Store the socket instance
-    setSocket(newSocket);
-    
-    // Clean up on unmount
-    return () => {
-      if (newSocket) {
-        newSocket.disconnect();
-      }
     };
-  }, [toast]);
-  
-  // Clear notifications
-  const clearTaskReminder = () => setTaskReminder(null);
-  const clearReportReminder = () => setReportReminder(null);
-  const clearPerformanceAlert = () => setPerformanceAlert(null);
-  
+
+    // Report reminder handler
+    const handleReportReminder = (data: ReportReminderData) => {
+      setReportReminderData(data);
+      toast({
+        description: (
+          <ToastAlert color="amber">
+            {data.message}
+          </ToastAlert>
+        ),
+      });
+    };
+
+    // Performance alert handler
+    const handlePerfAlert = (data: PerformanceAlertData) => {
+      setPerformanceAlertData(data);
+      toast({
+        description: (
+          <ToastAlert color={data.color === "Red" ? "red" : "green"}>
+            {data.message}: {data.percentOfGoal}% of target
+          </ToastAlert>
+        ),
+      });
+    };
+
+    // Lead assigned handler
+    const handleLeadAssigned = (data: LeadAssignedData) => {
+      setLeadAssignedData(data);
+      // Toast is handled by lead-notification-container component
+    };
+
+    // Lead status change handler
+    const handleLeadStatusChange = (data: LeadStatusChangeData) => {
+      setLeadStatusChangeData(data);
+      // Toast is handled by lead-notification-container component
+    };
+
+    // Follow-up reminder handler
+    const handleFollowUpReminder = (data: FollowUpReminderData) => {
+      setFollowUpReminderData(data);
+      // Toast is handled by lead-notification-container component
+    };
+
+    // Weekly inactive leads reminder handler
+    const handleWeeklyInactiveLeads = (data: WeeklyInactiveLeadsData) => {
+      setWeeklyInactiveLeadsData(data);
+      // Toast is handled by lead-notification-container component
+    };
+
+    // Subscribe to socket events
+    socket.on("taskReminder", handleTaskReminder);
+    socket.on("reportReminder", handleReportReminder);
+    socket.on("perfAlert", handlePerfAlert);
+    socket.on("leadAssigned", handleLeadAssigned);
+    socket.on("leadStatusChange", handleLeadStatusChange);
+    socket.on("leadFollowUpReminder", handleFollowUpReminder);
+    socket.on("weeklyInactiveLeadsReminder", handleWeeklyInactiveLeads);
+
+    // Clean up event listeners
+    return () => {
+      socket.off("taskReminder", handleTaskReminder);
+      socket.off("reportReminder", handleReportReminder);
+      socket.off("perfAlert", handlePerfAlert);
+      socket.off("leadAssigned", handleLeadAssigned);
+      socket.off("leadStatusChange", handleLeadStatusChange);
+      socket.off("leadFollowUpReminder", handleFollowUpReminder);
+      socket.off("weeklyInactiveLeadsReminder", handleWeeklyInactiveLeads);
+    };
+  }, [socket, user, toast]);
+
   return {
-    socket,
-    connected,
-    taskReminder,
-    reportReminder,
-    performanceAlert,
-    clearTaskReminder,
-    clearReportReminder,
-    clearPerformanceAlert,
+    taskReminderData,
+    reportReminderData,
+    performanceAlertData,
+    leadAssignedData,
+    leadStatusChangeData,
+    followUpReminderData,
+    weeklyInactiveLeadsData,
+    resetTaskReminder: () => setTaskReminderData(null),
+    resetReportReminder: () => setReportReminderData(null),
+    resetPerformanceAlert: () => setPerformanceAlertData(null),
+    resetLeadAssigned: () => setLeadAssignedData(null),
+    resetLeadStatusChange: () => setLeadStatusChangeData(null),
+    resetFollowUpReminder: () => setFollowUpReminderData(null),
+    resetWeeklyInactiveLeads: () => setWeeklyInactiveLeadsData(null),
   };
 }

@@ -3846,7 +3846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return commissionRecord;
   }
 
-  // Automatically recalculate commissions when a lead status changes to active
+  // Automatically recalculate commissions and send notifications when a lead status changes
   app.patch("/api/leads/:id", createAuthMiddleware(2), async (req, res, next) => {
     try {
       const leadId = Number(req.params.id);
@@ -3856,23 +3856,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Lead not found" });
       }
       
+      const previousStatus = lead.status;
+      const newStatus = req.body.status;
+      
       // Update lead
       const updatedLead = await storage.updateLead(leadId, req.body);
       
-      // Check if status changed to active
-      if (req.body.status === 'active' && lead.status !== 'active') {
-        // Trigger commission recalculation for the assigned sales rep
-        const currentDate = new Date();
-        const currentMonth = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`;
+      // Check if status changed
+      if (newStatus && newStatus !== previousStatus) {
+        // Handle status change notification
+        if (newStatus === 'Active' || newStatus === 'Unqualified') {
+          // Import needed at the top level
+          const { sendLeadStatusChangeNotification } = await import('./socket');
+          
+          // Send notification for active/unqualified status change
+          await sendLeadStatusChangeNotification({
+            id: leadId,
+            name: lead.name,
+            clientName: lead.clientName,
+            previousStatus,
+            status: newStatus,
+            changedBy: req.user?.id || 0,
+            changedByName: `${req.user?.firstName || ''} ${req.user?.lastName || ''}`.trim()
+          });
+        }
         
-        // Only recalculate if we have an assigned user
-        if (lead.assignedTo) {
-          await calculateSalesCommission(lead.assignedTo, currentMonth, req.user?.id || 0);
+        // Send leadAssigned notification if status changed to HandToDispatch
+        if (newStatus === 'HandToDispatch' && lead.assignedTo) {
+          const { sendLeadAssignedNotification } = await import('./socket');
+          
+          await sendLeadAssignedNotification(lead.assignedTo, {
+            id: leadId,
+            name: lead.name,
+            clientName: lead.clientName,
+            assignedBy: req.user?.id || 0,
+            status: newStatus
+          });
+        }
+        
+        // Trigger commission recalculation for the assigned sales rep when status changes to Active
+        if (newStatus === 'Active' && previousStatus !== 'Active') {
+          const currentDate = new Date();
+          const currentMonth = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}`;
+          
+          // Only recalculate if we have an assigned user
+          if (lead.assignedTo) {
+            await calculateSalesCommission(lead.assignedTo, currentMonth, req.user?.id || 0);
+          }
         }
       }
       
       res.json(updatedLead);
     } catch (error) {
+      console.error('Error updating lead status:', error);
       next(error);
     }
   });
