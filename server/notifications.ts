@@ -11,6 +11,7 @@ export enum NotificationType {
   LEAD_CREATED = 'lead_created',
   LEAD_UPDATED = 'lead_updated',
   LEAD_STATUS_CHANGED = 'lead_status_changed',
+  LEAD_REMARK_ADDED = 'lead_remark_added',
   LOAD_CREATED = 'load_created',
   LOAD_UPDATED = 'load_updated',
   LOAD_STATUS_CHANGED = 'load_status_changed',
@@ -272,6 +273,113 @@ export const sendInvoiceNotification = async (
 };
 
 // Send daily summary notifications to all users who have opted in
+// Send a lead remark notification
+export const sendLeadRemarkNotification = async (
+  leadId: number,
+  action: 'remark_added',
+  data: {
+    userId: number;
+    userName: string;
+    leadId: number;
+    remarkId: number;
+  }
+): Promise<void> => {
+  try {
+    const lead = await storage.getLead(leadId);
+    if (!lead) {
+      log(`Lead remark notification failed: Lead ${leadId} not found`);
+      return;
+    }
+
+    // Get the creator's info
+    const creator = await storage.getUser(data.userId);
+    if (!creator) {
+      log(`Lead remark notification failed: User ${data.userId} not found`);
+      return;
+    }
+
+    // Construct notification message
+    const message = {
+      type: NotificationType.LEAD_REMARK_ADDED,
+      title: 'New Remark Added',
+      body: `${creator.firstName} ${creator.lastName} added a remark to lead: ${lead.companyName}`,
+      details: {
+        leadId: lead.id,
+        companyName: lead.companyName,
+        remarkId: data.remarkId,
+        createdBy: creator ? `${creator.firstName} ${creator.lastName}` : 'Unknown',
+        assignedTo: lead.assignedTo,
+        status: lead.status
+      }
+    };
+
+    // Get relevant users to notify
+    const allUsers = await storage.getUsers();
+    
+    // For lead remarks, we want to notify:
+    // 1. The lead owner (assignedTo user)
+    // 2. Team leads in the same department
+    // 3. Admins
+    
+    const notifyUserIds = new Set<number>();
+    
+    // Always notify the lead owner
+    if (lead.assignedTo) {
+      notifyUserIds.add(lead.assignedTo);
+    }
+    
+    // Find team leads and admins
+    const salesTeamLeads = allUsers.filter(user => {
+      const role = user.roleId;
+      return user.active && (role === 2 || role === 4); // Sales Team Lead (2) or Admin (4)
+    });
+    
+    // Add them to the notification list
+    salesTeamLeads.forEach(user => notifyUserIds.add(user.id));
+    
+    // Send notifications to the users
+    for (const userId of notifyUserIds) {
+      // Get user preferences
+      const preferences = getUserNotificationPreferences(userId);
+      
+      // Check if user wants lead notifications
+      if (preferences.teamNotifications.leadUpdates) {
+        // Send through enabled channels
+        if (preferences.inApp) {
+          log(`Would store in-app notification for user ${userId} about lead remark on lead ${leadId}`);
+          // In a real app, we would store this in a notifications collection
+          
+          // Emit socket event
+          const io = (global as any).io;
+          if (io) {
+            io.to(`user_${userId}`).emit('leadRemarkAdded', message);
+          }
+        }
+        
+        if (preferences.email) {
+          const user = allUsers.find(u => u.id === userId);
+          if (user && user.email) {
+            log(`Would send email to ${user.email} about lead remark on lead ${leadId}`);
+            // emailService.sendEmail(user.email, message.title, message.body);
+          }
+        }
+        
+        if (preferences.slack) {
+          const user = allUsers.find(u => u.id === userId);
+          if (user) {
+            log(`Would send Slack message to ${user.username} about lead remark on lead ${leadId}`);
+            // slackService.sendMessage(user.username, message.title, message.body);
+          }
+        }
+      }
+    }
+    
+    log(`Notifications sent for lead remark on lead ${leadId}`);
+  } catch (error) {
+    log(`Failed to send lead remark notification: ${error}`);
+  }
+};
+
 // Send a dispatch client notification
 export const sendDispatchNotification = async (
   dispatchClientId: number,

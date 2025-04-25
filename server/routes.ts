@@ -778,6 +778,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const loadRouter = express.Router();
   app.use("/api/loads", loadRouter);
 
+  // Lead remarks routes
+  const leadRemarkRouter = express.Router();
+  app.use("/api/lead-remarks", leadRemarkRouter);
+  
+  // Get all remarks for a specific lead
+  leadRemarkRouter.get("/lead/:leadId", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const leadId = Number(req.params.leadId);
+      const lead = await storage.getLead(leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Check if user has permission to view this lead's remarks
+      if (req.userRole.department === 'sales' || req.userRole.department === 'admin') {
+        if (req.userRole.level === 1 && lead.assignedTo !== req.user.id) {
+          return res.status(403).json({ message: "Forbidden: You can only view remarks for your own leads" });
+        }
+      } else if (req.userRole.department === 'dispatch' && lead.status !== 'Active') {
+        return res.status(403).json({ message: "Forbidden: Dispatch can only view remarks for active leads" });
+      }
+      
+      const remarks = await storage.getLeadRemarksByLeadId(leadId);
+      res.json(remarks);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Create a new remark for a lead
+  leadRemarkRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const { leadId, text } = req.body;
+      
+      if (!leadId || !text) {
+        return res.status(400).json({ message: "Missing required fields: leadId, text" });
+      }
+      
+      const lead = await storage.getLead(Number(leadId));
+      
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Check if user has permission to add remarks to this lead
+      if (req.userRole.department === 'sales' || req.userRole.department === 'admin') {
+        if (req.userRole.level === 1 && lead.assignedTo !== req.user.id) {
+          return res.status(403).json({ message: "Forbidden: You can only add remarks to your own leads" });
+        }
+      } else if (req.userRole.department === 'dispatch' && lead.status !== 'Active') {
+        return res.status(403).json({ message: "Forbidden: Dispatch can only add remarks to active leads" });
+      }
+      
+      const remark = await storage.createLeadRemark({
+        leadId: Number(leadId),
+        userId: req.user.id,
+        text
+      });
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: 'lead',
+        entityId: lead.id,
+        action: 'added_remark',
+        details: `Added remark to lead: ${lead.companyName}`
+      });
+      
+      // Send notification through socket for real-time updates
+      notificationService.sendLeadRemarkNotification(
+        lead.id,
+        'remark_added',
+        {
+          userId: req.user.id,
+          userName: `${req.user.firstName} ${req.user.lastName}`,
+          leadId: lead.id,
+          remarkId: remark.id
+        }
+      ).catch(err => console.error('Error sending lead remark notification:', err));
+      
+      res.status(201).json(remark);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   loadRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
       let loads;
