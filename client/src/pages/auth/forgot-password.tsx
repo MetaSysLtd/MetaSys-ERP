@@ -77,7 +77,7 @@ export default function ForgotPassword() {
       <div className="absolute inset-0 bg-blue-900/50" />
       <div className="w-full max-w-[500px] relative z-10 mx-auto md:ml-24 lg:mr-24">
         <div className="w-full flex flex-col items-center justify-center mb-8">
-          <img src="/src/assets/metio-logo.svg" alt="Metio ERP" className="h-12 mb-3" />
+          <img src="/src/assets/logos/MetaSys Logo-Light.png" alt="MetaSys ERP" className="h-14 mb-3" />
           <h1 className="text-white text-2xl font-bold">Complete Enterprise Resource Planning</h1>
           <h2 className="text-white text-xl">Solution for Modern Businesses</h2>
         </div>

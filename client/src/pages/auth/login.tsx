@@ -70,7 +70,7 @@ export default function Login() {
       <div className="absolute inset-0 bg-blue-900/50" />
       <div className="w-full max-w-[500px] relative z-10 mx-auto md:ml-24 lg:mr-24">
         <div className="w-full flex flex-row items-center justify-start mb-8">
-          <img src="/src/assets/metio-logo.svg" alt="Metio ERP" className="h-12" />
+          <img src="/src/assets/logos/MetaSys Logo-Light.png" alt="MetaSys ERP" className="h-14" />
         </div>
         <Card className="w-full bg-white/90 dark:bg-gray-900/95 backdrop-blur-sm border-0 shadow-2xl">
           <div className="h-1 bg-gradient-to-r from-[#2170dd] to-[#4d9eff] rounded-t-lg"></div>
