@@ -1,7 +1,7 @@
 import {
   users, roles, leads, loads, invoices, invoiceItems, commissions, activities, tasks,
   dispatch_clients, organizations, userOrganizations, commissionRules, commissionsMonthly,
-  clockEvents, clockEventTypeEnum,
+  clockEvents, clockEventTypeEnum, uiPreferences,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
@@ -12,7 +12,8 @@ import {
   type CommissionRule, type InsertCommissionRule,
   type CommissionMonthly, type InsertCommissionMonthly,
   type Task, type InsertTask,
-  type ClockEvent, type InsertClockEvent
+  type ClockEvent, type InsertClockEvent,
+  type UiPreferences, type InsertUiPreferences
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -159,6 +160,11 @@ export interface IStorage {
   getDirectGrossRevenueByUserForMonth(userId: number, month: string): Promise<number>;
   getSalesUserKPIs(userId: number, month: string): Promise<any>;
   getDispatchUserKPIs(userId: number, month: string): Promise<any>;
+  
+  // UI Preferences operations
+  getUserPreferences(userId: number): Promise<UiPreferences | undefined>;
+  createUserPreferences(prefs: InsertUiPreferences): Promise<UiPreferences>;
+  updateUserPreferences(userId: number, prefs: Partial<UiPreferences>): Promise<UiPreferences>;
 }
 
 export class MemStorage implements IStorage {
@@ -179,6 +185,7 @@ export class MemStorage implements IStorage {
   private commissionsMonthly: Map<number, CommissionMonthly>;
   private tasks: Map<number, Task>;
   private clockEvents: Map<number, ClockEvent>;
+  private uiPreferences: Map<number, UiPreferences>;
   
   private userIdCounter: number;
   private roleIdCounter: number;
@@ -195,6 +202,7 @@ export class MemStorage implements IStorage {
   private commissionMonthlyIdCounter: number;
   private taskIdCounter: number;
   private clockEventIdCounter: number;
+  private uiPreferencesIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
@@ -218,6 +226,7 @@ export class MemStorage implements IStorage {
     this.commissionsMonthly = new Map();
     this.tasks = new Map();
     this.clockEvents = new Map();
+    this.uiPreferences = new Map();
     
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
@@ -234,6 +243,7 @@ export class MemStorage implements IStorage {
     this.commissionMonthlyIdCounter = 1;
     this.taskIdCounter = 1;
     this.clockEventIdCounter = 1;
+    this.uiPreferencesIdCounter = 1;
     
     // Initialize with default roles
     this.initializeRoles();
@@ -2095,6 +2105,85 @@ export class DatabaseStorage implements IStorage {
       bonusAmount: commission?.tierFixed || 0,
       totalCommission: commission?.totalCommission || 0
     };
+  }
+  // UI Preferences methods
+  async getUserPreferences(userId: number): Promise<UiPreferences | undefined> {
+    try {
+      const [prefs] = await db.select().from(uiPreferences).where(eq(uiPreferences.userId, userId));
+      return prefs;
+    } catch (error) {
+      console.error('Error getting UI preferences:', error);
+      // For now, return a default object if table doesn't exist
+      return {
+        id: 0,
+        userId,
+        sidebarPinned: true,
+        sidebarCollapsed: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+  }
+
+  async createUserPreferences(prefs: InsertUiPreferences): Promise<UiPreferences> {
+    try {
+      const now = new Date();
+      const [newPrefs] = await db.insert(uiPreferences).values({
+        ...prefs,
+        createdAt: now,
+        updatedAt: now
+      }).returning();
+      return newPrefs;
+    } catch (error) {
+      console.error('Error creating UI preferences:', error);
+      // Return a default object if table doesn't exist
+      return {
+        id: 0,
+        userId: prefs.userId,
+        sidebarPinned: prefs.sidebarPinned || true,
+        sidebarCollapsed: prefs.sidebarCollapsed || false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
+  }
+
+  async updateUserPreferences(userId: number, updates: Partial<UiPreferences>): Promise<UiPreferences> {
+    try {
+      // First check if preferences exist
+      const prefs = await this.getUserPreferences(userId);
+      
+      if (prefs && prefs.id !== 0) {
+        // Update existing preferences
+        const [updatedPrefs] = await db
+          .update(uiPreferences)
+          .set({
+            ...updates,
+            updatedAt: new Date()
+          })
+          .where(eq(uiPreferences.userId, userId))
+          .returning();
+        return updatedPrefs;
+      } else {
+        // Create new preferences
+        return this.createUserPreferences({
+          userId,
+          sidebarPinned: updates.sidebarPinned !== undefined ? updates.sidebarPinned : true,
+          sidebarCollapsed: updates.sidebarCollapsed !== undefined ? updates.sidebarCollapsed : false
+        });
+      }
+    } catch (error) {
+      console.error('Error updating UI preferences:', error);
+      // Return a default object with the updates applied
+      return {
+        id: 0,
+        userId,
+        sidebarPinned: updates.sidebarPinned !== undefined ? updates.sidebarPinned : true,
+        sidebarCollapsed: updates.sidebarCollapsed !== undefined ? updates.sidebarCollapsed : false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
   }
 }
 

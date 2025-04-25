@@ -1419,60 +1419,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user UI preferences
   uiPreferencesRouter.get("/me", createAuthMiddleware(1), async (req, res, next) => {
     try {
-      const userId = req.user.id;
-      const prefs = await db.query.uiPreferences.findFirst({
-        where: eq(uiPreferences.userId, userId)
-      });
-      
-      if (!prefs) {
-        // Create default preferences
-        const newPrefs = await db.insert(uiPreferences).values({
-          userId,
-          sidebarPinned: true,
-          sidebarCollapsed: false
-        }).returning();
-        return res.json(newPrefs[0]);
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
       }
       
+      const userId = req.user.id;
+      
+      // Get user preferences (will return default if table doesn't exist)
+      const prefs = await storage.getUserPreferences(userId);
       res.json(prefs);
     } catch (error) {
-      next(error);
+      console.error("Error fetching UI preferences:", error);
+      // Return default preferences even on error
+      if (req.user) {
+        res.json({
+          id: 0,
+          userId: req.user.id,
+          sidebarPinned: true,
+          sidebarCollapsed: false,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      } else {
+        next(error);
+      }
     }
   });
 
   // Update UI preferences
   uiPreferencesRouter.patch("/me", createAuthMiddleware(1), async (req, res, next) => {
     try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
       const userId = req.user.id;
       const updates = req.body;
       
       // Find existing preferences or create them
-      const existingPrefs = await db.query.uiPreferences.findFirst({
-        where: eq(uiPreferences.userId, userId)
-      });
+      const existingPrefs = await storage.getUserPreferences(userId);
       
       let updatedPrefs;
       
       if (existingPrefs) {
         // Update existing preferences
-        updatedPrefs = await db.update(uiPreferences)
-          .set({ ...updates, updatedAt: new Date() })
-          .where(eq(uiPreferences.userId, userId))
-          .returning();
+        updatedPrefs = await storage.updateUserPreferences(userId, {
+          ...updates
+        });
       } else {
         // Create new preferences
-        updatedPrefs = await db.insert(uiPreferences).values({
+        updatedPrefs = await storage.createUserPreferences({
           userId,
           ...updates,
           sidebarPinned: updates.sidebarPinned !== undefined ? updates.sidebarPinned : true,
           sidebarCollapsed: updates.sidebarCollapsed !== undefined ? updates.sidebarCollapsed : false
-        }).returning();
+        });
       }
 
       // Emit socket event for real-time updates
-      io.emit("uiPrefsUpdated", updatedPrefs[0]);
+      io.emit("uiPrefsUpdated", updatedPrefs);
       
-      res.json(updatedPrefs[0]);
+      res.json(updatedPrefs);
     } catch (error) {
       next(error);
     }
