@@ -176,57 +176,66 @@ export function KanbanView({ leads, isLoading, showFilter }: KanbanProps) {
     color: string;
     textColor: string;
     borderColor: string;
+    accentColor: string;
   }
   
+  // Using brand colors from design specifications
   const columnConfig: Record<StatusKey, ColumnConfig> = {
     qualified: { 
       title: "SQL", 
       subtitle: "Sales Qualified",
-      color: "bg-blue-500",
-      textColor: "text-blue-100",
-      borderColor: "border-blue-300" 
+      color: "bg-[rgba(242,167,27,0.1)]", // Yellow bg at 10% opacity
+      textColor: "text-brand-navy",
+      borderColor: "border-brand-teal",
+      accentColor: "bg-brand-teal" // #025E73
     },
     nurture: { 
       title: "MQL", 
       subtitle: "Marketing Qualified",
-      color: "bg-purple-500",
-      textColor: "text-purple-100",
-      borderColor: "border-purple-300" 
+      color: "bg-[rgba(242,167,27,0.1)]", // Yellow bg at 10% opacity
+      textColor: "text-brand-navy",
+      borderColor: "border-brand-teal",
+      accentColor: "bg-brand-teal" // #025E73
     },
     "follow-up": { 
       title: "Follow-Up", 
       subtitle: "Needs Follow-Up",
-      color: "bg-amber-500",
-      textColor: "text-amber-100",
-      borderColor: "border-amber-300" 
+      color: "bg-[rgba(242,167,27,0.1)]", // Yellow bg at 10% opacity
+      textColor: "text-brand-navy",
+      borderColor: "border-brand-yellow",
+      accentColor: "bg-brand-yellow" // #F2A71B
     },
     active: { 
       title: "Active Clients", 
       subtitle: "Current Customers",
-      color: "bg-green-500",
-      textColor: "text-green-100",
-      borderColor: "border-green-300" 
+      color: "bg-[rgba(242,167,27,0.1)]", // Yellow bg at 10% opacity
+      textColor: "text-brand-navy",
+      borderColor: "border-brand-plum",
+      accentColor: "bg-brand-plum" // #412754
     },
     unqualified: { 
       title: "Unqualified", 
       subtitle: "Not Ready",
-      color: "bg-gray-500",
-      textColor: "text-gray-100",
-      borderColor: "border-gray-300" 
+      color: "bg-[rgba(242,167,27,0.1)]", // Yellow bg at 10% opacity
+      textColor: "text-brand-navy",
+      borderColor: "border-gray-300",
+      accentColor: "bg-gray-400"
     },
     lost: { 
       title: "Lost", 
       subtitle: "Not Converted",
-      color: "bg-red-500",
-      textColor: "text-red-100",
-      borderColor: "border-red-300" 
+      color: "bg-[rgba(242,167,27,0.1)]", // Yellow bg at 10% opacity
+      textColor: "text-brand-navy",
+      borderColor: "border-red-300",
+      accentColor: "bg-red-500"
     },
     won: { 
       title: "Won", 
       subtitle: "Converted",
-      color: "bg-emerald-500",
-      textColor: "text-emerald-100",
-      borderColor: "border-emerald-300" 
+      color: "bg-[rgba(242,167,27,0.1)]", // Yellow bg at 10% opacity
+      textColor: "text-brand-navy",
+      borderColor: "border-emerald-300",
+      accentColor: "bg-emerald-500"
     }
   };
   
@@ -271,13 +280,13 @@ export function KanbanView({ leads, isLoading, showFilter }: KanbanProps) {
             onDragOver={handleDragOver}
             onDrop={() => handleDrop(status)}
           >
-            <CardHeader className={`${config.color} text-white rounded-t-lg pb-2`}>
+            <CardHeader className={`${config.color} ${config.textColor} rounded-t-lg pb-2`}>
               <div className="flex justify-between items-center">
                 <div>
-                  <CardTitle className="text-lg">{config.title}</CardTitle>
-                  <p className="text-xs opacity-90">{config.subtitle}</p>
+                  <CardTitle className="text-lg font-semibold">{config.title}</CardTitle>
+                  <p className="text-xs opacity-80">{config.subtitle}</p>
                 </div>
-                <Badge variant="outline" className="bg-white/20 text-white border-white/40">
+                <Badge variant="outline" className={`${config.accentColor} bg-opacity-20 ${config.textColor} border-opacity-30 ${config.borderColor}`}>
                   {statusLeads.length}
                 </Badge>
               </div>
@@ -294,49 +303,76 @@ export function KanbanView({ leads, isLoading, showFilter }: KanbanProps) {
                   {statusLeads.map((lead) => (
                     <MotionWrapper key={lead.id} animation="fade-up" delay={0.1}>
                       <div 
-                        className="border rounded-lg shadow-sm hover:shadow transition-all duration-200 p-3 mb-3 cursor-pointer"
+                        className={`relative bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow 
+                          transition-all duration-200 p-3 pl-4 mb-3 cursor-pointer overflow-hidden
+                          hover:translate-y-[-2px] group`}
                         onClick={() => setLocation(`/crm/${lead.id}`)}
                         draggable
                         onDragStart={() => handleDragStart(lead)}
+                        style={{
+                          // For browsers that support it, we'll add a pseudo-element with the accent color
+                          // This ensures the design works even if the browser doesn't support this feature
+                          borderLeftWidth: '4px',
+                          borderLeftColor: 'transparent'
+                        }}
                       >
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium truncate">{lead.companyName}</h3>
-                          <Badge variant="outline" className={`${config.textColor} ${config.borderColor} px-2`}>
-                            {lead.mcNumber}
-                          </Badge>
-                        </div>
+                        {/* Left accent bar */}
+                        <div 
+                          className={`absolute left-0 top-0 bottom-0 w-1 ${config.accentColor}`}
+                          aria-hidden="true"
+                        ></div>
                         
-                        <div className="text-xs text-gray-500 space-y-1">
-                          <div className="flex items-center gap-1.5">
-                            <Mail className="h-3 w-3" />
-                            <span>{lead.email || 'No email'}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Phone className="h-3 w-3" />
-                            <span>{formatPhone(lead.phoneNumber)}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Truck className="h-3 w-3" />
-                            <span className="capitalize">{lead.equipmentType.replace('-', ' ')}</span>
-                          </div>
-                        </div>
+                        {/* Drag animation effect - applied when dragging */}
+                        <div className={`
+                          absolute inset-0 opacity-0 bg-white border border-gray-300 rounded-lg shadow-md 
+                          group-active:opacity-100 transition-all duration-100 
+                          ${draggedLead?.id === lead.id ? 'opacity-100 rotate-[-2deg] scale-[0.98] shadow-xl' : ''}
+                        `}></div>
                         
-                        {lead.assignedToUser && (
-                          <div className="flex items-center gap-2 mt-3 pt-2 border-t text-xs text-gray-500">
-                            <Avatar className="h-5 w-5">
-                              <AvatarImage 
-                                src={lead.assignedToUser.profileImageUrl || ''} 
-                                alt={`${lead.assignedToUser.firstName} ${lead.assignedToUser.lastName}`} 
-                              />
-                              <AvatarFallback className="text-[10px]">
-                                {lead.assignedToUser.firstName[0]}{lead.assignedToUser.lastName[0]}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span>
-                              {lead.assignedToUser.firstName} {lead.assignedToUser.lastName}
-                            </span>
+                        {/* Card content */}
+                        <div className="relative z-10"> {/* Ensure content is above the animation overlay */}
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="font-medium truncate text-brand-navy">{lead.companyName}</h3>
+                            <Badge 
+                              variant="outline" 
+                              className={`bg-opacity-10 px-2 ${config.accentColor} bg-opacity-10 text-brand-navy border-gray-200`}
+                            >
+                              {lead.mcNumber}
+                            </Badge>
                           </div>
-                        )}
+                          
+                          <div className="text-xs text-gray-500 space-y-1">
+                            <div className="flex items-center gap-1.5">
+                              <Mail className="h-3 w-3 text-brand-teal" />
+                              <span>{lead.email || 'No email'}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Phone className="h-3 w-3 text-brand-teal" />
+                              <span>{formatPhone(lead.phoneNumber)}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Truck className="h-3 w-3 text-brand-teal" />
+                              <span className="capitalize">{lead.equipmentType.replace('-', ' ')}</span>
+                            </div>
+                          </div>
+                          
+                          {lead.assignedToUser && (
+                            <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100 text-xs text-gray-500">
+                              <Avatar className="h-5 w-5">
+                                <AvatarImage 
+                                  src={lead.assignedToUser.profileImageUrl || ''} 
+                                  alt={`${lead.assignedToUser.firstName} ${lead.assignedToUser.lastName}`} 
+                                />
+                                <AvatarFallback className="text-[10px] bg-brand-teal/10 text-brand-teal">
+                                  {lead.assignedToUser.firstName[0]}{lead.assignedToUser.lastName[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span>
+                                {lead.assignedToUser.firstName} {lead.assignedToUser.lastName}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </MotionWrapper>
                   ))}
