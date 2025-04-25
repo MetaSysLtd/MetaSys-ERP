@@ -75,6 +75,27 @@ export interface IStorage {
   getLeadRemarksByLeadId(leadId: number): Promise<LeadRemark[]>;
   createLeadRemark(remark: { leadId: number; userId: number; text: string; }): Promise<LeadRemark>;
   
+  // Call Log operations
+  getCallLog(id: number): Promise<CallLog | undefined>;
+  getCallLogs(): Promise<CallLog[]>;
+  getCallLogsByLeadId(leadId: number): Promise<CallLog[]>;
+  createCallLog(insertCallLog: InsertCallLog): Promise<CallLog>;
+  
+  // Lead Follow-Up operations
+  getLeadFollowUp(id: number): Promise<LeadFollowUp | undefined>;
+  getLeadFollowUps(): Promise<LeadFollowUp[]>;
+  getLeadFollowUpsByLeadId(leadId: number): Promise<LeadFollowUp[]>;
+  getLeadFollowUpsByAssignee(userId: number): Promise<LeadFollowUp[]>;
+  getDueLeadFollowUps(date?: Date): Promise<LeadFollowUp[]>;
+  createLeadFollowUp(insertFollowUp: InsertLeadFollowUp): Promise<LeadFollowUp>;
+  updateLeadFollowUp(id: number, updates: Partial<LeadFollowUp>): Promise<LeadFollowUp | undefined>;
+  
+  // Customer Feedback operations
+  getCustomerFeedback(id: number): Promise<CustomerFeedback | undefined>;
+  getCustomerFeedbacks(): Promise<CustomerFeedback[]>;
+  getCustomerFeedbacksByLeadId(leadId: number): Promise<CustomerFeedback[]>;
+  createCustomerFeedback(insertFeedback: InsertCustomerFeedback): Promise<CustomerFeedback>;
+  
   // Load operations
   getLoad(id: number): Promise<Load | undefined>;
   getLoads(): Promise<Load[]>;
@@ -208,6 +229,9 @@ export class MemStorage implements IStorage {
   private roles: Map<number, Role>;
   private leads: Map<number, Lead>;
   private leadRemarks: Map<number, LeadRemark>;
+  private callLogs: Map<number, CallLog>;
+  private leadFollowUps: Map<number, LeadFollowUp>;
+  private customerFeedbacks: Map<number, CustomerFeedback>;
   private dispatchClients: Map<number, DispatchClient>;
   private loads: Map<number, Load>;
   private invoices: Map<number, Invoice>;
@@ -229,6 +253,9 @@ export class MemStorage implements IStorage {
   private roleIdCounter: number;
   private leadIdCounter: number;
   private leadRemarkIdCounter: number;
+  private callLogIdCounter: number;
+  private leadFollowUpIdCounter: number;
+  private customerFeedbackIdCounter: number;
   private dispatchClientIdCounter: number;
   private loadIdCounter: number;
   private invoiceIdCounter: number;
@@ -257,6 +284,9 @@ export class MemStorage implements IStorage {
     this.roles = new Map();
     this.leads = new Map();
     this.leadRemarks = new Map();
+    this.callLogs = new Map();
+    this.leadFollowUps = new Map();
+    this.customerFeedbacks = new Map();
     this.dispatchClients = new Map();
     this.loads = new Map();
     this.invoices = new Map();
@@ -278,6 +308,9 @@ export class MemStorage implements IStorage {
     this.roleIdCounter = 1;
     this.leadIdCounter = 1;
     this.leadRemarkIdCounter = 1;
+    this.callLogIdCounter = 1;
+    this.leadFollowUpIdCounter = 1;
+    this.customerFeedbackIdCounter = 1;
     this.dispatchClientIdCounter = 1;
     this.loadIdCounter = 1;
     this.invoiceIdCounter = 1;
@@ -699,6 +732,155 @@ export class MemStorage implements IStorage {
     }
     
     return remark;
+  }
+  
+  // Call Log operations
+  async getCallLog(id: number): Promise<CallLog | undefined> {
+    return this.callLogs.get(id);
+  }
+  
+  async getCallLogs(): Promise<CallLog[]> {
+    return Array.from(this.callLogs.values());
+  }
+  
+  async getCallLogsByLeadId(leadId: number): Promise<CallLog[]> {
+    return Array.from(this.callLogs.values())
+      .filter(log => log.leadId === leadId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  
+  async createCallLog(insertCallLog: InsertCallLog): Promise<CallLog> {
+    const id = this.callLogIdCounter++;
+    const now = new Date();
+    const callLog: CallLog = {
+      ...insertCallLog,
+      id,
+      createdAt: now
+    };
+    this.callLogs.set(id, callLog);
+    
+    // Also update the lead's updatedAt field
+    const lead = await this.getLead(insertCallLog.leadId);
+    if (lead) {
+      await this.updateLead(lead.id, { updatedAt: now });
+    }
+    
+    return callLog;
+  }
+  
+  // Lead Follow-Up operations
+  async getLeadFollowUp(id: number): Promise<LeadFollowUp | undefined> {
+    return this.leadFollowUps.get(id);
+  }
+  
+  async getLeadFollowUps(): Promise<LeadFollowUp[]> {
+    return Array.from(this.leadFollowUps.values());
+  }
+  
+  async getLeadFollowUpsByLeadId(leadId: number): Promise<LeadFollowUp[]> {
+    return Array.from(this.leadFollowUps.values())
+      .filter(followUp => followUp.leadId === leadId)
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  }
+  
+  async getLeadFollowUpsByAssignee(userId: number): Promise<LeadFollowUp[]> {
+    return Array.from(this.leadFollowUps.values())
+      .filter(followUp => followUp.assignedTo === userId)
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  }
+  
+  async getDueLeadFollowUps(date?: Date): Promise<LeadFollowUp[]> {
+    const today = date ? new Date(date) : new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return Array.from(this.leadFollowUps.values())
+      .filter(followUp => {
+        // Only include incomplete follow-ups
+        if (followUp.completedAt) return false;
+        
+        // Check if the follow-up is due on or before the specified date
+        const dueDate = new Date(followUp.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        return dueDate <= today;
+      })
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  }
+  
+  async createLeadFollowUp(insertFollowUp: InsertLeadFollowUp): Promise<LeadFollowUp> {
+    const id = this.leadFollowUpIdCounter++;
+    const now = new Date();
+    const followUp: LeadFollowUp = {
+      ...insertFollowUp,
+      id,
+      createdAt: now,
+      updatedAt: now,
+      completedAt: null
+    };
+    this.leadFollowUps.set(id, followUp);
+    
+    // Also update the lead's updatedAt field
+    const lead = await this.getLead(insertFollowUp.leadId);
+    if (lead) {
+      await this.updateLead(lead.id, { updatedAt: now });
+    }
+    
+    return followUp;
+  }
+  
+  async updateLeadFollowUp(id: number, updates: Partial<LeadFollowUp>): Promise<LeadFollowUp | undefined> {
+    const followUp = await this.getLeadFollowUp(id);
+    if (!followUp) return undefined;
+    
+    const now = new Date();
+    const updatedFollowUp = {
+      ...followUp,
+      ...updates,
+      updatedAt: now
+    };
+    this.leadFollowUps.set(id, updatedFollowUp);
+    
+    // Update the lead's updatedAt field
+    const lead = await this.getLead(followUp.leadId);
+    if (lead) {
+      await this.updateLead(lead.id, { updatedAt: now });
+    }
+    
+    return updatedFollowUp;
+  }
+  
+  // Customer Feedback operations
+  async getCustomerFeedback(id: number): Promise<CustomerFeedback | undefined> {
+    return this.customerFeedbacks.get(id);
+  }
+  
+  async getCustomerFeedbacks(): Promise<CustomerFeedback[]> {
+    return Array.from(this.customerFeedbacks.values());
+  }
+  
+  async getCustomerFeedbacksByLeadId(leadId: number): Promise<CustomerFeedback[]> {
+    return Array.from(this.customerFeedbacks.values())
+      .filter(feedback => feedback.leadId === leadId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  
+  async createCustomerFeedback(insertFeedback: InsertCustomerFeedback): Promise<CustomerFeedback> {
+    const id = this.customerFeedbackIdCounter++;
+    const now = new Date();
+    const feedback: CustomerFeedback = {
+      ...insertFeedback,
+      id,
+      createdAt: now,
+      respondedAt: null
+    };
+    this.customerFeedbacks.set(id, feedback);
+    
+    // Also update the lead's updatedAt field
+    const lead = await this.getLead(insertFeedback.leadId);
+    if (lead) {
+      await this.updateLead(lead.id, { updatedAt: now });
+    }
+    
+    return feedback;
   }
 
   async getLeadsByStatus(status: string): Promise<Lead[]> {
