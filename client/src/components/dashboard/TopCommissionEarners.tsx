@@ -47,7 +47,7 @@ export default function TopCommissionEarners({
   className = ''
 }: TopCommissionEarnersProps) {
   const queryClient = useQueryClient();
-  const { subscribe, connected } = useSocket();
+  const { socket, connected } = useSocket();
   
   // Get current month
   const today = new Date();
@@ -75,23 +75,26 @@ export default function TopCommissionEarners({
   
   // Set up socket listeners for real-time updates
   useEffect(() => {
-    // Subscribe to commission update events
-    const unsubscribeCommissionUpdate = subscribe(`commission_admin_update`, (data) => {
+    if (!socket || !connected) return;
+    
+    // Event handler function
+    const handleCommissionUpdate = (data: any) => {
       console.log('Received admin commission update:', data);
       
       // Invalidate the queries to trigger a refetch
       queryClient.invalidateQueries({ 
         queryKey: ['/api/commissions-monthly/top-earners', type, currentMonth, limit]
       });
-    });
-    
-    // Clean up subscription when component unmounts
-    return () => {
-      if (unsubscribeCommissionUpdate) {
-        unsubscribeCommissionUpdate();
-      }
     };
-  }, [subscribe, queryClient, type, currentMonth, limit]);
+    
+    // Register event listener
+    socket.on('commission_admin_update', handleCommissionUpdate);
+    
+    // Clean up listener on unmount
+    return () => {
+      socket.off('commission_admin_update', handleCommissionUpdate);
+    };
+  }, [socket, connected, queryClient, type, currentMonth, limit]);
 
   if (isLoading) {
     return (
