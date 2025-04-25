@@ -38,14 +38,16 @@ export default function CommissionPerformance({ userId, type = 'sales' }: Commis
   // User ID to fetch (if userId prop is provided, use that; otherwise use current user)
   const targetUserId = userId || user?.id;
   const queryClient = useQueryClient();
-  const { subscribe, connected } = useSocket();
+  const { socket, connected } = useSocket();
   
   // Set up socket listeners for real-time commission updates
   useEffect(() => {
-    if (!targetUserId) return;
+    if (!targetUserId || !socket) return;
     
     // Subscribe to commission update events
-    const unsubscribeCommissionUpdate = subscribe(`commission_update_${targetUserId}`, (data) => {
+    const eventName = `commission_update_${targetUserId}`;
+    
+    const handleCommissionUpdate = (data: any) => {
       console.log('Received commission update:', data);
       
       // Invalidate the queries to trigger a refetch
@@ -56,15 +58,16 @@ export default function CommissionPerformance({ userId, type = 'sales' }: Commis
       queryClient.invalidateQueries({ 
         queryKey: ['/api/commissions/monthly', targetUserId, prevMonth]
       });
-    });
+    };
+    
+    // Set up the event listener
+    socket.on(eventName, handleCommissionUpdate);
     
     // Clean up subscription when component unmounts
     return () => {
-      if (unsubscribeCommissionUpdate) {
-        unsubscribeCommissionUpdate();
-      }
+      socket.off(eventName, handleCommissionUpdate);
     };
-  }, [targetUserId, subscribe, queryClient, currentMonth, prevMonth]);
+  }, [targetUserId, socket, queryClient, currentMonth, prevMonth]);
   
   // Fetch current month's commission
   const { data: currentCommission, isLoading: isLoadingCurrent } = useQuery({

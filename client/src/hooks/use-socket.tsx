@@ -5,6 +5,7 @@ interface SocketContextType {
   socket: Socket | null;
   connected: boolean;
   emit: (event: string, ...args: any[]) => void;
+  subscribe: (event: string, callback: (...args: any[]) => void) => () => void;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -57,8 +58,20 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Helper function to subscribe to socket events
+  const subscribe = (event: string, callback: (...args: any[]) => void) => {
+    if (socket) {
+      socket.on(event, callback);
+      return () => {
+        socket.off(event, callback);
+      };
+    }
+    
+    return () => {};
+  };
+  
   return (
-    <SocketContext.Provider value={{ socket, connected, emit }}>
+    <SocketContext.Provider value={{ socket, connected, emit, subscribe }}>
       {children}
     </SocketContext.Provider>
   );

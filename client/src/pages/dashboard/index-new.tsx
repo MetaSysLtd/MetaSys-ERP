@@ -14,7 +14,7 @@ import { TeamPerformance } from "@/components/dashboard/TeamPerformance";
 import { OnboardingRatio } from "@/components/dashboard/OnboardingRatio";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { RecentLeads } from "@/components/dashboard/RecentLeads";
-import { CommissionBreakdown } from "@/components/dashboard/CommissionBreakdown";
+import CommissionBreakdown from "@/components/dashboard/CommissionBreakdown";
 import { CommissionTracking } from "@/components/dashboard/CommissionTracking";
 import { RevenueCard } from "@/components/dashboard/RevenueCard";
 import { FinanceOverview } from "@/components/dashboard/FinanceOverview";
