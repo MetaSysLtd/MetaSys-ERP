@@ -4229,14 +4229,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let calculatedCommission = null;
       
-      // Calculate commission based on department
-      if (role.department === 'sales') {
+      // Calculate commission based on role name rather than department
+      const roleName = role.name?.toLowerCase() || '';
+      
+      if (roleName.includes('sales')) {
         calculatedCommission = await calculateSalesCommission(userId, month, req.user?.id || 0);
-      } else if (role.department === 'dispatch') {
+      } else if (roleName.includes('dispatch')) {
         calculatedCommission = await calculateDispatchCommission(userId, month, req.user?.id || 0);
       } else {
         return res.status(400).json({ 
-          message: `Cannot calculate commission for ${role.department} department` 
+          message: `Cannot calculate commission for this role type` 
         });
       }
       
@@ -4246,13 +4248,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Use role name instead of department
+      const departmentType = roleName.includes('sales') ? 'sales' : 'dispatch';
+      
       // Log the activity
       await storage.createActivity({
         userId: req.user?.id || 0,
         entityType: 'commission_monthly',
         entityId: calculatedCommission.id,
         action: 'calculated',
-        details: `Calculated ${role.department} commission for ${user.firstName} ${user.lastName} (${month})`
+        details: `Calculated ${departmentType} commission for ${user.firstName} ${user.lastName} (${month})`
       });
       
       // Emit socket events for real-time updates
@@ -4264,7 +4269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Emit admin-specific event for dashboard updates
       io.emit('commission_admin_update', {
         type: 'updated',
-        department: role.department,
+        department: departmentType,
         month,
         orgId: user.orgId
       });
@@ -4295,17 +4300,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const role = await storage.getRole(user.roleId);
         if (!role) continue;
         
+        // Check role name instead of department
+        const roleName = role.name?.toLowerCase() || '';
+        
         // Only calculate for sales and dispatch roles
-        if (role.department !== 'sales' && role.department !== 'dispatch') {
+        if (!roleName.includes('sales') && !roleName.includes('dispatch')) {
           continue;
         }
         
         let calculatedCommission = null;
         
-        // Calculate commission based on department
-        if (role.department === 'sales') {
+        // Calculate commission based on role name
+        if (roleName.includes('sales')) {
           calculatedCommission = await calculateSalesCommission(user.id, month, req.user?.id || 0);
-        } else if (role.department === 'dispatch') {
+        } else if (roleName.includes('dispatch')) {
           calculatedCommission = await calculateDispatchCommission(user.id, month, req.user?.id || 0);
         }
         
