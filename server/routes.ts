@@ -474,6 +474,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get users by department
+  userRouter.get("/department/:department", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const department = req.params.department;
+      
+      // Get users in this department
+      const users = await storage.getUsersByDepartment(department);
+      
+      // Remove passwords before sending to client
+      const sanitizedUsers = users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      
+      res.json(sanitizedUsers);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   userRouter.get("/", createAuthMiddleware(3), async (req, res, next) => {
     try {
       const users = await storage.getUsers();
@@ -556,6 +576,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Role routes
   const roleRouter = express.Router();
   app.use("/api/roles", roleRouter);
+
+  // Get users by role
+  roleRouter.get("/:id/users", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const roleId = Number(req.params.id);
+      
+      // Check if role exists
+      const role = await storage.getRole(roleId);
+      if (!role) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+      
+      // Get users with this role
+      const users = await storage.getUsersByRole(roleId);
+      
+      // Remove passwords before sending to client
+      const sanitizedUsers = users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      
+      res.json(sanitizedUsers);
+    } catch (error) {
+      next(error);
+    }
+  });
 
   roleRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
@@ -3062,6 +3108,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Organization routes
   const orgRouter = express.Router();
   app.use("/api/organizations", orgRouter);
+
+  // Get users by organization
+  orgRouter.get("/:id/users", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const orgId = Number(req.params.id);
+      
+      // Check if organization exists
+      const organization = await storage.getOrganization(orgId);
+      if (!organization) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+      
+      // Get users from this organization
+      const users = await storage.getUsersByOrganization(orgId);
+      
+      // Remove passwords before sending to client
+      const sanitizedUsers = users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      
+      res.json(sanitizedUsers);
+    } catch (error) {
+      next(error);
+    }
+  });
 
   orgRouter.get("/", createAuthMiddleware(3), async (req, res, next) => {
     try {
