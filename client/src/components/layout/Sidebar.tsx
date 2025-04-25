@@ -58,6 +58,18 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   const dispatch = useDispatch();
   const preferences = useSelector((state: RootState) => state.uiPreferences);
   
+  // Initialize the expandedDropdown state from localStorage on first render
+  useEffect(() => {
+    try {
+      const savedDropdown = localStorage.getItem('metasys_expanded_dropdown');
+      if (savedDropdown) {
+        dispatch(setPreferences({ expandedDropdown: savedDropdown }));
+      }
+    } catch (error) {
+      console.error('Failed to load dropdown state from localStorage:', error);
+    }
+  }, [dispatch]);
+  
   // Define helper functions
   const isActiveRoute = useCallback((route: string) => {
     if (route === "/" && location === "/") return true;
@@ -178,52 +190,117 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   const filteredSecondaryItems = filterItems(secondaryNavItems);
   const filteredTaskItems = filterItems(taskItems);
 
-  // Navigation item component
-  const NavItemComponent = ({ item, isMain = false }: { item: NavItem, isMain?: boolean }) => (
-    <div key={item.href}>
-      <Link href={item.href} onClick={handleLinkClick}>
-        <div 
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
-            ${isActiveRoute(item.href)
-              ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
-              : isParentActive(item.href)
-                ? 'bg-[#F2A71B] text-white'
-                : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}
-        >
-          <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
-          {!collapsed || window.innerWidth < 992 ? (
-            <>
-              <span>{item.name}</span>
-              {(item.subItems && item.subItems.length > 0) ? (
-                <ChevronDown className="w-4 h-4 ml-auto" />
-              ) : (
-                isActiveRoute(item.href) && (
-                  <ChevronRight className="w-4 h-4 ml-auto" />
-                )
-              )}
-            </>
-          ) : null}
-        </div>
-      </Link>
+  // Handle dropdown menu toggle
+  const handleDropdownToggle = useCallback((name: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dispatch(toggleDropdown(name));
+    
+    // Save to localStorage
+    try {
+      const currentExpanded = preferences.expandedDropdown === name ? null : name;
+      localStorage.setItem('metasys_expanded_dropdown', currentExpanded || '');
+    } catch (error) {
+      console.error('Failed to save dropdown state to localStorage:', error);
+    }
+  }, [dispatch, preferences.expandedDropdown]);
 
-      {/* Render submenu items if they exist */}
-      {isMain && item.subItems && item.subItems.length > 0 && (
-        <div className="mt-1 ml-7 space-y-1">
-          {item.subItems.map((subItem) => (
-            <Link key={subItem.href} href={subItem.href} onClick={handleLinkClick}>
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-all
-                ${location === subItem.href || (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
-                  ? 'bg-[#F2A71B]/80 text-white' 
-                  : 'text-gray-700 bg-white/30 hover:bg-[#025E73]/10 hover:text-[#025E73]'}`}
-              >
-                <span>{subItem.name}</span>
+  // Navigation item component
+  const NavItemComponent = ({ item, isMain = false }: { item: NavItem, isMain?: boolean }) => {
+    const hasSubItems = item.subItems && item.subItems.length > 0;
+    const isExpanded = preferences.expandedDropdown === item.name;
+    const subMenuRef = useRef<HTMLDivElement>(null);
+    
+    // Auto-expand dropdown if a child route is active
+    useEffect(() => {
+      if (hasSubItems && item.subItems?.some(subItem => 
+        location === subItem.href || 
+        (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
+      )) {
+        // Use a regular action instead of the thunk directly
+        dispatch({ 
+          type: 'uiPreferences/toggleDropdown',
+          payload: item.name
+        });
+      }
+    // Only run this on initial mount and when location changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    
+    return (
+      <div key={item.href}>
+        {hasSubItems ? (
+          // For items with dropdown menus
+          <div>
+            <div 
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer transition-all
+                ${isActiveRoute(item.href)
+                  ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
+                  : isParentActive(item.href)
+                    ? 'bg-[#F2A71B] text-white'
+                    : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}
+              onClick={(e) => handleDropdownToggle(item.name, e)}
+            >
+              <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
+              {!collapsed || window.innerWidth < 992 ? (
+                <>
+                  <span>{item.name}</span>
+                  <ChevronDown 
+                    className={`w-4 h-4 ml-auto transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
+                  />
+                </>
+              ) : null}
+            </div>
+            
+            {/* Dropdown menu with animation */}
+            <div 
+              ref={subMenuRef}
+              className="overflow-hidden transition-[max-height] duration-200 ease-in-out"
+              style={{
+                maxHeight: isExpanded ? `${subMenuRef.current?.scrollHeight || 1000}px` : '0px',
+              }}
+            >
+              <div className="mt-1 ml-7 space-y-1 py-1 bg-[#012F3E]/10 rounded-md pl-6">
+                {item.subItems?.map((subItem) => (
+                  <Link key={subItem.href} href={subItem.href} onClick={handleLinkClick}>
+                    <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-all
+                      ${location === subItem.href || (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
+                        ? 'bg-[#F2A71B]/80 text-white' 
+                        : 'text-gray-700 hover:bg-[#025E73]/10 hover:text-[#025E73]'}`}
+                    >
+                      <span>{subItem.name}</span>
+                    </div>
+                  </Link>
+                ))}
               </div>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+            </div>
+          </div>
+        ) : (
+          // For normal items without dropdown
+          <Link href={item.href} onClick={handleLinkClick}>
+            <div 
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
+                ${isActiveRoute(item.href)
+                  ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
+                  : isParentActive(item.href)
+                    ? 'bg-[#F2A71B] text-white'
+                    : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}
+            >
+              <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
+              {!collapsed || window.innerWidth < 992 ? (
+                <>
+                  <span>{item.name}</span>
+                  {isActiveRoute(item.href) && (
+                    <ChevronRight className="w-4 h-4 ml-auto" />
+                  )}
+                </>
+              ) : null}
+            </div>
+          </Link>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div 
