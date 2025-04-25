@@ -55,6 +55,8 @@ export function LeadNotificationContainer() {
       return notification.type === LeadNotificationType.INACTIVE_LEADS;
     } else if (activeTab === 'status') {
       return notification.type === LeadNotificationType.LEAD_STATUS_CHANGE;
+    } else if (activeTab === 'remarks') {
+      return notification.type === LeadNotificationType.LEAD_REMARK_ADDED;
     }
     return false;
   });
@@ -72,6 +74,9 @@ export function LeadNotificationContainer() {
     ).length,
     status: notifications.filter(
       n => n.type === LeadNotificationType.LEAD_STATUS_CHANGE && !n.read
+    ).length,
+    remarks: notifications.filter(
+      n => n.type === LeadNotificationType.LEAD_REMARK_ADDED && !n.read
     ).length
   };
 
@@ -94,6 +99,8 @@ export function LeadNotificationContainer() {
         return 'text-blue-500';
       case LeadNotificationType.LEAD_STATUS_CHANGE:
         return 'text-green-500';
+      case LeadNotificationType.LEAD_REMARK_ADDED:
+        return 'text-brandYellow';
       default:
         return 'text-gray-500';
     }
@@ -195,7 +202,7 @@ export function LeadNotificationContainer() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 mb-4">
+          <TabsList className="grid grid-cols-5 mb-4">
             <TabsTrigger value="assigned" className="relative">
               Assigned Leads
               {unreadCounts.assigned > 0 && (
@@ -240,9 +247,20 @@ export function LeadNotificationContainer() {
                 </Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="remarks" className="relative">
+              Remarks
+              {unreadCounts.remarks > 0 && (
+                <Badge 
+                  variant="secondary" 
+                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-brandYellow text-primary"
+                >
+                  {unreadCounts.remarks}
+                </Badge>
+              )}
+            </TabsTrigger>
           </TabsList>
 
-          {['assigned', 'follow-up', 'inactive', 'status'].map((tabId) => (
+          {['assigned', 'follow-up', 'inactive', 'status', 'remarks'].map((tabId) => (
             <TabsContent key={tabId} value={tabId} className="mt-0">
               <div className="p-4">
                 {filteredNotifications.length > 0 ? (
@@ -267,6 +285,7 @@ export function LeadNotificationContainer() {
                       {activeTab === 'follow-up' && "No leads require immediate follow-up."}
                       {activeTab === 'inactive' && "No inactive leads to review."}
                       {activeTab === 'status' && "No recent lead status changes."}
+                      {activeTab === 'remarks' && "No new lead remarks have been added."}
                     </p>
                   </div>
                 )}

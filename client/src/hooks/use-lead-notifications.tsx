@@ -16,7 +16,8 @@ export enum LeadNotificationType {
   LEAD_ASSIGNED = 'leadAssigned',
   LEAD_FOLLOW_UP = 'leadFollowUpReminder',
   INACTIVE_LEADS = 'weeklyInactiveLeadsReminder',
-  LEAD_STATUS_CHANGE = 'leadStatusChange'
+  LEAD_STATUS_CHANGE = 'leadStatusChange',
+  LEAD_REMARK_ADDED = 'leadRemarkAdded'
 }
 
 // Lead notification data structure
@@ -223,12 +224,41 @@ export const LeadNotificationProvider = ({ children }: { children: ReactNode }) 
         duration: 6000
       });
     };
+    
+    // Handler for lead remarks added
+    const handleLeadRemarkAdded = (data: any) => {
+      const notification: LeadNotification = {
+        id: uuidv4(),
+        type: LeadNotificationType.LEAD_REMARK_ADDED,
+        title: 'New Lead Remark',
+        message: `${data.details.createdBy} added a remark to lead: ${data.details.companyName}`,
+        leadId: data.details.leadId,
+        leadName: data.details.companyName,
+        status: data.details.status,
+        timestamp: new Date(),
+        read: false
+      };
+      
+      setNotifications(prev => {
+        const updated = [notification, ...prev];
+        saveNotifications(updated);
+        return updated;
+      });
+      
+      toast({
+        title: 'New Lead Remark',
+        description: `${data.details.createdBy} added a remark to lead: ${data.details.companyName}`,
+        variant: "default",
+        duration: 5000
+      });
+    };
 
     // Register event listeners
     socket.on(LeadNotificationType.LEAD_ASSIGNED, handleLeadAssigned);
     socket.on(LeadNotificationType.LEAD_FOLLOW_UP, handleLeadFollowUp);
     socket.on(LeadNotificationType.INACTIVE_LEADS, handleWeeklyInactiveLeads);
     socket.on(LeadNotificationType.LEAD_STATUS_CHANGE, handleLeadStatusChange);
+    socket.on(LeadNotificationType.LEAD_REMARK_ADDED, handleLeadRemarkAdded);
     
     // Clean up listeners on unmount
     return () => {
@@ -236,6 +266,7 @@ export const LeadNotificationProvider = ({ children }: { children: ReactNode }) 
       socket.off(LeadNotificationType.LEAD_FOLLOW_UP, handleLeadFollowUp);
       socket.off(LeadNotificationType.INACTIVE_LEADS, handleWeeklyInactiveLeads);
       socket.off(LeadNotificationType.LEAD_STATUS_CHANGE, handleLeadStatusChange);
+      socket.off(LeadNotificationType.LEAD_REMARK_ADDED, handleLeadRemarkAdded);
     };
   }, [socket, user, toast, saveNotifications]);
 
