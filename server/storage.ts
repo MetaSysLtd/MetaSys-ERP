@@ -1,7 +1,7 @@
 import {
   users, roles, leads, loads, invoices, invoiceItems, commissions, activities, tasks,
   dispatch_clients, organizations, userOrganizations, commissionRules, commissionsMonthly,
-  clockEvents, clockEventTypeEnum, uiPreferences,
+  clockEvents, clockEventTypeEnum, uiPreferences, dispatchTasks, dispatchReports, performanceTargets,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
@@ -13,7 +13,10 @@ import {
   type CommissionMonthly, type InsertCommissionMonthly,
   type Task, type InsertTask,
   type ClockEvent, type InsertClockEvent,
-  type UiPreferences, type InsertUiPreferences
+  type UiPreferences, type InsertUiPreferences,
+  type DispatchTask, type InsertDispatchTask,
+  type DispatchReport, type InsertDispatchReport,
+  type PerformanceTarget, type InsertPerformanceTarget
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -165,6 +168,29 @@ export interface IStorage {
   getUserPreferences(userId: number): Promise<UiPreferences | undefined>;
   createUserPreferences(prefs: InsertUiPreferences): Promise<UiPreferences>;
   updateUserPreferences(userId: number, prefs: Partial<UiPreferences>): Promise<UiPreferences>;
+  
+  // Dispatch Task operations
+  getDispatchTask(id: number): Promise<DispatchTask | undefined>;
+  getDispatchTasksByDate(date: Date): Promise<DispatchTask[]>;
+  getDispatchTasksByDispatcher(dispatcherId: number): Promise<DispatchTask[]>;
+  getDispatchTaskByDispatcherAndDate(dispatcherId: number, date: Date): Promise<DispatchTask | undefined>;
+  createDispatchTask(task: InsertDispatchTask): Promise<DispatchTask>;
+  updateDispatchTask(id: number, task: Partial<DispatchTask>): Promise<DispatchTask | undefined>;
+  
+  // Dispatch Report operations
+  getDispatchReport(id: number): Promise<DispatchReport | undefined>;
+  getDispatchReportsByDate(date: Date): Promise<DispatchReport[]>;
+  getDispatchReportsByDispatcher(dispatcherId: number): Promise<DispatchReport[]>;
+  getDispatchReportByDispatcherAndDate(dispatcherId: number, date: Date): Promise<DispatchReport | undefined>;
+  createDispatchReport(report: InsertDispatchReport): Promise<DispatchReport>;
+  updateDispatchReport(id: number, report: Partial<DispatchReport>): Promise<DispatchReport | undefined>;
+  
+  // Performance Target operations
+  getPerformanceTarget(id: number): Promise<PerformanceTarget | undefined>;
+  getPerformanceTargetsByType(type: 'daily' | 'weekly'): Promise<PerformanceTarget[]>;
+  getPerformanceTargetByOrgAndType(orgId: number, type: 'daily' | 'weekly'): Promise<PerformanceTarget | undefined>;
+  createPerformanceTarget(target: InsertPerformanceTarget): Promise<PerformanceTarget>;
+  updatePerformanceTarget(id: number, target: Partial<PerformanceTarget>): Promise<PerformanceTarget | undefined>;
 }
 
 export class MemStorage implements IStorage {

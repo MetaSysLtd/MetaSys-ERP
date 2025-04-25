@@ -314,6 +314,69 @@ export const clockEvents = pgTable("clock_events", {
   userAgent: text("user_agent"),
 });
 
+// Dispatch tasks status enum
+export const dispatchTaskStatusEnum = pgEnum('dispatch_task_status', ['Pending', 'Submitted']);
+
+// Dispatch reports status enum
+export const dispatchReportStatusEnum = pgEnum('dispatch_report_status', ['Pending', 'Submitted']);
+
+// Performance target type enum
+export const performanceTargetTypeEnum = pgEnum('performance_target_type', ['daily', 'weekly']);
+
+// Dispatch Tasks for tracking daily tasks
+export const dispatchTasks = pgTable("dispatch_tasks", {
+  id: serial("id").primaryKey(),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  dispatcherId: integer("dispatcher_id").notNull().references(() => users.id),
+  date: timestamp("date").notNull(),
+  carriersToUpdate: integer("carriers_to_update").notNull().default(0),
+  newLeads: integer("new_leads").notNull().default(0),
+  status: dispatchTaskStatusEnum("status").notNull().default("Pending"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    dispatcherIdIdx: index("dispatch_tasks_dispatcher_id_idx").on(table.dispatcherId),
+    dateIdx: index("dispatch_tasks_date_idx").on(table.date),
+    orgIdIdx: index("dispatch_tasks_org_id_idx").on(table.orgId),
+  };
+});
+
+// Dispatch Reports for tracking daily performance
+export const dispatchReports = pgTable("dispatch_reports", {
+  id: serial("id").primaryKey(),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  dispatcherId: integer("dispatcher_id").notNull().references(() => users.id),
+  date: timestamp("date").notNull(),
+  loadsBooked: integer("loads_booked").notNull().default(0),
+  invoiceUsd: real("invoice_usd").notNull().default(0),
+  activeLeads: integer("active_leads").notNull().default(0),
+  pendingInvoiceUsd: real("pending_invoice_usd").notNull().default(0),
+  highestInvoiceUsd: real("highest_invoice_usd").notNull().default(0),
+  status: dispatchReportStatusEnum("status").notNull().default("Pending"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    dispatcherIdIdx: index("dispatch_reports_dispatcher_id_idx").on(table.dispatcherId),
+    dateIdx: index("dispatch_reports_date_idx").on(table.date),
+    orgIdIdx: index("dispatch_reports_org_id_idx").on(table.orgId),
+  };
+});
+
+// Performance Targets for tracking goals
+export const performanceTargets = pgTable("performance_targets", {
+  id: serial("id").primaryKey(),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  type: performanceTargetTypeEnum("type").notNull(),
+  minPct: integer("min_pct").notNull().default(40),
+  maxPct: integer("max_pct").notNull().default(100),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    orgIdTypeIdx: index("performance_targets_org_id_type_idx").on(table.orgId, table.type),
+  };
+});
+
 // Monthly Commissions
 export const commissionsMonthly = pgTable("commissions_monthly", {
   id: serial("id").primaryKey(),
@@ -373,6 +436,11 @@ export const uiPreferences = pgTable("ui_preferences", {
 });
 
 export const insertUiPreferencesSchema = createInsertSchema(uiPreferences).omit({ id: true, createdAt: true, updatedAt: true });
+
+// Dispatch automation schemas
+export const insertDispatchTaskSchema = createInsertSchema(dispatchTasks).omit({ id: true, createdAt: true });
+export const insertDispatchReportSchema = createInsertSchema(dispatchReports).omit({ id: true, createdAt: true });
+export const insertPerformanceTargetSchema = createInsertSchema(performanceTargets).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type Organization = typeof organizations.$inferSelect;
@@ -440,3 +508,13 @@ export type InsertCommissionRule = z.infer<typeof insertCommissionRuleSchema>;
 
 export type CommissionMonthly = typeof commissionsMonthly.$inferSelect;
 export type InsertCommissionMonthly = z.infer<typeof insertCommissionMonthlySchema>;
+
+// Dispatch automation types
+export type DispatchTask = typeof dispatchTasks.$inferSelect;
+export type InsertDispatchTask = z.infer<typeof insertDispatchTaskSchema>;
+
+export type DispatchReport = typeof dispatchReports.$inferSelect;
+export type InsertDispatchReport = z.infer<typeof insertDispatchReportSchema>;
+
+export type PerformanceTarget = typeof performanceTargets.$inferSelect;
+export type InsertPerformanceTarget = z.infer<typeof insertPerformanceTargetSchema>;
