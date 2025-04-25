@@ -227,18 +227,24 @@ export function DispatchReportAutomation() {
       </CardContent>
       
       <CardFooter className="flex flex-col space-y-2">
-        <div className="text-xs text-muted-foreground italic mb-1">
-          {todayReport ? (
-            <>
-              <CheckCircleIcon className="h-3 w-3 inline mr-1 text-brandTeal" />
-              Automated reports run daily at 18:00
-            </>
-          ) : (
-            <>
-              <RefreshCwIcon className="h-3 w-3 inline mr-1" />
-              Next automated report at 18:00
-            </>
-          )}
+        <div className="flex flex-col space-y-1">
+          <div className="text-xs text-muted-foreground italic">
+            {todayReport ? (
+              <>
+                <CheckCircleIcon className="h-3 w-3 inline mr-1 text-brandTeal" />
+                Automated reports run daily at 18:00
+              </>
+            ) : (
+              <>
+                <RefreshCwIcon className="h-3 w-3 inline mr-1" />
+                Next automated report at 18:00
+              </>
+            )}
+          </div>
+          <div className="text-xs text-muted-foreground italic">
+            <CalendarIcon className="h-3 w-3 inline mr-1 text-brandTeal" />
+            Monthly summary reports generated on the 1st of each month at 01:00
+          </div>
         </div>
         
         <div className="flex gap-2 w-full">

@@ -336,7 +336,7 @@ export function initializeScheduler() {
   console.log('- Lead Follow-up Check: runs at 10:00 daily');
   console.log('- Weekly Inactive Leads Reminder: runs at 10:00 on Mondays');
   console.log('- Daily Report Generation: runs at 18:00 daily');
-  console.log('- Report Archiving: runs at 00:00 on Sundays');
+  console.log('- Monthly Report Generation: runs at 01:00 on the 1st of each month');
 
   return {
     dailyTasksJob,
