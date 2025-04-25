@@ -1,454 +1,236 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/use-auth';
-import { queryClient, apiRequest } from '@/lib/queryClient';
-import { format } from 'date-fns';
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Plus, Check, AlertCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import PageHeader from '@/components/layout/PageHeader';
-import UserAvatar from '@/components/ui/user-avatar';
-
-interface DispatchTask {
-  id: number;
-  dispatcherId: number;
-  date: string;
-  orgId: number;
-  status: 'Pending' | 'Submitted';
-  salesQuotaAchieved: boolean;
-  leadsFollowedUp: boolean;
-  deadLeadsArchived: boolean;
-  carriersUpdated: boolean;
-  notes: string | null;
-  createdAt: string;
-}
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { AlertTriangle, Calendar, CheckCircle, Loader2 } from "lucide-react";
+import { useSocketNotifications } from "@/hooks/use-socket-notifications";
+import { DailyTaskModal } from "@/components/dispatch/daily-task-modal";
+import { DailyReportModal } from "@/components/dispatch/daily-report-modal";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ToastAlert } from "@/components/ui/toast-alert";
 
 export default function DispatchTasksPage() {
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
   
-  // New task form state
-  const [newTask, setNewTask] = useState({
-    salesQuotaAchieved: false,
-    leadsFollowedUp: false,
-    deadLeadsArchived: false,
-    carriersUpdated: false,
-    notes: '',
-  });
+  const { taskReminder, reportReminder, clearTaskReminder, clearReportReminder } = useSocketNotifications();
   
-  // Fetch tasks
-  const { data: tasks, isLoading } = useQuery({
-    queryKey: ['/api/dispatch/tasks'],
-    queryFn: () => 
-      apiRequest('GET', '/api/dispatch/tasks')
-        .then(res => res.json()),
-  });
-  
-  // Create task mutation
-  const createTaskMutation = useMutation({
-    mutationFn: (taskData: any) => 
-      apiRequest('POST', '/api/dispatch/tasks', taskData)
-        .then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/dispatch/tasks'] });
-      setIsCreateDialogOpen(false);
-      resetNewTaskForm();
-      toast({
-        title: 'Task created',
-        description: 'Your task has been created successfully',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Failed to create task',
-        description: error.message || 'Something went wrong',
-        variant: 'destructive',
-      });
+  // Fetch user's tasks
+  const { data: tasks, isLoading: tasksLoading } = useQuery({
+    queryKey: ["/api/dispatch/tasks"],
+    queryFn: async () => {
+      const response = await fetch("/api/dispatch/tasks");
+      if (!response.ok) {
+        throw new Error("Failed to fetch tasks");
+      }
+      return response.json();
     },
   });
   
-  // Update task mutation
-  const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => 
-      apiRequest('PUT', `/api/dispatch/tasks/${id}`, data)
-        .then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/dispatch/tasks'] });
-      toast({
-        title: 'Task updated',
-        description: 'Your task has been updated successfully',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Failed to update task',
-        description: error.message || 'Something went wrong',
-        variant: 'destructive',
-      });
+  // Fetch user's reports
+  const { data: reports, isLoading: reportsLoading } = useQuery({
+    queryKey: ["/api/dispatch/reports"],
+    queryFn: async () => {
+      const response = await fetch("/api/dispatch/reports");
+      if (!response.ok) {
+        throw new Error("Failed to fetch reports");
+      }
+      return response.json();
     },
   });
   
-  const handleCheckboxChange = (
-    e: React.ChangeEvent<HTMLInputElement>, 
-    taskId: number, 
-    field: string
-  ) => {
-    updateTaskMutation.mutate({ 
-      id: taskId, 
-      data: { [field]: e.target.checked } 
-    });
-  };
-  
-  const handleStatusChange = (taskId: number, status: string) => {
-    updateTaskMutation.mutate({ 
-      id: taskId, 
-      data: { status } 
-    });
-  };
-  
-  const handleCreateTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    createTaskMutation.mutate({
-      ...newTask,
-      date: selectedDate,
-    });
-  };
-  
-  const resetNewTaskForm = () => {
-    setNewTask({
-      salesQuotaAchieved: false,
-      leadsFollowedUp: false,
-      deadLeadsArchived: false,
-      carriersUpdated: false,
-      notes: '',
-    });
-  };
-  
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Pending':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
-      case 'Submitted':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Submitted</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+  // Handle task reminder event
+  useEffect(() => {
+    if (taskReminder) {
+      setSelectedTaskId(taskReminder.taskId);
+      setTaskModalOpen(true);
     }
+  }, [taskReminder]);
+  
+  // Handle report reminder event
+  useEffect(() => {
+    if (reportReminder) {
+      setSelectedReportId(reportReminder.reportId);
+      setReportModalOpen(true);
+    }
+  }, [reportReminder]);
+  
+  // Close task modal and clear reminder
+  const handleTaskModalClose = () => {
+    setTaskModalOpen(false);
+    clearTaskReminder();
   };
   
-  const tasksByDate = tasks ? 
-    Object.entries(
-      tasks.reduce((acc: Record<string, DispatchTask[]>, task: DispatchTask) => {
-        const date = task.date.split('T')[0];
-        if (!acc[date]) acc[date] = [];
-        acc[date].push(task);
-        return acc;
-      }, {})
-    ).sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
-    : [];
+  // Close report modal and clear reminder
+  const handleReportModalClose = () => {
+    setReportModalOpen(false);
+    clearReportReminder();
+  };
+  
+  // Open task modal for a specific task
+  const openTaskModal = (taskId: number) => {
+    setSelectedTaskId(taskId);
+    setTaskModalOpen(true);
+  };
+  
+  // Open report modal for a specific report
+  const openReportModal = (reportId: number) => {
+    setSelectedReportId(reportId);
+    setReportModalOpen(true);
+  };
   
   return (
-    <div className="container mx-auto p-4">
-      <PageHeader 
-        title="Dispatch Tasks" 
-        description="Manage and track your daily dispatch tasks"
-        actionButton={
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                New Task
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Task</DialogTitle>
-                <DialogDescription>
-                  Create a new dispatch task for tracking your daily activities.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <form onSubmit={handleCreateTask}>
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="salesQuotaAchieved"
-                      checked={newTask.salesQuotaAchieved}
-                      onChange={(e) => setNewTask({...newTask, salesQuotaAchieved: e.target.checked})}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                    <Label htmlFor="salesQuotaAchieved">Sales Quota Achieved</Label>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="leadsFollowedUp"
-                      checked={newTask.leadsFollowedUp}
-                      onChange={(e) => setNewTask({...newTask, leadsFollowedUp: e.target.checked})}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                    <Label htmlFor="leadsFollowedUp">Leads Followed Up</Label>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="deadLeadsArchived"
-                      checked={newTask.deadLeadsArchived}
-                      onChange={(e) => setNewTask({...newTask, deadLeadsArchived: e.target.checked})}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                    <Label htmlFor="deadLeadsArchived">Dead Leads Archived</Label>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="carriersUpdated"
-                      checked={newTask.carriersUpdated}
-                      onChange={(e) => setNewTask({...newTask, carriersUpdated: e.target.checked})}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                    <Label htmlFor="carriersUpdated">Carriers Updated</Label>
-                  </div>
-                  
-                  <div className="grid gap-2">
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      placeholder="Add any additional notes here..."
-                      value={newTask.notes}
-                      onChange={(e) => setNewTask({...newTask, notes: e.target.value})}
-                      rows={4}
-                    />
-                  </div>
-                </div>
-                
-                <DialogFooter>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setIsCreateDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit"
-                    disabled={createTaskMutation.isPending}
-                  >
-                    {createTaskMutation.isPending && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    Create Task
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        }
-      />
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Dispatch Tasks</h1>
       
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : tasksByDate.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 text-center">
-          <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium">No tasks found</h3>
-          <p className="text-muted-foreground mt-2 max-w-md">
-            You haven't created any dispatch tasks yet. Click the "New Task" button to get started.
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-6">
-          {tasksByDate.map(([date, dateTasks]) => (
-            <Card key={date}>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>{format(new Date(date), 'MMMM d, yyyy')}</span>
-                  {dateTasks.some(task => task.status === 'Submitted') ? (
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      <Check className="mr-1 h-3 w-3" /> Submitted
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                      Pending
-                    </Badge>
-                  )}
-                </CardTitle>
-                <CardDescription>
-                  Dispatch tasks for {format(new Date(date), 'EEEE, MMMM d, yyyy')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Task</TableHead>
-                      <TableHead className="w-[120px] text-center">Status</TableHead>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        {/* Daily Tasks Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Calendar className="mr-2 h-5 w-5" />
+              Daily Tasks
+            </CardTitle>
+            <CardDescription>
+              Keep track of your daily dispatcher tasks
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {tasksLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : tasks && tasks.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tasks.map((task: any) => (
+                    <TableRow key={task.id}>
+                      <TableCell>{format(new Date(task.date), 'MMM dd, yyyy')}</TableCell>
+                      <TableCell>
+                        {task.status === "Submitted" ? (
+                          <Badge className="bg-green-500">
+                            <CheckCircle className="mr-1 h-3 w-3" />
+                            Completed
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-amber-500 border-amber-500">
+                            <AlertTriangle className="mr-1 h-3 w-3" />
+                            Pending
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {task.status === "Pending" && (
+                          <Button 
+                            onClick={() => openTaskModal(task.id)}
+                            className="bg-[#457B9D] hover:bg-[#2EC4B6] text-white rounded-md transition-all duration-200"
+                            size="sm"
+                          >
+                            Submit
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {dateTasks.map((task) => (
-                      <React.Fragment key={task.id}>
-                        <TableRow className="border-b">
-                          <TableCell className="font-medium">
-                            <div className="flex items-center">
-                              <UserAvatar 
-                                user={{ 
-                                  id: task.dispatcherId,
-                                  firstName: user?.firstName || '',
-                                  lastName: user?.lastName || '',
-                                  profileImageUrl: user?.profileImageUrl || null
-                                }} 
-                                className="h-8 w-8 mr-2" 
-                              />
-                              <div>
-                                <p className="font-semibold">Daily Dispatch Checklist</p>
-                                <p className="text-sm text-muted-foreground">
-                                  Created on {format(new Date(task.createdAt), 'MMM d, yyyy h:mm a')}
-                                </p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Select
-                              value={task.status}
-                              onValueChange={(value) => handleStatusChange(task.id, value)}
-                              disabled={updateTaskMutation.isPending}
-                            >
-                              <SelectTrigger className="w-[130px]">
-                                <SelectValue placeholder="Status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Pending">Pending</SelectItem>
-                                <SelectItem value="Submitted">Submit</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell colSpan={2}>
-                            <div className="py-2">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    id={`sales-${task.id}`}
-                                    checked={task.salesQuotaAchieved}
-                                    onChange={(e) => handleCheckboxChange(e, task.id, 'salesQuotaAchieved')}
-                                    className="h-4 w-4 rounded border-gray-300"
-                                    disabled={task.status === 'Submitted'}
-                                  />
-                                  <Label htmlFor={`sales-${task.id}`}>Sales Quota Achieved</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    id={`leads-${task.id}`}
-                                    checked={task.leadsFollowedUp}
-                                    onChange={(e) => handleCheckboxChange(e, task.id, 'leadsFollowedUp')}
-                                    className="h-4 w-4 rounded border-gray-300"
-                                    disabled={task.status === 'Submitted'}
-                                  />
-                                  <Label htmlFor={`leads-${task.id}`}>Leads Followed Up</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    id={`deadLeads-${task.id}`}
-                                    checked={task.deadLeadsArchived}
-                                    onChange={(e) => handleCheckboxChange(e, task.id, 'deadLeadsArchived')}
-                                    className="h-4 w-4 rounded border-gray-300"
-                                    disabled={task.status === 'Submitted'}
-                                  />
-                                  <Label htmlFor={`deadLeads-${task.id}`}>Dead Leads Archived</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    id={`carriers-${task.id}`}
-                                    checked={task.carriersUpdated}
-                                    onChange={(e) => handleCheckboxChange(e, task.id, 'carriersUpdated')}
-                                    className="h-4 w-4 rounded border-gray-300"
-                                    disabled={task.status === 'Submitted'}
-                                  />
-                                  <Label htmlFor={`carriers-${task.id}`}>Carriers Updated</Label>
-                                </div>
-                              </div>
-                              
-                              {task.notes && (
-                                <div className="mt-4">
-                                  <p className="text-sm font-medium mb-1">Notes:</p>
-                                  <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
-                                    {task.notes}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      </React.Fragment>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-center py-8 text-muted-foreground">No tasks found.</p>
+            )}
+          </CardContent>
+        </Card>
+        
+        {/* Daily Reports Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Calendar className="mr-2 h-5 w-5" />
+              Daily Reports
+            </CardTitle>
+            <CardDescription>
+              Submit your end-of-day performance reports
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {reportsLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : reports && reports.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reports.map((report: any) => (
+                    <TableRow key={report.id}>
+                      <TableCell>{format(new Date(report.date), 'MMM dd, yyyy')}</TableCell>
+                      <TableCell>
+                        {report.status === "Submitted" ? (
+                          <Badge className="bg-green-500">
+                            <CheckCircle className="mr-1 h-3 w-3" />
+                            Completed
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-amber-500 border-amber-500">
+                            <AlertTriangle className="mr-1 h-3 w-3" />
+                            Pending
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {report.status === "Pending" && (
+                          <Button 
+                            onClick={() => openReportModal(report.id)}
+                            className="bg-[#457B9D] hover:bg-[#2EC4B6] text-white rounded-md transition-all duration-200"
+                            size="sm"
+                          >
+                            Submit
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-center py-8 text-muted-foreground">No reports found.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Task submission modal */}
+      {selectedTaskId && (
+        <DailyTaskModal
+          isOpen={taskModalOpen}
+          onClose={handleTaskModalClose}
+          taskId={selectedTaskId}
+        />
+      )}
+      
+      {/* Report submission modal */}
+      {selectedReportId && (
+        <DailyReportModal
+          isOpen={reportModalOpen}
+          onClose={handleReportModalClose}
+          reportId={selectedReportId}
+        />
       )}
     </div>
   );
