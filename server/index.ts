@@ -38,6 +38,16 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Perform database sanity check
+  try {
+    const { performDatabaseHealthCheck } = await import('./utils/db-health-check');
+    await performDatabaseHealthCheck();
+    console.log('Database health check completed successfully');
+  } catch (err) {
+    console.error('Database health check failed:', err);
+    console.log('Application will continue, but some features may not work correctly');
+  }
+  
   const server = await registerRoutes(app);
   
   // Initialize socket.io server

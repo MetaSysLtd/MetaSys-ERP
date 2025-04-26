@@ -225,7 +225,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
       }
     // Only run this on initial mount and when location changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [location, hasSubItems, item.name, dispatch]);
     
     return (
       <div key={item.href}>

@@ -35,12 +35,15 @@ function createDateObject(dateString?: string | null) {
 }
 import { organizationMiddleware } from "./middleware/organizationMiddleware";
 
-// Auth middleware function
+// Auth middleware function with enhanced guard clauses
 const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     // Check if user is authenticated via session
-    if (!req.session.userId) {
-      return res.status(401).json({ message: "Unauthorized: Please log in to access this resource" });
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ 
+        error: "Unauthorized: Please log in to access this resource",
+        missing: ["session"] 
+      });
     }
 
     try {
@@ -48,18 +51,83 @@ const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
       const user = await storage.getUser(req.session.userId);
       if (!user) {
         req.session.destroy(() => {});
-        return res.status(401).json({ message: "Unauthorized: User not found" });
+        return res.status(401).json({ 
+          error: "Unauthorized: User not found", 
+          missing: ["user"] 
+        });
+      }
+
+      // Check if user has necessary properties
+      if (!user.orgId) {
+        // Attempt to assign to default organization
+        try {
+          const orgs = await storage.getOrganizations();
+          if (orgs && orgs.length > 0) {
+            await storage.updateUser(user.id, { orgId: orgs[0].id });
+            user.orgId = orgs[0].id;
+            console.log(`Assigned user ${user.id} to default organization ${orgs[0].id}`);
+          } else {
+            return res.status(400).json({ 
+              error: "Invalid user structure. Missing orgId and no default organization available.", 
+              missing: ["orgId"] 
+            });
+          }
+        } catch (orgError) {
+          console.error("Error assigning default organization:", orgError);
+          return res.status(400).json({ 
+            error: "Failed to assign default organization", 
+            missing: ["orgId"] 
+          });
+        }
       }
 
       // Fetch the user's role
       const role = await storage.getRole(user.roleId);
       if (!role) {
-        return res.status(403).json({ message: "Forbidden: User role not found" });
+        // Try to assign default role
+        try {
+          const defaultRole = await storage.getDefaultRole();
+          if (defaultRole) {
+            await storage.updateUser(user.id, { roleId: defaultRole.id });
+            user.roleId = defaultRole.id;
+            console.log(`Assigned user ${user.id} to default role ${defaultRole.id}`);
+            
+            // Now fetch the role again
+            const updatedRole = await storage.getRole(defaultRole.id);
+            if (updatedRole) {
+              req.user = user;
+              req.userRole = updatedRole;
+              
+              // Check if the role level is sufficient after fixing
+              if (updatedRole.level < requiredRoleLevel) {
+                return res.status(403).json({ 
+                  error: "Forbidden: Insufficient permissions", 
+                  missing: ["permissions"],
+                  details: `Required level: ${requiredRoleLevel}, Current level: ${updatedRole.level}`
+                });
+              }
+              
+              next();
+              return;
+            }
+          }
+        } catch (roleError) {
+          console.error("Error assigning default role:", roleError);
+        }
+        
+        return res.status(403).json({ 
+          error: "User is not assigned to any role. Contact Admin.", 
+          missing: ["role", "permissions"] 
+        });
       }
 
       // Check if the user's role level is sufficient
       if (role.level < requiredRoleLevel) {
-        return res.status(403).json({ message: "Forbidden: Insufficient permissions" });
+        return res.status(403).json({ 
+          error: "Forbidden: Insufficient permissions", 
+          missing: ["permissions"],
+          details: `Required level: ${requiredRoleLevel}, Current level: ${role.level}`
+        });
       }
 
       // Add user and role to the request object for use in route handlers
@@ -67,6 +135,7 @@ const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
       req.userRole = role;
       next();
     } catch (error) {
+      console.error("Auth middleware error:", error);
       next(error);
     }
   };
@@ -1187,28 +1256,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const authRouter = express.Router();
   app.use("/api/auth", authRouter);
 
-  // Login route
+  // Login route with enhanced error handling
   authRouter.post("/login", async (req, res, next) => {
     try {
       const { username, password } = req.body;
       
       if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
+        return res.status(400).json({ 
+          error: "Authentication failed",
+          details: "Username and password are required",
+          missing: ["credentials"]
+        });
       }
 
       // Add verbose logging to debug the issue
       console.log(`Login attempt for username: ${username}`);
       
-      const user = await storage.getUserByUsername(username);
-      if (!user) {
-        console.log(`User not found: ${username}`);
-        return res.status(401).json({ message: "Invalid username or password" });
-      }
-      
-      // Simple password comparison - in a real app, use bcrypt
-      if (user.password !== password) {
-        console.log(`Invalid password for user: ${username}`);
-        return res.status(401).json({ message: "Invalid username or password" });
+      // Check database connectivity before querying
+      try {
+        const user = await storage.getUserByUsername(username);
+        
+        if (!user) {
+          console.log(`User not found: ${username}`);
+          return res.status(401).json({ 
+            error: "Authentication failed", 
+            details: "Invalid username or password", 
+            missing: ["user"] 
+          });
+        }
+        
+        // Simple password comparison - in a real app, use bcrypt
+        if (user.password !== password) {
+          console.log(`Invalid password for user: ${username}`);
+          return res.status(401).json({ 
+            error: "Authentication failed", 
+            details: "Invalid username or password", 
+            missing: ["valid_credentials"] 
+          });
+        }
+        
+        // Validate that user has necessary fields
+        if (!user.firstName || !user.lastName) {
+          console.warn(`User ${username} has incomplete profile data`);
+        }
+        
+        // Ensure user has organization ID
+        if (!user.orgId) {
+          console.log(`User ${username} has no organization, attempting to assign default org`);
+          try {
+            const orgs = await storage.getOrganizations();
+            if (orgs && orgs.length > 0) {
+              await storage.updateUser(user.id, { orgId: orgs[0].id });
+              user.orgId = orgs[0].id;
+              console.log(`Assigned user ${user.id} to default organization ${orgs[0].id}`);
+            }
+          } catch (orgError) {
+            console.error("Error assigning default organization:", orgError);
+          }
+        }
+      } catch (dbError) {
+        console.error("Database error during login:", dbError);
+        return res.status(500).json({
+          error: "Authentication failed due to database error",
+          details: "An internal server error occurred while processing your request",
+          missing: ["database_connection"]
+        });
       }
 
       // Store user in session

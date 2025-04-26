@@ -2319,6 +2319,18 @@ export class DatabaseStorage implements IStorage {
     const [role] = await db.select().from(roles).where(eq(roles.name, name));
     return role;
   }
+  
+  async getDefaultRole(): Promise<Role | undefined> {
+    const [defaultRole] = await db.select().from(roles).where(eq(roles.isDefault, true));
+    
+    // If no default role is found, fallback to any role with level 1
+    if (!defaultRole) {
+      const [fallbackRole] = await db.select().from(roles).where(eq(roles.level, 1));
+      return fallbackRole;
+    }
+    
+    return defaultRole;
+  }
 
   async createRole(insertRole: InsertRole): Promise<Role> {
     const [role] = await db.insert(roles).values(insertRole).returning();
