@@ -10,8 +10,8 @@ export async function performDatabaseHealthCheck() {
   console.log('Starting database health check...');
   
   try {
-    // Check database connectivity
-    const result = await db.execute(db.sql`SELECT 1 as connected`);
+    // Check database connectivity using a simple query
+    const result = await db.execute("SELECT 1 as connected");
     console.log('✓ Database connection is operational');
     
     // Check and create default roles if necessary

@@ -1,0 +1,104 @@
+URGENT: Stability, Error Handling & Recovery Layer Needed
+The current MetaSys ERP application is visually improving, but is technically unstable, unreliable, and lacks proper system recovery behaviors.
+
+We need to immediately fix the system-wide fragility. Here’s what must be addressed ASAP:
+
+1. LOGIN SYSTEM ISSUES
+If user enters wrong credentials, system should clearly say:
+
+❌ "Invalid username or password. Please try again."
+
+If required fields are empty →
+
+❌ "Username and password are required."
+
+Do not crash or display JS plugin errors like “Cannot convert null to object”.
+
+✅ Add proper backend validation + frontend toast messages.
+
+2. GLOBAL ERROR HANDLING (Client + Server)
+No more raw JavaScript exceptions on frontend.
+
+No more blank screens, plugin overlays, or undefined errors.
+
+Use error boundaries for frontend; structured error returns from backend.
+
+✅ Already provided full [System Error Handling Plan] — implement it completely.
+
+3. FALLBACK SYSTEM & DATA RECOVERY
+If data is not fetched (e.g. missing teams/orgs) → show:
+
+“We couldn't load your team data. Please refresh or contact your Admin.”
+
+If database query returns null or empty →
+
+Use fallback defaults (e.g. default org, team, role)
+
+Never allow null to reach the component level
+
+✅ Add checks across every critical route and model.
+
+4. HEALTH CHECK & RESILIENCY
+Add system-wide “heartbeat” check: /api/status → returns { status: "ok" }
+
+If API becomes unreachable (network down, backend error), show banner:
+
+“We're having trouble connecting. Trying again…”
+
+✅ Retry logic with exponential backoff (2s → 4s → 8s)
+
+5. SESSION RECOVERY
+If session is expired → auto redirect to login with message:
+
+“Your session has expired. Please log in again.”
+
+If login token is invalid or malformed → auto log out, clear cache, prompt fresh login.
+
+✅ Don’t leave user stuck on a broken screen.
+
+6. NOTIFICATION FOR ERRORS
+Any error the user sees (login fail, data load fail, etc.) → also log internally as:
+
+notifications entry
+
+optional Slack webhook for critical failures
+
+✅ Helps admins stay aware of recurring issues.
+
+7. SYSTEM MONITOR CARD FOR ADMINS
+Admin Dashboard → Add small card:
+“System Health”
+
+Uptime %
+
+Last 5 API errors
+
+Server status: Online/Offline
+
+Slack webhook status: Connected / Broken
+
+8. TEST CASES TO VALIDATE
+✅ Add test cases for:
+
+Invalid login credentials
+
+Missing user role or team
+
+Backend failure response (500 error)
+
+Network disconnection
+
+Token expiry
+
+These must show clear user-friendly fallback and never crash the app.
+
+FINAL PASS REQUIREMENT
+Only return PASS once:
+
+System is stable even under bad data, failed fetches, or backend outages
+
+Login flow behaves professionally
+
+No plugin-overlay errors show to user
+
+Admins can monitor system health

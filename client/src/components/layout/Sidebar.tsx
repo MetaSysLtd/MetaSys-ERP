@@ -205,30 +205,16 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
     }
   }, [dispatch, preferences.expandedDropdown]);
 
-  // Navigation item component
-  const NavItemComponent = ({ item, isMain = false }: { item: NavItem, isMain?: boolean }) => {
+  // Navigation item renderer function (not a React component with hooks)
+  const renderNavItem = (item: NavItem, isMain = false) => {
     const hasSubItems = item.subItems && item.subItems.length > 0;
     const isExpanded = preferences.expandedDropdown === item.name;
-    const subMenuRef = useRef<HTMLDivElement>(null);
     
-    // Auto-expand dropdown if a child route is active
-    useEffect(() => {
-      if (!hasSubItems) return; // Skip if no subitems (early return pattern)
-      
-      const hasActiveChild = item.subItems?.some(subItem => 
-        location === subItem.href || 
-        (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
-      );
-      
-      if (hasActiveChild) {
-        // Use a regular action instead of the thunk directly
-        dispatch({ 
-          type: 'uiPreferences/toggleDropdown',
-          payload: item.name
-        });
-      }
-    // Only run this when dependencies change
-    }, [location, item.name, item.subItems, dispatch]);
+    // Determine if any children are active
+    const hasActiveChild = hasSubItems && item.subItems?.some(subItem => 
+      location === subItem.href || 
+      (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
+    );
     
     return (
       <div key={item.href}>
@@ -257,10 +243,9 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
             
             {/* Dropdown menu with animation */}
             <div 
-              ref={subMenuRef}
               className="overflow-hidden transition-[max-height] duration-200 ease-in-out"
               style={{
-                maxHeight: isExpanded ? `${subMenuRef.current?.scrollHeight || 1000}px` : '0px',
+                maxHeight: isExpanded ? '500px' : '0px',
               }}
             >
               <div className="mt-1 ml-7 space-y-1 py-1 bg-[#012F3E]/10 rounded-md pl-6">
@@ -357,9 +342,9 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
               Main
             </h3>
             <div className="space-y-1">
-              {filteredMainItems.map((item) => (
-                <NavItemComponent key={item.href} item={item} isMain={true} />
-              ))}
+              {filteredMainItems.map((item) => 
+                renderNavItem(item, true)
+              )}
             </div>
           </div>
 

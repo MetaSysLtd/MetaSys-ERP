@@ -1,33 +1,14 @@
-
 import { Link } from "wouter";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
-import { useAuth } from "@/hooks/use-auth";
-import metaSysLogoDark from "@assets/MetaSys Logo-Dark.png";
 
 export function Logo() {
-  const { user } = useAuth();
-  
-  // Determine correct dashboard path based on user role
-  const getDashboardPath = () => {
-    // Access role via the auth context using role object directly
-    if (user && user.roleId >= 3) {
-      return "/admin/dashboard";
-    }
-    return "/dashboard";
-  };
-
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link href={getDashboardPath()}>
-            <img src={metaSysLogoDark} alt="MetaSys" className="h-10" />
-          </Link>
-        </TooltipTrigger>
-        <TooltipContent className="bg-[#F2A71B] text-white border-[#F2A71B]">
-          Go to Dashboard
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Link href="/">
+      <div className="flex items-center gap-2 cursor-pointer">
+        <div className="text-2xl font-bold bg-gradient-to-r from-[#025E73] to-[#412754] bg-clip-text text-transparent">
+          Meta<span className="text-[#F2A71B]">Sys</span>
+        </div>
+        <div className="text-sm font-medium text-[#025E73] px-1.5 py-0.5 bg-[#F2A71B]/10 rounded">ERP</div>
+      </div>
+    </Link>
   );
 }

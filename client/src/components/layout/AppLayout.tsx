@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { Sidebar } from "./Sidebar";
+import SimpleSidebar from "./SimpleSidebar";
 import { Header } from "./Header";
 import { X } from "lucide-react";
 import { LeadNotificationContainer } from "../dispatch/lead-notification-container";
@@ -39,7 +39,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </button>
           </div>
           
-          <Sidebar mobile={true} />
+          <SimpleSidebar mobile={true} collapsed={false} />
         </div>
         
         <div className="flex-shrink-0 w-14" aria-hidden="true">
@@ -50,7 +50,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:flex-shrink-0">
         <div className="flex flex-col w-72">
-          <Sidebar mobile={false} />
+          <SimpleSidebar mobile={false} collapsed={false} />
         </div>
       </div>
       
