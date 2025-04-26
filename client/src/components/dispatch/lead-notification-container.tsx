@@ -184,15 +184,15 @@ export function LeadNotificationContainer() {
   const hasNotifications = filteredNotifications.length > 0;
 
   return (
-    <Card className="w-full max-w-3xl mx-auto mb-6 shadow-md border border-gray-200">
+    <Card className="w-full max-w-3xl mx-auto mb-6 shadow-md border border-gray-200 md:w-full sm:w-[95%]">
       <div className="p-4 pb-0">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Lead Notifications</h2>
+          <h2 className="text-xl font-bold text-gray-900 sm:text-lg">Lead Notifications</h2>
           {hasNotifications && (
             <Button
               size="sm"
               variant="outline"
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 min-h-[44px] sm:text-sm"
               onClick={markAllAsRead}
             >
               <CheckCheck className="h-4 w-4" />
@@ -202,63 +202,65 @@ export function LeadNotificationContainer() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-5 mb-4">
-            <TabsTrigger value="assigned" className="relative">
-              Assigned Leads
-              {unreadCounts.assigned > 0 && (
-                <Badge 
-                  variant="secondary" 
-                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                >
-                  {unreadCounts.assigned}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="follow-up" className="relative">
-              Follow-up
-              {unreadCounts.followUp > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                >
-                  {unreadCounts.followUp}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="inactive" className="relative">
-              Inactive
-              {unreadCounts.inactive > 0 && (
-                <Badge 
-                  variant="secondary" 
-                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                >
-                  {unreadCounts.inactive}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="status" className="relative">
-              Status Changes
-              {unreadCounts.status > 0 && (
-                <Badge 
-                  variant="success" 
-                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                >
-                  {unreadCounts.status}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="remarks" className="relative">
-              Remarks
-              {unreadCounts.remarks > 0 && (
-                <Badge 
-                  variant="secondary" 
-                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-brandYellow text-primary"
-                >
-                  {unreadCounts.remarks}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-1 mb-4">
+            <TabsList className="flex-nowrap inline-flex w-auto min-w-full">
+              <TabsTrigger value="assigned" className="relative min-w-[120px] min-h-[44px] sm:text-sm">
+                Assigned Leads
+                {unreadCounts.assigned > 0 && (
+                  <Badge 
+                    variant="secondary" 
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {unreadCounts.assigned}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="follow-up" className="relative min-w-[120px] min-h-[44px] sm:text-sm">
+                Follow-up
+                {unreadCounts.followUp > 0 && (
+                  <Badge 
+                    variant="destructive" 
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {unreadCounts.followUp}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="inactive" className="relative min-w-[120px] min-h-[44px] sm:text-sm">
+                Inactive
+                {unreadCounts.inactive > 0 && (
+                  <Badge 
+                    variant="secondary" 
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {unreadCounts.inactive}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="status" className="relative min-w-[120px] min-h-[44px] sm:text-sm">
+                Status Changes
+                {unreadCounts.status > 0 && (
+                  <Badge 
+                    variant="success" 
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  >
+                    {unreadCounts.status}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="remarks" className="relative min-w-[120px] min-h-[44px] sm:text-sm">
+                Remarks
+                {unreadCounts.remarks > 0 && (
+                  <Badge 
+                    variant="secondary" 
+                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-brandYellow text-primary"
+                  >
+                    {unreadCounts.remarks}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {['assigned', 'follow-up', 'inactive', 'status', 'remarks'].map((tabId) => (
             <TabsContent key={tabId} value={tabId} className="mt-0">
