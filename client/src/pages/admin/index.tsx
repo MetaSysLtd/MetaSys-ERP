@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { UserManagement } from "@/components/dashboard/UserManagement";
 import { OrgHierarchy } from "@/components/dashboard/OrgHierarchy";
+import { OrganizationModules } from "@/components/dashboard/OrganizationModules";
 import { SystemHealth } from "@/components/dashboard/SystemHealth";
 import { ScheduledTasks } from "@/components/dashboard/ScheduledTasks";
 import TopCommissionEarners from "@/components/dashboard/TopCommissionEarners";
@@ -345,20 +346,24 @@ export default function AdminDashboard() {
         </TabsContent>
         
         <TabsContent value="organization" className="space-y-6">
-          <OrgHierarchy 
-            onAddNode={(id, type) => {
-              toast({
-                title: "Add Organization Node",
-                description: `Adding new ${type} under ${id}`,
-              });
-            }}
-            onViewDetails={(id) => {
-              toast({
-                title: "View Organization Details",
-                description: `Viewing details for ${id}`,
-              });
-            }}
-          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <OrganizationModules />
+            
+            <OrgHierarchy 
+              onAddNode={(id, type) => {
+                toast({
+                  title: "Add Organization Node",
+                  description: `Adding new ${type} under ${id}`,
+                });
+              }}
+              onViewDetails={(id) => {
+                toast({
+                  title: "View Organization Details",
+                  description: `Viewing details for ${id}`,
+                });
+              }}
+            />
+          </div>
         </TabsContent>
         
         <TabsContent value="commissions" className="space-y-6">

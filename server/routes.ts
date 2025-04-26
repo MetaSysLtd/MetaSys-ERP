@@ -4882,9 +4882,7 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
       
       res.json(updatedOrg);
     } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: fromZodError(error).message });
-      }
+      // Since we're not using Zod validation here, just pass the error to the next middleware
       next(error);
     }
   });
