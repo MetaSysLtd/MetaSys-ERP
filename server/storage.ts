@@ -1980,7 +1980,7 @@ export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
     try {
       // Explicitly select only the columns we know exist in the database
-      // Avoid selecting the 'department', 'status', and permission columns which don't exist
+      // Include all permission fields that exist in the actual database
       const [user] = await db.select({
         id: users.id,
         username: users.username,
@@ -1991,12 +1991,25 @@ export class DatabaseStorage implements IStorage {
         phoneNumber: users.phoneNumber,
         roleId: users.roleId,
         orgId: users.orgId,
-        // status and permission fields removed as they don't exist in actual database
         active: users.active,
         profileImageUrl: users.profileImageUrl,
-        createdAt: users.createdAt,
-        invitedAt: users.invitedAt,
-        lastLogin: users.lastLogin
+        
+        // Permission fields that DO exist in the database
+        isSystemAdmin: users.isSystemAdmin,
+        canManageRoles: users.canManageRoles,
+        canAccessAllOrgs: users.canAccessAllOrgs,
+        canManageSettings: users.canManageSettings,
+        canViewAuditLog: users.canViewAuditLog,
+        canManageLeadAssignments: users.canManageLeadAssignments,
+        canDeleteLeads: users.canDeleteLeads,
+        canExportLeads: users.canExportLeads,
+        canCreateInvoices: users.canCreateInvoices,
+        canApproveInvoices: users.canApproveInvoices,
+        canManageAccounting: users.canManageAccounting,
+        canManageLoads: users.canManageLoads,
+        canManageCarriers: users.canManageCarriers,
+        canApproveDispatchReports: users.canApproveDispatchReports,
+        canManageUsers: users.canManageUsers
       })
       .from(users)
       .where(eq(users.id, id));
@@ -2011,7 +2024,7 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
       // Explicitly select only the columns we know exist in the database
-      // Avoid selecting columns that don't exist in the actual database
+      // Include all permission fields that exist in the actual database
       const [user] = await db.select({
         id: users.id,
         username: users.username,
@@ -2022,12 +2035,25 @@ export class DatabaseStorage implements IStorage {
         phoneNumber: users.phoneNumber,
         roleId: users.roleId,
         orgId: users.orgId,
-        // All permission fields removed as they don't exist in actual database
         active: users.active,
         profileImageUrl: users.profileImageUrl,
-        createdAt: users.createdAt,
-        invitedAt: users.invitedAt,
-        lastLogin: users.lastLogin
+        
+        // Permission fields that DO exist in the database
+        isSystemAdmin: users.isSystemAdmin,
+        canManageRoles: users.canManageRoles,
+        canAccessAllOrgs: users.canAccessAllOrgs,
+        canManageSettings: users.canManageSettings,
+        canViewAuditLog: users.canViewAuditLog,
+        canManageLeadAssignments: users.canManageLeadAssignments,
+        canDeleteLeads: users.canDeleteLeads,
+        canExportLeads: users.canExportLeads,
+        canCreateInvoices: users.canCreateInvoices,
+        canApproveInvoices: users.canApproveInvoices,
+        canManageAccounting: users.canManageAccounting,
+        canManageLoads: users.canManageLoads,
+        canManageCarriers: users.canManageCarriers,
+        canApproveDispatchReports: users.canApproveDispatchReports,
+        canManageUsers: users.canManageUsers
       })
       .from(users)
       .where(eq(users.username, username));
@@ -2066,12 +2092,25 @@ export class DatabaseStorage implements IStorage {
         phoneNumber: users.phoneNumber,
         roleId: users.roleId,
         orgId: users.orgId,
-        // All permission fields removed as they don't exist in actual database
         active: users.active,
         profileImageUrl: users.profileImageUrl,
-        createdAt: users.createdAt,
-        invitedAt: users.invitedAt,
-        lastLogin: users.lastLogin
+        
+        // Permission fields that DO exist in the database
+        isSystemAdmin: users.isSystemAdmin,
+        canManageRoles: users.canManageRoles,
+        canAccessAllOrgs: users.canAccessAllOrgs,
+        canManageSettings: users.canManageSettings,
+        canViewAuditLog: users.canViewAuditLog,
+        canManageLeadAssignments: users.canManageLeadAssignments,
+        canDeleteLeads: users.canDeleteLeads,
+        canExportLeads: users.canExportLeads,
+        canCreateInvoices: users.canCreateInvoices,
+        canApproveInvoices: users.canApproveInvoices,
+        canManageAccounting: users.canManageAccounting,
+        canManageLoads: users.canManageLoads,
+        canManageCarriers: users.canManageCarriers,
+        canApproveDispatchReports: users.canApproveDispatchReports,
+        canManageUsers: users.canManageUsers
       })
       .from(users);
     } catch (error) {
@@ -2093,12 +2132,25 @@ export class DatabaseStorage implements IStorage {
         phoneNumber: users.phoneNumber,
         roleId: users.roleId,
         orgId: users.orgId,
-        // All permission fields removed as they don't exist in actual database
         active: users.active,
         profileImageUrl: users.profileImageUrl,
-        createdAt: users.createdAt,
-        invitedAt: users.invitedAt,
-        lastLogin: users.lastLogin
+        
+        // Permission fields that DO exist in the database
+        isSystemAdmin: users.isSystemAdmin,
+        canManageRoles: users.canManageRoles,
+        canAccessAllOrgs: users.canAccessAllOrgs,
+        canManageSettings: users.canManageSettings,
+        canViewAuditLog: users.canViewAuditLog,
+        canManageLeadAssignments: users.canManageLeadAssignments,
+        canDeleteLeads: users.canDeleteLeads,
+        canExportLeads: users.canExportLeads,
+        canCreateInvoices: users.canCreateInvoices,
+        canApproveInvoices: users.canApproveInvoices,
+        canManageAccounting: users.canManageAccounting,
+        canManageLoads: users.canManageLoads,
+        canManageCarriers: users.canManageCarriers,
+        canApproveDispatchReports: users.canApproveDispatchReports,
+        canManageUsers: users.canManageUsers
       })
       .from(users);
     } catch (error) {
@@ -2120,14 +2172,25 @@ export class DatabaseStorage implements IStorage {
         phoneNumber: users.phoneNumber,
         roleId: users.roleId,
         orgId: users.orgId,
-        // status field removed as it doesn't exist in actual database
-        // canViewCRM field removed - doesn't exist in the actual database
-        // Also removing other permission fields that don't exist
         active: users.active,
         profileImageUrl: users.profileImageUrl,
-        createdAt: users.createdAt,
-        invitedAt: users.invitedAt,
-        lastLogin: users.lastLogin
+        
+        // Permission fields that DO exist in the database
+        isSystemAdmin: users.isSystemAdmin,
+        canManageRoles: users.canManageRoles,
+        canAccessAllOrgs: users.canAccessAllOrgs,
+        canManageSettings: users.canManageSettings,
+        canViewAuditLog: users.canViewAuditLog,
+        canManageLeadAssignments: users.canManageLeadAssignments,
+        canDeleteLeads: users.canDeleteLeads,
+        canExportLeads: users.canExportLeads,
+        canCreateInvoices: users.canCreateInvoices,
+        canApproveInvoices: users.canApproveInvoices,
+        canManageAccounting: users.canManageAccounting,
+        canManageLoads: users.canManageLoads,
+        canManageCarriers: users.canManageCarriers,
+        canApproveDispatchReports: users.canApproveDispatchReports,
+        canManageUsers: users.canManageUsers
       })
       .from(users)
       .where(eq(users.roleId, roleId));
