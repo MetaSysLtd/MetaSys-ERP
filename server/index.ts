@@ -48,7 +48,21 @@ app.use((req, res, next) => {
     console.log('Application will continue, but some features may not work correctly');
   }
   
+  // importantly setup vite in development before the API routes
+  // so that non-API routes can be handled by the frontend
+  if (app.get("env") === "development") {
+    await setupVite(app, null); // We'll set the server below, after it's created
+  } else {
+    serveStatic(app);
+  }
+
   const server = await registerRoutes(app);
+  
+  // Now update the socket server in Vite if we're in development
+  if (app.get("env") === "development") {
+    // Call setupVite again with the server to initialize HMR
+    await setupVite(app, server);
+  }
   
   // Initialize socket.io server
   const { initializeSocketServer } = await import('./socket');
@@ -60,14 +74,6 @@ app.use((req, res, next) => {
 
   // Import error handling middleware
   const { errorHandler, notFoundHandler } = await import('./middleware/error-handler');
-  
-  // importantly setup vite in development before the 404 handler
-  // so that non-API routes can be handled by the frontend
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
   
   // Route not found handler - must be after Vite/static middleware and before the errorHandler
   app.use(notFoundHandler);

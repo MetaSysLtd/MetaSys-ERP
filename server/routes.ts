@@ -1203,9 +1203,9 @@ async function addSeedDataIfNeeded() {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Add a root route that returns basic system info
-  // This only handles API requests to / directly, not frontend requests which are handled by Vite
-  app.get('/', (req, res) => {
+  // Make sure API routes are handled under /api to avoid conflicting with the frontend
+  // Root API route should be /api not /
+  app.get('/api', (req, res) => {
     res.json({
       success: true, 
       message: "MetaSys ERP backend is running",
