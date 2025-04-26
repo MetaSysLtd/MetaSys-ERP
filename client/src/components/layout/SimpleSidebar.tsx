@@ -19,9 +19,16 @@ import {
   ShieldAlert,
   HeartPulse,
   Megaphone,
-  Loader2
+  Loader2,
+  LucideIcon,
+  User,
+  ListTodo,
+  UserCircle,
+  Phone,
+  Mail,
+  Briefcase
 } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Logo } from '@/components/ui/logo';
 
 interface SidebarProps {
@@ -30,21 +37,31 @@ interface SidebarProps {
   onMenuItemClick?: () => void;
 }
 
+type SubNavItem = {
+  name: string;
+  href: string;
+  icon?: React.FC<{ className?: string }>;
+};
+
 type NavItem = {
   name: string;
   href: string;
   icon: React.FC<{ className?: string }>;
   showFor?: string[];
   minLevel?: number;
-  subItems?: Array<{
-    name: string;
-    href: string;
-  }>;
+  subItems?: SubNavItem[];
 };
 
 export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: SidebarProps) {
   const [location] = useLocation();
   const { user, role } = useAuth();
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({
+    // Default expanded state based on current location
+    '/sales': location.startsWith('/sales'),
+    '/dispatch': location.startsWith('/dispatch'),
+    '/crm': location.startsWith('/crm'),
+    '/hr': location.startsWith('/hr')
+  });
   
   // All hook calls must be before any conditional returns
   const handleLogout = useCallback(async () => {
@@ -57,6 +74,16 @@ export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: Si
     } catch (error) {
       console.error("Logout failed:", error);
     }
+  }, []);
+  
+  // Toggle the expansion state of a navigation item
+  const toggleExpand = useCallback((href: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setExpandedItems(prev => ({
+      ...prev,
+      [href]: !prev[href]
+    }));
   }, []);
   
   // Simple pure functions for determining active states
@@ -80,11 +107,50 @@ export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: Si
     );
   }
 
+  // CRM Sub-items
+  const crmSubItems = [
+    { name: "All Leads", href: "/crm/leads" },
+    { name: "SQL", href: "/crm/sql" },
+    { name: "MQL", href: "/crm/mql" },
+    { name: "Cold Leads", href: "/crm/cold" }
+  ];
+
+  // Dispatch Sub-items
+  const dispatchSubItems = [
+    { name: "Loads", href: "/dispatch/loads" },
+    { name: "Clients", href: "/dispatch/clients" },
+    { name: "New Load", href: "/dispatch/new-load" },
+    { name: "Load Tracking", href: "/dispatch/tracking" }
+  ];
+
+  // HR Sub-items
+  const hrSubItems = [
+    { name: "Team Members", href: "/hr/team" },
+    { name: "Job Postings", href: "/hr/jobs" },
+    { name: "Onboarding", href: "/hr/onboarding" },
+    { name: "Time Off", href: "/hr/time-off" }
+  ];
+
   // Navigation items definition
-  const mainNavItems = [
+  const mainNavItems: NavItem[] = [
     { name: "Dashboard", href: "/", icon: HomeIcon },
-    { name: "Sales", href: "/sales", icon: Users },
-    { name: "Dispatch", href: "/dispatch", icon: Truck },
+    { 
+      name: "Sales", 
+      href: "/sales", 
+      icon: Users,
+      subItems: [
+        { name: "CRM", href: "/crm" },
+        { name: "Leads", href: "/crm/leads" },
+        { name: "Clients", href: "/sales/clients" },
+        { name: "Commissions", href: "/sales/commissions" },
+      ]
+    },
+    { 
+      name: "Dispatch", 
+      href: "/dispatch", 
+      icon: Truck,
+      subItems: dispatchSubItems
+    },
     { name: "Invoices", href: "/invoices", icon: FileText },
   ];
 
@@ -93,9 +159,14 @@ export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: Si
     { name: "Notifications", href: "/notifications", icon: Bell },
   ];
 
-  const secondaryNavItems = [
+  const secondaryNavItems: NavItem[] = [
     { name: "Time Tracking", href: "/time-tracking", icon: Clock },
-    { name: "Human Resources", href: "/hr", icon: HeartPulse },
+    { 
+      name: "Human Resources", 
+      href: "/hr", 
+      icon: HeartPulse,
+      subItems: hrSubItems
+    },
     { name: "Finance", href: "/finance", icon: Banknote },
     { name: "Reports", href: "/reports", icon: BarChart2 },
     { name: "Settings", href: "/settings", icon: Settings },
@@ -110,8 +181,10 @@ export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: Si
     });
   };
 
-  // Render a navigation item with auto-collapse on mobile
-  const renderNavItem = (item: NavItem) => {
+  // Render a sub navigation item
+  const renderSubNavItem = (item: SubNavItem, parentHref: string) => {
+    const isActive = isActiveRoute(item.href);
+    
     const handleClick = () => {
       if (mobile && onMenuItemClick) {
         onMenuItemClick();
@@ -119,22 +192,82 @@ export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: Si
     };
     
     return (
-      <Link key={item.href} href={item.href} onClick={handleClick}>
-        <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
-          ${isActiveRoute(item.href)
-            ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
-            : isParentActive(item.href)
-              ? 'bg-[#F2A71B] text-white'
-              : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}>
-          <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
-          {!collapsed || window.innerWidth < 992 ? (
-            <>
-              <span>{item.name}</span>
-              {isActiveRoute(item.href) && <ChevronRight className="w-4 h-4 ml-auto" />}
-            </>
-          ) : null}
-        </div>
+      <Link 
+        key={item.href} 
+        href={item.href} 
+        onClick={handleClick}
+        className={`
+          flex items-center gap-2 ml-6 pl-3 py-2 text-sm rounded-md border-l-2 
+          ${isActive 
+            ? 'border-l-[#F2A71B] text-[#025E73] font-medium bg-white/50' 
+            : 'border-l-gray-300 text-gray-600 hover:text-[#025E73] hover:border-l-[#F2A71B]'
+          }
+        `}
+      >
+        {item.icon && <item.icon className="h-[14px] w-[14px]" />}
+        <span>{item.name}</span>
       </Link>
+    );
+  };
+
+  // Render a navigation item with auto-collapse on mobile
+  const renderNavItem = (item: NavItem) => {
+    const hasSubItems = item.subItems && item.subItems.length > 0;
+    const isExpanded = expandedItems[item.href] || false;
+    const isActive = isActiveRoute(item.href);
+    const isChildActive = isParentActive(item.href);
+    
+    // Auto-expand if a child is active
+    if (isChildActive && !isExpanded && hasSubItems) {
+      // Set it to be expanded without re-rendering
+      expandedItems[item.href] = true;
+    }
+    
+    const handleClick = (e: React.MouseEvent) => {
+      if (hasSubItems) {
+        toggleExpand(item.href, e);
+      } else if (mobile && onMenuItemClick) {
+        onMenuItemClick();
+      }
+    };
+    
+    return (
+      <div key={item.href} className="mb-1">
+        {/* Main navigation item */}
+        <div 
+          onClick={handleClick}
+          className={`
+            flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all cursor-pointer
+            ${isActive || isChildActive
+              ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
+              : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'
+            }
+          `}
+        >
+          <item.icon className={`h-[18px] w-[18px] ${(isActive || isChildActive) ? 'text-white' : 'text-[#025E73]'}`} />
+          
+          {(!collapsed || mobile) && (
+            <>
+              <span className="flex-1">{item.name}</span>
+              {hasSubItems && (
+                <div className="ml-auto">
+                  {isExpanded 
+                    ? <ChevronDown className={`w-4 h-4 ${(isActive || isChildActive) ? 'text-white' : ''}`} />
+                    : <ChevronRight className={`w-4 h-4 ${(isActive || isChildActive) ? 'text-white' : ''}`} />
+                  }
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        
+        {/* Sub-items */}
+        {hasSubItems && isExpanded && (!collapsed || mobile) && (
+          <div className="mt-1 space-y-1 py-1">
+            {item.subItems.map(subItem => renderSubNavItem(subItem, item.href))}
+          </div>
+        )}
+      </div>
     );
   };
 
