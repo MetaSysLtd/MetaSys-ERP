@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { CheckCheck, Bell } from 'lucide-react';
+import { CheckCheck, Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LeadAlertBanner } from '../crm/lead-alert-banner';
 import { useLeadNotifications, LeadNotificationType, LeadNotification } from '@/hooks/use-lead-notifications';
 import { format } from 'date-fns';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 // Framer motion variants for animations
 const containerVariants = {
@@ -44,6 +45,42 @@ export function LeadNotificationContainer() {
   } = useLeadNotifications();
   
   const [activeTab, setActiveTab] = useState<string>('assigned');
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isSmallTablet = useMediaQuery('(max-width: 992px)');
+  const [showScrollButtons, setShowScrollButtons] = useState(false);
+  
+  // Check if scrolling controls are needed
+  useEffect(() => {
+    const checkScrollNeeded = () => {
+      if (tabsContainerRef.current) {
+        const { scrollWidth, clientWidth } = tabsContainerRef.current;
+        setShowScrollButtons(scrollWidth > clientWidth);
+      }
+    };
+    
+    checkScrollNeeded();
+    window.addEventListener('resize', checkScrollNeeded);
+    
+    return () => {
+      window.removeEventListener('resize', checkScrollNeeded);
+    };
+  }, []);
+  
+  // Scroll tabs left/right
+  const scrollTabs = (direction: 'left' | 'right') => {
+    if (tabsContainerRef.current) {
+      const scrollAmount = 200; // pixels to scroll
+      const currentScroll = tabsContainerRef.current.scrollLeft;
+      
+      tabsContainerRef.current.scrollTo({
+        left: direction === 'left' 
+          ? currentScroll - scrollAmount 
+          : currentScroll + scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   // Filter notifications based on active tab
   const filteredNotifications = notifications.filter(notification => {
@@ -144,7 +181,7 @@ export function LeadNotificationContainer() {
       );
     }
 
-    // For other notifications, show a card-based design
+    // For other notifications, show a card-based design with responsive layout
     return (
       <motion.div
         variants={itemVariants}
@@ -155,8 +192,8 @@ export function LeadNotificationContainer() {
         className="mb-2"
       >
         <Card className="p-4 shadow-sm">
-          <div className="flex justify-between items-start">
-            <div>
+          <div className={`${isMobile ? 'flex flex-col' : 'flex justify-between'} items-start`}>
+            <div className={isMobile ? 'w-full mb-3' : ''}>
               <div className="flex items-center gap-2 mb-1">
                 <Bell className={`h-4 w-4 ${getTypeIcon(notification.type)}`} />
                 <h4 className="font-medium text-gray-900">{notification.title}</h4>
@@ -167,10 +204,11 @@ export function LeadNotificationContainer() {
               <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
               <div className="text-xs text-gray-400">{formattedTime}</div>
             </div>
+            
             <Button
               size="sm"
               variant="ghost"
-              className="text-gray-400 hover:text-gray-500"
+              className={`text-gray-400 hover:text-gray-500 ${isMobile ? 'w-full' : ''}`}
               onClick={() => clearNotification(notification.id)}
             >
               Dismiss
@@ -190,12 +228,12 @@ export function LeadNotificationContainer() {
   return (
     <Card className="w-full max-w-3xl mx-auto mb-6 shadow-md border border-gray-200 md:w-full sm:w-[95%]">
       <div className="p-4 pb-0">
-        <div className="flex justify-between items-center mb-4">
+        <div className={`${isMobile ? 'flex flex-col gap-3' : 'flex justify-between'} items-start md:items-center mb-4`}>
           <h2 className="text-xl font-bold text-gray-900 sm:text-lg">Lead Notifications</h2>
           <Button
             size="sm"
             variant="outline"
-            className="flex items-center gap-1 min-h-[44px] sm:text-sm"
+            className={`flex items-center gap-1 min-h-[44px] sm:text-sm ${isMobile ? 'w-full' : ''}`}
             onClick={markAllAsRead}
           >
             <CheckCheck className="h-4 w-4" />
@@ -204,64 +242,111 @@ export function LeadNotificationContainer() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="overflow-x-auto pb-1 mb-4">
-            <TabsList className="flex-nowrap inline-flex w-auto min-w-full">
-              <TabsTrigger value="assigned" className="relative min-w-[120px] min-h-[44px] sm:text-sm">
-                Assigned Leads
-                {unreadCounts.assigned > 0 && (
-                  <Badge 
-                    variant="secondary" 
-                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                  >
-                    {unreadCounts.assigned}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="follow-up" className="relative min-w-[120px] min-h-[44px] sm:text-sm">
-                Follow-up
-                {unreadCounts.followUp > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                  >
-                    {unreadCounts.followUp}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="inactive" className="relative min-w-[120px] min-h-[44px] sm:text-sm">
-                Inactive
-                {unreadCounts.inactive > 0 && (
-                  <Badge 
-                    variant="secondary" 
-                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                  >
-                    {unreadCounts.inactive}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="status" className="relative min-w-[120px] min-h-[44px] sm:text-sm">
-                Status Changes
-                {unreadCounts.status > 0 && (
-                  <Badge 
-                    variant="success" 
-                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                  >
-                    {unreadCounts.status}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="remarks" className="relative min-w-[120px] min-h-[44px] sm:text-sm">
-                Remarks
-                {unreadCounts.remarks > 0 && (
-                  <Badge 
-                    variant="secondary" 
-                    className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-brandYellow text-primary"
-                  >
-                    {unreadCounts.remarks}
-                  </Badge>
-                )}
-              </TabsTrigger>
-            </TabsList>
+          <div className="relative">
+            {/* Scroll left button - only shown when needed */}
+            {showScrollButtons && (
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => scrollTabs('left')}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 bg-white/80 rounded-full shadow-md"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="sr-only">Scroll left</span>
+              </Button>
+            )}
+            
+            {/* Tabs scrollable container */}
+            <div 
+              ref={tabsContainerRef}
+              className="overflow-x-auto scrollbar-hide pb-1 mb-4 relative"
+            >
+              <TabsList className="flex-nowrap inline-flex w-auto min-w-full">
+                <TabsTrigger 
+                  value="assigned" 
+                  className={`relative ${isSmallTablet ? 'min-w-[100px]' : 'min-w-[120px]'} min-h-[44px] sm:text-sm`}
+                >
+                  Assigned Leads
+                  {unreadCounts.assigned > 0 && (
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                    >
+                      {unreadCounts.assigned}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="follow-up" 
+                  className={`relative ${isSmallTablet ? 'min-w-[100px]' : 'min-w-[120px]'} min-h-[44px] sm:text-sm`}
+                >
+                  Follow-up
+                  {unreadCounts.followUp > 0 && (
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                    >
+                      {unreadCounts.followUp}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="inactive" 
+                  className={`relative ${isSmallTablet ? 'min-w-[80px]' : 'min-w-[120px]'} min-h-[44px] sm:text-sm`}
+                >
+                  Inactive
+                  {unreadCounts.inactive > 0 && (
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                    >
+                      {unreadCounts.inactive}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="status" 
+                  className={`relative ${isSmallTablet ? 'min-w-[80px]' : 'min-w-[120px]'} min-h-[44px] sm:text-sm`}
+                >
+                  {isSmallTablet ? 'Status' : 'Status Changes'}
+                  {unreadCounts.status > 0 && (
+                    <Badge 
+                      variant="success" 
+                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                    >
+                      {unreadCounts.status}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="remarks" 
+                  className={`relative ${isSmallTablet ? 'min-w-[80px]' : 'min-w-[120px]'} min-h-[44px] sm:text-sm`}
+                >
+                  Remarks
+                  {unreadCounts.remarks > 0 && (
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-brandYellow text-primary"
+                    >
+                      {unreadCounts.remarks}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            {/* Scroll right button - only shown when needed */}
+            {showScrollButtons && (
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => scrollTabs('right')}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 bg-white/80 rounded-full shadow-md"
+              >
+                <ChevronRight className="h-4 w-4" />
+                <span className="sr-only">Scroll right</span>
+              </Button>
+            )}
           </div>
 
           {['assigned', 'follow-up', 'inactive', 'status', 'remarks'].map((tabId) => (

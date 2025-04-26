@@ -264,7 +264,7 @@ export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: Si
         {/* Sub-items */}
         {hasSubItems && isExpanded && (!collapsed || mobile) && (
           <div className="mt-1 space-y-1 py-1">
-            {item.subItems.map(subItem => renderSubNavItem(subItem, item.href))}
+            {item.subItems?.map(subItem => renderSubNavItem(subItem, item.href))}
           </div>
         )}
       </div>
