@@ -644,6 +644,20 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Messages between users or from system to users
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  senderId: integer("sender_id").references(() => users.id),
+  receiverId: integer("receiver_id").references(() => users.id),
+  subject: text("subject"),
+  content: text("content").notNull(),
+  read: boolean("read").default(false),
+  isSystemMessage: boolean("is_system_message").default(false),
+  parentMessageId: integer("parent_message_id"),
+  orgId: integer("org_id").references(() => organizations.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Commission Rules
 export const commissionRules = pgTable("commission_rules", {
   id: serial("id").primaryKey(),
@@ -775,6 +789,7 @@ export const insertTimeClockEntrySchema = createInsertSchema(timeClockEntries).o
 export const insertLeaveTypeSchema = createInsertSchema(leaveTypes).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLeaveRequestSchema = createInsertSchema(leaveRequests).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
+export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
 export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({ id: true, createdAt: true });
 export const insertClockEventSchema = createInsertSchema(clockEvents).omit({ id: true, timestamp: true });
 export const insertCommissionRuleSchema = createInsertSchema(commissionRules).omit({ id: true, createdAt: true, updatedAt: true });
@@ -873,6 +888,9 @@ export type InsertLeaveRequest = z.infer<typeof insertLeaveRequestSchema>;
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
 
 export type ClockEvent = typeof clockEvents.$inferSelect;
 export type InsertClockEvent = z.infer<typeof insertClockEventSchema>;
