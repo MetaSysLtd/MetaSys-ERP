@@ -3696,6 +3696,814 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
   }
+
+  // HR Hiring & Onboarding operations
+  
+  // Hiring Candidate operations
+  async getHiringCandidate(id: number): Promise<HiringCandidate | undefined> {
+    try {
+      const [candidate] = await db.select().from(hiringCandidates).where(eq(hiringCandidates.id, id));
+      return candidate;
+    } catch (error) {
+      console.error('Error fetching hiring candidate:', error);
+      return undefined;
+    }
+  }
+  
+  async getHiringCandidates(orgId: number): Promise<HiringCandidate[]> {
+    try {
+      return await db.select().from(hiringCandidates).where(eq(hiringCandidates.orgId, orgId));
+    } catch (error) {
+      console.error('Error fetching hiring candidates:', error);
+      return [];
+    }
+  }
+  
+  async getHiringCandidatesByStatus(status: string, orgId: number): Promise<HiringCandidate[]> {
+    try {
+      return await db.select().from(hiringCandidates)
+        .where(and(
+          eq(hiringCandidates.status, status),
+          eq(hiringCandidates.orgId, orgId)
+        ));
+    } catch (error) {
+      console.error('Error fetching hiring candidates by status:', error);
+      return [];
+    }
+  }
+  
+  async createHiringCandidate(candidate: InsertHiringCandidate): Promise<HiringCandidate> {
+    try {
+      const now = new Date();
+      const [newCandidate] = await db.insert(hiringCandidates)
+        .values({
+          ...candidate,
+          createdAt: now,
+          updatedAt: now
+        })
+        .returning();
+      
+      // Log the activity
+      await this.createActivity({
+        userId: candidate.createdBy,
+        activityType: 'hiring_candidate_created',
+        entityType: 'hiring_candidate',
+        entityId: newCandidate.id,
+        description: `New hiring candidate created: ${candidate.firstName} ${candidate.lastName}`,
+        orgId: candidate.orgId,
+        timestamp: now
+      });
+      
+      return newCandidate;
+    } catch (error) {
+      console.error('Error creating hiring candidate:', error);
+      throw error;
+    }
+  }
+  
+  async updateHiringCandidate(id: number, updates: Partial<HiringCandidate>): Promise<HiringCandidate | undefined> {
+    try {
+      // Get the current candidate data before update
+      const [currentCandidate] = await db.select().from(hiringCandidates).where(eq(hiringCandidates.id, id));
+      if (!currentCandidate) return undefined;
+      
+      const now = new Date();
+      const [updatedCandidate] = await db.update(hiringCandidates)
+        .set({
+          ...updates,
+          updatedAt: now
+        })
+        .where(eq(hiringCandidates.id, id))
+        .returning();
+      
+      // If there's a status change, log it as an activity
+      if (updates.status && updates.status !== currentCandidate.status) {
+        await this.createActivity({
+          userId: updates.updatedBy || currentCandidate.createdBy,
+          activityType: 'hiring_candidate_status_updated',
+          entityType: 'hiring_candidate',
+          entityId: id,
+          description: `Candidate status changed from ${currentCandidate.status} to ${updates.status}`,
+          orgId: currentCandidate.orgId,
+          timestamp: now
+        });
+      }
+      
+      return updatedCandidate;
+    } catch (error) {
+      console.error('Error updating hiring candidate:', error);
+      throw error;
+    }
+  }
+  
+  // Candidate Document operations
+  async getCandidateDocument(id: number): Promise<CandidateDocument | undefined> {
+    try {
+      const [document] = await db.select().from(candidateDocuments).where(eq(candidateDocuments.id, id));
+      return document;
+    } catch (error) {
+      console.error('Error fetching candidate document:', error);
+      return undefined;
+    }
+  }
+  
+  async getCandidateDocumentsByCandidateId(candidateId: number): Promise<CandidateDocument[]> {
+    try {
+      return await db.select().from(candidateDocuments).where(eq(candidateDocuments.candidateId, candidateId));
+    } catch (error) {
+      console.error('Error fetching candidate documents by candidateId:', error);
+      return [];
+    }
+  }
+  
+  async createCandidateDocument(document: InsertCandidateDocument): Promise<CandidateDocument> {
+    try {
+      const now = new Date();
+      const [newDocument] = await db.insert(candidateDocuments)
+        .values({
+          ...document,
+          uploadedAt: now,
+          verifiedAt: null
+        })
+        .returning();
+      
+      // Log the activity
+      const candidate = await this.getHiringCandidate(document.candidateId);
+      if (candidate) {
+        await this.createActivity({
+          userId: document.uploadedBy,
+          activityType: 'candidate_document_uploaded',
+          entityType: 'candidate_document',
+          entityId: newDocument.id,
+          description: `Document '${document.documentType}' uploaded for candidate: ${candidate.firstName} ${candidate.lastName}`,
+          orgId: candidate.orgId,
+          timestamp: now
+        });
+      }
+      
+      return newDocument;
+    } catch (error) {
+      console.error('Error creating candidate document:', error);
+      throw error;
+    }
+  }
+  
+  async updateCandidateDocument(id: number, updates: Partial<CandidateDocument>): Promise<CandidateDocument | undefined> {
+    try {
+      // Get the current document data before update
+      const [currentDocument] = await db.select().from(candidateDocuments).where(eq(candidateDocuments.id, id));
+      if (!currentDocument) return undefined;
+      
+      const now = new Date();
+      const documentUpdates = { ...updates };
+      
+      // If verifying the document, set verification time
+      if (updates.status === 'verified' && currentDocument.status !== 'verified') {
+        documentUpdates.verifiedAt = now;
+      }
+      
+      const [updatedDocument] = await db.update(candidateDocuments)
+        .set(documentUpdates)
+        .where(eq(candidateDocuments.id, id))
+        .returning();
+      
+      // Log the activity for status change
+      if (updates.status && updates.status !== currentDocument.status) {
+        const candidate = await this.getHiringCandidate(currentDocument.candidateId);
+        if (candidate) {
+          await this.createActivity({
+            userId: updates.verifiedBy || currentDocument.uploadedBy,
+            activityType: 'candidate_document_status_updated',
+            entityType: 'candidate_document',
+            entityId: id,
+            description: `Document '${currentDocument.documentType}' status changed from ${currentDocument.status} to ${updates.status}`,
+            orgId: candidate.orgId,
+            timestamp: now
+          });
+        }
+      }
+      
+      return updatedDocument;
+    } catch (error) {
+      console.error('Error updating candidate document:', error);
+      throw error;
+    }
+  }
+  
+  // Hiring Template operations
+  async getHiringTemplate(id: number): Promise<HiringTemplate | undefined> {
+    try {
+      const [template] = await db.select().from(hiringTemplates).where(eq(hiringTemplates.id, id));
+      return template;
+    } catch (error) {
+      console.error('Error fetching hiring template:', error);
+      return undefined;
+    }
+  }
+  
+  async getHiringTemplatesByType(templateType: string, orgId: number): Promise<HiringTemplate[]> {
+    try {
+      return await db.select().from(hiringTemplates)
+        .where(and(
+          eq(hiringTemplates.templateType, templateType),
+          eq(hiringTemplates.orgId, orgId)
+        ));
+    } catch (error) {
+      console.error('Error fetching hiring templates by type:', error);
+      return [];
+    }
+  }
+  
+  async getDefaultTemplateByType(templateType: string, orgId: number): Promise<HiringTemplate | undefined> {
+    try {
+      const [template] = await db.select().from(hiringTemplates)
+        .where(and(
+          eq(hiringTemplates.templateType, templateType),
+          eq(hiringTemplates.orgId, orgId),
+          eq(hiringTemplates.isDefault, true)
+        ));
+      return template;
+    } catch (error) {
+      console.error('Error fetching default hiring template by type:', error);
+      return undefined;
+    }
+  }
+  
+  async createHiringTemplate(template: InsertHiringTemplate): Promise<HiringTemplate> {
+    try {
+      const now = new Date();
+      const [newTemplate] = await db.insert(hiringTemplates)
+        .values({
+          ...template,
+          createdAt: now,
+          updatedAt: now
+        })
+        .returning();
+      
+      // If this is a default template, update other templates of the same type to be non-default
+      if (template.isDefault) {
+        await db.update(hiringTemplates)
+          .set({ isDefault: false, updatedAt: now })
+          .where(and(
+            eq(hiringTemplates.templateType, template.templateType),
+            eq(hiringTemplates.orgId, template.orgId),
+            eq(hiringTemplates.isDefault, true),
+            sql`${hiringTemplates.id} != ${newTemplate.id}`
+          ));
+      }
+      
+      return newTemplate;
+    } catch (error) {
+      console.error('Error creating hiring template:', error);
+      throw error;
+    }
+  }
+  
+  async updateHiringTemplate(id: number, updates: Partial<HiringTemplate>): Promise<HiringTemplate | undefined> {
+    try {
+      // Get the current template data before update
+      const [currentTemplate] = await db.select().from(hiringTemplates).where(eq(hiringTemplates.id, id));
+      if (!currentTemplate) return undefined;
+      
+      const now = new Date();
+      const [updatedTemplate] = await db.update(hiringTemplates)
+        .set({
+          ...updates,
+          updatedAt: now
+        })
+        .where(eq(hiringTemplates.id, id))
+        .returning();
+      
+      // If this template is being set as default, update other templates of the same type to be non-default
+      if (updates.isDefault && !currentTemplate.isDefault) {
+        await db.update(hiringTemplates)
+          .set({ isDefault: false, updatedAt: now })
+          .where(and(
+            eq(hiringTemplates.templateType, currentTemplate.templateType),
+            eq(hiringTemplates.orgId, currentTemplate.orgId),
+            eq(hiringTemplates.isDefault, true),
+            sql`${hiringTemplates.id} != ${id}`
+          ));
+      }
+      
+      return updatedTemplate;
+    } catch (error) {
+      console.error('Error updating hiring template:', error);
+      throw error;
+    }
+  }
+  
+  // Probation Schedule operations
+  async getProbationSchedule(id: number): Promise<ProbationSchedule | undefined> {
+    try {
+      const [schedule] = await db.select().from(probationSchedules).where(eq(probationSchedules.id, id));
+      return schedule;
+    } catch (error) {
+      console.error('Error fetching probation schedule:', error);
+      return undefined;
+    }
+  }
+  
+  async getProbationScheduleByUserId(userId: number): Promise<ProbationSchedule | undefined> {
+    try {
+      const [schedule] = await db.select().from(probationSchedules).where(eq(probationSchedules.userId, userId));
+      return schedule;
+    } catch (error) {
+      console.error('Error fetching probation schedule by userId:', error);
+      return undefined;
+    }
+  }
+  
+  async getProbationSchedulesByStatus(status: string, orgId: number): Promise<ProbationSchedule[]> {
+    try {
+      return await db.select().from(probationSchedules)
+        .where(and(
+          eq(probationSchedules.status, status),
+          eq(probationSchedules.orgId, orgId)
+        ));
+    } catch (error) {
+      console.error('Error fetching probation schedules by status:', error);
+      return [];
+    }
+  }
+  
+  async getProbationSchedulesByManager(managerId: number): Promise<ProbationSchedule[]> {
+    try {
+      return await db.select().from(probationSchedules).where(eq(probationSchedules.assignedManagerId, managerId));
+    } catch (error) {
+      console.error('Error fetching probation schedules by manager:', error);
+      return [];
+    }
+  }
+  
+  async createProbationSchedule(schedule: InsertProbationSchedule): Promise<ProbationSchedule> {
+    try {
+      const now = new Date();
+      const [newSchedule] = await db.insert(probationSchedules)
+        .values({
+          ...schedule,
+          createdAt: now,
+          updatedAt: now
+        })
+        .returning();
+      
+      // Log the activity
+      await this.createActivity({
+        userId: schedule.createdBy,
+        activityType: 'probation_schedule_created',
+        entityType: 'probation_schedule',
+        entityId: newSchedule.id,
+        description: `Probation schedule created for user ID: ${schedule.userId}`,
+        orgId: schedule.orgId,
+        timestamp: now
+      });
+      
+      return newSchedule;
+    } catch (error) {
+      console.error('Error creating probation schedule:', error);
+      throw error;
+    }
+  }
+  
+  async updateProbationSchedule(id: number, updates: Partial<ProbationSchedule>): Promise<ProbationSchedule | undefined> {
+    try {
+      // Get the current schedule data before update
+      const [currentSchedule] = await db.select().from(probationSchedules).where(eq(probationSchedules.id, id));
+      if (!currentSchedule) return undefined;
+      
+      const now = new Date();
+      const [updatedSchedule] = await db.update(probationSchedules)
+        .set({
+          ...updates,
+          updatedAt: now
+        })
+        .where(eq(probationSchedules.id, id))
+        .returning();
+      
+      // If status changed, log the activity
+      if (updates.status && updates.status !== currentSchedule.status) {
+        await this.createActivity({
+          userId: updates.updatedBy || currentSchedule.createdBy,
+          activityType: 'probation_schedule_status_updated',
+          entityType: 'probation_schedule',
+          entityId: id,
+          description: `Probation schedule status changed from ${currentSchedule.status} to ${updates.status} for user ID: ${currentSchedule.userId}`,
+          orgId: currentSchedule.orgId,
+          timestamp: now
+        });
+      }
+      
+      return updatedSchedule;
+    } catch (error) {
+      console.error('Error updating probation schedule:', error);
+      throw error;
+    }
+  }
+  
+  // Probation Evaluation operations
+  async getProbationEvaluation(id: number): Promise<ProbationEvaluation | undefined> {
+    try {
+      const [evaluation] = await db.select().from(probationEvaluations).where(eq(probationEvaluations.id, id));
+      return evaluation;
+    } catch (error) {
+      console.error('Error fetching probation evaluation:', error);
+      return undefined;
+    }
+  }
+  
+  async getProbationEvaluationsByProbationId(probationId: number): Promise<ProbationEvaluation[]> {
+    try {
+      return await db.select().from(probationEvaluations).where(eq(probationEvaluations.probationId, probationId));
+    } catch (error) {
+      console.error('Error fetching probation evaluations by probationId:', error);
+      return [];
+    }
+  }
+  
+  async createProbationEvaluation(evaluation: InsertProbationEvaluation): Promise<ProbationEvaluation> {
+    try {
+      const now = new Date();
+      const [newEvaluation] = await db.insert(probationEvaluations)
+        .values({
+          ...evaluation,
+          evaluatedAt: now,
+          acknowledgedAt: null
+        })
+        .returning();
+      
+      // Update the probation schedule with latest evaluation
+      const [probation] = await db.select().from(probationSchedules).where(eq(probationSchedules.id, evaluation.probationId));
+      if (probation) {
+        await db.update(probationSchedules)
+          .set({ 
+            lastEvaluationId: newEvaluation.id,
+            lastEvaluationDate: now,
+            updatedBy: evaluation.evaluatedBy,
+            updatedAt: now
+          })
+          .where(eq(probationSchedules.id, evaluation.probationId));
+        
+        // Log the activity
+        await this.createActivity({
+          userId: evaluation.evaluatedBy,
+          activityType: 'probation_evaluation_created',
+          entityType: 'probation_evaluation',
+          entityId: newEvaluation.id,
+          description: `Probation evaluation submitted with recommendation: ${evaluation.recommendation}`,
+          orgId: probation.orgId,
+          timestamp: now
+        });
+      }
+      
+      return newEvaluation;
+    } catch (error) {
+      console.error('Error creating probation evaluation:', error);
+      throw error;
+    }
+  }
+  
+  async updateProbationEvaluation(id: number, updates: Partial<ProbationEvaluation>): Promise<ProbationEvaluation | undefined> {
+    try {
+      // Get the current evaluation data before update
+      const [currentEvaluation] = await db.select().from(probationEvaluations).where(eq(probationEvaluations.id, id));
+      if (!currentEvaluation) return undefined;
+      
+      const now = new Date();
+      const evaluationUpdates = { ...updates };
+      
+      // If the employee is acknowledging the evaluation, set the acknowledgment time
+      if (updates.acknowledged && !currentEvaluation.acknowledged) {
+        evaluationUpdates.acknowledgedAt = now;
+      }
+      
+      const [updatedEvaluation] = await db.update(probationEvaluations)
+        .set(evaluationUpdates)
+        .where(eq(probationEvaluations.id, id))
+        .returning();
+      
+      // If the employee is acknowledging the evaluation, log the activity
+      if (updates.acknowledged && !currentEvaluation.acknowledged) {
+        const [probation] = await db.select().from(probationSchedules).where(eq(probationSchedules.id, currentEvaluation.probationId));
+        if (probation) {
+          await this.createActivity({
+            userId: updates.acknowledgedBy || currentEvaluation.evaluatedBy,
+            activityType: 'probation_evaluation_acknowledged',
+            entityType: 'probation_evaluation',
+            entityId: id,
+            description: `Probation evaluation acknowledged by employee`,
+            orgId: probation.orgId,
+            timestamp: now
+          });
+        }
+      }
+      
+      return updatedEvaluation;
+    } catch (error) {
+      console.error('Error updating probation evaluation:', error);
+      throw error;
+    }
+  }
+  
+  // Exit Request operations
+  async getExitRequest(id: number): Promise<ExitRequest | undefined> {
+    try {
+      const [request] = await db.select().from(exitRequests).where(eq(exitRequests.id, id));
+      return request;
+    } catch (error) {
+      console.error('Error fetching exit request:', error);
+      return undefined;
+    }
+  }
+  
+  async getExitRequestsByStatus(status: string, orgId: number): Promise<ExitRequest[]> {
+    try {
+      return await db.select().from(exitRequests)
+        .where(and(
+          eq(exitRequests.status, status),
+          eq(exitRequests.orgId, orgId)
+        ));
+    } catch (error) {
+      console.error('Error fetching exit requests by status:', error);
+      return [];
+    }
+  }
+  
+  async getExitRequestsByUserId(userId: number): Promise<ExitRequest[]> {
+    try {
+      return await db.select().from(exitRequests).where(eq(exitRequests.userId, userId));
+    } catch (error) {
+      console.error('Error fetching exit requests by userId:', error);
+      return [];
+    }
+  }
+  
+  async createExitRequest(request: InsertExitRequest): Promise<ExitRequest> {
+    try {
+      const now = new Date();
+      const [newRequest] = await db.insert(exitRequests)
+        .values({
+          ...request,
+          requestDate: now,
+          completedAt: null,
+          createdAt: now,
+          updatedAt: now
+        })
+        .returning();
+      
+      // Log the activity
+      await this.createActivity({
+        userId: request.requestedBy,
+        activityType: 'exit_request_created',
+        entityType: 'exit_request',
+        entityId: newRequest.id,
+        description: `Exit request created for user ID: ${request.userId} with exit date: ${request.exitDate}`,
+        orgId: request.orgId,
+        timestamp: now
+      });
+      
+      return newRequest;
+    } catch (error) {
+      console.error('Error creating exit request:', error);
+      throw error;
+    }
+  }
+  
+  async updateExitRequest(id: number, updates: Partial<ExitRequest>): Promise<ExitRequest | undefined> {
+    try {
+      // Get the current request data before update
+      const [currentRequest] = await db.select().from(exitRequests).where(eq(exitRequests.id, id));
+      if (!currentRequest) return undefined;
+      
+      const now = new Date();
+      const requestUpdates = { ...updates, updatedAt: now };
+      
+      // If the status is changed to completed, set the completion time
+      if (updates.status === 'completed' && currentRequest.status !== 'completed') {
+        requestUpdates.completedAt = now;
+      }
+      
+      const [updatedRequest] = await db.update(exitRequests)
+        .set(requestUpdates)
+        .where(eq(exitRequests.id, id))
+        .returning();
+      
+      // Log appropriate activity based on status change
+      if (updates.status) {
+        if (updates.status === 'completed' && currentRequest.status !== 'completed') {
+          await this.createActivity({
+            userId: updates.updatedBy || currentRequest.requestedBy,
+            activityType: 'exit_request_completed',
+            entityType: 'exit_request',
+            entityId: id,
+            description: `Exit process completed for user ID: ${currentRequest.userId}`,
+            orgId: currentRequest.orgId,
+            timestamp: now
+          });
+        } else if (updates.status !== currentRequest.status) {
+          await this.createActivity({
+            userId: updates.updatedBy || currentRequest.requestedBy,
+            activityType: 'exit_request_status_updated',
+            entityType: 'exit_request',
+            entityId: id,
+            description: `Exit request status changed from ${currentRequest.status} to ${updates.status} for user ID: ${currentRequest.userId}`,
+            orgId: currentRequest.orgId,
+            timestamp: now
+          });
+        }
+      }
+      
+      return updatedRequest;
+    } catch (error) {
+      console.error('Error updating exit request:', error);
+      throw error;
+    }
+  }
+  
+  // Company Document operations
+  async getCompanyDocument(id: number): Promise<CompanyDocument | undefined> {
+    try {
+      const [document] = await db.select().from(companyDocuments).where(eq(companyDocuments.id, id));
+      return document;
+    } catch (error) {
+      console.error('Error fetching company document:', error);
+      return undefined;
+    }
+  }
+  
+  async getCompanyDocumentsByCategory(category: string, orgId: number): Promise<CompanyDocument[]> {
+    try {
+      return await db.select().from(companyDocuments)
+        .where(and(
+          eq(companyDocuments.category, category),
+          eq(companyDocuments.orgId, orgId)
+        ));
+    } catch (error) {
+      console.error('Error fetching company documents by category:', error);
+      return [];
+    }
+  }
+  
+  async getPublicCompanyDocuments(orgId: number): Promise<CompanyDocument[]> {
+    try {
+      return await db.select().from(companyDocuments)
+        .where(and(
+          eq(companyDocuments.isPublic, true),
+          eq(companyDocuments.orgId, orgId)
+        ));
+    } catch (error) {
+      console.error('Error fetching public company documents:', error);
+      return [];
+    }
+  }
+  
+  async createCompanyDocument(document: InsertCompanyDocument): Promise<CompanyDocument> {
+    try {
+      const now = new Date();
+      const [newDocument] = await db.insert(companyDocuments)
+        .values({
+          ...document,
+          createdAt: now,
+          updatedAt: now
+        })
+        .returning();
+      
+      // Log the activity
+      await this.createActivity({
+        userId: document.uploadedBy,
+        activityType: 'company_document_created',
+        entityType: 'company_document',
+        entityId: newDocument.id,
+        description: `Company document '${document.name}' created in category: ${document.category}`,
+        orgId: document.orgId,
+        timestamp: now
+      });
+      
+      return newDocument;
+    } catch (error) {
+      console.error('Error creating company document:', error);
+      throw error;
+    }
+  }
+  
+  async updateCompanyDocument(id: number, updates: Partial<CompanyDocument>): Promise<CompanyDocument | undefined> {
+    try {
+      // Get the current document data before update
+      const [currentDocument] = await db.select().from(companyDocuments).where(eq(companyDocuments.id, id));
+      if (!currentDocument) return undefined;
+      
+      const now = new Date();
+      const [updatedDocument] = await db.update(companyDocuments)
+        .set({
+          ...updates,
+          updatedAt: now
+        })
+        .where(eq(companyDocuments.id, id))
+        .returning();
+      
+      // Log the activity
+      if (updates.uploadedBy) {
+        await this.createActivity({
+          userId: updates.uploadedBy,
+          activityType: 'company_document_updated',
+          entityType: 'company_document',
+          entityId: id,
+          description: `Company document '${currentDocument.name}' updated`,
+          orgId: currentDocument.orgId,
+          timestamp: now
+        });
+      }
+      
+      return updatedDocument;
+    } catch (error) {
+      console.error('Error updating company document:', error);
+      throw error;
+    }
+  }
+  
+  // HR Analytics
+  async getHrMetrics(orgId: number, period?: { startDate: Date; endDate: Date }): Promise<{
+    newHiresCount: number;
+    pendingProbationCount: number;
+    exitRate: number;
+    avgOnboardingTime: number;
+    documentCompletionRate: number;
+  }> {
+    try {
+      const now = new Date();
+      const startDate = period?.startDate || new Date(now.getFullYear(), now.getMonth(), 1); // Default to start of current month
+      const endDate = period?.endDate || now;
+      
+      // Get all hiring candidates that were converted to employees during the period
+      const newHires = await db.select().from(hiringCandidates)
+        .where(and(
+          eq(hiringCandidates.orgId, orgId),
+          eq(hiringCandidates.status, 'onboarded'),
+          sql`${hiringCandidates.hireDate} IS NOT NULL`,
+          sql`${hiringCandidates.hireDate} >= ${startDate.toISOString()}`,
+          sql`${hiringCandidates.hireDate} <= ${endDate.toISOString()}`
+        ));
+      
+      // Get pending probation schedules
+      const pendingProbations = await db.select().from(probationSchedules)
+        .where(and(
+          eq(probationSchedules.orgId, orgId),
+          sql`${probationSchedules.status} IN ('pending', 'in_progress')`
+        ));
+      
+      // Get all exit requests during the period
+      const exitRequests = await db.select().from(exitRequests)
+        .where(and(
+          eq(exitRequests.orgId, orgId),
+          sql`${exitRequests.requestDate} >= ${startDate.toISOString()}`,
+          sql`${exitRequests.requestDate} <= ${endDate.toISOString()}`
+        ));
+      
+      // Get total active employees
+      const activeEmployees = await db.select().from(users)
+        .where(and(
+          eq(users.orgId, orgId),
+          eq(users.active, true)
+        ));
+      
+      // Calculate average onboarding time (days from application to hire)
+      let totalOnboardingDays = 0;
+      let onboardedCandidatesCount = 0;
+      
+      for (const candidate of newHires) {
+        if (candidate.applicationDate && candidate.hireDate) {
+          const applicationDate = new Date(candidate.applicationDate);
+          const hireDate = new Date(candidate.hireDate);
+          const daysToOnboard = Math.ceil((hireDate.getTime() - applicationDate.getTime()) / (1000 * 60 * 60 * 24));
+          totalOnboardingDays += daysToOnboard;
+          onboardedCandidatesCount++;
+        }
+      }
+      
+      // Calculate document completion rate
+      const allRequiredDocuments = await db.select().from(candidateDocuments)
+        .innerJoin(hiringCandidates, eq(candidateDocuments.candidateId, hiringCandidates.id))
+        .where(eq(hiringCandidates.orgId, orgId));
+      
+      const verifiedDocuments = allRequiredDocuments.filter(doc => doc.candidateDocuments.status === 'verified');
+      
+      return {
+        newHiresCount: newHires.length,
+        pendingProbationCount: pendingProbations.length,
+        exitRate: activeEmployees.length > 0 ? (exitRequests.length / activeEmployees.length) : 0,
+        avgOnboardingTime: onboardedCandidatesCount > 0 ? (totalOnboardingDays / onboardedCandidatesCount) : 0,
+        documentCompletionRate: allRequiredDocuments.length > 0 ? (verifiedDocuments.length / allRequiredDocuments.length) : 0
+      };
+    } catch (error) {
+      console.error('Error getting HR metrics:', error);
+      return {
+        newHiresCount: 0,
+        pendingProbationCount: 0,
+        exitRate: 0,
+        avgOnboardingTime: 0,
+        documentCompletionRate: 0
+      };
+    }
+  }
 }
 
 // Use database storage instead of memory storage
