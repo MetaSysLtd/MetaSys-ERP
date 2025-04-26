@@ -2,7 +2,8 @@ import { ReactNode, useState } from "react";
 import SimpleSidebar from "./SimpleSidebar";
 import { Header } from "./Header";
 import { X } from "lucide-react";
-import { LeadNotificationContainer } from "../dispatch/lead-notification-container";
+import { NotificationContainer } from "./NotificationContainer";
+import { useLocation } from "wouter";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -10,6 +11,12 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [location] = useLocation();
+  
+  // Handle mobile sidebar closing when menu item is clicked
+  const handleCloseSidebar = () => {
+    setSidebarOpen(false);
+  };
   
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50">
@@ -23,7 +30,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div 
           className="fixed inset-0 bg-[#0a1825]/80 backdrop-blur-sm transition-opacity ease-linear duration-300"
           aria-hidden="true"
-          onClick={() => setSidebarOpen(false)}
+          onClick={handleCloseSidebar}
         ></div>
         
         {/* Sidebar */}
@@ -32,14 +39,14 @@ export function AppLayout({ children }: AppLayoutProps) {
             <button
               type="button"
               className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-              onClick={() => setSidebarOpen(false)}
+              onClick={handleCloseSidebar}
             >
               <span className="sr-only">Close sidebar</span>
               <X className="h-6 w-6 text-white" />
             </button>
           </div>
           
-          <SimpleSidebar mobile={true} collapsed={false} />
+          <SimpleSidebar mobile={true} collapsed={false} onMenuItemClick={handleCloseSidebar} />
         </div>
         
         <div className="flex-shrink-0 w-14" aria-hidden="true">
@@ -60,7 +67,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         
         <main className="flex-1 relative overflow-y-auto focus:outline-none bg-white dark:bg-gray-900">
           <div className="px-4 py-6">
-            <LeadNotificationContainer />
+            <NotificationContainer />
             {children}
           </div>
         </main>

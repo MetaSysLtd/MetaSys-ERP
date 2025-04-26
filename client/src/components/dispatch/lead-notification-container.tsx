@@ -133,10 +133,10 @@ export function LeadNotificationContainer() {
           layout
         >
           <LeadAlertBanner
-            leadId={notification.leadId!}
-            leadName={notification.leadName!}
-            clientName={notification.clientName}
-            status={notification.status}
+            leadId={notification.leadId || 0}
+            leadName={notification.leadName || 'Unknown Lead'}
+            clientName={notification.clientName || ''}
+            status={notification.status || ''}
             onDismiss={() => clearNotification(notification.id)}
             color={notification.type === LeadNotificationType.LEAD_FOLLOW_UP ? 'red' : 'yellow'}
           />

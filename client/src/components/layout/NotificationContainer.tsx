@@ -4,15 +4,17 @@ import { useLeadNotifications } from "@/hooks/use-lead-notifications";
 import { useAuth } from "@/hooks/use-auth";
 import { useSocket } from "@/hooks/use-socket";
 import { MotionWrapper } from "@/components/ui/motion-wrapper-fixed";
+import { useLocation } from "wouter";
 
 /**
  * Global notification container that integrates socket events with UI components
- * This component is conditionally rendered based on user role and whether notifications exist
+ * This component is conditionally rendered based on user role, route, and whether notifications exist
  */
 export function NotificationContainer() {
   const { user, role } = useAuth();
   const { socket, emit } = useSocket();
   const { notifications } = useLeadNotifications();
+  const [location] = useLocation();
   
   // Authenticate socket connection when user is logged in
   useEffect(() => {
@@ -27,8 +29,15 @@ export function NotificationContainer() {
     role?.department === 'dispatch' || 
     (role?.department === 'admin' && role.level >= 3);
 
-  // No notifications or user is not in dispatch department
-  if (!isDispatcherOrAdmin || !user) return null;
+  // Check if current route is a dashboard route where notifications should be shown
+  const isDashboardRoute = 
+    location === "/" || 
+    location === "/dashboard" || 
+    location === "/dispatch/dashboard" ||
+    location === "/sales/dashboard";
+
+  // No notifications, user is not in dispatch department, or not on a dashboard route
+  if (!isDispatcherOrAdmin || !user || !isDashboardRoute) return null;
 
   return (
     <MotionWrapper 

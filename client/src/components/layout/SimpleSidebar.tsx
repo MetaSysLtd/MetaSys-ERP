@@ -27,6 +27,7 @@ import { Logo } from '@/components/ui/logo';
 interface SidebarProps {
   mobile: boolean;
   collapsed: boolean;
+  onMenuItemClick?: () => void;
 }
 
 type NavItem = {
@@ -41,7 +42,7 @@ type NavItem = {
   }>;
 };
 
-export default function SimpleSidebar({ mobile, collapsed }: SidebarProps) {
+export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: SidebarProps) {
   const [location] = useLocation();
   const { user, role } = useAuth();
   
@@ -109,25 +110,33 @@ export default function SimpleSidebar({ mobile, collapsed }: SidebarProps) {
     });
   };
 
-  // Render a navigation item
-  const renderNavItem = (item: NavItem) => (
-    <Link key={item.href} href={item.href}>
-      <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
-        ${isActiveRoute(item.href)
-          ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
-          : isParentActive(item.href)
-            ? 'bg-[#F2A71B] text-white'
-            : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}>
-        <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
-        {!collapsed || window.innerWidth < 992 ? (
-          <>
-            <span>{item.name}</span>
-            {isActiveRoute(item.href) && <ChevronRight className="w-4 h-4 ml-auto" />}
-          </>
-        ) : null}
-      </div>
-    </Link>
-  );
+  // Render a navigation item with auto-collapse on mobile
+  const renderNavItem = (item: NavItem) => {
+    const handleClick = () => {
+      if (mobile && onMenuItemClick) {
+        onMenuItemClick();
+      }
+    };
+    
+    return (
+      <Link key={item.href} href={item.href} onClick={handleClick}>
+        <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
+          ${isActiveRoute(item.href)
+            ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
+            : isParentActive(item.href)
+              ? 'bg-[#F2A71B] text-white'
+              : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}>
+          <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
+          {!collapsed || window.innerWidth < 992 ? (
+            <>
+              <span>{item.name}</span>
+              {isActiveRoute(item.href) && <ChevronRight className="w-4 h-4 ml-auto" />}
+            </>
+          ) : null}
+        </div>
+      </Link>
+    );
+  };
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-white to-gray-100 text-gray-800 relative overflow-hidden">
