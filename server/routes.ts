@@ -1276,9 +1276,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Add verbose logging to debug the issue
       console.log(`Login attempt for username: ${username}`);
       
+      let user;
       // Check database connectivity before querying
       try {
-        const user = await storage.getUserByUsername(username);
+        user = await storage.getUserByUsername(username);
         
         if (!user) {
           console.log(`User not found: ${username}`);
@@ -1324,6 +1325,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           error: "Authentication failed due to database error",
           details: "An internal server error occurred while processing your request",
           missing: ["database_connection"]
+        });
+      }
+
+      if (!user) {
+        return res.status(500).json({
+          error: "Authentication failed",
+          details: "User could not be retrieved",
+          missing: ["user"]
         });
       }
 
