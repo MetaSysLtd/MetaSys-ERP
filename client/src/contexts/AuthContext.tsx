@@ -108,8 +108,16 @@ function AuthProvider({ children }: { children: ReactNode }) {
       // Log detailed information for debugging
       console.log(`Login attempt to ${API_ROUTES.AUTH.LOGIN}, status: ${res.status}`);
       
-      const data = await res.json();
-      console.log("Login response:", { status: res.status, data });
+      let data;
+      try {
+        const text = await res.text();
+        console.log("Raw response text:", text);
+        data = JSON.parse(text);
+        console.log("Login response:", { status: res.status, data });
+      } catch (parseError) {
+        console.error("Error parsing JSON response:", parseError);
+        throw new Error("Failed to parse server response. The server might be returning HTML instead of JSON.");
+      }
       
       if (!res.ok) {
         throw new Error(data.message || "Invalid username or password");

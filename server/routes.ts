@@ -1269,8 +1269,20 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
   app.use("/api/auth", authRouter); // Using the full path to match frontend expectations
 
   // Login route with enhanced error handling
-  authRouter.post("/login", async (req, res, next) => {
+  authRouter.post("/login", express.json(), async (req, res, next) => {
     try {
+      // Explicitly set JSON content type
+      res.setHeader('Content-Type', 'application/json');
+      
+      console.log("Login attempt received:", { 
+        body: req.body,
+        contentType: req.get('Content-Type'),
+        method: req.method,
+        path: req.path,
+        url: req.url,
+        originalUrl: req.originalUrl
+      });
+      
       const { username, password } = req.body;
       
       if (!username || !password) {
