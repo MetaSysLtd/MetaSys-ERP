@@ -43,11 +43,12 @@ interface SlowQueryInfo {
  */
 async function getDatabaseSize(): Promise<string> {
   try {
-    const result = await sql`
+    // Use the raw pool for direct queries since Drizzle doesn't expose a way to run raw SQL directly
+    const result = await pool.query(`
       SELECT pg_size_pretty(pg_database_size(current_database())) as size
-    `.execute(db);
+    `);
     
-    return result[0]?.size || '0 bytes';
+    return result.rows[0]?.size || '0 bytes';
   } catch (error) {
     logger.error('Failed to get database size:', error);
     return 'unknown';
@@ -60,13 +61,13 @@ async function getDatabaseSize(): Promise<string> {
  */
 async function getConnectionCount(): Promise<number> {
   try {
-    const result = await sql`
+    const result = await pool.query(`
       SELECT count(*) as count 
       FROM pg_stat_activity 
       WHERE datname = current_database()
-    `.execute(db);
+    `);
     
-    return parseInt(result[0]?.count) || 0;
+    return parseInt(result.rows[0]?.count) || 0;
   } catch (error) {
     logger.error('Failed to get connection count:', error);
     return 0;
@@ -79,13 +80,13 @@ async function getConnectionCount(): Promise<number> {
  */
 async function getTableCount(): Promise<number> {
   try {
-    const result = await sql`
+    const result = await pool.query(`
       SELECT count(*) as count 
       FROM pg_tables 
       WHERE schemaname = 'public'
-    `.execute(db);
+    `);
     
-    return parseInt(result[0]?.count) || 0;
+    return parseInt(result.rows[0]?.count) || 0;
   } catch (error) {
     logger.error('Failed to get table count:', error);
     return 0;
@@ -100,27 +101,27 @@ async function getTableCount(): Promise<number> {
 async function getTableStats(tableName: string): Promise<TableStats | null> {
   try {
     // Get row count and size
-    const sizeResult = await sql`
+    const sizeResult = await pool.query(`
       SELECT 
-        pg_table_size('${sql.raw(tableName)}'::regclass) as size_bytes,
-        pg_size_pretty(pg_table_size('${sql.raw(tableName)}'::regclass)) as size,
+        pg_table_size('${tableName}'::regclass) as size_bytes,
+        pg_size_pretty(pg_table_size('${tableName}'::regclass)) as size,
         n_live_tup as row_count,
         last_vacuum,
         last_analyze
       FROM pg_stat_user_tables
-      WHERE relname = ${tableName}
-    `.execute(db);
+      WHERE relname = $1
+    `, [tableName]);
     
-    if (!sizeResult[0]) {
+    if (!sizeResult.rows[0]) {
       return null;
     }
     
     return {
-      rowCount: parseInt(sizeResult[0].row_count) || 0,
-      sizeBytes: parseInt(sizeResult[0].size_bytes) || 0,
-      sizeFormatted: sizeResult[0].size || '0 bytes',
-      lastVacuum: sizeResult[0].last_vacuum,
-      lastAnalyze: sizeResult[0].last_analyze
+      rowCount: parseInt(sizeResult.rows[0].row_count) || 0,
+      sizeBytes: parseInt(sizeResult.rows[0].size_bytes) || 0,
+      sizeFormatted: sizeResult.rows[0].size || '0 bytes',
+      lastVacuum: sizeResult.rows[0].last_vacuum,
+      lastAnalyze: sizeResult.rows[0].last_analyze
     };
   } catch (error) {
     logger.error(`Failed to get stats for table ${tableName}:`, error);
@@ -145,14 +146,14 @@ async function checkRequiredTables(): Promise<string[]> {
   ];
   
   try {
-    const result = await sql`
+    const result = await pool.query(`
       SELECT tablename 
       FROM pg_tables 
       WHERE schemaname = 'public' 
-      AND tablename = ANY(${requiredTables})
-    `.execute(db);
+      AND tablename = ANY($1)
+    `, [requiredTables]);
     
-    const existingTables = result.map(row => row.tablename);
+    const existingTables = result.rows.map(row => row.tablename);
     const missingTables = requiredTables.filter(table => !existingTables.includes(table));
     
     if (missingTables.length > 0) {
@@ -172,7 +173,7 @@ async function checkRequiredTables(): Promise<string[]> {
  */
 async function getIndexes(): Promise<Record<string, string[]>> {
   try {
-    const result = await sql`
+    const result = await pool.query(`
       SELECT
         t.relname as table_name,
         i.relname as index_name
@@ -189,11 +190,11 @@ async function getIndexes(): Promise<Record<string, string[]>> {
       ORDER BY
         t.relname,
         i.relname
-    `.execute(db);
+    `);
     
     const indexes: Record<string, string[]> = {};
     
-    for (const row of result) {
+    for (const row of result.rows) {
       if (!indexes[row.table_name]) {
         indexes[row.table_name] = [];
       }
@@ -214,7 +215,7 @@ async function getIndexes(): Promise<Record<string, string[]>> {
  */
 async function getSlowQueries(minDuration: number = 100): Promise<SlowQueryInfo[]> {
   try {
-    const result = await sql`
+    const result = await pool.query(`
       SELECT
         query,
         calls,
@@ -223,13 +224,13 @@ async function getSlowQueries(minDuration: number = 100): Promise<SlowQueryInfo[
       FROM
         pg_stat_statements
       WHERE
-        (total_time / calls) > ${minDuration / 1000}
+        (total_time / calls) > $1
       ORDER BY
         avg_time DESC
       LIMIT 10
-    `.execute(db).catch(() => []);
+    `, [minDuration / 1000]).catch(() => ({ rows: [] }));
     
-    return result.map(row => ({
+    return result.rows.map(row => ({
       query: row.query,
       duration: parseFloat(row.total_time),
       calls: parseInt(row.calls),
