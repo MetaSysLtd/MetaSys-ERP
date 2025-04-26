@@ -206,6 +206,12 @@ export interface IStorage {
   createUserPreferences(prefs: InsertUiPreferences): Promise<UiPreferences>;
   updateUserPreferences(userId: number, prefs: Partial<UiPreferences>): Promise<UiPreferences>;
   
+  // Notification operations
+  createNotification(data: InsertNotification): Promise<Notification>;
+  getNotifications(userId: number, limit?: number): Promise<Notification[]>;
+  markNotificationAsRead(id: number): Promise<void>;
+  markAllNotificationsAsRead(userId: number): Promise<void>;
+  
   // Dispatch Task operations
   getDispatchTask(id: number): Promise<DispatchTask | undefined>;
   getDispatchTasksByDate(date: Date): Promise<DispatchTask[]>;

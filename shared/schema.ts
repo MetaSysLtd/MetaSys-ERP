@@ -633,12 +633,13 @@ export const leaveRequests = pgTable("leave_requests", {
 // Notifications
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: integer("user_id"),
+  orgId: integer("org_id").notNull(),
   title: text("title").notNull(),
   message: text("message").notNull(),
-  type: text("type").notNull(), // "info", "success", "warning", "error"
+  type: text("type").notNull(), // "info", "success", "warning", "error", "hr"
   read: boolean("read").default(false),
-  entityType: text("entity_type"), // "lead", "load", "invoice", "task", etc.
+  entityType: text("entity_type"), // "lead", "load", "invoice", "task", "hiring_candidate", etc.
   entityId: integer("entity_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
