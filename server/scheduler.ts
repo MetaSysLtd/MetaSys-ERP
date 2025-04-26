@@ -22,8 +22,12 @@ import {
   subWeeks,
   isAfter
 } from 'date-fns';
-// Import initializeDispatchReportAutomation
+// Import required modules
 import { initializeDispatchReportAutomation } from './dispatch-report-automation';
+import { getIo } from './socket';
+import { RealTimeEvents } from './socket';
+import { storage } from './storage';
+import { not, isNull, desc } from 'drizzle-orm';
 
 /**
  * Creates daily tasks for dispatchers at the start of their shift
@@ -251,10 +255,23 @@ export function scheduleLeadFollowUpCheck() {
       // Send reminder for each lead
       for (const lead of handToDispatchLeads) {
         if (lead.assignedTo) {
-          await sendLeadFollowUpReminder(lead.assignedTo, {
+          // Create a notification for the lead
+          await storage.createNotification({
+            userId: lead.assignedTo,
+            orgId: lead.orgId || 1,
+            title: 'Lead Follow-up Reminder',
+            message: `Please follow up on lead: ${lead.companyName || 'Unnamed Lead'}`,
+            type: 'reminder',
+            read: false,
+            entityType: 'lead',
+            entityId: lead.id,
+            createdAt: new Date()
+          });
+          
+          // Emit real-time notification
+          getIo().to(`user:${lead.assignedTo}`).emit(RealTimeEvents.NOTIFICATION_CREATED, {
             id: lead.id,
-            name: lead.name,
-            clientName: lead.clientName,
+            companyName: lead.companyName,
             assignedAt: lead.updatedAt,
             status: lead.status
           });
@@ -296,12 +313,26 @@ export function scheduleWeeklyInactiveLeadsReminder() {
         if (inactiveLeads.length > 0) {
           // Format data for notification
           const leadIds = inactiveLeads.map(lead => lead.id);
-          const leadNames = inactiveLeads.map(lead => lead.name);
+          const leadCompanyNames = inactiveLeads.map(lead => lead.companyName || 'Unnamed Lead');
           
-          await sendWeeklyInactiveLeadsReminder(dispatcher.users.id, {
+          // Create notification in database
+          await storage.createNotification({
+            userId: dispatcher.users.id,
+            orgId: dispatcher.users.orgId || 1,
+            title: 'Weekly Inactive Leads Reminder',
+            message: `You have ${inactiveLeads.length} inactive leads that require follow-up`,
+            type: 'reminder',
+            read: false,
+            entityType: 'leads',
+            entityId: leadIds[0], // First lead as primary entity
+            createdAt: new Date()
+          });
+          
+          // Emit real-time notification
+          getIo().to(`user:${dispatcher.users.id}`).emit(RealTimeEvents.NOTIFICATION_CREATED, {
             count: inactiveLeads.length,
             leadIds,
-            leadNames
+            leadCompanyNames
           });
         }
       }
