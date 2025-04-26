@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation, Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { API_ROUTES } from "@shared/constants";
 
 import {
   Card,
