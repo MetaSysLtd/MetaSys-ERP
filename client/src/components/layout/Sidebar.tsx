@@ -213,19 +213,22 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
     
     // Auto-expand dropdown if a child route is active
     useEffect(() => {
-      if (hasSubItems && item.subItems?.some(subItem => 
+      if (!hasSubItems) return; // Skip if no subitems (early return pattern)
+      
+      const hasActiveChild = item.subItems?.some(subItem => 
         location === subItem.href || 
         (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
-      )) {
+      );
+      
+      if (hasActiveChild) {
         // Use a regular action instead of the thunk directly
         dispatch({ 
           type: 'uiPreferences/toggleDropdown',
           payload: item.name
         });
       }
-    // Only run this on initial mount and when location changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location, hasSubItems, item.name, dispatch]);
+    // Only run this when dependencies change
+    }, [location, item.name, item.subItems, dispatch]);
     
     return (
       <div key={item.href}>
