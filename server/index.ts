@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import * as notificationService from "./notifications";
@@ -7,6 +8,21 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Add a special middleware to handle API routes specifically
+// This ensures API routes are handled correctly
+app.use((req, res, next) => {
+  // Add header to prevent HTML caching
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
+  
+  // For API routes, ensure they return JSON and are not intercepted
+  if (req.path.startsWith('/api')) {
+    res.setHeader('Content-Type', 'application/json');
+  }
+  
+  next();
+});
+
+// Request logger middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -48,14 +64,17 @@ app.use((req, res, next) => {
     console.log('Application will continue, but some features may not work correctly');
   }
   
+  // Create the HTTP server first
+  const httpServer = createServer(app);
+  
   // Register API routes first, important for proper route handling
   const server = await registerRoutes(app);
   
   // Setup Vite or static serving after API routes are registered
   // This ensures API routes take precedence over frontend routes
   if (app.get("env") === "development") {
-    // Make sure we pass the created server to setupVite
-    await setupVite(app, server); 
+    // Make sure we pass the server to setupVite
+    await setupVite(app, httpServer); 
   } else {
     serveStatic(app);
   }
@@ -81,11 +100,7 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  httpServer.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
   });
 })();

@@ -170,33 +170,17 @@ export function notFoundHandler(req: Request, res: Response, next: NextFunction)
     return res.status(404).end();
   }
 
-  // For API routes, just pass to the error handler
+  // For API routes, return proper JSON errors
   if (req.path.startsWith('/api/')) {
     const err = new NotFoundError(`Route not found: ${req.method} ${req.path}`);
     return next(err);
   }
 
-  // For the root path and other paths, return a proper JSON response
-  // This is primarily to handle direct browser requests and SPA reloads
-  if (process.env.NODE_ENV === 'production') {
-    // In production, just return a clean 404 response without exposing details
-    return res.status(404).json({
-      success: false,
-      message: 'Resource not found',
-      error: 'NOT_FOUND'
-    });
-  } else {
-    // In development, provide more details
-    logger.warn(`[${new Date().toISOString()}] 404 WARN: Route not found: ${req.method} ${req.path} User: ${req.session?.userId || 'unknown'}`);
-    
-    return res.status(404).json({
-      success: false,
-      message: `Route not found: ${req.method} ${req.path}`,
-      error: 'NOT_FOUND',
-      path: req.path,
-      method: req.method
-    });
-  }
+  // For any other non-API routes, let them be handled by the frontend router (SPA)
+  // This is crucial for client-side routing to work properly
+  // In development, Vite middleware will handle this and serve index.html
+  // In production, the static middleware will serve index.html
+  next();
 }
 
 // Session expired handler
