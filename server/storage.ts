@@ -3,7 +3,7 @@ import {
   dispatch_clients, organizations, userOrganizations, commissionRules, commissionsMonthly,
   clockEvents, clockEventTypeEnum, uiPreferences, dispatchTasks, dispatchReports, performanceTargets,
   hiringCandidates, candidateDocuments, hiringTemplates, probationSchedules, probationEvaluations, 
-  exitRequests, companyDocuments,
+  exitRequests, companyDocuments, notifications,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
@@ -26,7 +26,8 @@ import {
   type ProbationSchedule, type InsertProbationSchedule,
   type ProbationEvaluation, type InsertProbationEvaluation,
   type ExitRequest, type InsertExitRequest,
-  type CompanyDocument, type InsertCompanyDocument
+  type CompanyDocument, type InsertCompanyDocument,
+  type Notification, type InsertNotification
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -3197,6 +3198,58 @@ export class DatabaseStorage implements IStorage {
         createdAt: new Date(),
         updatedAt: new Date()
       };
+    }
+  }
+  
+  // Notification methods
+  async createNotification(data: InsertNotification): Promise<Notification> {
+    try {
+      const [notification] = await db
+        .insert(notifications)
+        .values(data)
+        .returning();
+      return notification;
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      throw new Error('Failed to create notification');
+    }
+  }
+  
+  async getNotifications(userId: number, limit: number = 50): Promise<Notification[]> {
+    try {
+      return await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, userId))
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit);
+    } catch (error) {
+      console.error('Error getting notifications:', error);
+      return [];
+    }
+  }
+  
+  async markNotificationAsRead(id: number): Promise<void> {
+    try {
+      await db
+        .update(notifications)
+        .set({ read: true })
+        .where(eq(notifications.id, id));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw new Error('Failed to mark notification as read');
+    }
+  }
+  
+  async markAllNotificationsAsRead(userId: number): Promise<void> {
+    try {
+      await db
+        .update(notifications)
+        .set({ read: true })
+        .where(eq(notifications.userId, userId));
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      throw new Error('Failed to mark all notifications as read');
     }
   }
 
