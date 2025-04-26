@@ -2951,16 +2951,16 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // UI Preferences routes
   const uiPreferencesRouter = express.Router();
-  app.use("/ui-prefs", uiPreferencesRouter);
+  app.use("/api/ui-prefs", uiPreferencesRouter);
   
   // Dispatch automation routes
   const dispatchTasksRouter = express.Router();
   const dispatchReportsRouter = express.Router();
   const performanceTargetsRouter = express.Router();
   
-  app.use("/dispatch/tasks", dispatchTasksRouter);
-  app.use("/dispatch/reports", dispatchReportsRouter);
-  app.use("/performance-targets", performanceTargetsRouter);
+  app.use("/api/dispatch/tasks", dispatchTasksRouter);
+  app.use("/api/dispatch/reports", dispatchReportsRouter);
+  app.use("/api/performance-targets", performanceTargetsRouter);
 
   // Get user UI preferences
   uiPreferencesRouter.get("/me", createAuthMiddleware(1), async (req, res, next) => {
