@@ -1207,14 +1207,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
   // All routes will be prefixed with /api due to the middleware in index.ts
   
   // Root API route - this will be accessible at /api
-  app.get('/', (req, res) => {
-    res.json({
-      success: true, 
-      message: "MetaSys ERP backend is running",
-      version: "1.0.0",
-      timestamp: new Date().toISOString()
-    });
-  });
+  // Root handler removed to allow frontend SPA to render properly
   
   // Session setup
   app.use(
@@ -1439,7 +1432,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // User routes
   const userRouter = express.Router();
-  app.use("/api/users", userRouter);
+  app.use("/users", userRouter);
 
   // User-Organization management routes
   userRouter.get("/:userId/organizations", createAuthMiddleware(3), async (req, res, next) => {
@@ -1603,7 +1596,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Role routes
   const roleRouter = express.Router();
-  app.use("/api/roles", roleRouter);
+  app.use("/roles", roleRouter);
 
   // Get users by role
   roleRouter.get("/:id/users", createAuthMiddleware(3), async (req, res, next) => {
