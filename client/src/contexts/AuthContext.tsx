@@ -1,6 +1,7 @@
 
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { apiRequest } from "@/lib/queryClient";
+import { API_ROUTES } from "@shared/constants";
 
 interface User {
   id: number;
@@ -52,7 +53,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("/api/auth/me", {
+        // Use the apiRequest helper for consistent error handling
+        const res = await fetch(API_ROUTES.AUTH.CURRENT_USER, {
           credentials: "include",
         });
         
