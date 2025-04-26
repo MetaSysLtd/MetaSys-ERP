@@ -249,6 +249,14 @@ export const organizations = pgTable("organizations", {
   contactEmail: text("contact_email"),
   contactPhone: text("contact_phone"),
   logoUrl: text("logo_url"),
+  // Module configuration for organization
+  enabledModules: jsonb("enabled_modules").notNull().default({
+    sales: true,
+    dispatch: true,
+    hr: true,
+    finance: true,
+    marketing: true
+  }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

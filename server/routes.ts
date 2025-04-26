@@ -4851,6 +4851,44 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
     }
   });
   
+  // Update organization modules (specific endpoint for module management)
+  orgRouter.put("/:id/modules", createAuthMiddleware(5), async (req, res, next) => {
+    try {
+      const orgId = Number(req.params.id);
+      const organization = await storage.getOrganization(orgId);
+      
+      if (!organization) {
+        return res.status(404).json({ message: "Organization not found" });
+      }
+      
+      // Validate and extract modules from request body
+      const { enabledModules } = req.body;
+      
+      if (!enabledModules || typeof enabledModules !== 'object') {
+        return res.status(400).json({ message: "Invalid modules format" });
+      }
+      
+      // Update only the enabled modules
+      const updatedOrg = await storage.updateOrganization(orgId, { enabledModules });
+      
+      // Log the activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: 'organization',
+        entityId: orgId,
+        action: 'updated_modules',
+        details: `Updated modules for organization: ${organization.name}`
+      });
+      
+      res.json(updatedOrg);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+  
   // Delete organization route
   orgRouter.delete("/:id", createAuthMiddleware(5), async (req, res, next) => {
     try {
