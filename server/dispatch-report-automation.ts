@@ -1,6 +1,6 @@
 import { CronJob } from 'cron';
 import { db } from './db';
-import { io } from './socket';
+import { getIo, RealTimeEvents } from './socket';
 import { 
   users, 
   dispatchReports,
@@ -117,7 +117,7 @@ export function scheduleDailyReportReminder() {
 
         if (report && report.status === 'Pending') {
           // Send reminder notification via socket
-          io.to(`user:${user.users.id}`).emit('reportReminder', {
+          getIo().to(`user:${user.users.id}`).emit(RealTimeEvents.TASK_CREATED, {
             reportId: report.id,
             message: 'Please complete your daily dispatch report',
             date: format(today, 'yyyy-MM-dd')
@@ -127,11 +127,14 @@ export function scheduleDailyReportReminder() {
           try {
             await db.insert(notifications).values({
               userId: user.users.id,
+              orgId: user.users.orgId || 1,
+              title: 'Daily Report Reminder',
               type: 'reminder',
               message: 'Your daily dispatch report is due',
               entityType: 'dispatch_report',
               entityId: report.id,
-              read: false
+              read: false,
+              createdAt: new Date()
             });
           } catch (error) {
             console.error('Error creating notification:', error);
@@ -141,7 +144,7 @@ export function scheduleDailyReportReminder() {
           const newReport = await storage.generateDailyDispatchReport(user.users.id, today);
           
           // Send notification
-          io.to(`user:${user.users.id}`).emit('reportReminder', {
+          getIo().to(`user:${user.users.id}`).emit(RealTimeEvents.TASK_CREATED, {
             reportId: newReport.id,
             message: 'Your daily dispatch report has been generated and needs review',
             date: format(today, 'yyyy-MM-dd')
@@ -151,11 +154,14 @@ export function scheduleDailyReportReminder() {
           try {
             await db.insert(notifications).values({
               userId: user.users.id,
+              orgId: user.users.orgId || 1,
+              title: 'Daily Report Generated',
               type: 'reminder',
               message: 'Your daily dispatch report needs review and submission',
               entityType: 'dispatch_report',
               entityId: newReport.id,
-              read: false
+              read: false,
+              createdAt: new Date()
             });
           } catch (error) {
             console.error('Error creating notification:', error);

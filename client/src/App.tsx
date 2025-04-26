@@ -8,6 +8,7 @@ import { LeadNotificationProvider } from './hooks/use-lead-notifications';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setPreferences, fetchPreferences } from './store/uiPreferencesSlice';
+import { useRealTime } from './hooks/use-real-time';
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/login";
 import ForgotPassword from "@/pages/auth/forgot-password";
@@ -299,6 +300,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary>
           <AuthProvider>
+            {/* The RealTimeProvider is already added at the root level in main.tsx */}
             <SocketProvider>
               <NotificationProvider>
                 <MessageProvider>
@@ -322,6 +324,7 @@ function AppContent() {
   const dispatch = useDispatch<any>();
   const { socket } = useSocket();
   const { user } = useAuth();
+  const { subscribe, isConnected } = useRealTime();
 
   // Load UI preferences when user logs in
   useEffect(() => {
@@ -330,7 +333,51 @@ function AppContent() {
     }
   }, [user, dispatch]);
 
-  // Listen for UI preferences updates from other tabs via socket
+  // Set up real-time data updates for the entire application
+  useEffect(() => {
+    if (user && isConnected) {
+      // Subscribe to UI preferences updates from the real-time system
+      const unsubscribeUiPrefs = subscribe('uiPrefsUpdated', (prefs) => {
+        dispatch(setPreferences(prefs));
+      });
+      
+      // Subscribe to notifications through the real-time system
+      const unsubscribeNotifications = subscribe('notification:created', () => {
+        // Invalidate notifications query to refresh notification data
+        queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
+      });
+      
+      // Subscribe to general data updates
+      const unsubscribeDataUpdates = subscribe('data:updated', (data) => {
+        console.log('Real-time data update received:', data);
+        
+        // If this is a dashboard-related update, refresh dashboard data
+        if (data.entityType === 'dashboard' || 
+            data.entityType === 'lead' || 
+            data.entityType === 'load' || 
+            data.entityType === 'invoice') {
+          queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
+        }
+        
+        // If user has related reports, refresh them
+        if (user.canViewReports && 
+            (data.entityType === 'report' || 
+             data.entityType === 'dispatch' || 
+             data.entityType === 'sales')) {
+          queryClient.invalidateQueries({ queryKey: ['/api/reports'] });
+        }
+      });
+      
+      return () => {
+        unsubscribeUiPrefs();
+        unsubscribeNotifications();
+        unsubscribeDataUpdates();
+      };
+    }
+  }, [user, isConnected, subscribe, dispatch]);
+
+  // The legacy socket system - keep it for now during transition
   useEffect(() => {
     if (socket) {
       socket.on('uiPrefsUpdated', (prefs) => {

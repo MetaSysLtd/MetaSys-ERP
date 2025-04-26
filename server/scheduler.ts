@@ -1,6 +1,6 @@
 import { CronJob } from 'cron';
 import { db } from './db';
-import { io } from './socket';
+import { getIo, RealTimeEvents } from './socket';
 import { 
   users, 
   dispatchTasks, 
@@ -22,12 +22,7 @@ import {
   subWeeks,
   isAfter
 } from 'date-fns';
-import { 
-  sendLeadAssignedNotification, 
-  sendLeadFollowUpReminder, 
-  sendWeeklyInactiveLeadsReminder, 
-  sendLeadStatusChangeNotification
-} from './socket';
+// Import initializeDispatchReportAutomation
 import { initializeDispatchReportAutomation } from './dispatch-report-automation';
 
 /**
@@ -76,7 +71,7 @@ export function scheduleDailyTasksReminder() {
             .returning();
 
           // Emit socket event to notify dispatcher
-          io.to(`user_${dispatcher.id}`).emit('taskReminder', {
+          getIo().to(`user:${dispatcher.id}`).emit(RealTimeEvents.TASK_CREATED, {
             taskId: newTask.id,
             message: 'You have a new dispatch task for today',
             date: today
@@ -139,7 +134,7 @@ export function scheduleDailyReportReminder() {
             .returning();
 
           // Emit socket event to notify dispatcher
-          io.to(`user_${dispatcher.id}`).emit('reportReminder', {
+          getIo().to(`user:${dispatcher.id}`).emit(RealTimeEvents.REPORT_GENERATED, {
             reportId: newReport.id,
             message: 'Please submit your daily dispatch report',
             date: today
@@ -205,7 +200,7 @@ export function scheduleWeeklyInvoiceTargetCheck() {
         
         if (percentOfGoal < 40) {
           // Send red alert for under 40% of target
-          io.to(`user_${dispatcher.id}`).emit('perfAlert', {
+          getIo().to(`user:${dispatcher.id}`).emit(RealTimeEvents.DASHBOARD_UPDATED, {
             color: 'Red',
             message: 'Weekly invoice <40%',
             percentOfGoal: Math.round(percentOfGoal),
@@ -214,7 +209,7 @@ export function scheduleWeeklyInvoiceTargetCheck() {
           });
         } else if (percentOfGoal >= 100) {
           // Send green alert for meeting or exceeding target
-          io.to(`user_${dispatcher.id}`).emit('perfAlert', {
+          getIo().to(`user:${dispatcher.id}`).emit(RealTimeEvents.DASHBOARD_UPDATED, {
             color: 'Green',
             message: 'Weekly invoice ≥100%',
             percentOfGoal: Math.round(percentOfGoal),

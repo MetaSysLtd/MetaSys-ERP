@@ -10,6 +10,15 @@ import { WebSocket, WebSocketServer } from "ws";
 import errorLoggingRoutes from "./routes/error-logging";
 import statusRoutes from "./routes/status";
 import { organizationMiddleware } from "./middleware/organizationMiddleware";
+import { 
+  leadRealTimeMiddleware, 
+  loadRealTimeMiddleware, 
+  invoiceRealTimeMiddleware,
+  userRealTimeMiddleware,
+  taskRealTimeMiddleware,
+  reportRealTimeMiddleware,
+  notificationRealTimeMiddleware
+} from "./utils/real-time-handler";
 
 // Auth middleware function with enhanced guard clauses
 const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
@@ -118,7 +127,7 @@ const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
 };
 
 // Register all API routes
-export async function registerRoutes(apiRouter: Router): Promise<Server> {
+export async function registerRoutes(apiRouter: Router, httpServer: Server): Promise<Server> {
   // Apply organization middleware to all API routes
   apiRouter.use('/', organizationMiddleware);
   
@@ -360,25 +369,36 @@ export async function registerRoutes(apiRouter: Router): Promise<Server> {
     }
   });
 
-  // Set up Socket.IO
-  const httpServer = createServer();
+  // Apply real-time middleware to relevant routes
+  const leadsRouter = express.Router();
+  apiRouter.use("/leads", leadsRouter);
   
-  // Initialize Socket.IO
-  const io = new SocketIOServer(httpServer, {
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
-    }
-  });
+  leadsRouter.use(leadRealTimeMiddleware);
   
-  // Set up Socket.IO events
-  io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
-    
-    socket.on('disconnect', () => {
-      console.log('Client disconnected:', socket.id);
-    });
-  });
+  const loadsRouter = express.Router();
+  apiRouter.use("/loads", loadsRouter);
+  
+  loadsRouter.use(loadRealTimeMiddleware);
+  
+  const invoicesRouter = express.Router();
+  apiRouter.use("/invoices", invoicesRouter);
+  
+  invoicesRouter.use(invoiceRealTimeMiddleware);
+  
+  const tasksRouter = express.Router();
+  apiRouter.use("/tasks", tasksRouter);
+  
+  tasksRouter.use(taskRealTimeMiddleware);
+  
+  const notificationsRouter = express.Router();
+  apiRouter.use("/notifications", notificationsRouter);
+  
+  notificationsRouter.use(notificationRealTimeMiddleware);
+  
+  const reportsRouter = express.Router();
+  apiRouter.use("/reports", reportsRouter);
+  
+  reportsRouter.use(reportRealTimeMiddleware);
   
   return httpServer;
 }

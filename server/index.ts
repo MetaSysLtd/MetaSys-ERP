@@ -124,8 +124,8 @@ app.use((req, res, next) => {
   await registerRoutes(apiRouter, httpServer);
   
   // Initialize socket.io server using the correct HTTP server
-  const { initializeSocketServer } = await import('./socket');
-  const io = initializeSocketServer(httpServer);
+  const { initSocketIO } = await import('./socket');
+  const io = initSocketIO(httpServer);
   
   // Initialize scheduler
   const { initializeScheduler } = await import('./scheduler');
