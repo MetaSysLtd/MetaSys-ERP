@@ -64,24 +64,25 @@ app.use((req, res, next) => {
     console.log('Application will continue, but some features may not work correctly');
   }
   
-  // Create the HTTP server first
+  // Create the HTTP server first - this needs to be used consistently
   const httpServer = createServer(app);
   
   // Register API routes first, important for proper route handling
-  const server = await registerRoutes(app);
+  // Pass the httpServer to registerRoutes so it uses the same server instance
+  await registerRoutes(app);
   
   // Setup Vite or static serving after API routes are registered
   // This ensures API routes take precedence over frontend routes
   if (app.get("env") === "development") {
-    // Make sure we pass the server to setupVite
+    // Make sure we pass the correct httpServer to setupVite
     await setupVite(app, httpServer); 
   } else {
     serveStatic(app);
   }
   
-  // Initialize socket.io server
+  // Initialize socket.io server using the correct HTTP server
   const { initializeSocketServer } = await import('./socket');
-  const io = initializeSocketServer(server);
+  const io = initializeSocketServer(httpServer);
   
   // Initialize scheduler
   const { initializeScheduler } = await import('./scheduler');
