@@ -1273,7 +1273,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Authentication routes
   const authRouter = express.Router();
-  app.use("/auth", authRouter);
+  app.use("/api/auth", authRouter);
 
   // Login route with enhanced error handling
   authRouter.post("/login", async (req, res, next) => {
@@ -1439,7 +1439,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // User routes
   const userRouter = express.Router();
-  app.use("/users", userRouter);
+  app.use("/api/users", userRouter);
 
   // User-Organization management routes
   userRouter.get("/:userId/organizations", createAuthMiddleware(3), async (req, res, next) => {
@@ -1603,7 +1603,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Role routes
   const roleRouter = express.Router();
-  app.use("/roles", roleRouter);
+  app.use("/api/roles", roleRouter);
 
   // Get users by role
   roleRouter.get("/:id/users", createAuthMiddleware(3), async (req, res, next) => {
