@@ -58,23 +58,22 @@ app.use((req, res, next) => {
   const { initializeScheduler } = await import('./scheduler');
   const schedulerJobs = initializeScheduler();
 
-  // Import and use the error handling middleware
+  // Import error handling middleware
   const { errorHandler, notFoundHandler } = await import('./middleware/error-handler');
   
-  // Route not found handler - must be before the errorHandler
-  app.use(notFoundHandler);
-  
-  // Global error handler - must be registered last
-  app.use(errorHandler);
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // importantly setup vite in development before the 404 handler
+  // so that non-API routes can be handled by the frontend
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
+  
+  // Route not found handler - must be after Vite/static middleware and before the errorHandler
+  app.use(notFoundHandler);
+  
+  // Global error handler - must be registered last
+  app.use(errorHandler);
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
