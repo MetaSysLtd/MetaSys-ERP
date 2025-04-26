@@ -235,27 +235,30 @@ export default function AdminDashboard() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold gradient-text">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage system settings and monitor performance</p>
+          <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Admin Dashboard</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">Manage system settings and monitor performance</p>
         </div>
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center gap-2 mt-4 md:mt-0 w-full md:w-auto">
           <DateRangePicker
             from={dateRange.from}
             to={dateRange.to}
             onSelect={setDateRange}
+            className="w-full md:w-auto"
           />
         </div>
       </div>
       
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-5 mb-6">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-6 gap-2">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <Server className="h-4 w-4" />
-            <span>System Overview</span>
+            <span className="hidden sm:inline">System Overview</span>
+            <span className="sm:hidden">Overview</span>
           </TabsTrigger>
           <TabsTrigger value="users" className="flex items-center gap-2">
             <User className="h-4 w-4" />
-            <span>User Management</span>
+            <span className="hidden sm:inline">User Management</span>
+            <span className="sm:hidden">Users</span>
           </TabsTrigger>
           <TabsTrigger value="organization" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -267,7 +270,8 @@ export default function AdminDashboard() {
           </TabsTrigger>
           <TabsTrigger value="tasks" className="flex items-center gap-2">
             <BellRing className="h-4 w-4" />
-            <span>Scheduled Tasks</span>
+            <span className="hidden sm:inline">Scheduled Tasks</span>
+            <span className="sm:hidden">Tasks</span>
           </TabsTrigger>
         </TabsList>
 
