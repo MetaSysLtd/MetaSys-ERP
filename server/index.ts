@@ -48,20 +48,16 @@ app.use((req, res, next) => {
     console.log('Application will continue, but some features may not work correctly');
   }
   
-  // importantly setup vite in development before the API routes
-  // so that non-API routes can be handled by the frontend
-  if (app.get("env") === "development") {
-    await setupVite(app, null); // We'll set the server below, after it's created
-  } else {
-    serveStatic(app);
-  }
-
+  // Register API routes first, important for proper route handling
   const server = await registerRoutes(app);
   
-  // Now update the socket server in Vite if we're in development
+  // Setup Vite or static serving after API routes are registered
+  // This ensures API routes take precedence over frontend routes
   if (app.get("env") === "development") {
-    // Call setupVite again with the server to initialize HMR
-    await setupVite(app, server);
+    // Make sure we pass the created server to setupVite
+    await setupVite(app, server); 
+  } else {
+    serveStatic(app);
   }
   
   // Initialize socket.io server
