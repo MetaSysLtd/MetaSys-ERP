@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { LeadNotificationContainer } from "@/components/dispatch/lead-notification-container";
-import { useLeadNotifications, LeadNotificationType } from "@/hooks/use-lead-notifications";
+import { useLeadNotifications } from "@/hooks/use-lead-notifications";
 import { useAuth } from "@/hooks/use-auth";
 import { useSocket } from "@/hooks/use-socket";
 import { MotionWrapper } from "@/components/ui/motion-wrapper-fixed";
 import { useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from '@/components/ui/card';
 
 /**
  * Global notification container that integrates socket events with UI components
@@ -21,17 +20,6 @@ export function NotificationContainer() {
   const [location] = useLocation();
   const [showSkeleton, setShowSkeleton] = useState(false);
   
-  // Log debug information to console
-  useEffect(() => {
-    console.log("Current route:", location);
-    console.log("Has notifications:", notifications.length);
-    console.log("Is Dashboard route:", 
-      location === "/" || 
-      location === "/dashboard" || 
-      location === "/dispatch/dashboard" ||
-      location === "/sales/dashboard");
-  }, [location, notifications]);
-
   // Show skeleton loader if data takes more than 1 second to load
   useEffect(() => {
     if (isLoading) {
@@ -54,7 +42,10 @@ export function NotificationContainer() {
   }, [socket, user, emit]);
 
   // Only show for users with appropriate permissions
-  const hasPermission = true; // Temporarily allow all users to see notifications
+  const hasPermission = 
+    role?.department === 'dispatch' || 
+    role?.department === 'sales' ||
+    (role?.department === 'admin' && role.level >= 3);
   
   // Check if current route is a dashboard route
   const isDashboardRoute = 
@@ -83,18 +74,10 @@ export function NotificationContainer() {
     location.includes("/lead/") ||
     location.includes("/client/");
 
-  // Debug message - can be removed once notifications are working correctly
-  if (isDashboardRoute && !isExcludedRoute) {
-    console.log("Should show notifications - route is:", location);
-  }
-
   // Not a dashboard route or explicitly excluded
   if (!hasPermission || !user || !isDashboardRoute || isExcludedRoute) {
     return null;
   }
-  
-  // Force display a sample notification panel for debugging
-  const FORCE_DISPLAY = true;
 
   return (
     <MotionWrapper 
@@ -102,22 +85,7 @@ export function NotificationContainer() {
       delay={0.3}
       className="z-50 sticky top-0 mb-6"
     >
-      {/* Always show a test panel on dashboard routes */}
-      {FORCE_DISPLAY ? (
-        <Card className="w-full max-w-3xl mx-auto mb-6 shadow-md border border-gray-200 md:w-full sm:w-[95%]">
-          <div className="p-4">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Lead Notifications Panel</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              This panel should only appear on dashboard routes.
-              Current route: {location}
-            </p>
-            <div className="flex items-center gap-2 text-sm">
-              <div className="bg-green-100 text-green-800 px-2 py-1 rounded-md">Dashboard: {isDashboardRoute ? 'Yes' : 'No'}</div>
-              <div className="bg-red-100 text-red-800 px-2 py-1 rounded-md">Excluded: {isExcludedRoute ? 'Yes' : 'No'}</div>
-            </div>
-          </div>
-        </Card>
-      ) : isLoading && showSkeleton ? (
+      {isLoading && showSkeleton ? (
         <div className="w-full max-w-3xl mx-auto mb-6 rounded-md border border-gray-200 p-4 md:w-full sm:w-[95%]">
           <div className="space-y-2">
             <Skeleton className="h-8 w-1/3" />
