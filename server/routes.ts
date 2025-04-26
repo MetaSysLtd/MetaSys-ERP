@@ -1020,8 +1020,96 @@ function safeDate(date: Date | string | null): Date | null {
   return date;
 }
 
+/**
+ * Ensures that the two required organizations (MetaSys Solutions and MetaSys Logistics)
+ * exist in the database with their specific module configurations.
+ */
+async function ensureRequiredOrganizations() {
+  try {
+    console.log("Ensuring required organizations with correct module configurations...");
+
+    // MetaSys Solutions - Needs all modules EXCEPT dispatch
+    let metasysOrg = await storage.getOrganizationByCode("METASYS");
+    
+    if (!metasysOrg) {
+      console.log("Creating MetaSys Solutions organization...");
+      metasysOrg = await storage.createOrganization({
+        name: "MetaSys Solutions",
+        code: "METASYS",
+        active: true,
+        contactName: "John Wilson",
+        contactEmail: "john.wilson@metasys.com",
+        contactPhone: "+1 (555) 123-4567",
+        enabledModules: {
+          sales: true,
+          dispatch: false, // Doesn't need dispatch
+          hr: true,
+          finance: true,
+          marketing: true
+        }
+      });
+      console.log("MetaSys Solutions organization created with ID:", metasysOrg.id);
+    } else {
+      // Update the organization to ensure the module configuration is correct
+      console.log("Updating MetaSys Solutions organization module configuration...");
+      metasysOrg = await storage.updateOrganization(metasysOrg.id, {
+        enabledModules: {
+          sales: true,
+          dispatch: false, // Doesn't need dispatch
+          hr: true,
+          finance: true,
+          marketing: true
+        }
+      });
+    }
+    
+    // MetaSys Logistics - Needs all modules
+    let logisticsOrg = await storage.getOrganizationByCode("LOGISTICS");
+    
+    if (!logisticsOrg) {
+      console.log("Creating MetaSys Logistics organization...");
+      logisticsOrg = await storage.createOrganization({
+        name: "MetaSys Logistics",
+        code: "LOGISTICS",
+        active: true,
+        contactName: "Sarah Johnson",
+        contactEmail: "sarah.johnson@metasys-logistics.com",
+        contactPhone: "+1 (555) 987-6543",
+        enabledModules: {
+          sales: true,
+          dispatch: true, // Needs dispatch module
+          hr: true,
+          finance: true,
+          marketing: true
+        }
+      });
+      console.log("MetaSys Logistics organization created with ID:", logisticsOrg.id);
+    } else {
+      // Update the organization to ensure the module configuration is correct
+      console.log("Updating MetaSys Logistics organization module configuration...");
+      logisticsOrg = await storage.updateOrganization(logisticsOrg.id, {
+        enabledModules: {
+          sales: true,
+          dispatch: true, // Needs dispatch module
+          hr: true,
+          finance: true,
+          marketing: true
+        }
+      });
+    }
+    
+    return { metasysOrg, logisticsOrg };
+  } catch (error) {
+    console.error("Error ensuring required organizations:", error);
+    throw error;
+  }
+}
+
 async function addSeedDataIfNeeded() {
   try {
+    // Add or update required organizations with specific module configurations
+    await ensureRequiredOrganizations();
+    
     // Check if we already have some dispatch clients
     const clients = await storage.getDispatchClients();
     if (clients.length === 0) {
