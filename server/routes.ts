@@ -1,4 +1,4 @@
-import express, { type Request, Response, NextFunction } from "express";
+import express, { type Request, Response, NextFunction, Router } from "express";
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { Server as SocketIOServer } from "socket.io";
@@ -10,15 +10,7 @@ import {
   insertLoadSchema, insertInvoiceSchema, insertInvoiceItemSchema,
   insertCommissionSchema, insertActivitySchema, insertDispatchClientSchema,
   insertOrganizationSchema, insertCommissionRuleSchema, insertCommissionMonthlySchema,
-  insertTaskSchema, users, roles, dispatch_clients, organizations,
-  insertHiringCandidateSchema, insertCandidateDocumentSchema, insertHiringTemplateSchema, 
-  insertProbationScheduleSchema, insertProbationEvaluationSchema, insertExitRequestSchema,
-  insertCompanyDocumentSchema, hiringCandidates, candidateDocuments, hiringTemplates,
-  probationSchedules, probationEvaluations, exitRequests, companyDocuments,
-  hiringCandidateStatusEnum, documentStatusEnum, probationStatusEnum, probationRecommendationEnum,
-  exitStatusEnum, documentTypeEnum,
-  HiringCandidate, CandidateDocument, HiringTemplate, ProbationSchedule, ProbationEvaluation, 
-  ExitRequest, CompanyDocument
+  insertTaskSchema, users, roles, dispatch_clients, organizations
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -143,10 +135,10 @@ const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
 };
 
 // Function to register HR routes
-function registerHrRoutes(app: Express) {
+function registerHrRoutes(router: Router) {
   // Hiring Candidates routes
   const hiringCandidateRouter = express.Router();
-  app.use("/api/hr/candidates", hiringCandidateRouter);
+  router.use("/hr/candidates", hiringCandidateRouter);
 
   hiringCandidateRouter.get("/", createAuthMiddleware(2), async (req, res, next) => {
     try {
@@ -1202,48 +1194,35 @@ async function addSeedDataIfNeeded() {
   }
 }
 
-export async function registerRoutes(app: Express, server?: Server): Promise<Server> {
+export async function registerRoutes(apiRouter: Router, server?: Server): Promise<Server> {
   // Express router to handle our API routes
   // All routes will be prefixed with /api due to the middleware in index.ts
   
   // Root API route - this will be accessible at /api
   // Root handler removed to allow frontend SPA to render properly
   
-  // Session setup
-  app.use(
-    session({
-      cookie: { 
-        maxAge: 86400000, // 24 hours
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-      },
-      store: storage.sessionStore, // Use the storage session store (PostgreSQL)
-      resave: false,
-      saveUninitialized: false,
-      secret: process.env.SESSION_SECRET || "metasys-erp-secret"
-    })
-  );
-
-  // Setup for handling file uploads
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  // Note: Session setup is already done in index.ts
+  
+  // Setup for handling file uploads 
+  apiRouter.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
   
   // Apply organization middleware to all API routes
-  app.use('/', organizationMiddleware);
+  apiRouter.use('/', organizationMiddleware);
   
   // Register error logging routes
-  app.use('/', errorLoggingRoutes);
+  apiRouter.use('/', errorLoggingRoutes);
   
   // Register status routes
-  app.use('/status', statusRoutes);
+  apiRouter.use('/status', statusRoutes);
   
   // Add seed data if needed
   await addSeedDataIfNeeded();
   
   // Register HR routes
-  registerHrRoutes(app);
+  registerHrRoutes(apiRouter);
   
   // Use provided server or create a new one
-  let httpServer = server || createServer(app);
+  let httpServer = server || createServer();
   
   // Initialize Socket.IO only if we don't have it already
   if (!io) {

@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
-import { registerRoutes } from "./routes";
+import { registerRoutes } from "./simplified-routes";
 import { setupVite, serveStatic, log } from "./vite";
 import * as notificationService from "./notifications";
 import session from "express-session";
@@ -88,21 +88,27 @@ app.use((req, res, next) => {
   // Create the HTTP server first - this needs to be used consistently
   const httpServer = createServer(app);
   
-  // Set up a custom middleware to only handle the API routes and leave the rest for Vite
-  // Set up a custom middleware to only handle the API routes and leave the rest for Vite
-  app.use('/api', (req, res, next) => {
+  // Create a dedicated API router
+  const apiRouter = express.Router();
+  
+  // Apply specific middleware to API routes only
+  apiRouter.use(express.json());  
+  apiRouter.use(express.urlencoded({ extended: false }));
+  
+  // Set proper headers for API responses
+  apiRouter.use((req, res, next) => {
     // Log original URL for debugging
-    console.log(`Original URL: ${req.url}, Path: ${req.path}`);
+    console.log(`API request: ${req.method} ${req.url}`);
     
     // IMPORTANT: Set proper content type for API responses
     res.setHeader('Content-Type', 'application/json');
-    
-    // Keep original URL - no longer stripping /api prefix
-    // This matches how we registered routes in server/routes.ts
-    // We now use the full path everywhere (/api/auth/login, etc.)
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
     
     next();
   });
+  
+  // Mount the API router at /api
+  app.use('/api', apiRouter);
   
   // Setup Vite or static serving BEFORE API routes
   // This is counter-intuitive but fixes the clash between Vite's "*" handler and our API routes
@@ -113,9 +119,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
   
-  // Now register API routes - they'll only be triggered for /api/* paths
-  // Pass the httpServer to registerRoutes so it uses the same server instance
-  await registerRoutes(app, httpServer);
+  // Now register API routes using our dedicated apiRouter
+  // Pass the apiRouter and httpServer to registerRoutes
+  await registerRoutes(apiRouter, httpServer);
   
   // Initialize socket.io server using the correct HTTP server
   const { initializeSocketServer } = await import('./socket');
