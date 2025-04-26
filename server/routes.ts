@@ -1603,7 +1603,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Role routes
   const roleRouter = express.Router();
-  app.use("/api/roles", roleRouter);
+  app.use("/roles", roleRouter);
 
   // Get users by role
   roleRouter.get("/:id/users", createAuthMiddleware(3), async (req, res, next) => {
@@ -1655,7 +1655,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Lead routes
   const leadRouter = express.Router();
-  app.use("/api/leads", leadRouter);
+  app.use("/leads", leadRouter);
 
   leadRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
@@ -1850,11 +1850,11 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Load routes
   const loadRouter = express.Router();
-  app.use("/api/loads", loadRouter);
+  app.use("/loads", loadRouter);
 
   // Lead remarks routes
   const leadRemarkRouter = express.Router();
-  app.use("/api/lead-remarks", leadRemarkRouter);
+  app.use("/lead-remarks", leadRemarkRouter);
   
   // Get all remarks for a specific lead
   leadRemarkRouter.get("/lead/:leadId", createAuthMiddleware(1), async (req, res, next) => {
@@ -1941,7 +1941,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
   
   // Call Log routes
   const callLogRouter = express.Router();
-  app.use("/api/call-logs", callLogRouter);
+  app.use("/call-logs", callLogRouter);
   
   // Get all call logs for a specific lead
   callLogRouter.get("/lead/:leadId", createAuthMiddleware(1), async (req, res, next) => {
@@ -2056,7 +2056,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
   
   // Lead Follow-Up routes
   const leadFollowUpRouter = express.Router();
-  app.use("/api/lead-follow-ups", leadFollowUpRouter);
+  app.use("/lead-follow-ups", leadFollowUpRouter);
   
   // Get all follow-ups for a specific lead
   leadFollowUpRouter.get("/lead/:leadId", createAuthMiddleware(1), async (req, res, next) => {
@@ -2228,7 +2228,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
   
   // Customer Feedback routes
   const customerFeedbackRouter = express.Router();
-  app.use("/api/customer-feedback", customerFeedbackRouter);
+  app.use("/customer-feedback", customerFeedbackRouter);
   
   // Get all feedback for a specific lead
   customerFeedbackRouter.get("/lead/:leadId", createAuthMiddleware(1), async (req, res, next) => {
@@ -2492,7 +2492,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Dispatch Client routes
   const dispatchClientRouter = express.Router();
-  app.use("/api/dispatch/clients", dispatchClientRouter);
+  app.use("/dispatch/clients", dispatchClientRouter);
   
   dispatchClientRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
@@ -2662,7 +2662,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Invoice routes
   const invoiceRouter = express.Router();
-  app.use("/api/invoices", invoiceRouter);
+  app.use("/invoices", invoiceRouter);
 
   invoiceRouter.get("/", createAuthMiddleware(2), async (req, res, next) => {
     try {
@@ -2829,11 +2829,11 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Commission routes
   const commissionRouter = express.Router();
-  app.use("/api/commissions", commissionRouter);
+  app.use("/commissions", commissionRouter);
   
   // Admin commission routes
   const adminCommissionRouter = express.Router();
-  app.use("/api/admin/commissions", adminCommissionRouter);
+  app.use("/admin/commissions", adminCommissionRouter);
   
   // Get top commission earners for admin dashboard
   adminCommissionRouter.get("/top-earners", createAuthMiddleware(4), async (req, res, next) => {
@@ -2951,16 +2951,16 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // UI Preferences routes
   const uiPreferencesRouter = express.Router();
-  app.use("/api/ui-prefs", uiPreferencesRouter);
+  app.use("/ui-prefs", uiPreferencesRouter);
   
   // Dispatch automation routes
   const dispatchTasksRouter = express.Router();
   const dispatchReportsRouter = express.Router();
   const performanceTargetsRouter = express.Router();
   
-  app.use("/api/dispatch/tasks", dispatchTasksRouter);
-  app.use("/api/dispatch/reports", dispatchReportsRouter);
-  app.use("/api/performance-targets", performanceTargetsRouter);
+  app.use("/dispatch/tasks", dispatchTasksRouter);
+  app.use("/dispatch/reports", dispatchReportsRouter);
+  app.use("/performance-targets", performanceTargetsRouter);
 
   // Get user UI preferences
   uiPreferencesRouter.get("/me", createAuthMiddleware(1), async (req, res, next) => {
