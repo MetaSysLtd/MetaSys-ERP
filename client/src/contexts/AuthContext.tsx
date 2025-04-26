@@ -95,7 +95,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
       // Log the attempt for debugging
       console.log(`Attempting to login with username: ${username}`);
       
-      const res = await fetch("/api/auth/login", {
+      // Use the API_ROUTES constant for consistent URLs
+      const res = await fetch(API_ROUTES.AUTH.LOGIN, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -103,6 +104,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
         credentials: "include",
         body: JSON.stringify({ username, password }),
       });
+      
+      // Log detailed information for debugging
+      console.log(`Login attempt to ${API_ROUTES.AUTH.LOGIN}, status: ${res.status}`);
       
       const data = await res.json();
       console.log("Login response:", { status: res.status, data });
@@ -136,7 +140,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     
     try {
       await apiRequest({
-        url: "/api/auth/logout",
+        url: API_ROUTES.AUTH.LOGOUT,
         method: "POST"
       });
       setIsAuthenticated(false);
