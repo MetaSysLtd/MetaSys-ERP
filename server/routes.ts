@@ -1266,7 +1266,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Authentication routes
   const authRouter = express.Router();
-  app.use("/auth", authRouter);
+  app.use("/api/auth", authRouter); // Using the full path to match frontend expectations
 
   // Login route with enhanced error handling
   authRouter.post("/login", async (req, res, next) => {
@@ -1432,7 +1432,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // User routes
   const userRouter = express.Router();
-  app.use("/users", userRouter);
+  app.use("/api/users", userRouter); // Using the full path to match frontend expectations
 
   // User-Organization management routes
   userRouter.get("/:userId/organizations", createAuthMiddleware(3), async (req, res, next) => {
@@ -1596,7 +1596,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Role routes
   const roleRouter = express.Router();
-  app.use("/roles", roleRouter);
+  app.use("/api/roles", roleRouter); // Using the full path to match frontend expectations
 
   // Get users by role
   roleRouter.get("/:id/users", createAuthMiddleware(3), async (req, res, next) => {
@@ -1648,7 +1648,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Lead routes
   const leadRouter = express.Router();
-  app.use("/leads", leadRouter);
+  app.use("/api/leads", leadRouter); // Using the full path to match frontend expectations
 
   leadRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {

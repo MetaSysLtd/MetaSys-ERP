@@ -69,8 +69,17 @@ app.use((req, res, next) => {
   
   // Set up a custom middleware to only handle the API routes and leave the rest for Vite
   app.use('/api', (req, res, next) => {
-    // Adjust the URL to make Express routing work correctly
-    req.url = req.url.replace(/^\/api/, '');
+    // Log original URL for debugging
+    console.log(`Original URL: ${req.url}, Path: ${req.path}`);
+    
+    // DO NOT modify the URL for /api/auth paths to fix auth issues
+    if (req.url.startsWith('/auth') || req.url === '/auth') {
+      console.log(`Auth URL detected, keeping URL as: ${req.url}`);
+    } else {
+      // Adjust the URL to make Express routing work correctly for other API routes
+      req.url = req.url.replace(/^\/api/, '');
+      console.log(`Modified URL: ${req.url}`);
+    }
     next();
   });
   
