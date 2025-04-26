@@ -69,7 +69,7 @@ app.use((req, res, next) => {
   
   // Register API routes first, important for proper route handling
   // Pass the httpServer to registerRoutes so it uses the same server instance
-  await registerRoutes(app);
+  await registerRoutes(app, httpServer);
   
   // Setup Vite or static serving after API routes are registered
   // This ensures API routes take precedence over frontend routes

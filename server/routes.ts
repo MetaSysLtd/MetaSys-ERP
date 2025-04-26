@@ -1202,7 +1202,7 @@ async function addSeedDataIfNeeded() {
   }
 }
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express, server?: Server): Promise<Server> {
   // Make sure API routes are handled under /api to avoid conflicting with the frontend
   // Root API route should be /api not /
   app.get('/api', (req, res) => {
@@ -1247,16 +1247,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register HR routes
   registerHrRoutes(app);
   
-  // Create HTTP server
-  let httpServer = createServer(app);
+  // Use provided server or create a new one
+  let httpServer = server || createServer(app);
   
-  // Initialize Socket.IO
-  io = new SocketIOServer(httpServer, {
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
-    }
-  });
+  // Initialize Socket.IO only if we don't have it already
+  if (!io) {
+    io = new SocketIOServer(httpServer, {
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+      }
+    });
+  }
   
   // Set up Socket.IO events
   io.on('connection', (socket) => {
