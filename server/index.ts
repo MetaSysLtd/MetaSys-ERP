@@ -3,10 +3,31 @@ import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import * as notificationService from "./notifications";
+import session from "express-session";
+import { storage } from "./storage";
+import { sessionHandler } from "./middleware/error-handler";
+
+// Generate a secure random string for session secret if not provided
+const SESSION_SECRET = process.env.SESSION_SECRET || "metasys_erp_secure_session_secret";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Set up session middleware
+app.use(session({
+  secret: SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { 
+    secure: process.env.NODE_ENV === "production", 
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  },
+  store: storage.sessionStore
+}));
+
+// Apply session authentication check middleware
+app.use(sessionHandler);
 
 // Add a special middleware to handle API routes specifically
 // This ensures API routes are handled correctly
