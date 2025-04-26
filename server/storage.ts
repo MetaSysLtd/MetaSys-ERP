@@ -1980,7 +1980,7 @@ export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
     try {
       // Explicitly select only the columns we know exist in the database
-      // Avoid selecting the 'department' column which doesn't exist
+      // Avoid selecting the 'department' column and 'status' column which don't exist
       const [user] = await db.select({
         id: users.id,
         username: users.username,
@@ -1991,7 +1991,7 @@ export class DatabaseStorage implements IStorage {
         phoneNumber: users.phoneNumber,
         roleId: users.roleId,
         orgId: users.orgId,
-        status: users.status,
+        // status field removed as it doesn't exist in actual database
         canViewCRM: users.canViewCRM,
         canEditLeads: users.canEditLeads,
         canViewInvoices: users.canViewInvoices,

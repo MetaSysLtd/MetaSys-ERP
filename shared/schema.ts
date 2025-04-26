@@ -50,8 +50,8 @@ export const users = pgTable("users", {
   orgId: integer("org_id").references(() => organizations.id),
   // IMPORTANT: The users table does not have a department column in the actual database
   // department field removed as it's not in the actual database
-  teamId: integer("team_id"),
-  status: userStatusEnum("status").notNull().default("active"),
+  // teamId column also doesn't exist in the actual database - removing to avoid errors
+  // status column also doesn't exist in the actual database - removing to avoid errors
   
   // Basic permissions
   canViewCRM: boolean("can_view_crm").notNull().default(false),
