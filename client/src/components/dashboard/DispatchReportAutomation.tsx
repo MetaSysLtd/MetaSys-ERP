@@ -21,7 +21,13 @@ export function DispatchReportAutomation() {
   const { data: todayReport, isLoading: reportLoading } = useQuery<DispatchReport>({
     queryKey: ['/api/dispatch-reports', 'today'],
     queryFn: async () => {
-      const res = await apiRequest('GET', `/api/dispatch-reports?dispatcherId=${user?.id}&date=${format(new Date(), 'yyyy-MM-dd')}`);
+      const res = await fetch(`/api/dispatch-reports?dispatcherId=${user?.id}&date=${format(new Date(), 'yyyy-MM-dd')}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        throw new Error(`Error fetching dispatch reports: ${res.status}`);
+      }
       const reports = await res.json();
       return reports[0]; // Return the first report (or undefined if none exists)
     },
@@ -33,7 +39,13 @@ export function DispatchReportAutomation() {
   const { data: targets } = useQuery<PerformanceTarget[]>({
     queryKey: ['/api/performance-targets', 'daily'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/performance-targets?type=daily');
+      const res = await fetch('/api/performance-targets?type=daily', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        throw new Error(`Error fetching performance targets: ${res.status}`);
+      }
       return res.json();
     },
     enabled: !!user?.id,
@@ -45,10 +57,20 @@ export function DispatchReportAutomation() {
   // Manual report generation mutation
   const generateReportMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/dispatch-reports/generate', {
-        dispatcherId: user?.id,
-        date: format(new Date(), 'yyyy-MM-dd'),
+      const res = await fetch('/api/dispatch-reports/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          dispatcherId: user?.id,
+          date: format(new Date(), 'yyyy-MM-dd'),
+        })
       });
+      if (!res.ok) {
+        throw new Error(`Error generating report: ${res.status}`);
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -72,11 +94,21 @@ export function DispatchReportAutomation() {
   const sendToSlackMutation = useMutation({
     mutationFn: async () => {
       setIsSlackSending(true);
-      const res = await apiRequest('POST', '/api/dispatch-reports/generate', {
-        dispatcherId: user?.id,
-        date: format(new Date(), 'yyyy-MM-dd'),
-        sendToSlack: true
+      const res = await fetch('/api/dispatch-reports/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          dispatcherId: user?.id,
+          date: format(new Date(), 'yyyy-MM-dd'),
+          sendToSlack: true
+        })
       });
+      if (!res.ok) {
+        throw new Error(`Error sending to Slack: ${res.status}`);
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -100,9 +132,19 @@ export function DispatchReportAutomation() {
   // Send summary report to Slack mutation (admin only)
   const sendSummaryMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/dispatch-reports/generate-summary', {
-        date: format(new Date(), 'yyyy-MM-dd'),
+      const res = await fetch('/api/dispatch-reports/generate-summary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          date: format(new Date(), 'yyyy-MM-dd'),
+        })
       });
+      if (!res.ok) {
+        throw new Error(`Error generating summary: ${res.status}`);
+      }
       return res.json();
     },
     onSuccess: (data) => {

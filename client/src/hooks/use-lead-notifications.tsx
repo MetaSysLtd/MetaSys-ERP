@@ -78,7 +78,13 @@ export const LeadNotificationProvider = ({ children }: { children: ReactNode }) 
     queryKey: ['/api/notifications/leads'],
     queryFn: async () => {
       if (!user) return null;
-      const res = await apiRequest('GET', '/api/notifications/leads');
+      const res = await fetch('/api/notifications/leads', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        throw new Error(`Error fetching notifications: ${res.status}`);
+      }
       return res.json();
     },
     enabled: !!user,
