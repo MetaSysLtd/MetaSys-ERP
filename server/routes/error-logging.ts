@@ -1,124 +1,147 @@
-import express, { Request, Response, NextFunction } from "express";
-import { z } from "zod";
-import { storage } from "../storage";
-import { APIError } from "../middleware/error-handler";
+import { Router } from 'express';
+import { storage } from '../storage';
+import { logger } from '../logger';
+import { z } from 'zod';
+import { APIError, ValidationError } from '../middleware/error-handler';
 
-// Schema for client-side error validation
+const router = Router();
+
+// Schema for client error validation
 const clientErrorSchema = z.object({
-  error: z.object({
-    message: z.string(),
-    type: z.string().optional(),
-    stack: z.string().optional(),
-    timestamp: z.string().optional(),
-    url: z.string().optional(),
-    userAgent: z.string().optional(),
-    source: z.string().optional(),
-    status: z.number().optional(),
-  }),
-  context: z.record(z.any()).optional(),
+  type: z.string().optional(),
+  message: z.string().min(1, "Error message is required"),
+  stack: z.string().optional(),
+  componentStack: z.string().optional(),
+  url: z.string().optional(),
+  userAgent: z.string().optional(),
+  timestamp: z.string().datetime().optional()
 });
 
-// Type for error statistics response
-interface ErrorStats {
-  total: number;
-  byType: Record<string, number>;
-  bySource: Record<string, number>;
-  byPath: Record<string, number>;
-  recentErrors: any[];
-}
+type ClientErrorLog = z.infer<typeof clientErrorSchema>;
 
-// Create a router for error logging routes
-const router = express.Router();
+// Schema for error statistics requests
+const errorStatsSchema = z.object({
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+  type: z.string().optional(),
+  limit: z.number().int().min(1).max(100).default(50)
+});
 
-// Client-side error logging endpoint
-router.post("/log-client-error", async (req: Request, res: Response, next: NextFunction) => {
+// Route to log client-side errors
+router.post('/client', async (req, res, next) => {
   try {
-    // Parse and validate the input data
-    const validatedData = clientErrorSchema.parse(req.body);
+    // Validate error data
+    const validationResult = clientErrorSchema.safeParse(req.body);
     
-    // Get user ID if user is authenticated
-    const userId = req.session?.userId || null;
-    
-    // Log the error to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[CLIENT ERROR]', validatedData.error.message);
-      if (validatedData.error.stack) {
-        console.error(validatedData.error.stack);
-      }
-      if (validatedData.context) {
-        console.error('Context:', validatedData.context);
-      }
+    if (!validationResult.success) {
+      throw new ValidationError('Invalid error log data', validationResult.error);
     }
     
-    // Store the error in the database
-    if (storage.createClientErrorLog) {
-      await storage.createClientErrorLog({
-        userId,
-        errorType: validatedData.error.type || 'ClientError',
-        message: validatedData.error.message,
-        stack: validatedData.error.stack,
-        url: validatedData.error.url,
-        userAgent: validatedData.error.userAgent,
-        source: validatedData.error.source || 'client',
-        status: validatedData.error.status || 0,
-        context: validatedData.context ? JSON.stringify(validatedData.context) : null,
-        timestamp: new Date(),
-      });
-    } else if (storage.createActivity) {
-      // Fallback to activity log if specialized error log isn't available
-      await storage.createActivity({
-        userId: userId || 0,
-        entityType: 'client_error',
-        entityId: 0,
-        action: 'client_error',
-        details: JSON.stringify({
-          error: validatedData.error,
-          context: validatedData.context,
-          timestamp: new Date().toISOString(),
-        }),
-      });
+    const errorData = validationResult.data;
+    
+    // Get user info if available
+    const userId = req.session?.userId;
+    const userIp = req.ip;
+    const userAgent = req.headers['user-agent'] || errorData.userAgent;
+    
+    // Log the error
+    logger.error(`Client error: [${errorData.type || 'ERROR'}] ${errorData.message} at ${errorData.url || req.headers.referer || 'unknown'} - User: ${userId || 'anonymous'}`);
+    
+    // Store in database if the method exists
+    try {
+      if (typeof storage.createClientErrorLog === 'function') {
+        await storage.createClientErrorLog({
+          type: errorData.type || 'CLIENT_ERROR',
+          message: errorData.message,
+          stack: errorData.stack || null,
+          componentStack: errorData.componentStack || null,
+          userId: userId || null,
+          userIp,
+          userAgent: userAgent || null,
+          url: errorData.url || req.headers.referer || null,
+          timestamp: errorData.timestamp ? new Date(errorData.timestamp) : new Date(),
+        }).catch((dbError: Error) => {
+          // Handle database errors gracefully - likely table doesn't exist yet
+          if (dbError.message.includes('relation') && dbError.message.includes('does not exist')) {
+            logger.warn('Error logs table not available - system is still in setup phase');
+          } else {
+            logger.error('Error saving client error log:', dbError);
+          }
+        });
+      } else {
+        // Method doesn't exist in storage interface yet
+        logger.info('Client error logging to database not configured yet - skipping');
+      }
+    } catch (dbError) {
+      // Just log the storage error but don't fail the request
+      logger.error('Failed to store client error in database:', dbError);
     }
     
-    res.status(200).json({ message: 'Error logged successfully' });
+    // Always return success to the client
+    res.status(200).json({ success: true });
   } catch (error) {
     next(error);
   }
 });
 
-// Admin route to fetch error statistics
-router.get("/error-stats", async (req: Request, res: Response, next: NextFunction) => {
+// Route to get error statistics (admin only)
+router.get('/stats', async (req, res, next) => {
   try {
-    // Check if user is authenticated and has admin rights
-    if (!req.session?.userId) {
-      throw new APIError('Unauthorized', 401);
+    // Verify admin permissions
+    if (!req.userRole?.isSystemAdmin) {
+      throw new APIError('Unauthorized access', 403);
     }
     
-    // Check if user has admin role
-    const user = await storage.getUser(req.session.userId);
-    if (!user) {
-      throw new APIError('Unauthorized', 401);
+    // Parse and validate query parameters
+    const validationResult = errorStatsSchema.safeParse(req.query);
+    
+    if (!validationResult.success) {
+      throw new ValidationError('Invalid query parameters', validationResult.error);
     }
     
-    const userRole = await storage.getRole(user.roleId);
-    if (!userRole || userRole.level < 4) {
-      throw new APIError('Forbidden: Admin access required', 403);
+    const params = validationResult.data;
+    
+    // Default to last 7 days if no dates provided
+    if (!params.startDate) {
+      const defaultStartDate = new Date();
+      defaultStartDate.setDate(defaultStartDate.getDate() - 7);
+      params.startDate = defaultStartDate.toISOString();
     }
     
-    // Get error statistics from storage
-    if (storage.getErrorStats) {
-      const stats = await storage.getErrorStats();
-      res.json(stats);
+    if (!params.endDate) {
+      params.endDate = new Date().toISOString();
+    }
+    
+    // Get error statistics from database
+    let stats = [];
+    
+    if (typeof storage.getErrorStats === 'function') {
+      try {
+        stats = await storage.getErrorStats({
+          startDate: new Date(params.startDate),
+          endDate: new Date(params.endDate),
+          type: params.type,
+          limit: params.limit
+        });
+      } catch (dbError: any) {
+        // Handle database errors gracefully - likely table doesn't exist yet
+        if (dbError.message.includes('relation') && dbError.message.includes('does not exist')) {
+          logger.warn('Error logs table not available - system is still in setup phase');
+          // Return empty stats
+        } else {
+          // Rethrow other errors
+          throw dbError;
+        }
+      }
     } else {
-      // Fallback when specialized error stats aren't available
-      res.json({
-        total: 0,
-        byType: {},
-        bySource: {},
-        byPath: {},
-        recentErrors: [],
-        message: 'Error statistics not available'
-      });
+      // Method doesn't exist in storage interface yet
+      logger.info('Error stats retrieval not configured yet');
     }
+    
+    res.json({
+      success: true,
+      data: stats
+    });
   } catch (error) {
     next(error);
   }

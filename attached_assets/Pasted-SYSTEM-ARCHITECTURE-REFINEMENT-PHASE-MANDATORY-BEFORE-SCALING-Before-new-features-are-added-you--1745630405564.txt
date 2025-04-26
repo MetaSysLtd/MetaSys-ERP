@@ -1,0 +1,226 @@
+SYSTEM ARCHITECTURE: REFINEMENT PHASE (MANDATORY BEFORE SCALING)
+Before new features are added, you must refactor the codebase and architecture to follow long-term principles that prevent system instability, reduce regressions, and improve developer velocity.
+
+This includes folder structures, state management, modularity, error handling, testing, logging, deployment practices, and observability.
+
+1. FILE & FOLDER STRUCTURE – MONOREPO CLEANLINESS
+✅ Client and Server must be clearly separated.
+
+bash
+Copy
+Edit
+root/
+  client/               # React (TS), Tailwind
+    components/
+    pages/
+    modules/
+    store/
+    utils/
+    hooks/
+    services/
+    types/
+  server/               # Express (TS), PostgreSQL, Drizzle
+    routes/
+    controllers/
+    models/
+    services/
+    middleware/
+    utils/
+    config/
+✅ Every module (CRM, Dispatch, HR, etc.) should have its own folder with clearly scoped logic.
+
+2. USE ENVIRONMENT VARIABLES
+✅ All secrets (DB_URL, JWT_SECRET, SLACK_WEBHOOK, etc.) must be placed in .env:
+
+env
+Copy
+Edit
+DATABASE_URL=...
+JWT_SECRET=...
+SLACK_WEBHOOK_URL=...
+✅ Backend config files should load env vars with fallback logic and type safety.
+
+3. GLOBAL CONFIG & CONSTANTS
+✅ Centralize all roles, permissions, statuses, and enums:
+
+ts
+Copy
+Edit
+export const ROLES = ['admin', 'sales', 'dispatch', 'hr', 'marketing']
+export const LEAD_STATUSES = ['new', 'in_progress', 'qualified', 'won', 'lost']
+✅ No hardcoded strings in components — use constants or enums.
+
+4. FRONTEND STATE MANAGEMENT (IMPROVE MAINTAINABILITY)
+✅ Use React Context or Zustand for global state, like:
+
+Current User
+
+Active Organization
+
+Notifications
+
+Theme (light/dark)
+
+✅ Avoid prop-drilling for shared data across components.
+
+5. ENDPOINT NAMING & API DESIGN (RESTFUL + CONSISTENT)
+✅ Follow REST naming conventions:
+
+bash
+Copy
+Edit
+GET    /api/leads
+POST   /api/leads
+PUT    /api/leads/:id
+DELETE /api/leads/:id
+✅ For custom actions:
+
+bash
+Copy
+Edit
+POST /api/leads/:id/status
+POST /api/notifications/mark-as-read
+✅ Use pagination, filtering, and search across endpoints where large data exists.
+
+6. DATABASE MODELING – DRIZZLE ORM BEST PRACTICE
+✅ Add referential integrity: foreign keys, constraints.
+
+✅ Use consistent naming for all tables and fields (snake_case or camelCase — pick one).
+
+✅ Build DB indexes on:
+
+createdAt
+
+userId
+
+orgId
+
+status
+
+✅ Run migration scripts, not ad hoc edits.
+
+7. DATA VALIDATION (ZOD OR YUP)
+✅ All frontend forms must validate before hitting API.
+✅ All backend endpoints must validate input again using Zod/Yup/express-validator.
+
+This prevents dirty/incomplete data from polluting your database.
+
+8. SYSTEM LOGGING & AUDIT TRAILS
+✅ Every critical action (login, lead updated, invoice created) must be logged:
+
+For internal audit trails
+
+For debugging later
+
+✅ Console logs for dev, but structured logging (JSON format) for production.
+
+✅ Optionally store important ones in audit_logs table:
+
+ts
+Copy
+Edit
+{
+  _id,
+  action: "create_invoice",
+  userId,
+  orgId,
+  timestamp,
+  metadata
+}
+9. MODULAR PERMISSION SYSTEM
+✅ Replace hardcoded role checks with permission logic per route:
+
+ts
+Copy
+Edit
+if (!userHasPermission(user, "CAN_CREATE_LOAD")) {
+  return res.status(403).json({ error: "Not allowed." });
+}
+✅ Permissions should be:
+
+Stored in DB
+
+Assigned per user/role
+
+Read via middleware per route
+
+10. SOCKETS: ROOM-BASED ARCHITECTURE
+✅ Instead of emitting to all users, use socket.io rooms:
+
+ts
+Copy
+Edit
+socket.join(`org:${orgId}`)
+socket.join(`user:${userId}`)
+✅ Emit based on:
+
+leadAssigned → emit to user:<id>
+
+invoiceCleared → emit to org:<orgId>
+
+taskAssigned → emit to user:<id>
+
+✅ Reduces noise and increases targeting accuracy.
+
+11. DEPLOYMENT STABILITY & RECOVERY
+✅ Add health check endpoint: /api/health returns { status: "ok", db: "connected" }
+
+✅ If backend crashes, frontend shows banner: “We’re trying to reconnect…”
+
+✅ Add try/catch + retry logic in frontend for all fetches.
+
+12. TESTING STRATEGY
+✅ Add unit tests for:
+
+API endpoints (Jest + Supertest)
+
+Permission middleware
+
+Business logic functions (commission calc, lead flow)
+
+✅ Add e2e tests (Cypress or Playwright):
+
+Login
+
+Create lead
+
+Assign task
+
+Send invoice
+
+✅ Minimum test coverage goal: 60% backend, 40% frontend for now.
+
+13. DOCUMENTATION (INTERNAL)
+✅ Add a /docs folder with:
+
+Onboarding.md (how to run project locally)
+
+Architecture.md (brief)
+
+Folder structure explanation
+
+Setup steps for new environments
+
+✅ Host this via GitHub Pages or Readme file until you scale more.
+
+14. MONITORING & FAILSAFE SUGGESTION
+✅ Later — integrate something like:
+
+Sentry (frontend error tracking)
+
+PostHog (usage analytics)
+
+UptimeRobot (server monitoring)
+
+Cron-based auto backups
+
+FINAL OUTPUT
+You must refactor the existing application to:
+
+Follow the above patterns
+
+Clean up any inconsistencies in folder structure, permissions, error flows
+
+Add recovery mechanisms (fallbacks, retry logic, error UIs)
+
+Move from brittle “happy path” code to resilient architecture

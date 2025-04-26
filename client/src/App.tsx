@@ -274,33 +274,25 @@ function Router() {
   );
 }
 
-// Import the ErrorBoundary component
+// Import the ErrorBoundary component and error handlers
 import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { api } from '@/lib/api-error-handler';
-
-// api is already set up with interceptors in api-error-handler.ts
+import { retryFetch, handleApiError } from '@/lib/api-error-handler';
+import { initializeGlobalErrorHandlers, setupDevConsole } from '@/lib/global-error-handler';
 
 function App() {
-  // Setup network status listeners for offline/online events
+  // Initialize global error handlers and setup debugging tools
   useEffect(() => {
-    const handleOnline = () => {
-      console.log('App is back online');
-      // You could dispatch an action or show a toast here
-    };
-
-    const handleOffline = () => {
-      console.log('App is offline');
-      // You could dispatch an action or show a toast here
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
+    // Initialize global error handlers for uncaught exceptions and unhandled rejections
+    initializeGlobalErrorHandlers();
+    
+    // Setup dev console enhancements (only affects dev environment)
+    setupDevConsole();
+    
+    // Log that error handlers were initialized
+    console.log('MetaSys ERP global error handling initialized');
   }, []);
+  
+  // No need for these listeners as they're now handled by the global error handler
 
   return (
     <Provider store={store}>

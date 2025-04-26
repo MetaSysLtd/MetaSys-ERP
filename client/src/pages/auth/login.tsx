@@ -5,11 +5,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -23,7 +26,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2, InfoIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Importing assets for login page
@@ -31,18 +34,27 @@ import desktopBannerPath from "@/assets/banners/bg-login-desktop.png";
 import mobileBannerPath from "@/assets/backgrounds/gradient-bg.png"; // New gradient background
 import logoLightPath from "@/assets/logos/MetaSys-Logo-Light.png";
 
+// Enhanced validation schema with better error messages
 const loginFormSchema = z.object({
-  username: z.string().min(1, { message: "Username is required" }),
-  password: z.string().min(1, { message: "Password is required" }),
+  username: z
+    .string()
+    .min(1, { message: "Username is required" })
+    .max(100, { message: "Username cannot exceed 100 characters" }),
+  password: z
+    .string()
+    .min(1, { message: "Password is required" })
+    .max(100, { message: "Password cannot exceed 100 characters" }),
 });
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-export default function Login() {
-  const { login, error, user } = useAuth();
+function LoginForm() {
+  const { login, error, user, isLoading: authLoading } = useAuth();
   const [_, navigate] = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { toast } = useToast();
+  const [loginAttempts, setLoginAttempts] = useState(0);
 
   useEffect(() => {
     // Redirect if user is already logged in
@@ -69,47 +81,83 @@ export default function Login() {
       username: "",
       password: "",
     },
+    mode: "onBlur", // Validate fields when they lose focus
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    setIsLoading(true);
-    console.log(`Login form submitted with username: ${data.username}`);
+    if (isSubmitting) return; // Prevent double submission
+    
+    setIsSubmitting(true);
+    
     try {
+      // Validate form data is present
+      if (!data.username || !data.password) {
+        toast({
+          title: "Missing Information",
+          description: "Username and password are required.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Attempt to login
       await login(data.username, data.password);
       
-      // Navigate only if login was successful
+      // Reset login attempts on success
+      setLoginAttempts(0);
+      
+      // Navigate on success
       navigate("/");
     } catch (err: any) {
       console.error("Login error caught in form:", err);
-      // Error already handled in context, but we can add logic here if needed
-      // For example, we could add form-specific error handling
+      
+      // Increment login attempts
+      setLoginAttempts(prev => prev + 1);
+      
+      // Show specific error message
+      if (loginAttempts >= 2) {
+        toast({
+          title: "Multiple Failed Attempts",
+          description: "Please verify your credentials or reset your password.",
+          variant: "destructive",
+          duration: 5000,
+        });
+      }
       
       // Reset form password field for security
       form.setValue('password', '');
+      form.setFocus('password');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   // This is for redirecting to the right dashboard after login
   const getRedirectPath = () => {
-    // Check if the user has admin role by checking the roleId (if user exists)
-    // Admin roles usually have higher roleId values
-    const roleId = user?.roleId || 1; // Default to regular user role if user not found
+    const roleId = user?.roleId || 1;
     return roleId >= 3 ? '/admin/dashboard' : '/dashboard';
   };
+
+  const isLoading = isSubmitting || authLoading;
 
   return (
     <div className={`min-h-screen flex ${isMobile ? 'flex-col' : 'lg:flex-row md:flex-col-reverse'}`}>
       {/* Left side - Banner Image (hidden on mobile) */}
       {!isMobile && (
         <div className="lg:w-1/2 hidden md:block">
-          <img 
-            src={desktopBannerPath} 
-            alt="MetaSys ERP" 
-            className="h-full w-full object-cover"
-          />
+          <div className="h-full w-full relative">
+            <img 
+              src={desktopBannerPath} 
+              alt="MetaSys ERP" 
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+              <div className="text-white text-center max-w-md px-6">
+                <h2 className="text-3xl font-bold mb-4">MetaSys ERP</h2>
+                <p className="text-lg">The complete AI-driven enterprise solution for your business</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
       
@@ -145,7 +193,7 @@ export default function Login() {
             {error && (
               <Alert variant="destructive" className="mb-6">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>Authentication Error</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
@@ -164,6 +212,9 @@ export default function Login() {
                           className="h-11 border-gray-300 focus:ring-[#025E73] focus:border-[#025E73] dark:border-gray-600"
                           placeholder="Enter your username"
                           autoComplete="username"
+                          disabled={isLoading}
+                          aria-disabled={isLoading}
+                          required
                         />
                       </FormControl>
                       <FormMessage />
@@ -183,6 +234,9 @@ export default function Login() {
                           className="h-11 border-gray-300 focus:ring-[#025E73] focus:border-[#025E73] dark:border-gray-600"
                           placeholder="Enter your password"
                           autoComplete="current-password"
+                          disabled={isLoading}
+                          aria-disabled={isLoading}
+                          required
                         />
                       </FormControl>
                       <FormMessage />
@@ -195,6 +249,7 @@ export default function Login() {
                     className="p-0 h-auto text-[#025E73] hover:text-[#412754] font-medium transition-colors"
                     onClick={() => navigate("/auth/forgot-password")}
                     type="button"
+                    disabled={isLoading}
                   >
                     Forgot password?
                   </Button>
@@ -205,13 +260,11 @@ export default function Login() {
                   className="w-full h-11 mt-2 bg-[#025E73] hover:bg-[#F2A71B] active:bg-[#C78A14] text-white 
                            transition-all duration-150 hover:scale-[1.03]"
                   disabled={isLoading}
+                  aria-disabled={isLoading}
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       <span>Signing in...</span>
                     </div>
                   ) : (
@@ -221,6 +274,14 @@ export default function Login() {
               </form>
             </Form>
           </CardContent>
+          <CardFooter className="pb-6 pt-0 border-t-0">
+            <div className="w-full text-center text-gray-500 text-sm">
+              <div className="flex items-center justify-center gap-1">
+                <InfoIcon className="h-3 w-3" />
+                <span>Default login: username "admin", password "admin123"</span>
+              </div>
+            </div>
+          </CardFooter>
         </Card>
         
         {/* Footer text */}
@@ -229,5 +290,14 @@ export default function Login() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Wrap the login form in an error boundary
+export default function Login() {
+  return (
+    <ErrorBoundary>
+      <LoginForm />
+    </ErrorBoundary>
   );
 }

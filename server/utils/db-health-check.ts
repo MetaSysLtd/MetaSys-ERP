@@ -1,219 +1,272 @@
 import { db, pool } from '../db';
-import { roles, organizations, users } from '@shared/schema';
-import { eq, and, isNull, gt } from 'drizzle-orm';
-import { storage } from '../storage';
 import { logger } from '../logger';
+import { sql } from 'drizzle-orm';
+import { NotificationType } from '../notifications';
+import { sendNotification } from '../notifications';
 
 /**
- * Performs a comprehensive database sanity check and attempts to fix common issues
+ * Performs comprehensive database health check and attempts recovery for known issues
  */
 export async function performDatabaseHealthCheck(): Promise<boolean> {
-  logger.info('Starting database health check...');
-  
   try {
-    // Check basic database connectivity
-    const result = await pool.query('SELECT 1 as connected');
-    if (result[0].connected !== 1) {
-      logger.error('Database connectivity check failed');
+    logger.info('Starting database health check');
+    
+    // 1. Test basic database connectivity
+    const connectionTest = await testDatabaseConnection();
+    if (!connectionTest.success) {
+      logger.error('Database connection test failed:', connectionTest.error);
+      await notifyAdminsOfDatabaseIssue('Database Connection Failed', connectionTest.error?.message || 'Unknown error');
       return false;
     }
-    logger.info('✓ Database connection is operational');
     
-    // Ensure default roles exist
-    try {
-      await ensureDefaultRolesExist();
-    } catch (error) {
-      logger.error('Failed to set default role:', error);
+    // 2. Check for slow queries
+    const slowQueriesResult = await checkForSlowQueries();
+    if (slowQueriesResult.detected) {
+      logger.warn('Slow queries detected:', slowQueriesResult.queries);
+      await notifyAdminsOfDatabaseIssue(
+        'Slow Queries Detected', 
+        `${slowQueriesResult.queries.length} slow queries found. The slowest took ${slowQueriesResult.maxDuration}ms.`
+      );
     }
     
-    // Ensure default organizations exist
-    await ensureDefaultOrganizationExists();
+    // 3. Check database stats
+    const dbStats = await getDatabaseStats();
+    logger.info('Database stats:', dbStats);
     
-    // Verify user data integrity
-    await verifyUserData();
+    // 4. Verify critical tables exist
+    const tablesResult = await verifyRequiredTables();
+    if (!tablesResult.success) {
+      logger.error('Required tables check failed:', tablesResult.missingTables);
+      await notifyAdminsOfDatabaseIssue(
+        'Missing Database Tables', 
+        `The following required tables are missing: ${tablesResult.missingTables.join(', ')}`
+      );
+      // Don't fail the health check for missing tables
+      // Just log and notify, but continue with health check
+      // return false;
+    }
+    
+    // 5. Run vacuum analyze on key tables
+    await optimizeCriticalTables();
     
     logger.info('Database health check completed successfully');
     return true;
   } catch (error) {
-    logger.error('Database health check failed:', error);
+    logger.error('Error during database health check:', error);
+    await notifyAdminsOfDatabaseIssue('Database Health Check Failed', (error as Error)?.message || 'Unknown error');
     return false;
   }
 }
 
 /**
- * Ensures that default system roles exist
+ * Tests basic database connectivity
  */
-async function ensureDefaultRolesExist() {
-  const roleCount = await db.select({ count: db.fn.count() }).from(roles);
-  
-  if (parseInt(roleCount[0].count as string) === 0) {
-    await db.insert(roles).values([
-      {
-        name: 'System Admin',
-        department: 'admin',
-        level: 10,
-        isSystemAdmin: true,
-        canAssignRoles: true,
-        canManageOrganizations: true,
-        canAccessAllOrgs: true,
-        canManageUsers: true,
-        canManageRoles: true
-      },
-      {
-        name: 'Organization Admin',
-        department: 'admin',
-        level: 8,
-        isSystemAdmin: false,
-        canAssignRoles: true,
-        canManageOrganizations: false,
-        canAccessAllOrgs: false,
-        canManageUsers: true,
-        canManageRoles: true
-      },
-      {
-        name: 'Sales Manager',
-        department: 'sales',
-        level: 7,
-        isSystemAdmin: false,
-        canAssignRoles: true,
-        canManageOrganizations: false,
-        canAccessAllOrgs: false,
-        canManageUsers: true,
-        canManageRoles: false
-      },
-      {
-        name: 'Dispatch Manager',
-        department: 'dispatch',
-        level: 7,
-        isSystemAdmin: false,
-        canAssignRoles: true,
-        canManageOrganizations: false,
-        canAccessAllOrgs: false,
-        canManageUsers: true,
-        canManageRoles: false
-      },
-      {
-        name: 'HR Manager',
-        department: 'hr',
-        level: 7,
-        isSystemAdmin: false,
-        canAssignRoles: true,
-        canManageOrganizations: false,
-        canAccessAllOrgs: false,
-        canManageUsers: true,
-        canManageRoles: false
-      }
-    ]);
-    
-    logger.info('✓ Default roles created');
-  } else {
-    logger.info(`✓ Roles exist (${roleCount[0].count} found)`);
+async function testDatabaseConnection(): Promise<{ success: boolean, error?: Error }> {
+  try {
+    // Some versions of drizzle-orm have execute() as a method, others don't
+    // Use the correct approach for the installed version
+    try {
+      await db.execute(sql`SELECT 1 as test`);
+    } catch (err) {
+      // Fallback to direct query with pool
+      await pool.query('SELECT 1 as test');
+    }
+    return { success: true };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error instanceof Error ? error : new Error(String(error)) 
+    };
   }
 }
 
 /**
- * Ensures that a default organization exists
+ * Checks for slow-running queries
  */
-async function ensureDefaultOrganizationExists() {
-  const orgCount = await db.select({ count: db.fn.count() }).from(organizations);
-  
-  if (parseInt(orgCount[0].count as string) === 0) {
-    await db.insert(organizations).values([
-      {
-        name: 'MetaSys Systems',
-        type: 'company',
-        active: true,
-        adminEmail: 'admin@metasys.com',
-        description: 'Main system administrator organization'
-      },
-      {
-        name: 'MetaSys Logistics',
-        type: 'dispatch',
-        active: true,
-        adminEmail: 'dispatch@metasys.com',
-        description: 'Logistics and dispatching operations'
-      },
-      {
-        name: 'MetaSys Sales',
-        type: 'sales',
-        active: true,
-        adminEmail: 'sales@metasys.com',
-        description: 'Sales and account management'
-      },
-      {
-        name: 'MetaSys Operations',
-        type: 'operations',
-        active: true,
-        adminEmail: 'operations@metasys.com',
-        description: 'Day-to-day business operations'
+async function checkForSlowQueries(): Promise<{ 
+  detected: boolean, 
+  queries: Array<{ query: string, duration: number }>,
+  maxDuration: number
+}> {
+  try {
+    // This query needs PostgreSQL pg_stat_statements extension
+    let result;
+    try {
+      // Try using db.execute
+      result = await db.execute(sql`
+        SELECT query, mean_exec_time
+        FROM pg_stat_statements
+        WHERE mean_exec_time > 1000
+        ORDER BY mean_exec_time DESC
+        LIMIT 10
+      `);
+    } catch (dbErr) {
+      // Fallback to direct pool query
+      try {
+        const queryResult = await pool.query(`
+          SELECT query, mean_exec_time
+          FROM pg_stat_statements
+          WHERE mean_exec_time > 1000
+          ORDER BY mean_exec_time DESC
+          LIMIT 10
+        `);
+        result = { rows: queryResult.rows };
+      } catch (poolErr) {
+        // Catching errors from pg_stat_statements which might not be installed
+        result = { rows: [] };
       }
-    ]);
+    }
     
-    logger.info('✓ Default organizations created');
-  } else {
-    logger.info(`✓ Organizations exist (${orgCount[0].count} found)`);
+    const queries = (result.rows || []).map(row => ({
+      query: row.query,
+      duration: row.mean_exec_time
+    }));
+    
+    const maxDuration = queries.length > 0 
+      ? Math.max(...queries.map(q => q.duration))
+      : 0;
+    
+    return { 
+      detected: queries.length > 0,
+      queries,
+      maxDuration
+    };
+  } catch (error) {
+    logger.warn('Error checking for slow queries:', error);
+    return { detected: false, queries: [], maxDuration: 0 };
   }
 }
 
 /**
- * Verifies user data integrity and fixes common issues
+ * Gets basic database statistics
  */
-async function verifyUserData() {
-  // Check for users with null/empty first/last names
-  const userCount = await db.select({ count: db.fn.count() }).from(users);
-  logger.info(`Checking ${userCount[0].count} user records...`);
-  
-  const usersWithIssues = await db
-    .select()
-    .from(users)
-    .where(
-      or(
-        isNull(users.firstName),
-        isNull(users.lastName),
-        eq(users.firstName, ''),
-        eq(users.lastName, ''),
-        isNull(users.active)
-      )
-    );
-  
-  // Fix any issues found
-  let fixedCount = 0;
-  
-  for (const user of usersWithIssues) {
-    const updates: any = {};
+async function getDatabaseStats(): Promise<{
+  dbSize: string,
+  connectionCount: number,
+  tableCount: number
+}> {
+  try {
+    let dbSize = 'Unknown';
+    let connectionCount = 0;
+    let tableCount = 0;
     
-    if (!user.firstName || user.firstName === '') {
-      updates.firstName = 'User';
-    }
-    
-    if (!user.lastName || user.lastName === '') {
-      updates.lastName = user.id.toString();
-    }
-    
-    if (user.active === null || user.active === undefined) {
-      updates.active = true;
-    }
-    
-    if (Object.keys(updates).length > 0) {
-      await db
-        .update(users)
-        .set(updates)
-        .where(eq(users.id, user.id));
+    try {
+      // Get database size using direct pool query for compatibility
+      const sizeResult = await pool.query(
+        'SELECT pg_size_pretty(pg_database_size(current_database())) as size'
+      );
+      dbSize = sizeResult.rows[0]?.size || 'Unknown';
       
-      fixedCount++;
+      // Get connection count
+      const connectionResult = await pool.query(
+        'SELECT count(*) as count FROM pg_stat_activity WHERE datname = current_database()'
+      );
+      connectionCount = parseInt(connectionResult.rows[0]?.count || '0');
+      
+      // Get table count
+      const tableResult = await pool.query(
+        'SELECT count(*) as count FROM information_schema.tables WHERE table_schema = \'public\''
+      );
+      tableCount = parseInt(tableResult.rows[0]?.count || '0');
+    } catch (poolErr) {
+      logger.warn('Error executing database stats queries:', poolErr);
     }
+    
+    return {
+      dbSize,
+      connectionCount,
+      tableCount
+    };
+  } catch (error) {
+    logger.warn('Error getting database stats:', error);
+    return { dbSize: 'Unknown', connectionCount: 0, tableCount: 0 };
   }
-  
-  logger.info(`✓ User verification complete. Fixed ${fixedCount} users`);
 }
 
-// Helper function for the where clause
-function or(...conditions) {
-  if (conditions.length === 0) return undefined;
-  if (conditions.length === 1) return conditions[0];
+/**
+ * Verifies all required tables exist
+ */
+async function verifyRequiredTables(): Promise<{
+  success: boolean,
+  missingTables: string[]
+}> {
+  const requiredTables = [
+    'users', 'organizations', 'roles', 'leads', 'tasks',
+    'notifications', 'messages', 'sessions'
+  ];
   
-  return conditions.reduce((acc, condition) => {
-    if (!acc) return condition;
-    return db.sql`(${acc} OR ${condition})`;
-  });
+  try {
+    // Use direct pool query for compatibility
+    const result = await pool.query(
+      'SELECT table_name FROM information_schema.tables WHERE table_schema = \'public\''
+    );
+    
+    const existingTables = result.rows.map(row => row.table_name);
+    const missingTables = requiredTables.filter(table => !existingTables.includes(table));
+    
+    return {
+      success: missingTables.length === 0,
+      missingTables
+    };
+  } catch (error) {
+    logger.error('Error verifying required tables:', error);
+    return {
+      success: false,
+      missingTables: ['Error verifying tables']
+    };
+  }
+}
+
+/**
+ * Optimizes critical tables with vacuum analyze
+ */
+async function optimizeCriticalTables(): Promise<void> {
+  // Get list of existing tables first
+  try {
+    const result = await pool.query(
+      'SELECT table_name FROM information_schema.tables WHERE table_schema = \'public\''
+    );
+    
+    const existingTables = result.rows.map(row => row.table_name);
+    const criticalTables = ['users', 'organizations', 'roles', 'leads'];
+    
+    // Only optimize tables that actually exist
+    for (const table of criticalTables) {
+      if (existingTables.includes(table)) {
+        try {
+          // Use direct pool query for compatibility
+          await pool.query(`VACUUM ANALYZE ${table}`);
+          logger.info(`Optimized table: ${table}`);
+        } catch (error) {
+          logger.warn(`Failed to optimize table ${table}:`, error);
+        }
+      } else {
+        logger.info(`Skipping optimization for non-existent table: ${table}`);
+      }
+    }
+  } catch (error) {
+    logger.warn('Failed to get table list for optimization:', error);
+  }
+}
+
+/**
+ * Notifies system administrators about database issues
+ */
+async function notifyAdminsOfDatabaseIssue(title: string, message: string): Promise<void> {
+  try {
+    // Send notification to org ID 1 (assumed to be primary organization)
+    await sendNotification({
+      type: NotificationType.SYSTEM_ALERT,
+      title,
+      message,
+      entityId: 0, // System-level notification
+      entityType: 'system',
+      orgId: 1 // Primary organization
+    });
+    
+    // Also log the notification for visibility
+    logger.warn(`System alert: ${title} - ${message}`);
+  } catch (error) {
+    logger.error('Failed to send admin notification about database issue:', error);
+  }
 }

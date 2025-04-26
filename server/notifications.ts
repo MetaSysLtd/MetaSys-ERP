@@ -20,22 +20,37 @@ export interface NotificationPayload {
 // Function to send notification
 export async function sendNotification(notification: NotificationPayload) {
   try {
-    // Store notification in database
-    await storage.createNotification({
-      title: notification.title,
-      message: notification.message,
-      type: notification.type,
-      entityId: notification.entityId,
-      entityType: notification.entityType,
-      userId: notification.userId,
-      orgId: notification.orgId,
-      read: false,
-      createdAt: new Date()
-    });
+    // Log the notification since we may not have the database table yet
+    log(`NOTIFICATION: [${notification.type}] ${notification.title} - ${notification.message}`);
+    
+    // Try to store in database if possible
+    try {
+      const notificationRecord = {
+        title: notification.title,
+        message: notification.message,
+        type: notification.type,
+        entityId: notification.entityId,
+        entityType: notification.entityType,
+        userId: notification.userId,
+        orgId: notification.orgId,
+        read: false,
+        createdAt: new Date()
+      };
+      
+      // Try to use db.insert directly for notifications
+      await db.insert(notifications).values(notificationRecord);
+    } catch (dbError) {
+      // Log but continue - notifications should still work even if DB insert fails
+      log(`Warning: Could not store notification in database: ${dbError}`);
+    }
     
     // Send Slack notification if configured
     if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_CHANNEL_ID) {
-      await slackService.sendSlackNotification(notification.title, notification.message);
+      try {
+        await slackService.sendSlackNotification(notification.title, notification.message);
+      } catch (slackError) {
+        log(`Warning: Could not send Slack notification: ${slackError}`);
+      }
     }
     
     return true;
@@ -65,7 +80,8 @@ export enum NotificationType {
   DISPATCH_CLIENT_CREATED = 'dispatch_client_created',
   DISPATCH_CLIENT_UPDATED = 'dispatch_client_updated',
   DISPATCH_CLIENT_STATUS_CHANGED = 'dispatch_client_status_changed',
-  DAILY_SUMMARY = 'daily_summary'
+  DAILY_SUMMARY = 'daily_summary',
+  SYSTEM_ALERT = 'system_alert'
 }
 
 // User notification preferences (to be stored in user settings)

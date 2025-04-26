@@ -1,9 +1,5 @@
 /**
- * Type declaration for the database health check utility
- */
-
-/**
- * Performs a comprehensive database sanity check and attempts to fix common issues
- * @returns Promise resolving to true if the health check was successful or false if it failed
+ * Performs comprehensive database health check and attempts recovery for known issues
+ * @returns Promise resolving to health check success status
  */
 export function performDatabaseHealthCheck(): Promise<boolean>;

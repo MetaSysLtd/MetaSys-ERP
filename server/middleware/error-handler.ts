@@ -1,221 +1,231 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodError } from 'zod';
-import { fromZodError } from 'zod-validation-error';
 import { storage } from '../storage';
+import { logger } from '../logger';
 
-interface ErrorDetails {
-  message: string;
-  status: number;
-  details?: any;
-  code?: string;
-  source?: string;
-}
-
-/**
- * Custom API error class for consistent error handling
- */
+// Custom error class for API errors
 export class APIError extends Error {
-  status: number;
+  statusCode: number;
+  errorCode?: string;
   details?: any;
-  code?: string;
-  source?: string;
+  isOperational: boolean;
 
   constructor(
     message: string,
-    status: number = 500,
+    statusCode = 500,
+    errorCode?: string,
     details?: any,
-    code?: string,
-    source?: string
+    isOperational = true
   ) {
     super(message);
-    this.name = 'APIError';
-    this.status = status;
+    this.statusCode = statusCode;
+    this.errorCode = errorCode;
     this.details = details;
-    this.code = code;
-    this.source = source;
+    this.isOperational = isOperational;
+    this.name = this.constructor.name;
+    Error.captureStackTrace(this, this.constructor);
   }
 }
 
-/**
- * Logs an error to the database and console
- */
-async function logErrorToStorage(
-  req: Request,
-  error: Error,
-  status: number,
-  details?: any
-): Promise<void> {
-  try {
-    // Get user ID from session if available
-    const userId = req.session?.userId || null;
-
-    // Log to console for immediate visibility
-    console.error(
-      `[${new Date().toISOString()}] ${status} ERROR:`,
-      error.message,
-      userId ? `User: ${userId}` : 'Unauthenticated',
-      `Path: ${req.method} ${req.path}`,
-      details ? `Details: ${JSON.stringify(details)}` : ''
-    );
-
-    // If verbose logging, also log stack trace
-    if (process.env.NODE_ENV === 'development') {
-      console.error(error.stack);
-    }
-
-    // Log to database if appropriate storage method exists
-    if (storage.createErrorLog) {
-      await storage.createErrorLog({
-        userId,
-        errorType: error.name || 'Error',
-        message: error.message,
-        status,
-        path: req.path,
-        method: req.method,
-        ip: req.ip,
-        userAgent: req.headers['user-agent'],
-        details: details ? JSON.stringify(details) : null,
-        stack: error.stack,
-        timestamp: new Date(),
-      });
-    } else if (storage.createActivity) {
-      // Fallback to activity log if specialized error log isn't available
-      await storage.createActivity({
-        userId: userId || 0,
-        entityType: 'server_error',
-        entityId: 0,
-        action: 'server_error',
-        details: JSON.stringify({
-          error: error.message,
-          status,
-          path: req.path,
-          method: req.method,
-          timestamp: new Date().toISOString(),
-          details,
-        }),
-      });
-    }
-  } catch (loggingError) {
-    // Don't let logging errors affect the response
-    console.error('Error while logging error:', loggingError);
+// Different types of errors
+export class ValidationError extends APIError {
+  constructor(message: string, details?: any) {
+    super(message, 400, 'VALIDATION_ERROR', details, true);
   }
 }
 
-/**
- * Formats API error for consistent client response
- */
-function formatErrorResponse(error: Error, status: number = 500): ErrorDetails {
-  let errorDetails: ErrorDetails = {
-    message: error.message || 'An unexpected error occurred',
-    status: status,
-  };
-
-  // For custom API errors, add additional details
-  if (error instanceof APIError) {
-    errorDetails = {
-      message: error.message,
-      status: error.status,
-      details: error.details,
-      code: error.code,
-      source: error.source,
-    };
+export class AuthenticationError extends APIError {
+  constructor(message = 'Unauthorized: Please log in to access this resource') {
+    super(message, 401, 'AUTHENTICATION_ERROR', undefined, true);
   }
-
-  // For validation errors, format them consistently
-  if (error instanceof ZodError) {
-    const validationError = fromZodError(error);
-    errorDetails = {
-      message: validationError.message,
-      status: 400,
-      details: error.errors,
-      code: 'VALIDATION_ERROR',
-      source: 'zod',
-    };
-  }
-
-  // Clean up error message for production
-  if (process.env.NODE_ENV === 'production') {
-    // Remove sensitive details or stack traces
-    delete errorDetails.details;
-    if (status >= 500) {
-      errorDetails.message = 'Internal server error';
-    }
-  }
-
-  return errorDetails;
 }
 
-/**
- * Global error handler middleware
- */
-export const errorHandler = async (
-  error: Error,
+export class AuthorizationError extends APIError {
+  constructor(message = 'Forbidden: You do not have permission to perform this action') {
+    super(message, 403, 'AUTHORIZATION_ERROR', undefined, true);
+  }
+}
+
+export class NotFoundError extends APIError {
+  constructor(message: string) {
+    super(message, 404, 'NOT_FOUND', undefined, true);
+  }
+}
+
+export class ConflictError extends APIError {
+  constructor(message: string, details?: any) {
+    super(message, 409, 'CONFLICT', details, true);
+  }
+}
+
+export class RateLimitError extends APIError {
+  constructor(message = 'Too many requests, please try again later') {
+    super(message, 429, 'RATE_LIMIT', undefined, true);
+  }
+}
+
+// Global error handler middleware
+export function errorHandler(
+  err: Error,
   req: Request,
   res: Response,
   next: NextFunction
-) => {
-  let status = 500;
-  let details;
-
-  // Determine appropriate status code
-  if (error instanceof APIError) {
-    status = error.status;
-    details = error.details;
-  } else if (error instanceof ZodError) {
-    status = 400;
-    details = error.errors;
-  } else if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-    status = 401;
-  } else if (error.message.includes('ECONNREFUSED') || error.message.includes('getaddrinfo')) {
-    status = 503; // Service Unavailable for database connection issues
-  }
-
+) {
   // Log the error
-  await logErrorToStorage(req, error, status, details);
-
-  // Format the error for client response
-  const errorResponse = formatErrorResponse(error, status);
-
-  // Notify admin if critical error
-  if (status >= 500 && process.env.ADMIN_ERROR_NOTIFICATION === 'true') {
-    try {
-      // If user is logged in, include their info
-      const userInfo = req.session?.userId
-        ? await storage.getUser(req.session.userId)
-        : null;
-
-      // Send notification
-      // This is just placeholder code - replace with your notification system
-      console.error(`CRITICAL ERROR NOTIFICATION: ${errorResponse.message}`, {
-        user: userInfo ? `${userInfo.firstName} ${userInfo.lastName} (${userInfo.email})` : 'Unauthenticated',
-        path: req.path,
-        method: req.method,
-        timestamp: new Date().toISOString()
-      });
-    } catch (notificationError) {
-      console.error('Failed to send admin notification:', notificationError);
-    }
-  }
-
-  // Send response
-  res.status(errorResponse.status).json(errorResponse);
-};
-
-/**
- * 404 Not Found handler
- */
-export const notFoundHandler = (req: Request, res: Response, next: NextFunction) => {
-  // Skip for non-API routes (let the frontend handle those)
-  if (!req.path.startsWith('/api')) {
-    return next();
-  }
-
-  const error = new APIError(`Route not found: ${req.method} ${req.path}`, 404);
-  logErrorToStorage(req, error, 404);
+  const timestamp = new Date().toISOString();
+  const requestId = req.headers['x-request-id'] || `req_${Date.now()}`;
   
-  res.status(404).json({
-    message: `Route not found: ${req.method} ${req.path}`,
-    status: 404,
-    code: 'NOT_FOUND',
-  });
-};
+  let statusCode = 500;
+  let errorMessage = 'Internal Server Error';
+  let errorCode = 'INTERNAL_SERVER_ERROR';
+  let details: any = undefined;
+  let isOperational = false;
+  
+  // If this is our custom API error, use its values
+  if (err instanceof APIError) {
+    statusCode = err.statusCode;
+    errorMessage = err.message;
+    errorCode = err.errorCode || 'API_ERROR';
+    details = err.details;
+    isOperational = err.isOperational;
+  } else if (err.name === 'ZodError') {
+    // Handle Zod validation errors
+    statusCode = 400;
+    errorMessage = 'Validation error';
+    errorCode = 'VALIDATION_ERROR';
+    details = err;
+    isOperational = true;
+  }
+  
+  // Format the error for the log
+  const errorLog = {
+    timestamp,
+    requestId,
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    userId: req.session?.userId || null,
+    statusCode,
+    errorCode,
+    errorMessage,
+    stack: err.stack,
+    details,
+    isOperational
+  };
+  
+  // Log the error - different log level based on severity
+  if (statusCode >= 500) {
+    logger.error(`[${timestamp}] ${statusCode} ERROR: ${errorMessage} User: ${req.session?.userId || 'unknown'} Path: ${req.method} ${req.originalUrl} `, err);
+    
+    // Store critical errors in database for monitoring
+    try {
+      // Check if the storage interface has the createErrorLog method
+      if (typeof storage.createErrorLog === 'function') {
+        storage.createErrorLog({
+          level: 'error',
+          message: errorMessage,
+          code: errorCode,
+          path: req.originalUrl,
+          method: req.method,
+          userId: req.session?.userId || null,
+          userIp: req.ip,
+          userAgent: req.headers['user-agent'] || null,
+          stackTrace: err.stack || null,
+          timestamp: new Date(),
+        }).catch((logErr: Error) => {
+          // Handle database errors gracefully - likely table doesn't exist yet
+          if (logErr.message.includes('relation') && logErr.message.includes('does not exist')) {
+            logger.warn('Error logs table not available - system is still in setup phase');
+          } else {
+            logger.error('Error saving error log:', logErr);
+          }
+        });
+      } else {
+        // Method doesn't exist in storage interface yet
+        logger.info('Error logging to database not configured yet - skipping');
+      }
+    } catch (logErr) {
+      logger.error('Failed to save error log:', logErr);
+    }
+  } else if (statusCode >= 400) {
+    logger.warn(`[${timestamp}] ${statusCode} WARN: ${errorMessage} User: ${req.session?.userId || 'unknown'} Path: ${req.method} ${req.originalUrl}`);
+  }
+  
+  // Send appropriate response to client
+  // Don't expose error stack in production
+  const response = {
+    success: false,
+    message: errorMessage,
+    error: errorCode,
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
+    ...(details && { details }),
+  };
+  
+  res.status(statusCode).json(response);
+}
+
+// 404 handler - should be added after all other routes
+export function notFoundHandler(req: Request, res: Response, next: NextFunction) {
+  const err = new NotFoundError(`Route not found: ${req.method} ${req.path}`);
+  next(err);
+}
+
+// Session expired handler
+export function sessionHandler(req: Request, res: Response, next: NextFunction) {
+  if (req.path.startsWith('/api/') && 
+      !req.path.startsWith('/api/auth') && 
+      !req.path.startsWith('/api/status') && 
+      !req.path.startsWith('/api/public') && 
+      !req.session.userId) {
+    // Skip auth check for the /api/errors endpoint to avoid infinite loops
+    if (req.path.startsWith('/api/errors/')) {
+      return next();
+    }
+    return next(new AuthenticationError());
+  }
+  next();
+}
+
+// Role authorization middleware
+export function requireRole(roles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    // Skip in development if specified
+    if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
+      return next();
+    }
+    
+    if (!req.userRole || !roles.includes(req.userRole.department)) {
+      return next(new AuthorizationError('You do not have permission to access this resource'));
+    }
+    next();
+  };
+}
+
+// Admin authorization middleware
+export function requireAdmin() {
+  return (req: Request, res: Response, next: NextFunction) => {
+    // Skip in development if specified
+    if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
+      return next();
+    }
+    
+    if (!req.userRole || !req.userRole.isSystemAdmin) {
+      return next(new AuthorizationError('This action requires administrator privileges'));
+    }
+    next();
+  };
+}
+
+// Permission check middleware
+export function requirePermission(permission: string) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    // Skip in development if specified
+    if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
+      return next();
+    }
+    
+    if (!req.userRole || !(req.userRole as any)[permission]) {
+      return next(new AuthorizationError(`You lack the required permission: ${permission}`));
+    }
+    next();
+  };
+}

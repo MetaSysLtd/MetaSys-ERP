@@ -28,6 +28,7 @@ import * as notificationService from "./notifications";
 import { NotificationPreferences, defaultNotificationPreferences } from "./notifications";
 import { WebSocket, WebSocketServer } from "ws";
 import errorLoggingRoutes from "./routes/error-logging";
+import statusRoutes from "./routes/status";
 
 // Helper function to handle date objects correctly for database insertion
 function createDateObject(dateString?: string | null) {
@@ -1225,6 +1226,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register error logging routes
   app.use('/api', errorLoggingRoutes);
+  
+  // Register status routes
+  app.use('/api/status', statusRoutes);
   
   // Add seed data if needed
   await addSeedDataIfNeeded();

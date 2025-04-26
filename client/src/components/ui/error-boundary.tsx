@@ -1,116 +1,134 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertCircle, RefreshCw } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { logError } from '@/lib/error-utils';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface Props {
+interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
 }
 
 /**
- * ErrorBoundary component catches JavaScript errors anywhere in its child component tree.
- * It logs the errors and displays a fallback UI instead of crashing the app.
+ * Error Boundary component that catches JavaScript errors anywhere in its child component tree.
+ * Logs error information and displays a fallback UI.
  */
-export class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
     };
   }
 
-  static getDerivedStateFromError(error: Error): State {
-    // Update state so the next render shows the fallback UI
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    // Update state so the next render will show the fallback UI
     return {
       hasError: true,
       error,
-      errorInfo: null
+      errorInfo: null,
     };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Log error to server
-    logError(error, {
-      source: 'ErrorBoundary',
-      context: {
-        componentStack: errorInfo.componentStack
-      }
-    });
-
-    // Update error info for display
+    // Log the error to an error reporting service
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    
+    // Update state with error info
     this.setState({
-      errorInfo
+      errorInfo,
     });
 
-    // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error caught by ErrorBoundary:', error);
-      console.error('Component stack:', errorInfo.componentStack);
+    // Call the onError callback if provided
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
+
+    // Log to backend error tracking system if available
+    try {
+      fetch('/api/errors/client', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: error.message,
+          stack: error.stack,
+          componentStack: errorInfo.componentStack,
+          location: window.location.href,
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString(),
+        }),
+      }).catch(err => {
+        console.error('Failed to report error to backend:', err);
+      });
+    } catch (reportError) {
+      console.error('Error while reporting error:', reportError);
     }
   }
 
-  handleReset = (): void => {
+  resetErrorBoundary = (): void => {
     this.setState({
       hasError: false,
       error: null,
-      errorInfo: null
+      errorInfo: null,
     });
   };
 
   render(): ReactNode {
     if (this.state.hasError) {
+      // Custom fallback UI
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
       // Default fallback UI
       return (
-        <div className="flex items-center justify-center min-h-screen p-4 bg-background">
-          <Card className="w-full max-w-md shadow-lg border-red-200 bg-white">
-            <CardHeader className="bg-red-50 text-red-900 rounded-t-lg">
+        <div className="flex items-center justify-center min-h-[50vh] p-4">
+          <Card className="max-w-lg w-full">
+            <CardHeader className="bg-red-50 dark:bg-red-900/20">
               <div className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-red-600" />
-                <CardTitle className="text-red-800">Application Error</CardTitle>
+                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+                <CardTitle className="text-red-700 dark:text-red-400">Something went wrong</CardTitle>
               </div>
-              <CardDescription className="text-red-700">
-                We encountered an unexpected error
+              <CardDescription className="text-red-700/70 dark:text-red-400/70">
+                The application encountered an unexpected error.
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
-              <Alert variant="destructive" className="mb-4">
-                <AlertTitle>{this.state.error?.name || 'Error'}</AlertTitle>
-                <AlertDescription className="mt-2">
-                  {this.state.error?.message || 'An unexpected error occurred'}
-                </AlertDescription>
-              </Alert>
+              <div className="mb-4">
+                <h3 className="font-medium text-gray-900 dark:text-gray-200 mb-1">Error details:</h3>
+                <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                  {this.state.error?.message || 'Unknown error'}
+                </p>
 
-              {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium mb-2">Component Stack</h4>
-                  <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto max-h-[200px]">
-                    {this.state.errorInfo.componentStack}
-                  </pre>
-                </div>
-              )}
+                <h3 className="font-medium text-gray-900 dark:text-gray-200 mb-1">What happened?</h3>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  The application encountered an unexpected error. This error has been automatically
+                  reported to our technical team, who will work to resolve it as soon as possible.
+                </p>
+              </div>
             </CardContent>
             <CardFooter className="flex justify-between border-t pt-4">
-              <Button variant="outline" onClick={() => window.location.href = '/'}>
-                Go to Home
+              <Button
+                variant="outline"
+                onClick={() => window.location.href = '/'}
+              >
+                Go to homepage
               </Button>
-              <Button onClick={this.handleReset} className="flex gap-2 items-center">
-                <RefreshCw className="h-4 w-4" />
-                Try Again
+              <Button 
+                onClick={this.resetErrorBoundary}
+                className="bg-[#025E73] hover:bg-[#F2A71B] text-white"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" /> Try again
               </Button>
             </CardFooter>
           </Card>
@@ -118,23 +136,9 @@ export class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    // When there is no error, render children normally
+    // If there's no error, render children normally
     return this.props.children;
   }
 }
 
-/**
- * Higher-order component that wraps the provided component in an ErrorBoundary
- * @param Component - Component to wrap with error boundary
- * @param fallback - Optional custom fallback UI
- */
-export function withErrorBoundary<P extends object>(
-  Component: React.ComponentType<P>,
-  fallback?: ReactNode
-): React.FC<P> {
-  return (props: P) => (
-    <ErrorBoundary fallback={fallback}>
-      <Component {...props} />
-    </ErrorBoundary>
-  );
-}
+export { ErrorBoundary };
