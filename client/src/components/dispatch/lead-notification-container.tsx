@@ -183,22 +183,24 @@ export function LeadNotificationContainer() {
 
   const hasNotifications = filteredNotifications.length > 0;
 
+  // Render nothing if there are no notifications to show
+  // This is different from the conditional in NotificationContainer which handles route/permission logic
+  if (!hasNotifications) return null;
+
   return (
     <Card className="w-full max-w-3xl mx-auto mb-6 shadow-md border border-gray-200 md:w-full sm:w-[95%]">
       <div className="p-4 pb-0">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-gray-900 sm:text-lg">Lead Notifications</h2>
-          {hasNotifications && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-1 min-h-[44px] sm:text-sm"
-              onClick={markAllAsRead}
-            >
-              <CheckCheck className="h-4 w-4" />
-              <span>Mark all as read</span>
-            </Button>
-          )}
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex items-center gap-1 min-h-[44px] sm:text-sm"
+            onClick={markAllAsRead}
+          >
+            <CheckCheck className="h-4 w-4" />
+            <span>Mark all as read</span>
+          </Button>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>

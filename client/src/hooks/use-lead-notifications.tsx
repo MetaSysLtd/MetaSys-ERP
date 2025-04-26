@@ -52,6 +52,7 @@ interface LeadNotificationContextProps {
   hasUnreadNotifications: boolean;
   unreadCount: number;
   resetWeeklyInactiveLeads: () => void;
+  isLoading: boolean;
 }
 
 // Create context with default values
@@ -63,7 +64,8 @@ const LeadNotificationContext = createContext<LeadNotificationContextProps>({
   clearAllNotifications: () => {},
   hasUnreadNotifications: false,
   unreadCount: 0,
-  resetWeeklyInactiveLeads: () => {}
+  resetWeeklyInactiveLeads: () => {},
+  isLoading: false
 });
 
 // Provider component
@@ -445,7 +447,8 @@ export const LeadNotificationProvider = ({ children }: { children: ReactNode }) 
         clearAllNotifications,
         hasUnreadNotifications,
         unreadCount,
-        resetWeeklyInactiveLeads
+        resetWeeklyInactiveLeads,
+        isLoading
       }}
     >
       {children}
