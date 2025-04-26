@@ -68,18 +68,18 @@ app.use((req, res, next) => {
   const httpServer = createServer(app);
   
   // Set up a custom middleware to only handle the API routes and leave the rest for Vite
+  // Set up a custom middleware to only handle the API routes and leave the rest for Vite
   app.use('/api', (req, res, next) => {
     // Log original URL for debugging
     console.log(`Original URL: ${req.url}, Path: ${req.path}`);
     
-    // DO NOT modify the URL for /api/auth paths to fix auth issues
-    if (req.url.startsWith('/auth') || req.url === '/auth') {
-      console.log(`Auth URL detected, keeping URL as: ${req.url}`);
-    } else {
-      // Adjust the URL to make Express routing work correctly for other API routes
-      req.url = req.url.replace(/^\/api/, '');
-      console.log(`Modified URL: ${req.url}`);
-    }
+    // IMPORTANT: Set proper content type for API responses
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Keep original URL - no longer stripping /api prefix
+    // This matches how we registered routes in server/routes.ts
+    // We now use the full path everywhere (/api/auth/login, etc.)
+    
     next();
   });
   
