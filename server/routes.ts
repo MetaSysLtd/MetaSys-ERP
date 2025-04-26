@@ -1941,7 +1941,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
   
   // Call Log routes
   const callLogRouter = express.Router();
-  app.use("/call-logs", callLogRouter);
+  app.use("/api/call-logs", callLogRouter);
   
   // Get all call logs for a specific lead
   callLogRouter.get("/lead/:leadId", createAuthMiddleware(1), async (req, res, next) => {
@@ -2056,7 +2056,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
   
   // Lead Follow-Up routes
   const leadFollowUpRouter = express.Router();
-  app.use("/lead-follow-ups", leadFollowUpRouter);
+  app.use("/api/lead-follow-ups", leadFollowUpRouter);
   
   // Get all follow-ups for a specific lead
   leadFollowUpRouter.get("/lead/:leadId", createAuthMiddleware(1), async (req, res, next) => {
@@ -2228,7 +2228,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
   
   // Customer Feedback routes
   const customerFeedbackRouter = express.Router();
-  app.use("/customer-feedback", customerFeedbackRouter);
+  app.use("/api/customer-feedback", customerFeedbackRouter);
   
   // Get all feedback for a specific lead
   customerFeedbackRouter.get("/lead/:leadId", createAuthMiddleware(1), async (req, res, next) => {
@@ -2492,7 +2492,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Dispatch Client routes
   const dispatchClientRouter = express.Router();
-  app.use("/dispatch/clients", dispatchClientRouter);
+  app.use("/api/dispatch/clients", dispatchClientRouter);
   
   dispatchClientRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
@@ -2662,7 +2662,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Invoice routes
   const invoiceRouter = express.Router();
-  app.use("/invoices", invoiceRouter);
+  app.use("/api/invoices", invoiceRouter);
 
   invoiceRouter.get("/", createAuthMiddleware(2), async (req, res, next) => {
     try {
@@ -2829,11 +2829,11 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Commission routes
   const commissionRouter = express.Router();
-  app.use("/commissions", commissionRouter);
+  app.use("/api/commissions", commissionRouter);
   
   // Admin commission routes
   const adminCommissionRouter = express.Router();
-  app.use("/admin/commissions", adminCommissionRouter);
+  app.use("/api/admin/commissions", adminCommissionRouter);
   
   // Get top commission earners for admin dashboard
   adminCommissionRouter.get("/top-earners", createAuthMiddleware(4), async (req, res, next) => {
