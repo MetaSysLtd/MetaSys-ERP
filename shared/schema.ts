@@ -18,6 +18,226 @@ export const probationRecommendationEnum = pgEnum('probation_recommendation', ['
 export const exitStatusEnum = pgEnum('exit_status', ['pending', 'in_progress', 'completed']);
 export const documentTypeEnum = pgEnum('document_type', ['offer_letter', 'nda', 'non_compete', 'background_check', 'cnic', 'education_certificate', 'bank_details', 'police_verification', 'experience_letter', 'probation_form']);
 
+// HR Hiring & Onboarding tables
+export const hiringCandidates = pgTable("hiring_candidates", {
+  id: serial("id").primaryKey(),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  appliedFor: text("applied_for").notNull(), // Position: "Sales Executive", "Dispatch Coordinator", etc.
+  status: hiringCandidateStatusEnum("status").notNull().default("applied"),
+  documentsReceived: boolean("documents_received").notNull().default(false),
+  backgroundCheckPassed: boolean("background_check_passed").notNull().default(false),
+  offerLetterSent: boolean("offer_letter_sent").notNull().default(false),
+  notes: text("notes"),
+  cvLink: text("cv_link"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+}, (table) => {
+  return {
+    orgIdIdx: index("hiring_candidates_org_id_idx").on(table.orgId),
+    statusIdx: index("hiring_candidates_status_idx").on(table.status),
+    createdAtIdx: index("hiring_candidates_created_at_idx").on(table.createdAt),
+  };
+});
+
+export const candidateDocuments = pgTable("candidate_documents", {
+  id: serial("id").primaryKey(),
+  candidateId: integer("candidate_id").notNull().references(() => hiringCandidates.id),
+  documentType: documentTypeEnum("document_type").notNull(),
+  documentUrl: text("document_url").notNull(),
+  status: documentStatusEnum("status").notNull().default("awaiting_verification"),
+  uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
+  verifiedAt: timestamp("verified_at"),
+  verifiedBy: integer("verified_by").references(() => users.id),
+  notes: text("notes"),
+}, (table) => {
+  return {
+    candidateIdIdx: index("candidate_documents_candidate_id_idx").on(table.candidateId),
+    documentTypeIdx: index("candidate_documents_document_type_idx").on(table.documentType),
+    statusIdx: index("candidate_documents_status_idx").on(table.status),
+  };
+});
+
+export const hiringTemplates = pgTable("hiring_templates", {
+  id: serial("id").primaryKey(),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  name: text("name").notNull(),
+  templateType: documentTypeEnum("template_type").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  isDefault: boolean("is_default").notNull().default(false),
+}, (table) => {
+  return {
+    orgIdIdx: index("hiring_templates_org_id_idx").on(table.orgId),
+    templateTypeIdx: index("hiring_templates_template_type_idx").on(table.templateType),
+  };
+});
+
+export const probationSchedules = pgTable("probation_schedules", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  status: probationStatusEnum("status").notNull().default("pending"),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  checkpoint45Day: timestamp("checkpoint_45_day"),
+  checkpoint45Complete: boolean("checkpoint_45_complete").notNull().default(false),
+  checkpoint90Day: timestamp("checkpoint_90_day"),
+  checkpoint90Complete: boolean("checkpoint_90_complete").notNull().default(false),
+  managerNotes: text("manager_notes"),
+  recommendation: probationRecommendationEnum("recommendation"),
+  assignedManagerId: integer("assigned_manager_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index("probation_schedules_user_id_idx").on(table.userId),
+    orgIdIdx: index("probation_schedules_org_id_idx").on(table.orgId),
+    statusIdx: index("probation_schedules_status_idx").on(table.status),
+    managerIdIdx: index("probation_schedules_manager_id_idx").on(table.assignedManagerId),
+  };
+});
+
+export const probationEvaluations = pgTable("probation_evaluations", {
+  id: serial("id").primaryKey(),
+  probationId: integer("probation_id").notNull().references(() => probationSchedules.id),
+  evaluationType: text("evaluation_type").notNull(), // "45-day" or "90-day"
+  performanceRating: integer("performance_rating").notNull(), // 1-5 scale
+  teamworkRating: integer("teamwork_rating").notNull(), // 1-5 scale
+  confidentialityRating: integer("confidentiality_rating").notNull(), // 1-5 scale
+  overallRating: integer("overall_rating").notNull(), // 1-5 scale
+  strengths: text("strengths"),
+  areasForImprovement: text("areas_for_improvement"),
+  recommendation: probationRecommendationEnum("recommendation").notNull(),
+  evaluatedBy: integer("evaluated_by").notNull().references(() => users.id),
+  evaluatedAt: timestamp("evaluated_at").notNull().defaultNow(),
+  acknowledgedBy: integer("acknowledged_by").references(() => users.id),
+  acknowledgedAt: timestamp("acknowledged_at"),
+  comments: text("comments"),
+}, (table) => {
+  return {
+    probationIdIdx: index("probation_evaluations_probation_id_idx").on(table.probationId),
+    evaluationTypeIdx: index("probation_evaluations_evaluation_type_idx").on(table.evaluationType),
+    recommendationIdx: index("probation_evaluations_recommendation_idx").on(table.recommendation),
+  };
+});
+
+export const exitRequests = pgTable("exit_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  requestDate: timestamp("request_date").notNull().defaultNow(),
+  exitDate: timestamp("exit_date").notNull(),
+  reason: text("reason").notNull(),
+  status: exitStatusEnum("status").notNull().default("pending"),
+  assignedTo: integer("assigned_to").notNull().references(() => users.id),
+  assetsReturned: boolean("assets_returned").notNull().default(false),
+  systemAccessRevoked: boolean("system_access_revoked").notNull().default(false),
+  finalSalaryClearance: boolean("final_salary_clearance").notNull().default(false),
+  experienceLetterIssued: boolean("experience_letter_issued").notNull().default(false),
+  exitInterviewNotes: text("exit_interview_notes"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index("exit_requests_user_id_idx").on(table.userId),
+    orgIdIdx: index("exit_requests_org_id_idx").on(table.orgId),
+    statusIdx: index("exit_requests_status_idx").on(table.status),
+    assignedToIdx: index("exit_requests_assigned_to_idx").on(table.assignedTo),
+  };
+});
+
+export const companyDocuments = pgTable("company_documents", {
+  id: serial("id").primaryKey(),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // "policy", "contract_template", "form", "legal"
+  documentUrl: text("document_url").notNull(),
+  isPublic: boolean("is_public").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
+}, (table) => {
+  return {
+    orgIdIdx: index("company_documents_org_id_idx").on(table.orgId),
+    categoryIdx: index("company_documents_category_idx").on(table.category),
+  };
+});
+
+// Insert schemas for HR tables
+export const insertHiringCandidateSchema = createInsertSchema(hiringCandidates).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export const insertCandidateDocumentSchema = createInsertSchema(candidateDocuments).omit({ 
+  id: true, 
+  uploadedAt: true, 
+  verifiedAt: true 
+});
+
+export const insertHiringTemplateSchema = createInsertSchema(hiringTemplates).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export const insertProbationScheduleSchema = createInsertSchema(probationSchedules).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export const insertProbationEvaluationSchema = createInsertSchema(probationEvaluations).omit({ 
+  id: true, 
+  evaluatedAt: true, 
+  acknowledgedAt: true 
+});
+
+export const insertExitRequestSchema = createInsertSchema(exitRequests).omit({ 
+  id: true, 
+  requestDate: true, 
+  completedAt: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export const insertCompanyDocumentSchema = createInsertSchema(companyDocuments).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+// Type definitions
+export type HiringCandidate = typeof hiringCandidates.$inferSelect;
+export type InsertHiringCandidate = z.infer<typeof insertHiringCandidateSchema>;
+
+export type CandidateDocument = typeof candidateDocuments.$inferSelect;
+export type InsertCandidateDocument = z.infer<typeof insertCandidateDocumentSchema>;
+
+export type HiringTemplate = typeof hiringTemplates.$inferSelect;
+export type InsertHiringTemplate = z.infer<typeof insertHiringTemplateSchema>;
+
+export type ProbationSchedule = typeof probationSchedules.$inferSelect;
+export type InsertProbationSchedule = z.infer<typeof insertProbationScheduleSchema>;
+
+export type ProbationEvaluation = typeof probationEvaluations.$inferSelect;
+export type InsertProbationEvaluation = z.infer<typeof insertProbationEvaluationSchema>;
+
+export type ExitRequest = typeof exitRequests.$inferSelect;
+export type InsertExitRequest = z.infer<typeof insertExitRequestSchema>;
+
+export type CompanyDocument = typeof companyDocuments.$inferSelect;
+export type InsertCompanyDocument = z.infer<typeof insertCompanyDocumentSchema>;
+
 // Organization Management
 export const organizations = pgTable("organizations", {
   id: serial("id").primaryKey(),

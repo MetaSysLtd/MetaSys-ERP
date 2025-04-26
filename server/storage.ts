@@ -2,6 +2,8 @@ import {
   users, roles, leads, leadRemarks, loads, invoices, invoiceItems, commissions, activities, tasks,
   dispatch_clients, organizations, userOrganizations, commissionRules, commissionsMonthly,
   clockEvents, clockEventTypeEnum, uiPreferences, dispatchTasks, dispatchReports, performanceTargets,
+  hiringCandidates, candidateDocuments, hiringTemplates, probationSchedules, probationEvaluations, 
+  exitRequests, companyDocuments,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
@@ -17,7 +19,14 @@ import {
   type DispatchTask, type InsertDispatchTask,
   type DispatchReport, type InsertDispatchReport,
   type PerformanceTarget, type InsertPerformanceTarget,
-  type LeadRemark
+  type LeadRemark,
+  type HiringCandidate, type InsertHiringCandidate,
+  type CandidateDocument, type InsertCandidateDocument,
+  type HiringTemplate, type InsertHiringTemplate,
+  type ProbationSchedule, type InsertProbationSchedule,
+  type ProbationEvaluation, type InsertProbationEvaluation,
+  type ExitRequest, type InsertExitRequest,
+  type CompanyDocument, type InsertCompanyDocument
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -220,6 +229,65 @@ export interface IStorage {
   getPerformanceTargetByOrgAndType(orgId: number, type: 'daily' | 'weekly'): Promise<PerformanceTarget | undefined>;
   createPerformanceTarget(target: InsertPerformanceTarget): Promise<PerformanceTarget>;
   updatePerformanceTarget(id: number, target: Partial<PerformanceTarget>): Promise<PerformanceTarget | undefined>;
+  
+  // HR Hiring & Onboarding operations
+  
+  // Hiring Candidate operations
+  getHiringCandidate(id: number): Promise<HiringCandidate | undefined>;
+  getHiringCandidates(orgId: number): Promise<HiringCandidate[]>;
+  getHiringCandidatesByStatus(status: string, orgId: number): Promise<HiringCandidate[]>;
+  createHiringCandidate(candidate: InsertHiringCandidate): Promise<HiringCandidate>;
+  updateHiringCandidate(id: number, candidate: Partial<HiringCandidate>): Promise<HiringCandidate | undefined>;
+  
+  // Candidate Document operations
+  getCandidateDocument(id: number): Promise<CandidateDocument | undefined>;
+  getCandidateDocumentsByCandidateId(candidateId: number): Promise<CandidateDocument[]>;
+  createCandidateDocument(document: InsertCandidateDocument): Promise<CandidateDocument>;
+  updateCandidateDocument(id: number, document: Partial<CandidateDocument>): Promise<CandidateDocument | undefined>;
+  
+  // Hiring Template operations
+  getHiringTemplate(id: number): Promise<HiringTemplate | undefined>;
+  getHiringTemplatesByType(templateType: string, orgId: number): Promise<HiringTemplate[]>;
+  getDefaultTemplateByType(templateType: string, orgId: number): Promise<HiringTemplate | undefined>;
+  createHiringTemplate(template: InsertHiringTemplate): Promise<HiringTemplate>;
+  updateHiringTemplate(id: number, template: Partial<HiringTemplate>): Promise<HiringTemplate | undefined>;
+  
+  // Probation Schedule operations
+  getProbationSchedule(id: number): Promise<ProbationSchedule | undefined>;
+  getProbationScheduleByUserId(userId: number): Promise<ProbationSchedule | undefined>;
+  getProbationSchedulesByStatus(status: string, orgId: number): Promise<ProbationSchedule[]>;
+  getProbationSchedulesByManager(managerId: number): Promise<ProbationSchedule[]>;
+  createProbationSchedule(schedule: InsertProbationSchedule): Promise<ProbationSchedule>;
+  updateProbationSchedule(id: number, schedule: Partial<ProbationSchedule>): Promise<ProbationSchedule | undefined>;
+  
+  // Probation Evaluation operations
+  getProbationEvaluation(id: number): Promise<ProbationEvaluation | undefined>;
+  getProbationEvaluationsByProbationId(probationId: number): Promise<ProbationEvaluation[]>;
+  createProbationEvaluation(evaluation: InsertProbationEvaluation): Promise<ProbationEvaluation>;
+  updateProbationEvaluation(id: number, evaluation: Partial<ProbationEvaluation>): Promise<ProbationEvaluation | undefined>;
+  
+  // Exit Request operations
+  getExitRequest(id: number): Promise<ExitRequest | undefined>;
+  getExitRequestsByStatus(status: string, orgId: number): Promise<ExitRequest[]>;
+  getExitRequestsByUserId(userId: number): Promise<ExitRequest[]>;
+  createExitRequest(request: InsertExitRequest): Promise<ExitRequest>;
+  updateExitRequest(id: number, request: Partial<ExitRequest>): Promise<ExitRequest | undefined>;
+  
+  // Company Document operations
+  getCompanyDocument(id: number): Promise<CompanyDocument | undefined>;
+  getCompanyDocumentsByCategory(category: string, orgId: number): Promise<CompanyDocument[]>;
+  getPublicCompanyDocuments(orgId: number): Promise<CompanyDocument[]>;
+  createCompanyDocument(document: InsertCompanyDocument): Promise<CompanyDocument>;
+  updateCompanyDocument(id: number, document: Partial<CompanyDocument>): Promise<CompanyDocument | undefined>;
+  
+  // HR Analytics
+  getHrMetrics(orgId: number, period?: { startDate: Date; endDate: Date }): Promise<{
+    newHiresCount: number;
+    pendingProbationCount: number;
+    exitRate: number;
+    avgOnboardingTime: number;
+    documentCompletionRate: number;
+  }>;
 }
 
 export class MemStorage implements IStorage {
@@ -249,6 +317,15 @@ export class MemStorage implements IStorage {
   private dispatchTasks: Map<number, DispatchTask>;
   private performanceTargets: Map<number, PerformanceTarget>;
   
+  // HR Hiring & Onboarding
+  private hiringCandidates: Map<number, HiringCandidate>;
+  private candidateDocuments: Map<number, CandidateDocument>;
+  private hiringTemplates: Map<number, HiringTemplate>;
+  private probationSchedules: Map<number, ProbationSchedule>;
+  private probationEvaluations: Map<number, ProbationEvaluation>;
+  private exitRequests: Map<number, ExitRequest>;
+  private companyDocuments: Map<number, CompanyDocument>;
+  
   private userIdCounter: number;
   private roleIdCounter: number;
   private leadIdCounter: number;
@@ -272,6 +349,15 @@ export class MemStorage implements IStorage {
   private dispatchReportIdCounter: number;
   private dispatchTaskIdCounter: number;
   private performanceTargetIdCounter: number;
+  
+  // HR Hiring & Onboarding counters
+  private hiringCandidateIdCounter: number;
+  private candidateDocumentIdCounter: number;
+  private hiringTemplateIdCounter: number;
+  private probationScheduleIdCounter: number;
+  private probationEvaluationIdCounter: number;
+  private exitRequestIdCounter: number;
+  private companyDocumentIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
@@ -304,6 +390,15 @@ export class MemStorage implements IStorage {
     this.dispatchTasks = new Map();
     this.performanceTargets = new Map();
     
+    // Initialize HR Hiring & Onboarding maps
+    this.hiringCandidates = new Map();
+    this.candidateDocuments = new Map();
+    this.hiringTemplates = new Map();
+    this.probationSchedules = new Map();
+    this.probationEvaluations = new Map();
+    this.exitRequests = new Map();
+    this.companyDocuments = new Map();
+    
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
     this.leadIdCounter = 1;
@@ -327,6 +422,15 @@ export class MemStorage implements IStorage {
     this.dispatchReportIdCounter = 1;
     this.dispatchTaskIdCounter = 1;
     this.performanceTargetIdCounter = 1;
+    
+    // Initialize HR Hiring & Onboarding counters
+    this.hiringCandidateIdCounter = 1;
+    this.candidateDocumentIdCounter = 1;
+    this.hiringTemplateIdCounter = 1;
+    this.probationScheduleIdCounter = 1;
+    this.probationEvaluationIdCounter = 1;
+    this.exitRequestIdCounter = 1;
+    this.companyDocumentIdCounter = 1;
     
     // Initialize with default roles
     this.initializeRoles();
