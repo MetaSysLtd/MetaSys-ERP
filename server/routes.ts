@@ -1203,9 +1203,11 @@ async function addSeedDataIfNeeded() {
 }
 
 export async function registerRoutes(app: Express, server?: Server): Promise<Server> {
-  // Make sure API routes are handled under /api to avoid conflicting with the frontend
-  // Root API route should be /api not /
-  app.get('/api', (req, res) => {
+  // Express router to handle our API routes
+  // All routes will be prefixed with /api due to the middleware in index.ts
+  
+  // Root API route - this will be accessible at /api
+  app.get('/', (req, res) => {
     res.json({
       success: true, 
       message: "MetaSys ERP backend is running",
@@ -1233,13 +1235,13 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
   
   // Apply organization middleware to all API routes
-  app.use('/api', organizationMiddleware);
+  app.use('/', organizationMiddleware);
   
   // Register error logging routes
-  app.use('/api', errorLoggingRoutes);
+  app.use('/', errorLoggingRoutes);
   
   // Register status routes
-  app.use('/api/status', statusRoutes);
+  app.use('/status', statusRoutes);
   
   // Add seed data if needed
   await addSeedDataIfNeeded();
@@ -1271,7 +1273,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Authentication routes
   const authRouter = express.Router();
-  app.use("/api/auth", authRouter);
+  app.use("/auth", authRouter);
 
   // Login route with enhanced error handling
   authRouter.post("/login", async (req, res, next) => {
@@ -1437,7 +1439,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // User routes
   const userRouter = express.Router();
-  app.use("/api/users", userRouter);
+  app.use("/users", userRouter);
 
   // User-Organization management routes
   userRouter.get("/:userId/organizations", createAuthMiddleware(3), async (req, res, next) => {
@@ -6190,15 +6192,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
     }
   });
 
-  // Root route handler for health check
-  app.get('/', (req, res) => {
-    res.status(200).json({
-      success: true,
-      message: 'MetaSys ERP backend is running',
-      version: '1.0.0',
-      timestamp: new Date().toISOString()
-    });
-  });
+  // Remove the root route handler - let Vite handle it for frontend rendering
 
   // Dedicated health check endpoint
   app.get('/health', (req, res) => {

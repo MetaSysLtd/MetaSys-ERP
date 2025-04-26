@@ -67,18 +67,25 @@ app.use((req, res, next) => {
   // Create the HTTP server first - this needs to be used consistently
   const httpServer = createServer(app);
   
-  // Register API routes first, important for proper route handling
-  // Pass the httpServer to registerRoutes so it uses the same server instance
-  await registerRoutes(app, httpServer);
+  // Set up a custom middleware to only handle the API routes and leave the rest for Vite
+  app.use('/api', (req, res, next) => {
+    // Adjust the URL to make Express routing work correctly
+    req.url = req.url.replace(/^\/api/, '');
+    next();
+  });
   
-  // Setup Vite or static serving after API routes are registered
-  // This ensures API routes take precedence over frontend routes
+  // Setup Vite or static serving BEFORE API routes
+  // This is counter-intuitive but fixes the clash between Vite's "*" handler and our API routes
   if (app.get("env") === "development") {
     // Make sure we pass the correct httpServer to setupVite
     await setupVite(app, httpServer); 
   } else {
     serveStatic(app);
   }
+  
+  // Now register API routes - they'll only be triggered for /api/* paths
+  // Pass the httpServer to registerRoutes so it uses the same server instance
+  await registerRoutes(app, httpServer);
   
   // Initialize socket.io server using the correct HTTP server
   const { initializeSocketServer } = await import('./socket');
