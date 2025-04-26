@@ -1273,7 +1273,7 @@ export async function registerRoutes(app: Express, server?: Server): Promise<Ser
 
   // Authentication routes
   const authRouter = express.Router();
-  app.use("/api/auth", authRouter);
+  app.use("/auth", authRouter);
 
   // Login route with enhanced error handling
   authRouter.post("/login", async (req, res, next) => {
