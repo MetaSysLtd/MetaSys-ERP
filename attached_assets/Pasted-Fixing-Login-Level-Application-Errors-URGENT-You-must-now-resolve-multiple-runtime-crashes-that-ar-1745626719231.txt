@@ -1,0 +1,94 @@
+Fixing Login-Level Application Errors (URGENT)
+You must now resolve multiple runtime crashes that are preventing even basic login from working.
+These are breaking core functionality and not user-friendly.
+
+1. GLOBAL BACKEND GUARD CLAUSES
+✅ Anywhere in the backend where you are calling toObject() or mapping objects, wrap with safe checks:
+
+ts
+Copy
+Edit
+if (!user || !user.orgId || !user.role) {
+  return res.status(400).json({ error: "Invalid user structure. Missing role or orgId." });
+}
+✅ If any essential object like organization, team, user.settings, or permissions is undefined/null — throw a structured error, not raw JS crash.
+
+2. DATABASE STARTUP SANITY CHECK
+✅ On app start, run a background check:
+
+Does at least 1 organization exist?
+
+Does a “default” admin user exist?
+
+Does the required teams, roles, and permissions table have entries?
+
+If not, insert defaults and log a warning in console.
+
+3. LOGIN API FIXES
+✅ Your login flow must:
+
+Check if the user exists → if not, show “Invalid username/password”
+
+Fetch their orgId and team assignment → if null, assign to default org/team
+
+Validate their role → if null, show error “User is not assigned to any role. Contact Admin.”
+
+✅ Return structured error objects like:
+
+json
+Copy
+Edit
+{
+  "error": "Invalid credentials",
+  "missing": ["teamId", "permissions"]
+}
+Not JavaScript exceptions!
+
+4. FRONTEND NULL/UNDEFINED DEFENSE
+✅ Wrap all objects coming from login API in optional chaining:
+
+ts
+Copy
+Edit
+const teamName = user?.team?.name ?? "Unassigned";
+const permissions = user?.permissions ?? {};
+✅ If anything is undefined or missing, show a friendly error UI:
+
+❌ “Oops! Your user profile seems incomplete. Please contact the System Admin.”
+
+Do NOT crash the app with a blank screen or runtime plugin error.
+
+5. SYSTEM LOGGING
+✅ For every login or API error, log to:
+
+Console (temporarily)
+
+Notification system (optional)
+
+Admin-only audit logs for later review
+
+6. OPTIONAL: SUGGESTED DEFAULT USER SETUP SCRIPT
+If no users/orgs are set yet, generate a default admin for testing:
+
+ts
+Copy
+Edit
+await createUser({
+  username: "admin",
+  password: "admin123",
+  orgId: createOrg("MetaSys Logistics"),
+  role: "systemAdmin",
+  teamId: null
+});
+This prevents login failure on new deployments.
+
+FINAL PASS CONDITION
+✅ The following must now be true:
+
+Login never crashes the app again
+
+No "undefined to object" errors on login or dashboard load
+
+Missing roles/teams/orgs show proper alerts, not broken screens
+
+You return valid 400/403/500 status codes instead of JS exceptions

@@ -10,6 +10,14 @@ export const leadSourceEnum = pgEnum('lead_source', ['SQL', 'MQL']);
 export const leadStatusEnum = pgEnum('lead_status', ['New', 'InProgress', 'FollowUp', 'HandToDispatch', 'Active', 'Lost']);
 export const callOutcomeEnum = pgEnum('call_outcome', ['Answered', 'Voicemail', 'No Answer', 'Wrong Number', 'Not Interested', 'Interested', 'Follow Up', 'Booked']);
 
+// HR Hiring & Onboarding enums
+export const hiringCandidateStatusEnum = pgEnum('hiring_candidate_status', ['applied', 'screening', 'interviewed', 'offered', 'onboarded']);
+export const documentStatusEnum = pgEnum('document_status', ['uploaded', 'missing', 'awaiting_verification']);
+export const probationStatusEnum = pgEnum('probation_status', ['pending', 'in_progress', 'completed', 'extended', 'terminated']);
+export const probationRecommendationEnum = pgEnum('probation_recommendation', ['confirm', 'extend', 'terminate']);
+export const exitStatusEnum = pgEnum('exit_status', ['pending', 'in_progress', 'completed']);
+export const documentTypeEnum = pgEnum('document_type', ['offer_letter', 'nda', 'non_compete', 'background_check', 'cnic', 'education_certificate', 'bank_details', 'police_verification', 'experience_letter', 'probation_form']);
+
 // Organization Management
 export const organizations = pgTable("organizations", {
   id: serial("id").primaryKey(),
