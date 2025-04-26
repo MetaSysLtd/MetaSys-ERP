@@ -3,8 +3,47 @@ import * as emailService from './email';
 import { log } from './vite';
 import { db } from './db';
 import { eq } from 'drizzle-orm';
-import { leads, users } from '@shared/schema';
+import { leads, users, notifications } from '@shared/schema';
 import { storage } from './storage';
+
+// Interface for notification payload
+export interface NotificationPayload {
+  title: string;
+  message: string;
+  type: string;
+  entityId: number;
+  entityType: string;
+  orgId: number;
+  userId?: number;
+}
+
+// Function to send notification
+export async function sendNotification(notification: NotificationPayload) {
+  try {
+    // Store notification in database
+    await storage.createNotification({
+      title: notification.title,
+      message: notification.message,
+      type: notification.type,
+      entityId: notification.entityId,
+      entityType: notification.entityType,
+      userId: notification.userId,
+      orgId: notification.orgId,
+      read: false,
+      createdAt: new Date()
+    });
+    
+    // Send Slack notification if configured
+    if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_CHANNEL_ID) {
+      await slackService.sendSlackNotification(notification.title, notification.message);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error sending notification:', error);
+    return false;
+  }
+}
 
 // Types of notifications
 export enum NotificationType {

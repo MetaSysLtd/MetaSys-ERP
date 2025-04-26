@@ -16,7 +16,9 @@ import {
   insertCompanyDocumentSchema, hiringCandidates, candidateDocuments, hiringTemplates,
   probationSchedules, probationEvaluations, exitRequests, companyDocuments,
   hiringCandidateStatusEnum, documentStatusEnum, probationStatusEnum, probationRecommendationEnum,
-  exitStatusEnum, documentTypeEnum
+  exitStatusEnum, documentTypeEnum,
+  HiringCandidate, CandidateDocument, HiringTemplate, ProbationSchedule, ProbationEvaluation, 
+  ExitRequest, CompanyDocument
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -33,28 +35,7 @@ function createDateObject(dateString?: string | null) {
 }
 import { organizationMiddleware } from "./middleware/organizationMiddleware";
 
-// Socket.IO instance will be initialized in registerRoutes
-let io: SocketIOServer;
-
-// Add type extensions for Express
-declare global {
-  namespace Express {
-    interface Request {
-      user?: typeof users.$inferSelect;
-      userRole?: typeof roles.$inferSelect;
-    }
-  }
-  
-  // Extend express-session
-  namespace Express {
-    interface Session {
-      userId?: number;
-    }
-  }
-}
-
-const MemoryStore = createMemoryStore(session);
-
+// Auth middleware function
 const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     // Check if user is authenticated via session
@@ -90,6 +71,854 @@ const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
     }
   };
 };
+
+// Function to register HR routes
+function registerHrRoutes(app: Express) {
+  // Hiring Candidates routes
+  const hiringCandidateRouter = express.Router();
+  app.use("/api/hr/candidates", hiringCandidateRouter);
+
+  hiringCandidateRouter.get("/", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const orgId = req.query.orgId ? Number(req.query.orgId) : (req.user?.orgId || 1);
+      let candidates: HiringCandidate[] = [];
+      
+      // Filter by status if provided
+      if (req.query.status) {
+        candidates = await storage.getHiringCandidatesByStatus(req.query.status as string, orgId);
+      } else {
+        candidates = await storage.getHiringCandidates(orgId);
+      }
+      
+      res.json(candidates);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  hiringCandidateRouter.get("/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const candidate = await storage.getHiringCandidate(Number(req.params.id));
+      if (!candidate) {
+        return res.status(404).json({ message: "Candidate not found" });
+      }
+      
+      res.json(candidate);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  hiringCandidateRouter.post("/", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const candidateData = insertHiringCandidateSchema.parse({
+        ...req.body,
+        createdBy: req.user?.id || 1,
+        updatedBy: req.user?.id || 1,
+        applicationDate: req.body.applicationDate ? new Date(req.body.applicationDate) : new Date(),
+        hireDate: req.body.hireDate ? new Date(req.body.hireDate) : null
+      });
+      
+      const candidate = await storage.createHiringCandidate(candidateData);
+      
+      // Send notification if needed
+      await notificationService.sendNotification({
+        title: "New Hiring Candidate",
+        message: `A new candidate (${candidate.firstName} ${candidate.lastName}) has been added for ${candidate.appliedFor} position.`,
+        type: "hr",
+        entityId: candidate.id,
+        entityType: "hiring_candidate",
+        orgId: candidate.orgId
+      });
+      
+      res.status(201).json(candidate);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+
+  hiringCandidateRouter.patch("/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const candidateId = Number(req.params.id);
+      const currentCandidate = await storage.getHiringCandidate(candidateId);
+      
+      if (!currentCandidate) {
+        return res.status(404).json({ message: "Candidate not found" });
+      }
+      
+      // Process date fields
+      const updates: Partial<HiringCandidate> = {
+        ...req.body,
+        updatedBy: req.user?.id || 1
+      };
+      
+      if (req.body.applicationDate) {
+        updates.applicationDate = new Date(req.body.applicationDate);
+      }
+      
+      if (req.body.hireDate) {
+        updates.hireDate = new Date(req.body.hireDate);
+      }
+      
+      const updatedCandidate = await storage.updateHiringCandidate(candidateId, updates);
+      
+      // Send notification if status changed
+      if (req.body.status && req.body.status !== currentCandidate.status) {
+        await notificationService.sendNotification({
+          title: "Candidate Status Changed",
+          message: `Candidate ${currentCandidate.firstName} ${currentCandidate.lastName} status changed from ${currentCandidate.status} to ${req.body.status}.`,
+          type: "hr",
+          entityId: currentCandidate.id,
+          entityType: "hiring_candidate",
+          orgId: currentCandidate.orgId
+        });
+      }
+      
+      res.json(updatedCandidate);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Candidate Documents routes
+  const candidateDocumentRouter = express.Router();
+  app.use("/api/hr/documents", candidateDocumentRouter);
+
+  candidateDocumentRouter.get("/candidate/:candidateId", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const candidateId = Number(req.params.candidateId);
+      const documents = await storage.getCandidateDocumentsByCandidateId(candidateId);
+      res.json(documents);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  candidateDocumentRouter.get("/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const document = await storage.getCandidateDocument(Number(req.params.id));
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      res.json(document);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  candidateDocumentRouter.post("/", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const documentData = insertCandidateDocumentSchema.parse({
+        ...req.body,
+        uploadedBy: req.user?.id || 1,
+        verifiedBy: null,
+        uploadedAt: new Date(),
+        verifiedAt: null
+      });
+      
+      const document = await storage.createCandidateDocument(documentData);
+      
+      // Update candidate document status
+      const candidate = await storage.getHiringCandidate(document.candidateId);
+      if (candidate) {
+        await storage.updateHiringCandidate(candidate.id, {
+          documentsReceived: true,
+          updatedBy: req.user?.id || 1
+        });
+      }
+      
+      res.status(201).json(document);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+
+  candidateDocumentRouter.patch("/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const documentId = Number(req.params.id);
+      const document = await storage.getCandidateDocument(documentId);
+      
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      // If verifying document, add verifier info
+      const updates: Partial<CandidateDocument> = {
+        ...req.body
+      };
+      
+      if (req.body.status === 'verified' && document.status !== 'verified') {
+        updates.verifiedBy = req.user?.id || 1;
+        updates.verifiedAt = new Date();
+      }
+      
+      const updatedDocument = await storage.updateCandidateDocument(documentId, updates);
+      
+      res.json(updatedDocument);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Hiring Templates routes
+  const hiringTemplateRouter = express.Router();
+  app.use("/api/hr/templates", hiringTemplateRouter);
+
+  hiringTemplateRouter.get("/", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const orgId = req.query.orgId ? Number(req.query.orgId) : (req.user?.orgId || 1);
+      const templateType = req.query.type as string;
+      
+      let templates: HiringTemplate[] = [];
+      
+      if (templateType) {
+        templates = await storage.getHiringTemplatesByType(templateType, orgId);
+      } else {
+        // Get all templates by querying for each type
+        const offerTemplates = await storage.getHiringTemplatesByType('offer_letter', orgId);
+        const probationTemplates = await storage.getHiringTemplatesByType('probation', orgId);
+        const exitTemplates = await storage.getHiringTemplatesByType('exit', orgId);
+        
+        templates = [...offerTemplates, ...probationTemplates, ...exitTemplates];
+      }
+      
+      res.json(templates);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  hiringTemplateRouter.get("/default/:type", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const orgId = req.query.orgId ? Number(req.query.orgId) : (req.user?.orgId || 1);
+      const templateType = req.params.type;
+      
+      const template = await storage.getDefaultTemplateByType(templateType, orgId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Default template not found" });
+      }
+      
+      res.json(template);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  hiringTemplateRouter.get("/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const template = await storage.getHiringTemplate(Number(req.params.id));
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      res.json(template);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  hiringTemplateRouter.post("/", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const templateData = insertHiringTemplateSchema.parse({
+        ...req.body,
+        createdBy: req.user?.id || 1,
+        updatedBy: req.user?.id || 1
+      });
+      
+      const template = await storage.createHiringTemplate(templateData);
+      
+      res.status(201).json(template);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+
+  hiringTemplateRouter.patch("/:id", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const templateId = Number(req.params.id);
+      const template = await storage.getHiringTemplate(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      const updatedTemplate = await storage.updateHiringTemplate(templateId, {
+        ...req.body,
+        updatedBy: req.user?.id || 1
+      });
+      
+      res.json(updatedTemplate);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Probation Schedule routes
+  const probationRouter = express.Router();
+  app.use("/api/hr/probation", probationRouter);
+
+  probationRouter.get("/schedules", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const orgId = req.query.orgId ? Number(req.query.orgId) : (req.user?.orgId || 1);
+      const status = req.query.status as string;
+      
+      let schedules: ProbationSchedule[] = [];
+      
+      if (status) {
+        schedules = await storage.getProbationSchedulesByStatus(status, orgId);
+      } else if (req.query.managerId) {
+        const managerId = Number(req.query.managerId);
+        schedules = await storage.getProbationSchedulesByManager(managerId);
+      } else {
+        // Get all probation schedules for this org
+        const pendingSchedules = await storage.getProbationSchedulesByStatus('pending', orgId);
+        const inProgressSchedules = await storage.getProbationSchedulesByStatus('in_progress', orgId);
+        const completedSchedules = await storage.getProbationSchedulesByStatus('completed', orgId);
+        const extendedSchedules = await storage.getProbationSchedulesByStatus('extended', orgId);
+        const terminatedSchedules = await storage.getProbationSchedulesByStatus('terminated', orgId);
+        
+        schedules = [
+          ...pendingSchedules, 
+          ...inProgressSchedules, 
+          ...completedSchedules, 
+          ...extendedSchedules, 
+          ...terminatedSchedules
+        ];
+      }
+      
+      res.json(schedules);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  probationRouter.get("/schedules/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const schedule = await storage.getProbationSchedule(Number(req.params.id));
+      
+      if (!schedule) {
+        return res.status(404).json({ message: "Probation schedule not found" });
+      }
+      
+      res.json(schedule);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  probationRouter.get("/user/:userId", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const userId = Number(req.params.userId);
+      const schedule = await storage.getProbationScheduleByUserId(userId);
+      
+      if (!schedule) {
+        return res.status(404).json({ message: "Probation schedule not found for this user" });
+      }
+      
+      res.json(schedule);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  probationRouter.post("/schedules", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const scheduleData = insertProbationScheduleSchema.parse({
+        ...req.body,
+        createdBy: req.user?.id || 1,
+        updatedBy: req.user?.id || 1,
+        startDate: new Date(req.body.startDate),
+        endDate: new Date(req.body.endDate),
+        lastEvaluationDate: null
+      });
+      
+      const schedule = await storage.createProbationSchedule(scheduleData);
+      
+      // Send notification to the assigned manager
+      if (schedule.assignedManagerId) {
+        await notificationService.sendNotification({
+          title: "New Probation Assigned",
+          message: `You have been assigned to manage a probation period starting on ${new Date(schedule.startDate).toLocaleDateString()}.`,
+          type: "hr",
+          entityId: schedule.id,
+          entityType: "probation_schedule",
+          userId: schedule.assignedManagerId,
+          orgId: schedule.orgId
+        });
+      }
+      
+      // Send notification to the employee
+      await notificationService.sendNotification({
+        title: "Probation Period Started",
+        message: `Your probation period has been scheduled from ${new Date(schedule.startDate).toLocaleDateString()} to ${new Date(schedule.endDate).toLocaleDateString()}.`,
+        type: "hr",
+        entityId: schedule.id,
+        entityType: "probation_schedule",
+        userId: schedule.userId,
+        orgId: schedule.orgId
+      });
+      
+      res.status(201).json(schedule);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+
+  probationRouter.patch("/schedules/:id", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const scheduleId = Number(req.params.id);
+      const currentSchedule = await storage.getProbationSchedule(scheduleId);
+      
+      if (!currentSchedule) {
+        return res.status(404).json({ message: "Probation schedule not found" });
+      }
+      
+      // Process date fields
+      const updates: Partial<ProbationSchedule> = {
+        ...req.body,
+        updatedBy: req.user?.id || 1
+      };
+      
+      if (req.body.startDate) {
+        updates.startDate = new Date(req.body.startDate);
+      }
+      
+      if (req.body.endDate) {
+        updates.endDate = new Date(req.body.endDate);
+      }
+      
+      const updatedSchedule = await storage.updateProbationSchedule(scheduleId, updates);
+      
+      // Notify about status changes
+      if (req.body.status && req.body.status !== currentSchedule.status) {
+        // Notify employee
+        await notificationService.sendNotification({
+          title: "Probation Status Updated",
+          message: `Your probation status has been updated from ${currentSchedule.status} to ${req.body.status}.`,
+          type: "hr",
+          entityId: currentSchedule.id,
+          entityType: "probation_schedule",
+          userId: currentSchedule.userId,
+          orgId: currentSchedule.orgId
+        });
+        
+        // Notify manager
+        if (currentSchedule.assignedManagerId) {
+          await notificationService.sendNotification({
+            title: "Probation Status Updated",
+            message: `Probation for user ID ${currentSchedule.userId} has been updated from ${currentSchedule.status} to ${req.body.status}.`,
+            type: "hr",
+            entityId: currentSchedule.id,
+            entityType: "probation_schedule",
+            userId: currentSchedule.assignedManagerId,
+            orgId: currentSchedule.orgId
+          });
+        }
+      }
+      
+      res.json(updatedSchedule);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Probation Evaluation routes
+  probationRouter.get("/evaluations/:probationId", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const probationId = Number(req.params.probationId);
+      const evaluations = await storage.getProbationEvaluationsByProbationId(probationId);
+      
+      res.json(evaluations);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  probationRouter.get("/evaluation/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const evaluation = await storage.getProbationEvaluation(Number(req.params.id));
+      
+      if (!evaluation) {
+        return res.status(404).json({ message: "Evaluation not found" });
+      }
+      
+      res.json(evaluation);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  probationRouter.post("/evaluations", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const evaluationData = insertProbationEvaluationSchema.parse({
+        ...req.body,
+        evaluatedBy: req.user?.id || 1,
+        evaluatedAt: new Date(),
+        acknowledged: false,
+        acknowledgedBy: null,
+        acknowledgedAt: null
+      });
+      
+      const evaluation = await storage.createProbationEvaluation(evaluationData);
+      
+      // Fetch the probation schedule to get userId
+      const probationSchedule = await storage.getProbationSchedule(evaluation.probationId);
+      
+      if (probationSchedule) {
+        // Notify the employee about the evaluation
+        await notificationService.sendNotification({
+          title: "New Probation Evaluation",
+          message: `A new evaluation has been submitted for your probation. Please review and acknowledge.`,
+          type: "hr",
+          entityId: evaluation.id,
+          entityType: "probation_evaluation",
+          userId: probationSchedule.userId,
+          orgId: probationSchedule.orgId
+        });
+      }
+      
+      res.status(201).json(evaluation);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+
+  probationRouter.patch("/evaluation/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const evaluationId = Number(req.params.id);
+      const evaluation = await storage.getProbationEvaluation(evaluationId);
+      
+      if (!evaluation) {
+        return res.status(404).json({ message: "Evaluation not found" });
+      }
+      
+      // If acknowledging, add acknowledger info
+      const updates: Partial<ProbationEvaluation> = { ...req.body };
+      
+      if (req.body.acknowledged && !evaluation.acknowledged) {
+        updates.acknowledgedBy = req.user?.id || 1;
+        updates.acknowledgedAt = new Date();
+      }
+      
+      const updatedEvaluation = await storage.updateProbationEvaluation(evaluationId, updates);
+      
+      // Notify evaluator if evaluation is acknowledged
+      if (req.body.acknowledged && !evaluation.acknowledged) {
+        await notificationService.sendNotification({
+          title: "Evaluation Acknowledged",
+          message: `Your evaluation has been acknowledged by the employee.`,
+          type: "hr",
+          entityId: evaluation.id,
+          entityType: "probation_evaluation",
+          userId: evaluation.evaluatedBy,
+          orgId: (await storage.getProbationSchedule(evaluation.probationId))?.orgId || 1
+        });
+      }
+      
+      res.json(updatedEvaluation);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Exit Request routes
+  const exitRequestRouter = express.Router();
+  app.use("/api/hr/exits", exitRequestRouter);
+
+  exitRequestRouter.get("/", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const orgId = req.query.orgId ? Number(req.query.orgId) : (req.user?.orgId || 1);
+      const status = req.query.status as string;
+      
+      let exitRequests: ExitRequest[] = [];
+      
+      if (status) {
+        exitRequests = await storage.getExitRequestsByStatus(status, orgId);
+      } else if (req.query.userId) {
+        const userId = Number(req.query.userId);
+        exitRequests = await storage.getExitRequestsByUserId(userId);
+      } else {
+        // Get all exit requests for this org
+        const pendingRequests = await storage.getExitRequestsByStatus('pending', orgId);
+        const inProgressRequests = await storage.getExitRequestsByStatus('in_progress', orgId);
+        const completedRequests = await storage.getExitRequestsByStatus('completed', orgId);
+        
+        exitRequests = [...pendingRequests, ...inProgressRequests, ...completedRequests];
+      }
+      
+      res.json(exitRequests);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  exitRequestRouter.get("/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const exitRequest = await storage.getExitRequest(Number(req.params.id));
+      
+      if (!exitRequest) {
+        return res.status(404).json({ message: "Exit request not found" });
+      }
+      
+      res.json(exitRequest);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  exitRequestRouter.post("/", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const exitRequestData = insertExitRequestSchema.parse({
+        ...req.body,
+        requestedBy: req.user?.id || 1,
+        updatedBy: req.user?.id || 1,
+        requestDate: new Date(),
+        exitDate: new Date(req.body.exitDate),
+        completedAt: null,
+        status: 'pending'
+      });
+      
+      const exitRequest = await storage.createExitRequest(exitRequestData);
+      
+      // Notify HR manager and department head
+      await notificationService.sendNotification({
+        title: "New Exit Request",
+        message: `A new exit request has been submitted for user ID ${exitRequest.userId} with exit date ${new Date(exitRequest.exitDate).toLocaleDateString()}.`,
+        type: "hr",
+        entityId: exitRequest.id,
+        entityType: "exit_request",
+        orgId: exitRequest.orgId,
+        department: 'hr'
+      });
+      
+      res.status(201).json(exitRequest);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+
+  exitRequestRouter.patch("/:id", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const exitRequestId = Number(req.params.id);
+      const currentExitRequest = await storage.getExitRequest(exitRequestId);
+      
+      if (!currentExitRequest) {
+        return res.status(404).json({ message: "Exit request not found" });
+      }
+      
+      // Process date fields
+      const updates: Partial<ExitRequest> = {
+        ...req.body,
+        updatedBy: req.user?.id || 1
+      };
+      
+      if (req.body.exitDate) {
+        updates.exitDate = new Date(req.body.exitDate);
+      }
+      
+      const updatedExitRequest = await storage.updateExitRequest(exitRequestId, updates);
+      
+      // Notify about status changes
+      if (req.body.status && req.body.status !== currentExitRequest.status) {
+        // Notify employee
+        await notificationService.sendNotification({
+          title: "Exit Request Status Updated",
+          message: `Your exit request status has been updated from ${currentExitRequest.status} to ${req.body.status}.`,
+          type: "hr",
+          entityId: currentExitRequest.id,
+          entityType: "exit_request",
+          userId: currentExitRequest.userId,
+          orgId: currentExitRequest.orgId
+        });
+        
+        // If completed, update user status
+        if (req.body.status === 'completed' && currentExitRequest.status !== 'completed') {
+          await storage.updateUser(currentExitRequest.userId, { 
+            active: false,
+            updatedBy: req.user?.id || 1
+          });
+          
+          // Notify HR department
+          await notificationService.sendNotification({
+            title: "Exit Process Completed",
+            message: `The exit process for user ID ${currentExitRequest.userId} has been completed.`,
+            type: "hr",
+            entityId: currentExitRequest.id,
+            entityType: "exit_request",
+            orgId: currentExitRequest.orgId,
+            department: 'hr'
+          });
+        }
+      }
+      
+      res.json(updatedExitRequest);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Company Document routes
+  const companyDocumentRouter = express.Router();
+  app.use("/api/hr/company-documents", companyDocumentRouter);
+
+  companyDocumentRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const orgId = req.query.orgId ? Number(req.query.orgId) : (req.user?.orgId || 1);
+      const category = req.query.category as string;
+      
+      let documents: CompanyDocument[] = [];
+      
+      if (category) {
+        documents = await storage.getCompanyDocumentsByCategory(category, orgId);
+      } else if (req.query.public === 'true') {
+        documents = await storage.getPublicCompanyDocuments(orgId);
+      } else {
+        // Get all company documents
+        documents = await storage.getCompanyDocumentsByCategory('policy', orgId);
+        const formDocuments = await storage.getCompanyDocumentsByCategory('form', orgId);
+        const templateDocuments = await storage.getCompanyDocumentsByCategory('template', orgId);
+        const resourceDocuments = await storage.getCompanyDocumentsByCategory('resource', orgId);
+        
+        documents = [...documents, ...formDocuments, ...templateDocuments, ...resourceDocuments];
+      }
+      
+      res.json(documents);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  companyDocumentRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const document = await storage.getCompanyDocument(Number(req.params.id));
+      
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      res.json(document);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  companyDocumentRouter.post("/", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const documentData = insertCompanyDocumentSchema.parse({
+        ...req.body,
+        uploadedBy: req.user?.id || 1
+      });
+      
+      const document = await storage.createCompanyDocument(documentData);
+      
+      // Notify all users if document is public and is a policy
+      if (document.isPublic && document.category === 'policy') {
+        await notificationService.sendNotification({
+          title: "New Company Policy",
+          message: `A new company policy document "${document.name}" has been published.`,
+          type: "hr",
+          entityId: document.id,
+          entityType: "company_document",
+          orgId: document.orgId,
+          broadcastToOrg: true
+        });
+      }
+      
+      res.status(201).json(document);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return res.status(400).json({ message: fromZodError(error).message });
+      }
+      next(error);
+    }
+  });
+
+  companyDocumentRouter.patch("/:id", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const documentId = Number(req.params.id);
+      const document = await storage.getCompanyDocument(documentId);
+      
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      const updatedDocument = await storage.updateCompanyDocument(documentId, {
+        ...req.body,
+        uploadedBy: req.user?.id || 1
+      });
+      
+      res.json(updatedDocument);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // HR Analytics API
+  app.get("/api/hr/metrics", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const orgId = req.query.orgId ? Number(req.query.orgId) : (req.user?.orgId || 1);
+      
+      // For date range filtering
+      let period: { startDate: Date; endDate: Date } | undefined = undefined;
+      
+      if (req.query.startDate && req.query.endDate) {
+        period = {
+          startDate: new Date(req.query.startDate as string),
+          endDate: new Date(req.query.endDate as string)
+        };
+      }
+      
+      const metrics = await storage.getHrMetrics(orgId, period);
+      
+      res.json(metrics);
+    } catch (error) {
+      next(error);
+    }
+  });
+}
+
+// Socket.IO instance will be initialized in registerRoutes
+let io: SocketIOServer;
+
+// Add type extensions for Express
+declare global {
+  namespace Express {
+    interface Request {
+      user?: typeof users.$inferSelect;
+      userRole?: typeof roles.$inferSelect;
+    }
+  }
+  
+  // Extend express-session
+  namespace Express {
+    interface Session {
+      userId?: number;
+    }
+  }
+}
+
+const MemoryStore = createMemoryStore(session);;
 
 // Add some seed data for testing
 // Helper to safely create a date object
@@ -330,6 +1159,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Add seed data if needed
   await addSeedDataIfNeeded();
+  
+  // Register HR routes
+  registerHrRoutes(app);
   
   // Create HTTP server
   let httpServer = createServer(app);

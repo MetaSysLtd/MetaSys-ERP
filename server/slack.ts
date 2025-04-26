@@ -11,8 +11,15 @@ if (!process.env.SLACK_DISPATCH_CHANNEL_ID) {
   console.warn("SLACK_DISPATCH_CHANNEL_ID environment variable not set. Using SLACK_CHANNEL_ID as fallback.");
 }
 
+if (!process.env.SLACK_CHANNEL_ID) {
+  console.warn("SLACK_CHANNEL_ID environment variable not set. General notifications will be disabled.");
+}
+
 const slackClient = process.env.SLACK_BOT_TOKEN ? new WebClient(process.env.SLACK_BOT_TOKEN) : null;
 const dispatchChannelId = process.env.SLACK_DISPATCH_CHANNEL_ID || process.env.SLACK_CHANNEL_ID;
+const generalChannelId = process.env.SLACK_CHANNEL_ID;
+const salesChannelId = process.env.SLACK_SALES_CHANNEL_ID || generalChannelId;
+const adminChannelId = process.env.SLACK_ADMIN_CHANNEL_ID || generalChannelId;
 
 /**
  * Send a message to Slack
@@ -32,6 +39,63 @@ export async function sendSlackMessage(message: ChatPostMessageArguments): Promi
     console.error("Error sending Slack message:", error);
     return null;
   }
+}
+
+/**
+ * Send a notification to the appropriate Slack channel
+ * @param title Notification title
+ * @param message Notification message
+ * @param channel Optional channel override
+ * @returns Promise resolving to the timestamp of the sent message
+ */
+export async function sendSlackNotification(
+  title: string,
+  message: string,
+  channel?: string
+): Promise<string | null> {
+  if (!slackClient) {
+    console.warn("Slack client not initialized. Notification not sent.");
+    return null;
+  }
+
+  const targetChannel = channel || generalChannelId;
+  
+  if (!targetChannel) {
+    console.warn("No target channel available for Slack notification. Message not sent.");
+    return null;
+  }
+
+  const slackMessage: ChatPostMessageArguments = {
+    channel: targetChannel,
+    blocks: [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: title,
+          emoji: true
+        }
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: message
+        }
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `*MetaSys ERP* | ${format(new Date(), 'MMM d, yyyy h:mm a')}`
+          }
+        ]
+      }
+    ]
+  };
+
+  return await sendSlackMessage(slackMessage);
 }
 
 /**
