@@ -48,46 +48,27 @@ export const users = pgTable("users", {
   phoneNumber: text("phone_number"),
   roleId: integer("role_id").notNull().references(() => roles.id),
   orgId: integer("org_id").references(() => organizations.id),
-  // IMPORTANT: The users table does not have a department column in the actual database
-  // department field removed as it's not in the actual database
-  // teamId column also doesn't exist in the actual database - removing to avoid errors
-  // status column also doesn't exist in the actual database - removing to avoid errors
   
-  // Basic permissions
-  canViewCRM: boolean("can_view_crm").notNull().default(false),
-  canEditLeads: boolean("can_edit_leads").notNull().default(false),
-  canViewInvoices: boolean("can_view_invoices").notNull().default(false),
-  canApprovePayroll: boolean("can_approve_payroll").notNull().default(false),
-  canManageUsers: boolean("can_manage_users").notNull().default(false),
+  // Extended fields
+  active: boolean("active").notNull().default(true),
+  profileImageUrl: text("profile_image_url"),
   
-  // System administration permissions
+  // Permission fields that DO exist in the actual database
   isSystemAdmin: boolean("is_system_admin").notNull().default(false),
   canManageRoles: boolean("can_manage_roles").notNull().default(false),
   canAccessAllOrgs: boolean("can_access_all_orgs").notNull().default(false),
   canManageSettings: boolean("can_manage_settings").notNull().default(false),
   canViewAuditLog: boolean("can_view_audit_log").notNull().default(false),
-  
-  // CRM permissions
   canManageLeadAssignments: boolean("can_manage_lead_assignments").notNull().default(false),
   canDeleteLeads: boolean("can_delete_leads").notNull().default(false),
   canExportLeads: boolean("can_export_leads").notNull().default(false),
-  
-  // Finance permissions
   canCreateInvoices: boolean("can_create_invoices").notNull().default(false),
   canApproveInvoices: boolean("can_approve_invoices").notNull().default(false),
   canManageAccounting: boolean("can_manage_accounting").notNull().default(false),
-  
-  // Dispatch permissions
   canManageLoads: boolean("can_manage_loads").notNull().default(false),
   canManageCarriers: boolean("can_manage_carriers").notNull().default(false),
   canApproveDispatchReports: boolean("can_approve_dispatch_reports").notNull().default(false),
-  
-  // Extended fields
-  active: boolean("active").notNull().default(true),
-  profileImageUrl: text("profile_image_url"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  invitedAt: timestamp("invited_at"),
-  lastLogin: timestamp("last_login")
+  canManageUsers: boolean("can_manage_users").notNull().default(false),
 });
 
 // Team management
