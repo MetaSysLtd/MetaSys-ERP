@@ -165,8 +165,38 @@ export function errorHandler(
 
 // 404 handler - should be added after all other routes
 export function notFoundHandler(req: Request, res: Response, next: NextFunction) {
-  const err = new NotFoundError(`Route not found: ${req.method} ${req.path}`);
-  next(err);
+  // Skip 404 errors for assets and favicon since they're common and noisy
+  if (req.path.startsWith('/assets/') || req.path === '/favicon.ico') {
+    return res.status(404).end();
+  }
+
+  // For API routes, just pass to the error handler
+  if (req.path.startsWith('/api/')) {
+    const err = new NotFoundError(`Route not found: ${req.method} ${req.path}`);
+    return next(err);
+  }
+
+  // For the root path and other paths, return a proper JSON response
+  // This is primarily to handle direct browser requests and SPA reloads
+  if (process.env.NODE_ENV === 'production') {
+    // In production, just return a clean 404 response without exposing details
+    return res.status(404).json({
+      success: false,
+      message: 'Resource not found',
+      error: 'NOT_FOUND'
+    });
+  } else {
+    // In development, provide more details
+    logger.warn(`[${new Date().toISOString()}] 404 WARN: Route not found: ${req.method} ${req.path} User: ${req.session?.userId || 'unknown'}`);
+    
+    return res.status(404).json({
+      success: false,
+      message: `Route not found: ${req.method} ${req.path}`,
+      error: 'NOT_FOUND',
+      path: req.path,
+      method: req.method
+    });
+  }
 }
 
 // Session expired handler

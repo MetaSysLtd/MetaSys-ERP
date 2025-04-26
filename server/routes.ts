@@ -6168,6 +6168,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Root route handler for health check
+  app.get('/', (req, res) => {
+    res.status(200).json({
+      success: true,
+      message: 'MetaSys ERP backend is running',
+      version: '1.0.0',
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // Dedicated health check endpoint
+  app.get('/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'ok', 
+      timestamp: Date.now(),
+      uptime: process.uptime()
+    });
+  });
+
   // Use the existing httpServer
   return httpServer;
 }

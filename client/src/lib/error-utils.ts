@@ -1,4 +1,4 @@
-import { api } from "./api-error-handler";
+import { retryFetch } from "./api-error-handler";
 
 /**
  * Interface for additional error logging options
@@ -32,8 +32,12 @@ export async function logError(error: Error, options: LogErrorOptions = {}): Pro
     };
 
     // Send to server - don't await to avoid blocking UI
-    // Use a separate instance to avoid interceptors causing recursion
-    await api.post('/api/log-client-error', errorData);
+    // Use retryFetch with retry capabilities to ensure error logs are sent
+    await retryFetch('/api/errors/client', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(errorData)
+    });
     
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
