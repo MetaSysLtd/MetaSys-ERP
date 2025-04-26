@@ -10,7 +10,13 @@ import {
   insertLoadSchema, insertInvoiceSchema, insertInvoiceItemSchema,
   insertCommissionSchema, insertActivitySchema, insertDispatchClientSchema,
   insertOrganizationSchema, insertCommissionRuleSchema, insertCommissionMonthlySchema,
-  insertTaskSchema, users, roles, dispatch_clients, organizations
+  insertTaskSchema, users, roles, dispatch_clients, organizations,
+  insertHiringCandidateSchema, insertCandidateDocumentSchema, insertHiringTemplateSchema, 
+  insertProbationScheduleSchema, insertProbationEvaluationSchema, insertExitRequestSchema,
+  insertCompanyDocumentSchema, hiringCandidates, candidateDocuments, hiringTemplates,
+  probationSchedules, probationEvaluations, exitRequests, companyDocuments,
+  hiringCandidateStatusEnum, documentStatusEnum, probationStatusEnum, probationRecommendationEnum,
+  exitStatusEnum, documentTypeEnum
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
