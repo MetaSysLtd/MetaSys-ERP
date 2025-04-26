@@ -18,11 +18,11 @@ import {
   ChevronDown,
   ShieldAlert,
   HeartPulse,
-  Megaphone
+  Megaphone,
+  Loader2
 } from "lucide-react";
 import { useCallback } from "react";
 import { Logo } from '@/components/ui/logo';
-import gradientBgPath from "@/assets/backgrounds/gradient-bg.png";
 
 interface SidebarProps {
   mobile: boolean;
@@ -72,8 +72,9 @@ export default function SimpleSidebar({ mobile, collapsed }: SidebarProps) {
   // If user or role is not available yet, show loading state
   if (!user || !role) {
     return (
-      <div className="flex items-center justify-center h-full bg-white">
-        <div className="animate-spin w-8 h-8 border-4 border-[#025E73] border-t-transparent rounded-full"></div>
+      <div className="flex flex-col items-center justify-center h-full bg-gradient-to-b from-white to-gray-100">
+        <Loader2 className="h-8 w-8 text-[#025E73] animate-spin mb-4" />
+        <p className="text-sm text-gray-600">Loading user data...</p>
       </div>
     );
   }
@@ -129,14 +130,9 @@ export default function SimpleSidebar({ mobile, collapsed }: SidebarProps) {
   );
 
   return (
-    <div className="flex flex-col h-full bg-white text-gray-800 relative overflow-hidden"
-         style={{
-           backgroundImage: `url(${gradientBgPath})`,
-           backgroundSize: 'cover',
-           backgroundPosition: 'center',
-         }}>
+    <div className="flex flex-col h-full bg-gradient-to-b from-white to-gray-100 text-gray-800 relative overflow-hidden">
       {/* Semi-transparent overlay */}
-      <div className="absolute inset-0 bg-white/50 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-white/30"></div>
       
       {/* Content container */}
       <div className="relative z-10 flex flex-col h-full">

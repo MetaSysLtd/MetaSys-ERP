@@ -1,33 +1,42 @@
-import { db } from '../db';
+import { db, pool } from '../db';
+import { roles, organizations, users } from '@shared/schema';
+import { eq, and, isNull, gt } from 'drizzle-orm';
 import { storage } from '../storage';
-import { roles, users, organizations } from '../../shared/schema';
-import { eq } from 'drizzle-orm';
+import { logger } from '../logger';
 
 /**
  * Performs a comprehensive database sanity check and attempts to fix common issues
  */
-export async function performDatabaseHealthCheck() {
-  console.log('Starting database health check...');
+export async function performDatabaseHealthCheck(): Promise<boolean> {
+  logger.info('Starting database health check...');
   
   try {
-    // Check database connectivity using a simple query
-    const result = await db.execute("SELECT 1 as connected");
-    console.log('✓ Database connection is operational');
+    // Check basic database connectivity
+    const result = await pool.query('SELECT 1 as connected');
+    if (result[0].connected !== 1) {
+      logger.error('Database connectivity check failed');
+      return false;
+    }
+    logger.info('✓ Database connection is operational');
     
-    // Check and create default roles if necessary
-    await ensureDefaultRolesExist();
+    // Ensure default roles exist
+    try {
+      await ensureDefaultRolesExist();
+    } catch (error) {
+      logger.error('Failed to set default role:', error);
+    }
     
-    // Check and create default organization if necessary
+    // Ensure default organizations exist
     await ensureDefaultOrganizationExists();
     
-    // Verify user data and fix any issues
+    // Verify user data integrity
     await verifyUserData();
     
-    console.log('Database health check completed successfully');
+    logger.info('Database health check completed successfully');
     return true;
   } catch (error) {
-    console.error('Database health check failed:', error);
-    throw error;
+    logger.error('Database health check failed:', error);
+    return false;
   }
 }
 
@@ -35,52 +44,70 @@ export async function performDatabaseHealthCheck() {
  * Ensures that default system roles exist
  */
 async function ensureDefaultRolesExist() {
-  const existingRoles = await db.select().from(roles);
+  const roleCount = await db.select({ count: db.fn.count() }).from(roles);
   
-  if (existingRoles.length === 0) {
-    console.log('No roles found, creating default roles...');
-    
-    // Create Administrator role
-    await storage.createRole({
-      name: "Administrator",
-      department: "admin",
-      level: 5,
-      permissions: ["all"],
-      isDefault: false
-    });
-    
-    // Create default user role
-    await storage.createRole({
-      name: "User",
-      department: "general",
-      level: 1,
-      permissions: ["basic"],
-      isDefault: true
-    });
-    
-    console.log('✓ Default roles created');
-  } else {
-    // Check if there's a default role
-    const defaultRole = existingRoles.find(role => role.isDefault);
-    
-    if (!defaultRole) {
-      // Set the role with the lowest level as default
-      const lowestLevelRole = existingRoles.reduce((prev, curr) => 
-        prev.level < curr.level ? prev : curr
-      );
-      
-      try {
-        await db.update(roles)
-          .set({ isDefault: true })
-          .where(eq(roles.id, lowestLevelRole.id));
-        
-        console.log(`✓ Set role "${lowestLevelRole.name}" as default`);
-      } catch (error) {
-        console.error('Failed to set default role:', error);
+  if (parseInt(roleCount[0].count as string) === 0) {
+    await db.insert(roles).values([
+      {
+        name: 'System Admin',
+        department: 'admin',
+        level: 10,
+        isSystemAdmin: true,
+        canAssignRoles: true,
+        canManageOrganizations: true,
+        canAccessAllOrgs: true,
+        canManageUsers: true,
+        canManageRoles: true
+      },
+      {
+        name: 'Organization Admin',
+        department: 'admin',
+        level: 8,
+        isSystemAdmin: false,
+        canAssignRoles: true,
+        canManageOrganizations: false,
+        canAccessAllOrgs: false,
+        canManageUsers: true,
+        canManageRoles: true
+      },
+      {
+        name: 'Sales Manager',
+        department: 'sales',
+        level: 7,
+        isSystemAdmin: false,
+        canAssignRoles: true,
+        canManageOrganizations: false,
+        canAccessAllOrgs: false,
+        canManageUsers: true,
+        canManageRoles: false
+      },
+      {
+        name: 'Dispatch Manager',
+        department: 'dispatch',
+        level: 7,
+        isSystemAdmin: false,
+        canAssignRoles: true,
+        canManageOrganizations: false,
+        canAccessAllOrgs: false,
+        canManageUsers: true,
+        canManageRoles: false
+      },
+      {
+        name: 'HR Manager',
+        department: 'hr',
+        level: 7,
+        isSystemAdmin: false,
+        canAssignRoles: true,
+        canManageOrganizations: false,
+        canAccessAllOrgs: false,
+        canManageUsers: true,
+        canManageRoles: false
       }
-    } else {
-      console.log(`✓ Default role exists: "${defaultRole.name}"`);
-    }
+    ]);
+    
+    logger.info('✓ Default roles created');
+  } else {
+    logger.info(`✓ Roles exist (${roleCount[0].count} found)`);
   }
 }
 
@@ -88,20 +115,43 @@ async function ensureDefaultRolesExist() {
  * Ensures that a default organization exists
  */
 async function ensureDefaultOrganizationExists() {
-  const existingOrgs = await db.select().from(organizations);
+  const orgCount = await db.select({ count: db.fn.count() }).from(organizations);
   
-  if (existingOrgs.length === 0) {
-    console.log('No organizations found, creating default organization...');
+  if (parseInt(orgCount[0].count as string) === 0) {
+    await db.insert(organizations).values([
+      {
+        name: 'MetaSys Systems',
+        type: 'company',
+        active: true,
+        adminEmail: 'admin@metasys.com',
+        description: 'Main system administrator organization'
+      },
+      {
+        name: 'MetaSys Logistics',
+        type: 'dispatch',
+        active: true,
+        adminEmail: 'dispatch@metasys.com',
+        description: 'Logistics and dispatching operations'
+      },
+      {
+        name: 'MetaSys Sales',
+        type: 'sales',
+        active: true,
+        adminEmail: 'sales@metasys.com',
+        description: 'Sales and account management'
+      },
+      {
+        name: 'MetaSys Operations',
+        type: 'operations',
+        active: true,
+        adminEmail: 'operations@metasys.com',
+        description: 'Day-to-day business operations'
+      }
+    ]);
     
-    await storage.createOrganization({
-      name: "Default Organization",
-      code: "DEFAULT",
-      active: true
-    });
-    
-    console.log('✓ Default organization created');
+    logger.info('✓ Default organizations created');
   } else {
-    console.log(`✓ Organizations exist (${existingOrgs.length} found)`);
+    logger.info(`✓ Organizations exist (${orgCount[0].count} found)`);
   }
 }
 
@@ -109,45 +159,61 @@ async function ensureDefaultOrganizationExists() {
  * Verifies user data integrity and fixes common issues
  */
 async function verifyUserData() {
-  const allUsers = await db.select().from(users);
-  console.log(`Checking ${allUsers.length} user records...`);
+  // Check for users with null/empty first/last names
+  const userCount = await db.select({ count: db.fn.count() }).from(users);
+  logger.info(`Checking ${userCount[0].count} user records...`);
   
+  const usersWithIssues = await db
+    .select()
+    .from(users)
+    .where(
+      or(
+        isNull(users.firstName),
+        isNull(users.lastName),
+        eq(users.firstName, ''),
+        eq(users.lastName, ''),
+        isNull(users.active)
+      )
+    );
+  
+  // Fix any issues found
   let fixedCount = 0;
   
-  for (const user of allUsers) {
-    let needsUpdate = false;
+  for (const user of usersWithIssues) {
     const updates: any = {};
     
-    // Check if user has a role
-    if (!user.roleId) {
-      const defaultRole = await storage.getDefaultRole();
-      if (defaultRole) {
-        updates.roleId = defaultRole.id;
-        needsUpdate = true;
-        console.log(`Assigning default role to user ${user.id} (${user.username})`);
-      }
+    if (!user.firstName || user.firstName === '') {
+      updates.firstName = 'User';
     }
     
-    // Check if user has an organization
-    if (!user.orgId) {
-      const orgs = await storage.getOrganizations();
-      if (orgs && orgs.length > 0) {
-        updates.orgId = orgs[0].id;
-        needsUpdate = true;
-        console.log(`Assigning default organization to user ${user.id} (${user.username})`);
-      }
+    if (!user.lastName || user.lastName === '') {
+      updates.lastName = user.id.toString();
     }
     
-    // Apply fixes if needed
-    if (needsUpdate) {
-      try {
-        await storage.updateUser(user.id, updates);
-        fixedCount++;
-      } catch (error) {
-        console.error(`Failed to update user ${user.id}:`, error);
-      }
+    if (user.active === null || user.active === undefined) {
+      updates.active = true;
+    }
+    
+    if (Object.keys(updates).length > 0) {
+      await db
+        .update(users)
+        .set(updates)
+        .where(eq(users.id, user.id));
+      
+      fixedCount++;
     }
   }
   
-  console.log(`✓ User verification complete. Fixed ${fixedCount} users`);
+  logger.info(`✓ User verification complete. Fixed ${fixedCount} users`);
+}
+
+// Helper function for the where clause
+function or(...conditions) {
+  if (conditions.length === 0) return undefined;
+  if (conditions.length === 1) return conditions[0];
+  
+  return conditions.reduce((acc, condition) => {
+    if (!acc) return condition;
+    return db.sql`(${acc} OR ${condition})`;
+  });
 }
