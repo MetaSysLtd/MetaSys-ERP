@@ -220,9 +220,9 @@ export default function ForgotPassword() {
           </CardContent>
         </Card>
         
-        {/* Footer text */}
+        {/* Copyright text */}
         <div className="mt-8 text-center text-white text-sm">
-          <p>MetaSys ERP &copy; {new Date().getFullYear()} - Complete AI-driven Enterprise Suite</p>
+          <p>&copy; {new Date().getFullYear()} MetaSys</p>
         </div>
       </div>
     </div>
