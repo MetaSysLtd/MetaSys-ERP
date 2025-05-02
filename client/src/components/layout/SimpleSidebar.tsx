@@ -59,7 +59,6 @@ type NavItem = {
 export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, onMenuItemClick, onCollapsedChange }: SidebarProps) {
   const [location] = useLocation();
   const { user, role } = useAuth();
-  const [internalCollapsed, setInternalCollapsed] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({
     // Default expanded state based on current location
     '/sales': location.startsWith('/sales'),
@@ -68,8 +67,8 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
     '/hr': location.startsWith('/hr')
   });
   
-  // Use either external collapsed state (from parent) or internal state
-  const collapsed = externalCollapsed || internalCollapsed;
+  // Use external collapsed state (from parent) as the source of truth
+  const collapsed = externalCollapsed;
   
   // All hook calls must be before any conditional returns
   const handleLogout = useCallback(async () => {
@@ -285,17 +284,16 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
         {/* Logo and collapse button */}
         <div className="px-6 pt-6 pb-5 flex items-center justify-between border-b border-gray-200">
           <Logo />
-          {!mobile && (
+          {!mobile && !collapsed && (
             <button 
-              onClick={() => {
-                const newCollapsed = !collapsed;
-                setInternalCollapsed(newCollapsed);
+              onClick={(e) => {
+                e.preventDefault();
                 if (onCollapsedChange) {
-                  onCollapsedChange(newCollapsed);
+                  onCollapsedChange(true);
                 }
               }} 
               className="p-1.5 rounded-md bg-gray-100 hover:bg-[#025E73]/10 text-[#025E73] transition-all"
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              title="Collapse sidebar"
             >
               <Menu className="h-5 w-5" />
             </button>
