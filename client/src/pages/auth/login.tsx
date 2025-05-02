@@ -143,7 +143,7 @@ function LoginForm() {
   const isLoading = isSubmitting || authLoading;
 
   return (
-    <div className={`min-h-screen flex ${isMobile ? 'flex-col' : 'lg:flex-row md:flex-col-reverse'}`}>
+    <div className={`login-page min-h-screen flex ${isMobile ? 'flex-col' : 'lg:flex-row md:flex-col-reverse'}`}>
       {/* Left side - Banner Image (hidden on mobile) */}
       {!isMobile && (
         <div className="lg:w-1/2 hidden md:block">

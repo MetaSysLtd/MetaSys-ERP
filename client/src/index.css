@@ -14,6 +14,11 @@
   display: none;  /* Chrome, Safari and Opera */
 }
 
+/* Hide the text at the bottom of login page to fix the duplicate issue */
+.login-page .bottom-text {
+  display: none;
+}
+
 :root {
   /* Brand Colors - PRIMARY */
   --c-brand-teal: #025E73;
