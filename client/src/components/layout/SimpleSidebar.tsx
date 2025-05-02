@@ -26,7 +26,9 @@ import {
   UserCircle,
   Phone,
   Mail,
-  Briefcase
+  Briefcase,
+  Menu,
+  DollarSign
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Logo } from '@/components/ui/logo';
@@ -50,11 +52,13 @@ type NavItem = {
   showFor?: string[];
   minLevel?: number;
   subItems?: SubNavItem[];
+  hidden?: boolean; // Optional flag to hide items that are still in development
 };
 
-export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: SidebarProps) {
+export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, onMenuItemClick }: SidebarProps) {
   const [location] = useLocation();
   const { user, role } = useAuth();
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({
     // Default expanded state based on current location
     '/sales': location.startsWith('/sales'),
@@ -62,6 +66,9 @@ export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: Si
     '/crm': location.startsWith('/crm'),
     '/hr': location.startsWith('/hr')
   });
+  
+  // Use either external collapsed state (from parent) or internal state
+  const collapsed = externalCollapsed || internalCollapsed;
   
   // All hook calls must be before any conditional returns
   const handleLogout = useCallback(async () => {
@@ -109,10 +116,9 @@ export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: Si
 
   // CRM Sub-items
   const crmSubItems = [
-    { name: "All Leads", href: "/crm/leads" },
-    { name: "SQL", href: "/crm/sql" },
-    { name: "MQL", href: "/crm/mql" },
-    { name: "Cold Leads", href: "/crm/cold" }
+    { name: "Leads", href: "/crm/leads" },
+    { name: "Clients", href: "/crm/clients" },
+    { name: "Commissions", href: "/crm/commissions" }
   ];
 
   // Dispatch Sub-items
@@ -135,15 +141,10 @@ export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: Si
   const mainNavItems: NavItem[] = [
     { name: "Dashboard", href: "/", icon: HomeIcon },
     { 
-      name: "Sales", 
-      href: "/sales", 
+      name: "CRM", 
+      href: "/crm", 
       icon: Users,
-      subItems: [
-        { name: "CRM", href: "/crm" },
-        { name: "Leads", href: "/crm/leads" },
-        { name: "Clients", href: "/sales/clients" },
-        { name: "Commissions", href: "/sales/commissions" },
-      ]
+      subItems: crmSubItems
     },
     { 
       name: "Dispatch", 
@@ -165,16 +166,18 @@ export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: Si
       name: "Human Resources", 
       href: "/hr", 
       icon: HeartPulse,
-      subItems: hrSubItems
+      subItems: hrSubItems,
+      hidden: true // Hide HR module as it's still in development
     },
-    { name: "Finance", href: "/finance", icon: Banknote },
+    { name: "Finance", href: "/finance", icon: Banknote, hidden: true }, // Hide Finance module as it's still in development
     { name: "Reports", href: "/reports", icon: BarChart2 },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
 
-  // Filter items based on user role
+  // Filter items based on user role and hidden flag
   const filterItems = (items: NavItem[]) => {
     return items.filter(item => {
+      if (item.hidden) return false;
       if (item.showFor && !item.showFor.includes(role.department)) return false;
       if (item.minLevel && role.level < item.minLevel) return false;
       return true;
@@ -278,9 +281,18 @@ export default function SimpleSidebar({ mobile, collapsed, onMenuItemClick }: Si
       
       {/* Content container */}
       <div className="relative z-10 flex flex-col h-full">
-        {/* Logo */}
-        <div className="px-6 pt-6 pb-5 flex items-center border-b border-gray-200">
+        {/* Logo and collapse button */}
+        <div className="px-6 pt-6 pb-5 flex items-center justify-between border-b border-gray-200">
           <Logo />
+          {!mobile && (
+            <button 
+              onClick={() => setInternalCollapsed(prev => !prev)} 
+              className="p-1.5 rounded-md bg-gray-100 hover:bg-[#025E73]/10 text-[#025E73] transition-all"
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
         </div>
 
         {/* User profile */}
