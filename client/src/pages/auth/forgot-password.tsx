@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { toast } from "@/hooks/use-toast";
 
 import {
@@ -22,8 +22,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, ArrowLeft, CheckCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+// Importing assets for login page - same as login
+import desktopBannerPath from "@/assets/banners/bg-login-desktop.png";
+import mobileBannerPath from "@/assets/backgrounds/gradient-bg.png";
+import logoLightPath from "@/assets/logos/MetaSys-Logo-Light.png";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -36,6 +41,21 @@ export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Set mobile state based on screen size
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+    
+    return () => {
+      window.removeEventListener("resize", checkIfMobile);
+    };
+  }, []);
 
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -66,28 +86,53 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center md:justify-start lg:justify-end bg-no-repeat bg-cover bg-center relative p-4 md:p-8" 
-      style={{ 
-        backgroundImage: "url('/src/assets/auth-bg.jpg')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}
-    >
-      <div className="absolute inset-0 bg-blue-900/50" />
-      <div className="w-full max-w-[500px] relative z-10 mx-auto md:ml-24 lg:mr-24">
-        <div className="w-full flex flex-col items-center justify-center mb-8">
-          <img src="/src/assets/logos/MetaSys Logo-Light.png" alt="MetaSys ERP" className="h-14 mb-3" />
-          <h1 className="text-white text-2xl font-bold">Complete Enterprise Resource Planning</h1>
-          <h2 className="text-white text-xl">Solution for Modern Businesses</h2>
+    <div className={`min-h-screen flex ${isMobile ? 'flex-col' : 'lg:flex-row md:flex-col-reverse'}`}>
+      {/* Left side - Banner Image (hidden on mobile) */}
+      {!isMobile && (
+        <div className="lg:w-1/2 hidden md:block">
+          <div className="h-full w-full relative">
+            <img 
+              src={desktopBannerPath} 
+              alt="MetaSys ERP" 
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+              <div className="text-white text-center max-w-md px-6">
+                <h2 className="text-3xl font-bold mb-4">MetaSys ERP</h2>
+                <p className="text-lg">The complete AI-driven enterprise solution for your business</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <Card className="w-full bg-white/90 dark:bg-gray-900/95 backdrop-blur-sm border-0 shadow-2xl">
-          <div className="h-1 bg-gradient-to-r from-[#2170dd] to-[#4d9eff] rounded-t-lg"></div>
+      )}
+      
+      {/* Right side - Forgot Password Form */}
+      <div 
+        className={`lg:w-1/2 md:w-full flex flex-col justify-center items-center p-8
+                    ${isMobile ? 'bg-no-repeat bg-cover bg-center' : 'bg-white/80 backdrop-blur'}`}
+        style={isMobile ? { backgroundImage: `url(${mobileBannerPath})` } : {}}
+      >
+        {/* Logo at top */}
+        <div className="w-full max-w-md mb-8">
+          <Link to="/">
+            <img 
+              src={logoLightPath} 
+              alt="MetaSys ERP" 
+              className="h-14"
+            />
+          </Link>
+        </div>
+        
+        {/* Forgot Password form card */}
+        <Card 
+          className="w-full max-w-md border-0 shadow-lg animate-[fadeUp_.4s_ease-out_both] 
+                   bg-white/80 backdrop-blur dark:bg-gray-900/90"
+        >
           <CardHeader className="space-y-1 pt-6">
-            <CardTitle className="text-2xl font-bold text-center">
+            <CardTitle className="text-2xl font-bold text-[#011F26]">
               {isSuccess ? "Check Your Email" : "Forgot Password"}
             </CardTitle>
-            <CardDescription className="text-center">
+            <CardDescription className="text-[#411F26]/80">
               {isSuccess 
                 ? "We've sent a password reset link to your email" 
                 : "Enter your email and we'll send you a reset link"}
@@ -111,7 +156,8 @@ export default function ForgotPassword() {
                   Follow the instructions in the email to reset your password. The link will expire in 24 hours.
                 </p>
                 <Button 
-                  className="w-full" 
+                  className="w-full h-11 mt-2 bg-[#025E73] hover:bg-[#F2A71B] active:bg-[#C78A14] text-white 
+                           transition-all duration-150 hover:scale-[1.03]" 
                   onClick={() => navigate("/login")}
                 >
                   Return to Login
@@ -125,14 +171,15 @@ export default function ForgotPassword() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel className="text-[#011F26]">Email</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            className="h-11"
+                            className="h-11 border-gray-300 focus:ring-[#025E73] focus:border-[#025E73] dark:border-gray-600"
                             placeholder="Enter your email address"
                             type="email"
                             autoComplete="email"
+                            disabled={isLoading}
                           />
                         </FormControl>
                         <FormMessage />
@@ -142,15 +189,13 @@ export default function ForgotPassword() {
                   
                   <Button 
                     type="submit" 
-                    className="w-full h-11 mt-2 bg-[#2170dd] hover:bg-[#3984ea] transition-colors"
+                    className="w-full h-11 mt-2 bg-[#025E73] hover:bg-[#F2A71B] active:bg-[#C78A14] text-white 
+                           transition-all duration-150 hover:scale-[1.03]"
                     disabled={isLoading}
                   >
                     {isLoading ? (
                       <div className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
+                        <Loader2 className="h-4 w-4 animate-spin" />
                         <span>Sending...</span>
                       </div>
                     ) : (
@@ -162,7 +207,7 @@ export default function ForgotPassword() {
                     <Button 
                       variant="ghost" 
                       type="button" 
-                      className="p-0 h-auto flex items-center text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                      className="p-0 h-auto flex items-center text-[#025E73] hover:text-[#412754] font-medium transition-colors"
                       onClick={() => navigate("/login")}
                     >
                       <ArrowLeft className="h-4 w-4 mr-1" />
@@ -174,6 +219,11 @@ export default function ForgotPassword() {
             )}
           </CardContent>
         </Card>
+        
+        {/* Footer text */}
+        <div className="mt-8 text-center text-white text-sm">
+          <p>MetaSys ERP &copy; {new Date().getFullYear()} - Complete AI-driven Enterprise Suite</p>
+        </div>
       </div>
     </div>
   );

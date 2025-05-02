@@ -79,7 +79,3 @@ args = "NODE_ENV=development tsx server/index.ts"
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 24678
-externalPort = 3000

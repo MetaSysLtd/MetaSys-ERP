@@ -34,6 +34,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import desktopBannerPath from "@/assets/banners/bg-login-desktop.png";
 import mobileBannerPath from "@/assets/backgrounds/gradient-bg.png"; // New gradient background
 import logoLightPath from "@/assets/logos/MetaSys-Logo-Light.png";
+import logoDarkPath from "@/assets/logos/MetaSys Logo-Dark.png";
 
 // Enhanced validation schema with better error messages
 const loginFormSchema = z.object({
@@ -168,11 +169,11 @@ function LoginForm() {
                     ${isMobile ? 'bg-no-repeat bg-cover bg-center' : 'bg-white/80 backdrop-blur'}`}
         style={isMobile ? { backgroundImage: `url(${mobileBannerPath})` } : {}}
       >
-        {/* Logo at top */}
+        {/* Logo at top - using dark version on login screen */}
         <div className="w-full max-w-md mb-8">
           <Link to={getRedirectPath()}>
             <img 
-              src={logoLightPath} 
+              src={logoDarkPath} 
               alt="MetaSys ERP" 
               className="h-14"
             />
