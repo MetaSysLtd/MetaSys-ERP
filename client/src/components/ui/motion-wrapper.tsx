@@ -1,190 +1,56 @@
-import React, { ReactNode } from "react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { useAnimation } from "@/contexts/AnimationContext";
-
-type AnimationType = 
-  | "fade-in" 
-  | "fade-up" 
-  | "fade-down" 
-  | "fade-left" 
-  | "fade-right" 
-  | "scale-up" 
-  | "scale-down" 
-  | "bounce" 
-  | "pulse";
+import * as React from "react";
 
 interface MotionWrapperProps {
-  children: ReactNode;
-  className?: string;
-  animation?: AnimationType;
+  children: React.ReactNode;
+  animation: "fade-up" | "fade-down" | "fade-left" | "fade-right" | "zoom-in" | "zoom-out";
   delay?: number;
-  duration?: number;
-  // For staggered animations
-  index?: number;
+  className?: string;
 }
 
-/**
- * A simple wrapper component that adds consistent animations to any component
- * while respecting user preferences for reduced motion and animation settings
- */
 export function MotionWrapper({
   children,
-  className,
-  animation = "fade-in",
+  animation,
   delay = 0,
-  duration,
-  index = 0,
+  className,
 }: MotionWrapperProps) {
-  const { animationsEnabled, reducedMotion } = useAnimation();
-  
-  const getAnimationProps = () => {
-    // If animations are disabled or reduced motion preference is set, return empty props
-    if (!animationsEnabled || reducedMotion) {
-      return {};
-    }
-    
-    const baseDelay = delay + (index * 0.1);
-    const baseDuration = duration || 0.5;
-    
-    // Define animation variants
-    switch (animation) {
-      case "fade-in":
-        return {
-          initial: { opacity: 0 },
-          animate: { opacity: 1 },
-          transition: { delay: baseDelay, duration: baseDuration }
-        };
-      case "fade-up":
-        return {
-          initial: { opacity: 0, y: 20 },
-          animate: { opacity: 1, y: 0 },
-          transition: { delay: baseDelay, duration: baseDuration }
-        };
-      case "fade-down":
-        return {
-          initial: { opacity: 0, y: -20 },
-          animate: { opacity: 1, y: 0 },
-          transition: { delay: baseDelay, duration: baseDuration }
-        };
-      case "fade-left":
-        return {
-          initial: { opacity: 0, x: -20 },
-          animate: { opacity: 1, x: 0 },
-          transition: { delay: baseDelay, duration: baseDuration }
-        };
-      case "fade-right":
-        return {
-          initial: { opacity: 0, x: 20 },
-          animate: { opacity: 1, x: 0 },
-          transition: { delay: baseDelay, duration: baseDuration }
-        };
-      case "scale-up":
-        return {
-          initial: { opacity: 0, scale: 0.9 },
-          animate: { opacity: 1, scale: 1 },
-          transition: { 
-            delay: baseDelay, 
-            duration: baseDuration, 
-            type: "spring", 
-            stiffness: 300, 
-            damping: 30 
-          }
-        };
-      case "scale-down":
-        return {
-          initial: { opacity: 0, scale: 1.1 },
-          animate: { opacity: 1, scale: 1 },
-          transition: { 
-            delay: baseDelay, 
-            duration: baseDuration, 
-            type: "spring", 
-            stiffness: 300, 
-            damping: 30 
-          }
-        };
-      case "bounce":
-        return {
-          initial: { opacity: 0, y: -10 },
-          animate: { opacity: 1, y: 0 },
-          transition: { 
-            delay: baseDelay, 
-            duration: baseDuration, 
-            type: "spring", 
-            stiffness: 300, 
-            damping: 10 
-          }
-        };
-      case "pulse":
-        return {
-          initial: { opacity: 1, scale: 1 },
-          animate: { 
-            opacity: [1, 0.8, 1], 
-            scale: [1, 1.02, 1]
-          },
-          transition: { 
-            delay: baseDelay, 
-            duration: 2, 
-            repeat: Infinity, 
-            repeatType: "loop" 
-          }
-        };
-      default:
-        return {
-          initial: { opacity: 0 },
-          animate: { opacity: 1 },
-          transition: { delay: baseDelay, duration: baseDuration }
-        };
+  // Animation variants
+  const variants = {
+    "fade-up": {
+      hidden: { opacity: 0, y: 20 },
+      visible: { opacity: 1, y: 0 }
+    },
+    "fade-down": {
+      hidden: { opacity: 0, y: -20 },
+      visible: { opacity: 1, y: 0 }
+    },
+    "fade-left": {
+      hidden: { opacity: 0, x: 20 },
+      visible: { opacity: 1, x: 0 }
+    },
+    "fade-right": {
+      hidden: { opacity: 0, x: -20 },
+      visible: { opacity: 1, x: 0 }
+    },
+    "zoom-in": {
+      hidden: { opacity: 0, scale: 0.9 },
+      visible: { opacity: 1, scale: 1 }
+    },
+    "zoom-out": {
+      hidden: { opacity: 0, scale: 1.1 },
+      visible: { opacity: 1, scale: 1 }
     }
   };
   
-  // If animations are disabled, just render the children
-  if (!animationsEnabled || reducedMotion) {
-    return <div className={className}>{children}</div>;
-  }
-  
   return (
     <motion.div
-      className={cn(className)}
-      {...getAnimationProps()}
+      className={className}
+      initial="hidden"
+      animate="visible"
+      variants={variants[animation]}
+      transition={{ duration: 0.4, delay, ease: "easeOut" }}
     >
       {children}
     </motion.div>
-  );
-}
-
-/**
- * A container that animates its children in a staggered sequence
- */
-export function MotionList({
-  children,
-  className,
-  animation = "fade-up",
-  delay = 0,
-  duration = 0.5
-}: Omit<MotionWrapperProps, 'index'>) {
-  const { animationsEnabled, reducedMotion } = useAnimation();
-  
-  // If animations are disabled, just render the children
-  if (!animationsEnabled || reducedMotion) {
-    return <div className={className}>{children}</div>;
-  }
-  
-  const childrenArray = React.Children.toArray(children);
-  
-  return (
-    <div className={className}>
-      {childrenArray.map((child, index) => (
-        <MotionWrapper 
-          key={index} 
-          animation={animation} 
-          delay={delay} 
-          duration={duration}
-          index={index}
-        >
-          {child}
-        </MotionWrapper>
-      ))}
-    </div>
   );
 }

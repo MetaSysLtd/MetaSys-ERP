@@ -15,10 +15,14 @@ import ForgotPassword from "@/pages/auth/forgot-password";
 import Dashboard from "@/pages/dashboard";
 import CRMPage from "@/pages/crm";
 import ContactDetails from "@/pages/crm/[id]";
-// Renamed imports pointing to new CRM components
+import CRMLeadsPage from "@/pages/crm/leads";
+import CRMClientsPage from "@/pages/crm/clients";
+import CRMCommissionsPage from "@/pages/crm/commissions";
 import DispatchPage from "@/pages/dispatch";
 import DispatchClientsPage from "@/pages/dispatch/clients";
-import NewLoadPage from "@/pages/dispatch/loads/new";
+import DispatchLoadsPage from "@/pages/dispatch/loads";
+import NewLoadPage from "@/pages/dispatch/new-load";
+import TrackingPage from "@/pages/dispatch/tracking";
 import DispatchTasksPage from "@/pages/dispatch/tasks";
 import DispatchReportsPage from "@/pages/dispatch/reports";
 import PerformanceTargetsPage from "@/pages/dispatch/targets";
@@ -102,6 +106,30 @@ function Router() {
         )}
       </Route>
 
+      <Route path="/crm/leads">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={CRMLeadsPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/crm/clients">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={CRMClientsPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/crm/commissions">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={CRMCommissionsPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
       <Route path="/crm/:id">
         {(params) => (
           <AppLayout>
@@ -125,11 +153,27 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-
-      <Route path="/dispatch/loads/new">
+      
+      <Route path="/dispatch/loads">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={DispatchLoadsPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/dispatch/new-load">
         {() => (
           <AppLayout>
             <ProtectedRoute component={NewLoadPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/dispatch/tracking">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={TrackingPage} />
           </AppLayout>
         )}
       </Route>

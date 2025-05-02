@@ -35,7 +35,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import NewLeadModal from "@/components/crm/NewLeadModal";
 import { formatDate } from "@/lib/utils";
-import KanbanView from "@/components/crm/KanbanView";
+import { KanbanView } from "@/components/crm/KanbanView";
 
 export default function LeadsPage() {
   const { toast } = useToast();
