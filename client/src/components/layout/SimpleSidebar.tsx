@@ -287,7 +287,13 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
           <Logo />
           {!mobile && (
             <button 
-              onClick={() => setInternalCollapsed(prev => !prev)} 
+              onClick={() => {
+                const newCollapsed = !collapsed;
+                setInternalCollapsed(newCollapsed);
+                if (onCollapsedChange) {
+                  onCollapsedChange(newCollapsed);
+                }
+              }} 
               className="p-1.5 rounded-md bg-gray-100 hover:bg-[#025E73]/10 text-[#025E73] transition-all"
               title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
