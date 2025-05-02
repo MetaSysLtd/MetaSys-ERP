@@ -37,6 +37,7 @@ interface SidebarProps {
   mobile: boolean;
   collapsed: boolean;
   onMenuItemClick?: () => void;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
 type SubNavItem = {
@@ -55,7 +56,7 @@ type NavItem = {
   hidden?: boolean; // Optional flag to hide items that are still in development
 };
 
-export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, onMenuItemClick }: SidebarProps) {
+export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, onMenuItemClick, onCollapsedChange }: SidebarProps) {
   const [location] = useLocation();
   const { user, role } = useAuth();
   const [internalCollapsed, setInternalCollapsed] = useState(false);
@@ -296,8 +297,8 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
         </div>
 
         {/* User profile */}
-        <div className="px-6 py-5 border-b border-gray-200">
-          <div className="flex items-center">
+        <div className={`${!collapsed || mobile ? 'px-6' : 'px-4'} py-5 border-b border-gray-200 ${collapsed && !mobile ? 'text-center' : ''}`}>
+          <div className={`${!collapsed || mobile ? 'flex items-center' : 'flex flex-col items-center'}`}>
             {user.profileImageUrl ? (
               <img src={user.profileImageUrl} 
                    alt={`${user.firstName} ${user.lastName}`}
@@ -307,14 +308,16 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
                 {getInitials(user.firstName, user.lastName)}
               </div>
             )}
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-900">
-                {user.firstName} {user.lastName}
-              </p>
-              <p className="text-xs text-[#025E73] font-medium">
-                {role.name}
-              </p>
-            </div>
+            {(!collapsed || mobile) && (
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-900">
+                  {user.firstName} {user.lastName}
+                </p>
+                <p className="text-xs text-[#025E73] font-medium">
+                  {role.name}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -322,39 +325,39 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
         <nav className="pt-5 flex-1 overflow-y-auto">
           {/* Main navigation section */}
           <div className="px-4 mb-6 pt-4">
-            <h3 className="px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1">
-              Main
+            <h3 className={`px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1 ${collapsed && !mobile ? 'text-center' : ''}`}>
+              {collapsed && !mobile ? 'Main' : 'Main'}
             </h3>
             <div className="space-y-1">
-              {mainNavItems.map(renderNavItem)}
+              {filterItems(mainNavItems).map(renderNavItem)}
             </div>
           </div>
 
           {/* Tasks section */}
           <div className="px-4 mb-6 pt-4">
-            <h3 className="px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1">
-              Tasks
+            <h3 className={`px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1 ${collapsed && !mobile ? 'text-center' : ''}`}>
+              {collapsed && !mobile ? '' : 'Tasks'}
             </h3>
             <div className="space-y-1">
-              {taskItems.map(renderNavItem)}
+              {filterItems(taskItems).map(renderNavItem)}
             </div>
           </div>
 
           {/* Secondary navigation section */}
           <div className="px-4 mb-6 pt-4">
-            <h3 className="px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1">
-              Management
+            <h3 className={`px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1 ${collapsed && !mobile ? 'text-center' : ''}`}>
+              {collapsed && !mobile ? '' : 'Management'}
             </h3>
             <div className="space-y-1">
-              {secondaryNavItems.map(renderNavItem)}
+              {filterItems(secondaryNavItems).map(renderNavItem)}
             </div>
           </div>
 
           {/* Admin section */}
           {role.department === "admin" && role.level >= 5 && (
             <div className="px-4 mb-6 pt-4">
-              <h3 className="px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1">
-                Administration
+              <h3 className={`px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1 ${collapsed && !mobile ? 'text-center' : ''}`}>
+                {collapsed && !mobile ? '' : 'Administration'}
               </h3>
               <div className="space-y-1">
                 {renderNavItem({
@@ -369,16 +372,16 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
           {/* Logout button */}
           <div className="px-4 py-4 mt-auto">
             <button onClick={handleLogout}
-                    className="w-full flex items-center gap-3 rounded-md px-3 py-2.5 text-gray-800 font-medium transition-all bg-white/50 hover:bg-[#025E73] hover:text-white">
+                    className="w-full flex items-center justify-center gap-3 rounded-md px-3 py-2.5 text-gray-800 font-medium transition-all bg-white/50 hover:bg-[#025E73] hover:text-white">
               <LogOut className="h-[18px] w-[18px]" />
-              <span>Logout</span>
+              {(!collapsed || mobile) && <span>Logout</span>}
             </button>
           </div>
         </nav>
 
         {/* Version info */}
         <div className="px-5 py-3 border-t border-gray-200 text-xs text-gray-600 text-center bg-white/30">
-          MetaSys ERP v1.0
+          {!collapsed || mobile ? 'MetaSys ERP v1.0' : 'v1.0'}
         </div>
       </div>
     </div>

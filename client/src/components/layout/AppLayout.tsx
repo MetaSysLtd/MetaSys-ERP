@@ -11,11 +11,22 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    // Check if there's a stored preference or default to false
+    const storedPref = localStorage.getItem('sidebarCollapsed');
+    return storedPref ? JSON.parse(storedPref) : false;
+  });
   const [location] = useLocation();
   
   // Handle mobile sidebar closing when menu item is clicked
   const handleCloseSidebar = () => {
     setSidebarOpen(false);
+  };
+  
+  // Handle sidebar collapse toggling and store preference
+  const handleSidebarCollapse = (collapsed: boolean) => {
+    setSidebarCollapsed(collapsed);
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(collapsed));
   };
   
   return (
@@ -56,8 +67,12 @@ export function AppLayout({ children }: AppLayoutProps) {
       
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:flex-shrink-0">
-        <div className="flex flex-col w-72">
-          <SimpleSidebar mobile={false} collapsed={false} />
+        <div className={`flex flex-col ${sidebarCollapsed ? 'w-20' : 'w-72'} transition-all duration-300`}>
+          <SimpleSidebar 
+            mobile={false} 
+            collapsed={sidebarCollapsed} 
+            onCollapsedChange={handleSidebarCollapse}
+          />
         </div>
       </div>
       
