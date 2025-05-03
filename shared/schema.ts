@@ -653,6 +653,27 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Dashboard widgets configuration
+export const dashboardWidgets = pgTable("dashboard_widgets", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  widgetType: text("widget_type").notNull(), // Sales, Dispatch, Commission, etc.
+  widgetKey: text("widget_key").notNull(), // Unique identifier for the widget
+  title: text("title").notNull(),
+  position: integer("position").notNull().default(0),
+  width: text("width").notNull().default("full"), // "full", "half", "third"
+  height: text("height").notNull().default("normal"), // "small", "normal", "large"
+  isVisible: boolean("is_visible").notNull().default(true),
+  config: jsonb("config").default({}),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    userWidgetIdx: index("dashboard_widgets_user_widget_idx").on(table.userId, table.widgetKey),
+  };
+});
+
 // Messages between users or from system to users
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
@@ -820,6 +841,9 @@ export const uiPreferences = pgTable("ui_preferences", {
 
 export const insertUiPreferencesSchema = createInsertSchema(uiPreferences).omit({ id: true, createdAt: true, updatedAt: true });
 
+// Dashboard widgets schema
+export const insertDashboardWidgetSchema = createInsertSchema(dashboardWidgets).omit({ id: true, createdAt: true, updatedAt: true });
+
 // Dispatch automation schemas
 export const insertDispatchTaskSchema = createInsertSchema(dispatchTasks).omit({ id: true, createdAt: true });
 export const insertDispatchReportSchema = createInsertSchema(dispatchReports).omit({ id: true, createdAt: true });
@@ -919,3 +943,7 @@ export type InsertDispatchReport = z.infer<typeof insertDispatchReportSchema>;
 
 export type PerformanceTarget = typeof performanceTargets.$inferSelect;
 export type InsertPerformanceTarget = z.infer<typeof insertPerformanceTargetSchema>;
+
+// Dashboard widgets types
+export type DashboardWidget = typeof dashboardWidgets.$inferSelect;
+export type InsertDashboardWidget = z.infer<typeof insertDashboardWidgetSchema>;
