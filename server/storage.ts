@@ -3498,6 +3498,83 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  // Generate invoices for delivered loads that haven't been invoiced yet
+  async generateInvoicesForDeliveredLoads(): Promise<{count: number, invoices: Invoice[]}> {
+    try {
+      // Find all "Delivered" loads that don't have invoices yet
+      const loads = await db.select().from(loads)
+        .where(and(
+          eq(loads.status, 'Delivered'),
+          sql`NOT EXISTS (SELECT 1 FROM ${invoiceItems} WHERE ${invoiceItems.loadId} = ${loads.id})`
+        ));
+      
+      if (loads.length === 0) {
+        return { count: 0, invoices: [] };
+      }
+      
+      const generatedInvoices: Invoice[] = [];
+      
+      // Group loads by lead ID to create one invoice per client
+      const loadsByLeadId: Record<number, typeof loads> = {};
+      
+      for (const load of loads) {
+        if (!loadsByLeadId[load.leadId]) {
+          loadsByLeadId[load.leadId] = [];
+        }
+        loadsByLeadId[load.leadId].push(load);
+      }
+      
+      // Create one invoice for each lead with their loads
+      for (const [leadIdString, leadLoads] of Object.entries(loadsByLeadId)) {
+        const leadId = parseInt(leadIdString);
+        
+        // Generate invoice number
+        const today = new Date();
+        const invoiceNumber = `INV-${leadId}-${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+        
+        // Calculate total amount from all loads
+        const totalAmount = leadLoads.reduce((sum, load) => sum + (load.price || 0), 0);
+        
+        // Set due date to 30 days from now
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 30);
+        
+        // Create the invoice
+        const invoice = await this.createInvoice({
+          invoiceNumber,
+          leadId,
+          orgId: leadLoads[0].orgId,
+          status: 'draft',
+          totalAmount,
+          issuedDate: today.toISOString().split('T')[0],
+          dueDate: dueDate.toISOString().split('T')[0],
+          notes: `Auto-generated invoice for ${leadLoads.length} delivered loads`,
+          createdBy: leadLoads[0].createdBy
+        });
+        
+        // Create invoice items for each load
+        for (const load of leadLoads) {
+          await this.createInvoiceItem({
+            invoiceId: invoice.id,
+            loadId: load.id,
+            description: `Load ${load.id} from ${load.origin} to ${load.destination}`,
+            amount: load.price || 0
+          });
+        }
+        
+        generatedInvoices.push(invoice);
+      }
+      
+      return {
+        count: generatedInvoices.length,
+        invoices: generatedInvoices
+      };
+    } catch (error) {
+      console.error('Error generating invoices for delivered loads:', error);
+      return { count: 0, invoices: [] };
+    }
+  }
+  
   async getInvoices(page: number = 1, limit: number = 10, filters: any = {}): Promise<{data: Invoice[], pagination: {total: number, page: number, limit: number, pages: number}}> {
     try {
       const offset = (page - 1) * limit;

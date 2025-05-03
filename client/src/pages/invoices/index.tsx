@@ -42,10 +42,57 @@ export default function InvoicesPage() {
   
   // Get invoices from the API
   const { data: invoiceResponse, isLoading, error, refetch } = useQuery<InvoiceResponse>({
-    queryKey: ["/api/invoices", page, limit],
+    queryKey: ["/api/invoices", page, limit, filters],
     queryFn: async () => {
       try {
-        const res = await apiRequest("GET", `/api/invoices?page=${page}&limit=${limit}`);
+        // Build query params
+        const queryParams = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString()
+        });
+        
+        // Add filter params if they exist
+        if (filters.status) {
+          queryParams.append('status', filters.status);
+        }
+        
+        if (filters.dateRange) {
+          // Convert date range to actual date parameters
+          const now = new Date();
+          let dateFrom;
+          
+          switch (filters.dateRange) {
+            case 'last7days':
+              dateFrom = new Date(now);
+              dateFrom.setDate(now.getDate() - 7);
+              queryParams.append('dateFrom', dateFrom.toISOString().split('T')[0]);
+              queryParams.append('dateTo', now.toISOString().split('T')[0]);
+              break;
+            case 'last30days':
+              dateFrom = new Date(now);
+              dateFrom.setDate(now.getDate() - 30);
+              queryParams.append('dateFrom', dateFrom.toISOString().split('T')[0]);
+              queryParams.append('dateTo', now.toISOString().split('T')[0]);
+              break;
+            case 'last90days':
+              dateFrom = new Date(now);
+              dateFrom.setDate(now.getDate() - 90);
+              queryParams.append('dateFrom', dateFrom.toISOString().split('T')[0]);
+              queryParams.append('dateTo', now.toISOString().split('T')[0]);
+              break;
+            case 'thisYear':
+              dateFrom = new Date(now.getFullYear(), 0, 1); // Jan 1 of current year
+              queryParams.append('dateFrom', dateFrom.toISOString().split('T')[0]);
+              queryParams.append('dateTo', now.toISOString().split('T')[0]);
+              break;
+          }
+        }
+        
+        if (filters.search) {
+          queryParams.append('search', filters.search);
+        }
+        
+        const res = await apiRequest("GET", `/api/invoices?${queryParams.toString()}`);
         if (!res.ok) {
           throw new Error("Failed to fetch invoices");
         }
@@ -161,25 +208,25 @@ export default function InvoicesPage() {
   
   const handleGeneratePendingInvoices = async () => {
     try {
-      const res = await apiRequest("POST", "/api/invoices/generate?range=custom");
+      const res = await apiRequest("POST", "/api/invoices/generate-for-delivered");
       if (!res.ok) {
-        throw new Error("Failed to generate pending invoices");
+        throw new Error("Failed to generate invoices for delivered loads");
       }
       
       const data = await res.json();
       
       toast({
         title: "Success",
-        description: `Generated ${data.count} pending invoices successfully.`,
+        description: `Generated ${data.invoices.length} invoices for delivered loads.`,
       });
       
       // Refresh the invoice list
       refetch();
     } catch (error) {
-      console.error("Error generating pending invoices:", error);
+      console.error("Error generating invoices for delivered loads:", error);
       toast({
         title: "Error",
-        description: "Failed to generate pending invoices. Please try again.",
+        description: "Failed to generate invoices for delivered loads. Please try again.",
         variant: "destructive",
       });
     }
