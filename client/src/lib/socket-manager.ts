@@ -25,12 +25,27 @@ export function initializeSocket() {
 
   // Create socket instance
   socket = io({
-    transports: ['websocket'],
+    transports: ['websocket', 'polling'],
     reconnection: true,
     reconnectionAttempts: MAX_RECONNECTION_ATTEMPTS,
     reconnectionDelay: 1000,
     reconnectionDelayMax: 5000,
     timeout: 20000,
+    path: '/socket.io',
+    autoConnect: true,
+    withCredentials: true,
+    forceNew: true
+  });
+
+  // Handle connection errors with retry
+  socket.on('connect_error', (error) => {
+    console.error('Socket connection error:', error);
+    if (socket && !socket.connected && reconnectAttempts < MAX_RECONNECTION_ATTEMPTS) {
+      setTimeout(() => {
+        reconnectAttempts++;
+        socket?.connect();
+      }, 2000);
+    }
   });
 
   // Handle connection status events

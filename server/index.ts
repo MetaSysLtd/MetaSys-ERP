@@ -12,6 +12,7 @@ const SESSION_SECRET = process.env.SESSION_SECRET || "metasys_erp_secure_session
 
 const app = express();
 app.use(express.json());
+app.use(jsonErrorHandler);
 app.use(express.urlencoded({ extended: false }));
 
 // Set up session middleware

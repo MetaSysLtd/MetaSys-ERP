@@ -19,6 +19,8 @@ import {
   reportRealTimeMiddleware,
   notificationRealTimeMiddleware
 } from "./utils/real-time-handler";
+import path from 'path';
+
 
 // Auth middleware function with enhanced guard clauses
 const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
@@ -76,13 +78,13 @@ const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
             await storage.updateUser(user.id, { roleId: defaultRole.id });
             user.roleId = defaultRole.id;
             console.log(`Assigned user ${user.id} to default role ${defaultRole.id}`);
-            
+
             // Now fetch the role again
             const updatedRole = await storage.getRole(defaultRole.id);
             if (updatedRole) {
               req.user = user;
               req.userRole = updatedRole;
-              
+
               // Check if the role level is sufficient after fixing
               if (updatedRole.level < requiredRoleLevel) {
                 return res.status(403).json({ 
@@ -91,7 +93,7 @@ const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
                   details: `Required level: ${requiredRoleLevel}, Current level: ${updatedRole.level}`
                 });
               }
-              
+
               next();
               return;
             }
@@ -99,7 +101,7 @@ const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
         } catch (roleError) {
           console.error("Error assigning default role:", roleError);
         }
-        
+
         return res.status(403).json({ 
           error: "User is not assigned to any role. Contact Admin.", 
           missing: ["role", "permissions"] 
@@ -127,16 +129,16 @@ const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
 };
 
 // Register all API routes
-export async function registerRoutes(apiRouter: Router, httpServer: Server): Promise<Server> {
+export async function registerRoutes(apiRouter: Router, httpServer: Server, io: SocketIOServer): Promise<Server> {
   // Apply organization middleware to all API routes
   apiRouter.use('/', organizationMiddleware);
-  
+
   // Register error logging routes
   apiRouter.use('/', errorLoggingRoutes);
-  
+
   // Register status routes
   apiRouter.use('/status', statusRoutes);
-  
+
   // Authentication routes
   const authRouter = express.Router();
   apiRouter.use("/auth", authRouter);
@@ -146,7 +148,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     try {
       // Explicitly set JSON content type
       res.setHeader('Content-Type', 'application/json');
-      
+
       console.log("Login attempt received:", { 
         body: req.body,
         contentType: req.get('Content-Type'),
@@ -155,9 +157,9 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         url: req.url,
         originalUrl: req.originalUrl
       });
-      
+
       const { username, password } = req.body;
-      
+
       if (!username || !password) {
         return res.status(400).json({ 
           error: "Authentication failed",
@@ -168,12 +170,12 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
 
       // Add verbose logging to debug the issue
       console.log(`Login attempt for username: ${username}`);
-      
+
       let user;
       // Check database connectivity before querying
       try {
         user = await storage.getUserByUsername(username);
-        
+
         if (!user) {
           console.log(`User not found: ${username}`);
           return res.status(401).json({ 
@@ -182,7 +184,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
             missing: ["user"] 
           });
         }
-        
+
         // Simple password comparison - in a real app, use bcrypt
         if (user.password !== password) {
           console.log(`Invalid password for user: ${username}`);
@@ -192,12 +194,12 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
             missing: ["valid_credentials"] 
           });
         }
-        
+
         // Validate that user has necessary fields
         if (!user.firstName || !user.lastName) {
           console.warn(`User ${username} has incomplete profile data`);
         }
-        
+
         // Ensure user has organization ID
         if (!user.orgId) {
           console.log(`User ${username} has no organization, attempting to assign default org`);
@@ -231,27 +233,27 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
 
       // Store user in session
       req.session.userId = user.id;
-      
+
       try {
         // Try to get role information, but handle any errors
         const role = await storage.getRole(user.roleId);
-        
+
         // Return user info (except password)
         const { password: _, ...userInfo } = user;
-        
+
         // Log successful login
         console.log(`User ${username} logged in successfully`);
-        
+
         return res.status(200).json({ 
           user: userInfo,
           role: role ? role : null
         });
       } catch (roleError) {
         console.error(`Error fetching role for user ${username}:`, roleError);
-        
+
         // Return user info without role if there's an error getting role
         const { password: _, ...userInfo } = user;
-        
+
         return res.status(200).json({ 
           user: userInfo,
           role: null,
@@ -289,7 +291,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       // Try to get role information but handle errors gracefully
       try {
         const role = await storage.getRole(user.roleId);
-        
+
         // Return user info (except password)
         const { password: _, ...userInfo } = user;
         return res.status(200).json({ 
@@ -299,7 +301,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         });
       } catch (roleError) {
         console.error(`Error fetching role for user ${user.username}:`, roleError);
-        
+
         // Return user info without role
         const { password: _, ...userInfo } = user;
         return res.status(200).json({ 
@@ -339,12 +341,12 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Check if user is trying to access other user's data
       if (req.user?.id !== user.id && req.userRole?.level < 3) {
         return res.status(403).json({ message: "Forbidden: You can only view your own profile" });
       }
-      
+
       // Remove password from response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
@@ -357,7 +359,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     try {
       const userData = insertUserSchema.parse(req.body);
       const user = await storage.createUser(userData);
-      
+
       // Remove password from response
       const { password, ...userWithoutPassword } = user;
       res.status(201).json(userWithoutPassword);
@@ -372,34 +374,62 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   // Apply real-time middleware to relevant routes
   const leadsRouter = express.Router();
   apiRouter.use("/leads", leadsRouter);
-  
+
   leadsRouter.use(leadRealTimeMiddleware);
-  
+
   const loadsRouter = express.Router();
   apiRouter.use("/loads", loadsRouter);
-  
+
   loadsRouter.use(loadRealTimeMiddleware);
-  
+
   const invoicesRouter = express.Router();
   apiRouter.use("/invoices", invoicesRouter);
-  
+
   invoicesRouter.use(invoiceRealTimeMiddleware);
-  
+
   const tasksRouter = express.Router();
   apiRouter.use("/tasks", tasksRouter);
-  
+
   tasksRouter.use(taskRealTimeMiddleware);
-  
+
   const notificationsRouter = express.Router();
   apiRouter.use("/notifications", notificationsRouter);
-  
+
   notificationsRouter.use(notificationRealTimeMiddleware);
-  
+
   const reportsRouter = express.Router();
   apiRouter.use("/reports", reportsRouter);
-  
+
   reportsRouter.use(reportRealTimeMiddleware);
-  
+
+
+  // API 404 handler
+  apiRouter.use('/api/*', (req, res) => {
+    res.status(404).json({
+      status: 'error',
+      message: `API endpoint not found: ${req.method} ${req.path}`,
+      path: req.path
+    });
+  });
+
+  //Error handling middleware
+  apiRouter.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    console.error("Error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  });
+
+
+  //Add Socket.io error handling (example)
+  io.on('connection', (socket) => {
+    socket.on('disconnect', (reason) => {
+      console.log(`Socket disconnected: ${reason}`);
+    });
+    socket.on('error', (error) => {
+      console.error(`Socket error: ${error}`);
+    });
+    // ... other socket.io handlers ...
+  });
+
   return httpServer;
 }
 
@@ -410,7 +440,7 @@ declare global {
       user?: typeof users.$inferSelect;
       userRole?: typeof roles.$inferSelect;
     }
-    
+
     interface Session {
       userId?: number;
     }

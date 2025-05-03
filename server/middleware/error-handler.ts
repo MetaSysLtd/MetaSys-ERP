@@ -63,6 +63,24 @@ export class RateLimitError extends APIError {
   }
 }
 
+// JSON parsing error handler
+export function jsonErrorHandler(
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  if (err instanceof SyntaxError && 'body' in err) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Invalid JSON payload',
+      error: 'INVALID_JSON',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+  next(err);
+}
+
 // Global error handler middleware
 export function errorHandler(
   err: Error,
