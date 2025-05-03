@@ -69,9 +69,13 @@ export default function InvoicesPage() {
                 <span>Sort</span>
               </Button>
               
-              <Button className="bg-[#025E73] text-white hover:bg-[#025E73]/90 flex gap-2 items-center">
+              <Button 
+                id="create-invoice-btn"
+                className="bg-[#025E73] text-white hover:bg-[#025E73]/90 flex gap-2 items-center"
+                onClick={() => console.log('Create invoice clicked')}
+              >
                 <Plus size={16} />
-                <span>New Invoice</span>
+                <span>Create Invoice</span>
               </Button>
             </div>
           </div>
@@ -89,8 +93,8 @@ export default function InvoicesPage() {
                   icon={<FileText className="h-14 w-14 text-muted-foreground/60" />}
                   action={
                     <Button
-                      onClick={() => console.log('Create invoice clicked')}
-                      className="mt-4"
+                      onClick={() => document.getElementById('create-invoice-btn')?.click()}
+                      className="mt-4 bg-[#025E73] text-white hover:bg-[#025E73]/90"
                     >
                       <Plus className="mr-2 h-4 w-4" />
                       Create Invoice

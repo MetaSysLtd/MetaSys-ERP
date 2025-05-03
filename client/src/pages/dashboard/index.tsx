@@ -72,7 +72,7 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold">Dashboard</h1>
           </MotionWrapper>
   
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
             <MotionWrapper animation="fade-left" delay={0.2}>
               <DateRangePicker
                 from={dateRange.from}
@@ -89,15 +89,22 @@ export default function Dashboard() {
                   <SelectItem value="all">All Departments</SelectItem>
                   <SelectItem value="sales">Sales</SelectItem>
                   <SelectItem value="dispatch">Dispatch</SelectItem>
+                  <SelectItem value="hr">HR</SelectItem>
+                  <SelectItem value="finance">Finance</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="accounting">Accounting</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </MotionWrapper>
-            <MotionWrapper animation="fade-left" delay={0.3}>
-              <AnimationSettings />
-            </MotionWrapper>
-            <MotionWrapper animation="fade-left" delay={0.35}>
-              <DashboardWidgetManager />
-            </MotionWrapper>
+            <div className="flex items-center gap-2">
+              <MotionWrapper animation="fade-left" delay={0.3}>
+                <AnimationSettings />
+              </MotionWrapper>
+              <MotionWrapper animation="fade-left" delay={0.35}>
+                <DashboardWidgetManager />
+              </MotionWrapper>
+            </div>
           </div>
         </div>
   
