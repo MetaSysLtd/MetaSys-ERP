@@ -1,0 +1,287 @@
+🧩 Step 8.75: MetaSys ERP — Full-Stack User Management, Settings, and Role Hierarchy System (with Location Tracking)
+This is not just user settings — this is the control center for:
+Permissions & hierarchy
+
+
+Role-based controls
+
+
+User profiles
+
+
+Feature toggles
+
+
+Time tracking setup
+
+
+System admin-level authority
+
+
+
+🎯 OVERALL GOAL
+Transform the “Settings” section from a broken placeholder into a robust, permission-based system center that includes:
+User Profile controls (name, password, profile picture, etc.)
+
+
+Role management & hierarchy
+
+
+Permission presets (create/edit/toggle per user)
+
+
+Feature flags (per user or org)
+
+
+Organization-wide and personal settings
+
+
+Chrome/browser location activation by default
+
+
+
+🧭 MODULES TO BUILD
+Module
+Purpose
+Visible to
+My Profile
+Manage personal info, password, picture
+All users
+Org Settings
+Default timezone, permissions, location/GPS setup
+Admins
+User Management
+Add/edit/remove users, assign roles & permissions
+Admins
+Permission Templates
+Create tiered presets for roles
+Admins
+Feature Toggles
+Turn on/off specific modules or microfeatures
+Admins
+Advanced Settings
+Optional: dark mode, branding preference, etc.
+All users
+Location Tracking Control
+Ask for location on load, allow override
+All users
+
+
+🔐 PERMISSION MATRIX (Who can do what?)
+Feature
+Regular User
+Manager
+Admin
+System Admin
+View/Edit own profile
+✅
+✅
+✅
+✅
+Change own password
+✅
+✅
+✅
+✅
+Upload profile picture
+✅
+✅
+✅
+✅
+Change full name
+❌
+❌
+✅
+✅
+Reset other users' passwords
+❌
+❌
+✅
+✅
+Assign or edit user roles
+❌
+✅ (only for own team)
+✅
+✅
+Access Org settings
+❌
+❌
+✅
+✅
+Turn on/off platform features
+❌
+❌
+✅
+✅
+Create permission templates
+❌
+❌
+✅
+✅
+Activate location/GPS (By Default Turned on for Everyone)
+✅ 
+✅
+✅
+✅
+
+
+🖼️ “MY PROFILE” PAGE
+For all users
+View name, role, email (email editable)
+
+
+Upload/change profile picture
+
+
+Change password (requires old password)
+
+
+Optional: Add phone number, timezone
+
+
+
+⚙️ “USER MANAGEMENT” FOR ADMINS
+Add new user (name, email, role, org, password)
+
+
+Assign permission preset (dropdown)
+
+
+Optional toggles for:
+
+
+Access to Time Tracking
+
+
+See Invoices
+
+
+Approve Payroll
+
+
+Edit Load Data
+
+
+Set reporting hierarchy (who reports to whom)
+
+
+
+🧱 “PERMISSION PRESETS” (Tier Templates)
+Create and save presets like:
+Sales Agent – Junior
+
+
+Dispatch – Manager
+
+
+System Admin – Full
+
+
+Each preset controls access to:
+Each Module (CRM, Dispatch, Invoices, HR, etc.)
+
+
+Each Action (View, Create, Edit, Delete)
+
+
+Approval rights
+
+
+Notification access
+
+
+
+📍 LOCATION / GPS SYSTEM
+Purpose:
+Enable browser-based location tracking, synced with Time Tracking module.
+Requirements:
+Ask for location on login (Chrome prompt)
+
+
+Save last known location with timestamp
+
+
+Show simple “Location On” indicator in header
+
+
+Future: Geo-fencing and accuracy checks
+
+
+For Replit:
+Let’s not force auto-permission from browser (not allowed in modern browsers).
+ Instead:
+Show an in-app popup that asks user to allow location
+
+
+If denied, show a yellow warning bar: “Location required for time tracking. Enable in browser.”
+
+
+
+🪟 SETTINGS UI (By Role)
+Role
+Tab: My Profile
+Tab: Settings
+Tab: Admin Tools
+Sales Agent
+✅
+Basic UX prefs
+❌
+Manager
+✅
+Personal + team settings
+✅ (for team)
+Admin
+✅
+Full org settings
+✅
+System Admin
+✅
+Full control
+✅
+
+
+🔧 SETTINGS EXAMPLES FOR REPLIT TO BUILD
+Setting
+Description
+Who Can Edit
+Default Timezone
+Set timezone per user/org
+Admin
+Enable Dark Mode
+Optional toggle
+User
+Set Home Dashboard
+Default landing page
+User
+Enable Kanban View (CRM)
+Module-specific preference
+Admin
+Auto-assign Tasks to X
+Workflow config
+Admin
+Invoice Auto-Generation
+Toggle per org
+Admin
+Slack/Email notifications
+On/Off
+User
+
+
+🧩 SYSTEM ARCHITECTURE NOTES (FOR REPLIT)
+All settings changes = audit-logged
+
+
+Permissions = stored in user.roles[] and org.policy[]
+
+
+Settings = JSON blob per user + org
+
+
+Use enums for roles to allow tier-based access
+
+
+Separate system-wide settings from user preferences
+
+
+
+

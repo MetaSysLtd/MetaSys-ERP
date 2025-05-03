@@ -5,6 +5,7 @@ import financeRouter from './finance';
 import marketingRouter from './marketing';
 import portalRouter from './client-portal';
 import dashboardRouter from './dashboard';
+import bugsRouter from './bugs';
 
 export { default as timeTrackingRouter } from './time-tracking';
 export { default as hrRouter } from './hr';
@@ -12,6 +13,7 @@ export { default as financeRouter } from './finance';
 export { default as marketingRouter } from './marketing';
 export { default as portalRouter } from './client-portal';
 export { default as dashboardRouter } from './dashboard';
+export { default as bugsRouter } from './bugs';
 
 export function registerModuleRoutes(apiRouter: express.Router): void {
   // Time Tracking Module
@@ -31,4 +33,7 @@ export function registerModuleRoutes(apiRouter: express.Router): void {
   
   // Dashboard
   apiRouter.use('/dashboard', dashboardRouter);
+  
+  // Bug Reporting System
+  apiRouter.use('/bugs', bugsRouter);
 }
