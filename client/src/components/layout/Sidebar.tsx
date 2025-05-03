@@ -38,7 +38,7 @@ const useMediaQuery = (query: string): boolean => {
     const handleChange = (e: MediaQueryListEvent) => {
       setMatches(e.matches);
     };
-    
+
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [query]);
@@ -53,17 +53,17 @@ import gradientBgPath from "@/assets/backgrounds/gradient-bg.png";
 // NavItemComponent for items that need their own click handlers
 const NavItemComponent = ({ item }: { item: NavItem }) => {
   const [location] = useLocation();
-  
+
   const isActiveRoute = (route: string) => {
     if (route === "/" && location === "/") return true;
     if (route === location) return true;
     return false;
   };
-  
+
   const isParentActive = (parentRoute: string) => {
     return location.startsWith(parentRoute) && location !== parentRoute;
   };
-  
+
   return (
     <Link href={item.href}>
       <div 
@@ -260,7 +260,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
           // For items with dropdown menus
           <div>
             <div 
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer transition-all
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer transition-all relative nav-item
                 ${isActiveRoute(item.href)
                   ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
                   : isParentActive(item.href)
@@ -268,15 +268,18 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
                     : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}
               onClick={(e) => handleDropdownToggle(item.name, e)}
             >
-              <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
+              <item.icon className={`h-[18px] w-[18px] nav-icon ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
               {!collapsed || window.innerWidth < 992 ? (
                 <>
-                  <span>{item.name}</span>
+                  <span className="nav-item-text">{item.name}</span>
                   <ChevronDown 
                     className={`w-4 h-4 ml-auto transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
                   />
                 </>
               ) : null}
+              {collapsed && (
+                <div className="tooltip hidden">{item.name}</div>
+              )}
             </div>
 
             {/* Dropdown menu with animation */}
@@ -305,22 +308,25 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
           // For normal items without dropdown
           <Link href={item.href} onClick={handleLinkClick}>
             <div 
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all relative nav-item
                 ${isActiveRoute(item.href)
                   ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
                   : isParentActive(item.href)
                     ? 'bg-[#F2A71B] text-white'
                     : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}
             >
-              <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
+              <item.icon className={`h-[18px] w-[18px] nav-icon ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
               {!collapsed || window.innerWidth < 992 ? (
                 <>
-                  <span>{item.name}</span>
+                  <span className="nav-item-text">{item.name}</span>
                   {isActiveRoute(item.href) && (
                     <ChevronRight className="w-4 h-4 ml-auto" />
                   )}
                 </>
               ) : null}
+              {collapsed && (
+                <div className="tooltip hidden">{item.name}</div>
+              )}
             </div>
           </Link>
         )}
@@ -330,7 +336,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
 
   return (
     <div 
-      className="flex flex-col h-full bg-white text-gray-800 relative overflow-hidden"
+      className="flex flex-col h-full bg-white text-gray-800 relative overflow-hidden sidebar"
       style={{
         backgroundImage: `url(${gradientBgPath})`,
         backgroundSize: 'cover',
