@@ -297,6 +297,7 @@ export const organizations = pgTable("organizations", {
 export const roleEnum = pgEnum('role_type', ['agent', 'TL', 'manager', 'head', 'admin']);
 export const departmentEnum = pgEnum('department_type', ['sales', 'dispatch', 'hr', 'finance', 'marketing', 'accounting', 'admin']);
 export const userStatusEnum = pgEnum('user_status', ['active', 'invited', 'inactive']);
+export const permissionActionEnum = pgEnum('permission_action', ['view', 'create', 'edit', 'delete', 'approve']);
 
 export const roles = pgTable("roles", {
   id: serial("id").primaryKey(),
@@ -896,6 +897,9 @@ export const uiPreferences = pgTable("ui_preferences", {
   userId: integer("user_id").notNull().references(() => users.id),
   sidebarPinned: boolean("sidebar_pinned").notNull().default(true),
   sidebarCollapsed: boolean("sidebar_collapsed").notNull().default(false),
+  theme: text("theme").notNull().default("light"), // light, dark, system
+  homeDashboard: text("home_dashboard"), // default landing page
+  notificationPreferences: jsonb("notification_preferences").default({}),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => {
@@ -904,7 +908,118 @@ export const uiPreferences = pgTable("ui_preferences", {
   };
 });
 
+// User Settings (expanded settings beyond UI preferences)
+export const userSettings = pgTable("user_settings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  timezone: text("timezone").default("UTC"),
+  dateFormat: text("date_format").default("MM/DD/YYYY"),
+  timeFormat: text("time_format").default("12h"), // 12h or 24h
+  language: text("language").default("en"),
+  emailNotifications: boolean("email_notifications").notNull().default(true),
+  smsNotifications: boolean("sms_notifications").notNull().default(false),
+  slackNotifications: boolean("slack_notifications").notNull().default(false),
+  modulePreferences: jsonb("module_preferences").default({}), // Per-module settings
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index("user_settings_user_id_idx").on(table.userId),
+  };
+});
+
+// Organization Settings
+export const organizationSettings = pgTable("organization_settings", {
+  id: serial("id").primaryKey(),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  defaultTimezone: text("default_timezone").default("UTC"),
+  defaultDateFormat: text("default_date_format").default("MM/DD/YYYY"),
+  defaultLanguage: text("default_language").default("en"),
+  requireLocationTracking: boolean("require_location_tracking").notNull().default(true),
+  workingHours: jsonb("working_hours").default({
+    monday: { start: "09:00", end: "17:00", enabled: true },
+    tuesday: { start: "09:00", end: "17:00", enabled: true },
+    wednesday: { start: "09:00", end: "17:00", enabled: true },
+    thursday: { start: "09:00", end: "17:00", enabled: true },
+    friday: { start: "09:00", end: "17:00", enabled: true },
+    saturday: { start: "09:00", end: "17:00", enabled: false },
+    sunday: { start: "09:00", end: "17:00", enabled: false }
+  }),
+  moduleSettings: jsonb("module_settings").default({}), // Settings for specific modules
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    orgIdIdx: index("org_settings_org_id_idx").on(table.orgId),
+  };
+});
+
+// Permission Templates
+export const permissionTemplates = pgTable("permission_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  roleLevel: integer("role_level").notNull(), // 1-5 matching role levels
+  department: text("department").notNull(),
+  permissions: jsonb("permissions").notNull(),
+  isSystem: boolean("is_system").notNull().default(false), // True for built-in templates
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    orgIdIdx: index("perm_templates_org_id_idx").on(table.orgId),
+    levelIdx: index("perm_templates_level_idx").on(table.roleLevel),
+    deptIdx: index("perm_templates_dept_idx").on(table.department),
+  };
+});
+
+// Feature Flags
+export const featureFlags = pgTable("feature_flags", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  key: text("key").notNull().unique(),
+  enabled: boolean("enabled").notNull().default(false),
+  orgId: integer("org_id").references(() => organizations.id), // Null means system-wide
+  restrictions: jsonb("restrictions").default({}), // Role or department restrictions
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    keyIdx: index("feature_flags_key_idx").on(table.key),
+    orgIdIdx: index("feature_flags_org_id_idx").on(table.orgId),
+  };
+});
+
+// Location Tracking
+export const userLocations = pgTable("user_locations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  latitude: real("latitude").notNull(),
+  longitude: real("longitude").notNull(),
+  accuracy: real("accuracy"),
+  deviceInfo: jsonb("device_info").default({}),
+  ipAddress: text("ip_address"),
+  batteryLevel: real("battery_level"),
+  isOnClock: boolean("is_on_clock").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    userIdIdx: index("user_locations_user_id_idx").on(table.userId),
+    timeIdx: index("user_locations_time_idx").on(table.createdAt),
+    userTimeIdx: index("user_locations_user_time_idx").on(table.userId, table.createdAt),
+  };
+});
+
+// Insert schemas for new tables
 export const insertUiPreferencesSchema = createInsertSchema(uiPreferences).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertOrganizationSettingsSchema = createInsertSchema(organizationSettings).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertPermissionTemplateSchema = createInsertSchema(permissionTemplates).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertFeatureFlagSchema = createInsertSchema(featureFlags).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertUserLocationSchema = createInsertSchema(userLocations).omit({ id: true, createdAt: true });
 
 // Dashboard widgets schema
 export const insertDashboardWidgetSchema = createInsertSchema(dashboardWidgets).omit({ id: true, createdAt: true, updatedAt: true });
@@ -1017,3 +1132,19 @@ export type InsertDashboardWidget = z.infer<typeof insertDashboardWidgetSchema>;
 // Bug reporting types
 export type Bug = typeof bugs.$inferSelect;
 export type InsertBug = z.infer<typeof insertBugSchema>;
+
+// User settings and preferences types
+export type UserSettings = typeof userSettings.$inferSelect;
+export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
+
+export type OrganizationSettings = typeof organizationSettings.$inferSelect;
+export type InsertOrganizationSettings = z.infer<typeof insertOrganizationSettingsSchema>;
+
+export type PermissionTemplate = typeof permissionTemplates.$inferSelect;
+export type InsertPermissionTemplate = z.infer<typeof insertPermissionTemplateSchema>;
+
+export type FeatureFlag = typeof featureFlags.$inferSelect;
+export type InsertFeatureFlag = z.infer<typeof insertFeatureFlagSchema>;
+
+export type UserLocation = typeof userLocations.$inferSelect;
+export type InsertUserLocation = z.infer<typeof insertUserLocationSchema>;

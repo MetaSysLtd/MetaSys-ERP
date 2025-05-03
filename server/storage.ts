@@ -4,6 +4,7 @@ import {
   clockEvents, clockEventTypeEnum, uiPreferences, dispatchTasks, dispatchReports, performanceTargets,
   hiringCandidates, candidateDocuments, hiringTemplates, probationSchedules, probationEvaluations, 
   exitRequests, companyDocuments, notifications, dashboardWidgets, bugs, bugUrgencyEnum,
+  userSettings, organizationSettings, permissionTemplates, featureFlags, userLocations,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
@@ -29,7 +30,12 @@ import {
   type ExitRequest, type InsertExitRequest,
   type CompanyDocument, type InsertCompanyDocument,
   type Notification, type InsertNotification,
-  type Bug, type InsertBug
+  type Bug, type InsertBug,
+  type UserSettings, type InsertUserSettings,
+  type OrganizationSettings, type InsertOrganizationSettings,
+  type PermissionTemplate, type InsertPermissionTemplate,
+  type FeatureFlag, type InsertFeatureFlag,
+  type UserLocation, type InsertUserLocation
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -49,6 +55,11 @@ export interface IStorage {
   getActiveOrganizations(): Promise<Organization[]>;
   createOrganization(org: InsertOrganization): Promise<Organization>;
   updateOrganization(id: number, org: Partial<Organization>): Promise<Organization | undefined>;
+  
+  // Organization Settings operations
+  getOrganizationSettings(orgId: number): Promise<OrganizationSettings | undefined>;
+  createOrganizationSettings(settings: InsertOrganizationSettings): Promise<OrganizationSettings>;
+  updateOrganizationSettings(orgId: number, settings: Partial<OrganizationSettings>): Promise<OrganizationSettings>;
   
   // User & Role operations
   getUser(id: number): Promise<User | undefined>;
@@ -225,6 +236,34 @@ export interface IStorage {
   getUserPreferences(userId: number): Promise<UiPreferences | undefined>;
   createUserPreferences(prefs: InsertUiPreferences): Promise<UiPreferences>;
   updateUserPreferences(userId: number, prefs: Partial<UiPreferences>): Promise<UiPreferences>;
+  
+  // User Settings operations
+  getUserSettings(userId: number): Promise<UserSettings | undefined>;
+  createUserSettings(settings: InsertUserSettings): Promise<UserSettings>;
+  updateUserSettings(userId: number, settings: Partial<UserSettings>): Promise<UserSettings>;
+  
+  // Permission Template operations
+  getPermissionTemplate(id: number): Promise<PermissionTemplate | undefined>;
+  getPermissionTemplateByName(name: string): Promise<PermissionTemplate | undefined>;
+  getPermissionTemplates(): Promise<PermissionTemplate[]>;
+  getPermissionTemplatesByDepartment(department: string): Promise<PermissionTemplate[]>;
+  createPermissionTemplate(template: InsertPermissionTemplate): Promise<PermissionTemplate>;
+  updatePermissionTemplate(id: number, template: Partial<PermissionTemplate>): Promise<PermissionTemplate | undefined>;
+  deletePermissionTemplate(id: number): Promise<boolean>;
+  
+  // Feature Flag operations
+  getFeatureFlag(id: number): Promise<FeatureFlag | undefined>;
+  getFeatureFlagByKey(key: string): Promise<FeatureFlag | undefined>;
+  getFeatureFlags(): Promise<FeatureFlag[]>;
+  getFeatureFlagsByOrg(orgId: number): Promise<FeatureFlag[]>;
+  createFeatureFlag(flag: InsertFeatureFlag): Promise<FeatureFlag>;
+  updateFeatureFlag(id: number, flag: Partial<FeatureFlag>): Promise<FeatureFlag | undefined>;
+  
+  // Location Tracking operations
+  getUserLocation(id: number): Promise<UserLocation | undefined>;
+  getUserLocations(userId: number): Promise<UserLocation[]>;
+  getUserLocationsByTimeRange(userId: number, startTime: Date, endTime: Date): Promise<UserLocation[]>;
+  createUserLocation(location: InsertUserLocation): Promise<UserLocation>;
   
   // Dashboard widget operations
   getDashboardWidgets(userId: number): Promise<DashboardWidget[]>;
@@ -405,6 +444,13 @@ export class MemStorage implements IStorage {
   private dashboardWidgets: Map<number, DashboardWidget>;
   private bugs: Map<number, Bug>;
   
+  // User Management System
+  private userSettings: Map<number, UserSettings>;
+  private organizationSettings: Map<number, OrganizationSettings>;
+  private permissionTemplates: Map<number, PermissionTemplate>;
+  private featureFlags: Map<number, FeatureFlag>;
+  private userLocations: Map<number, UserLocation>;
+  
   private userIdCounter: number;
   private roleIdCounter: number;
   private leadIdCounter: number;
@@ -439,6 +485,13 @@ export class MemStorage implements IStorage {
   private companyDocumentIdCounter: number;
   private dashboardWidgetIdCounter: number;
   private bugIdCounter: number;
+  
+  // User Management System counters
+  private userSettingsIdCounter: number;
+  private organizationSettingsIdCounter: number;
+  private permissionTemplateIdCounter: number;
+  private featureFlagIdCounter: number;
+  private userLocationIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
@@ -482,6 +535,13 @@ export class MemStorage implements IStorage {
     this.dashboardWidgets = new Map();
     this.bugs = new Map();
     
+    // Initialize User Management System maps
+    this.userSettings = new Map();
+    this.organizationSettings = new Map();
+    this.permissionTemplates = new Map();
+    this.featureFlags = new Map();
+    this.userLocations = new Map();
+    
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
     this.leadIdCounter = 1;
@@ -516,6 +576,13 @@ export class MemStorage implements IStorage {
     this.companyDocumentIdCounter = 1;
     this.dashboardWidgetIdCounter = 1;
     this.bugIdCounter = 1;
+    
+    // Initialize User Management System counters
+    this.userSettingsIdCounter = 1;
+    this.organizationSettingsIdCounter = 1;
+    this.permissionTemplateIdCounter = 1;
+    this.featureFlagIdCounter = 1;
+    this.userLocationIdCounter = 1;
     
     // Initialize with default roles
     this.initializeRoles();
