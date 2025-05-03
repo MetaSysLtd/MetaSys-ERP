@@ -210,6 +210,10 @@ export interface IStorage {
   // Notification operations
   createNotification(data: InsertNotification): Promise<Notification>;
   getNotifications(userId: number, limit?: number): Promise<Notification[]>;
+  getUserNotifications(userId: number, limit?: number): Promise<Notification[]>;
+  getUserNotificationsByType(userId: number, types: string[], limit?: number): Promise<Notification[]>;
+  getNotification(id: number): Promise<Notification | undefined>;
+  updateNotification(id: number, data: Partial<Notification>): Promise<Notification | undefined>;
   markNotificationAsRead(id: number): Promise<void>;
   markAllNotificationsAsRead(userId: number): Promise<void>;
   
@@ -3282,6 +3286,67 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error getting notifications:', error);
       return [];
+    }
+  }
+  
+  async getUserNotifications(userId: number, limit: number = 50): Promise<Notification[]> {
+    try {
+      return await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, userId))
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit);
+    } catch (error) {
+      console.error('Error getting user notifications:', error);
+      return [];
+    }
+  }
+  
+  async getUserNotificationsByType(userId: number, types: string[], limit: number = 50): Promise<Notification[]> {
+    try {
+      return await db
+        .select()
+        .from(notifications)
+        .where(and(
+          eq(notifications.userId, userId),
+          inArray(notifications.type, types)
+        ))
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit);
+    } catch (error) {
+      console.error('Error getting user notifications by type:', error);
+      return [];
+    }
+  }
+  
+  async getNotification(id: number): Promise<Notification | undefined> {
+    try {
+      const [notification] = await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.id, id));
+      return notification;
+    } catch (error) {
+      console.error('Error getting notification:', error);
+      return undefined;
+    }
+  }
+  
+  async updateNotification(id: number, data: Partial<Notification>): Promise<Notification | undefined> {
+    try {
+      const [notification] = await db
+        .update(notifications)
+        .set({
+          ...data,
+          updatedAt: new Date()
+        })
+        .where(eq(notifications.id, id))
+        .returning();
+      return notification;
+    } catch (error) {
+      console.error('Error updating notification:', error);
+      return undefined;
     }
   }
   
