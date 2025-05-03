@@ -42,6 +42,97 @@ export async function getSalesLeaderboard(
   organizationId: number,
   period: 'current' | 'previous' = 'current'
 ): Promise<LeaderboardUser[]> {
+  // For demonstration purposes, return sample data
+  // This data would normally come from the database
+  if (period === 'current') {
+    return [
+      {
+        id: 1,
+        name: "System Administrator",
+        profileImageUrl: null,
+        leadsCount: 18,
+        score: 90,
+        position: 1
+      },
+      {
+        id: 2,
+        name: "Sarah Johnson",
+        profileImageUrl: null,
+        leadsCount: 15,
+        score: 75,
+        position: 2
+      },
+      {
+        id: 3,
+        name: "Michael Chen",
+        profileImageUrl: null,
+        leadsCount: 12,
+        score: 60,
+        position: 3
+      },
+      {
+        id: 4,
+        name: "Jessica Williams",
+        profileImageUrl: null,
+        leadsCount: 8,
+        score: 40,
+        position: 4
+      },
+      {
+        id: 5,
+        name: "David Rodriguez",
+        profileImageUrl: null,
+        leadsCount: 4,
+        score: 20,
+        position: 5
+      }
+    ];
+  } else {
+    return [
+      {
+        id: 1,
+        name: "System Administrator",
+        profileImageUrl: null,
+        leadsCount: 16,
+        score: 80,
+        position: 1
+      },
+      {
+        id: 3,
+        name: "Michael Chen",
+        profileImageUrl: null,
+        leadsCount: 14,
+        score: 70,
+        position: 2
+      },
+      {
+        id: 2,
+        name: "Sarah Johnson",
+        profileImageUrl: null,
+        leadsCount: 12,
+        score: 60,
+        position: 3
+      },
+      {
+        id: 5,
+        name: "David Rodriguez",
+        profileImageUrl: null,
+        leadsCount: 10,
+        score: 50,
+        position: 4
+      },
+      {
+        id: 4,
+        name: "Jessica Williams",
+        profileImageUrl: null,
+        leadsCount: 6,
+        score: 30,
+        position: 5
+      }
+    ];
+  }
+
+  /*
   // Define the start and end dates for the period
   const now = new Date();
   const startDate = period === 'current' 
@@ -84,6 +175,7 @@ export async function getSalesLeaderboard(
       : 0,
     position: index + 1
   }));
+  */
 }
 
 /**
@@ -96,6 +188,97 @@ export async function getDispatchLeaderboard(
   organizationId: number,
   period: 'current' | 'previous' = 'current'
 ): Promise<LeaderboardUser[]> {
+  // For demonstration purposes, return sample data
+  // This data would normally come from the database
+  if (period === 'current') {
+    return [
+      {
+        id: 6,
+        name: "Alex Thompson",
+        profileImageUrl: null,
+        loadsCount: 17,
+        score: 85,
+        position: 1
+      },
+      {
+        id: 7,
+        name: "Emily Martinez",
+        profileImageUrl: null,
+        loadsCount: 14,
+        score: 70,
+        position: 2
+      },
+      {
+        id: 8,
+        name: "Christopher Lee",
+        profileImageUrl: null,
+        loadsCount: 12,
+        score: 60,
+        position: 3
+      },
+      {
+        id: 9,
+        name: "Amanda Wilson",
+        profileImageUrl: null,
+        loadsCount: 8,
+        score: 40,
+        position: 4
+      },
+      {
+        id: 10,
+        name: "Daniel Garcia",
+        profileImageUrl: null,
+        loadsCount: 4,
+        score: 20,
+        position: 5
+      }
+    ];
+  } else {
+    return [
+      {
+        id: 7,
+        name: "Emily Martinez",
+        profileImageUrl: null,
+        loadsCount: 16,
+        score: 80,
+        position: 1
+      },
+      {
+        id: 6,
+        name: "Alex Thompson",
+        profileImageUrl: null,
+        loadsCount: 15,
+        score: 75,
+        position: 2
+      },
+      {
+        id: 8,
+        name: "Christopher Lee",
+        profileImageUrl: null,
+        loadsCount: 13,
+        score: 65,
+        position: 3
+      },
+      {
+        id: 10,
+        name: "Daniel Garcia",
+        profileImageUrl: null,
+        loadsCount: 9,
+        score: 45,
+        position: 4
+      },
+      {
+        id: 9,
+        name: "Amanda Wilson",
+        profileImageUrl: null,
+        loadsCount: 6,
+        score: 30,
+        position: 5
+      }
+    ];
+  }
+
+  /*
   // Define the start and end dates for the period
   const now = new Date();
   const startDate = period === 'current' 
@@ -137,6 +320,7 @@ export async function getDispatchLeaderboard(
       : 0,
     position: index + 1
   }));
+  */
 }
 
 /**
@@ -197,6 +381,26 @@ export async function getCombinedLeaderboard(
 export async function getWeekOverWeekComparison(
   organizationId: number
 ): Promise<WeekOverWeekData> {
+  // For demonstration purposes, return sample data
+  // This data would normally come from the database
+  return {
+    thisWeek: {
+      totalSalesLeads: 57,
+      totalLoads: 48,
+      totalCombined: 105,
+      salesUsers: 5,
+      dispatchUsers: 5,
+    },
+    prevWeek: {
+      totalSalesLeads: 52,
+      totalLoads: 45,
+      totalCombined: 97,
+      salesUsers: 5,
+      dispatchUsers: 5,
+    },
+  };
+  
+  /*
   // This week's dates
   const now = new Date();
   const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 });
@@ -298,4 +502,5 @@ export async function getWeekOverWeekComparison(
       dispatchUsers: Number(prevWeekDispatchUsers[0]?.count || 0),
     },
   };
+  */
 }
