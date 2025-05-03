@@ -86,9 +86,16 @@ export default function InvoicesPage() {
                 <EmptyState
                   title="No invoices found"
                   description="You haven't created any invoices yet. Create your first invoice to get started."
-                  icon="empty"
-                  actionLabel="Create Invoice"
-                  onAction={() => console.log('Create invoice clicked')}
+                  icon={<FileText className="h-14 w-14 text-muted-foreground/60" />}
+                  action={
+                    <Button
+                      onClick={() => console.log('Create invoice clicked')}
+                      className="mt-4"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Invoice
+                    </Button>
+                  }
                 />
               </div>
             )}

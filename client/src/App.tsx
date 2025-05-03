@@ -349,16 +349,13 @@ function Router() {
 // Import the ErrorBoundary component and error handlers
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { retryFetch, handleApiError } from '@/lib/api-error-handler';
-import { initializeGlobalErrorHandlers, setupDevConsole } from '@/lib/global-error-handler';
+import { initializeGlobalErrorHandlers } from '@/lib/global-error-handler';
 
 function App() {
-  // Initialize global error handlers and setup debugging tools
+  // Initialize global error handlers
   useEffect(() => {
     // Initialize global error handlers for uncaught exceptions and unhandled rejections
     initializeGlobalErrorHandlers();
-    
-    // Setup dev console enhancements (only affects dev environment)
-    setupDevConsole();
     
     // Log that error handlers were initialized
     console.log('MetaSys ERP global error handling initialized');

@@ -9,7 +9,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { 
   ArrowLeft,
   FileEdit,
-  Trash
+  Trash,
+  RefreshCw
 } from 'lucide-react';
 import { InvoiceDetails, InvoiceDetailsData } from '@/components/invoices/InvoiceDetails';
 import { InvoiceForm } from '@/components/invoices/InvoiceForm';
@@ -24,6 +25,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { QueryErrorHandler } from '@/hooks/use-query-error-handler';
+import { handleApiError, retryFetch } from '@/lib/api-error-handler';
 
 export default function InvoiceDetailsPage() {
   const [, params] = useRoute('/invoices/:id');
@@ -33,89 +37,113 @@ export default function InvoiceDetailsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
-  // Fetch the invoice details
-  const { data: invoice, isLoading, error } = useQuery({
+  // Fetch the invoice details with error handling
+  const invoiceQuery = useQuery({
     queryKey: ['/api/invoices', invoiceId],
     queryFn: async () => {
       if (!invoiceId) return null;
       
       try {
-        const res = await apiRequest('GET', `/api/invoices/${invoiceId}`);
+        // Use retry fetch for resilience
+        const res = await retryFetch(`/api/invoices/${invoiceId}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
         if (!res.ok) {
-          throw new Error('Failed to fetch invoice details');
+          throw new Error(
+            res.status === 404
+              ? `Invoice #${invoiceId} could not be found. It may have been deleted.`
+              : 'Failed to fetch invoice details'
+          );
         }
+        
         return await res.json();
       } catch (error) {
-        console.error('Error fetching invoice details:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load invoice details. Please try again.',
-          variant: 'destructive',
-        });
-        throw error;
+        return handleApiError(error, 'Invoice Details', 'invoice data');
       }
     },
-    enabled: !!invoiceId
+    enabled: !!invoiceId,
+    // Reduce refetch frequency to avoid error message spam
+    refetchOnWindowFocus: false,
+    retry: 1
   });
   
-  // Fetch leads for client name mapping
-  const { data: leads = [] } = useQuery({
+  // Fetch leads for client name mapping with error handling
+  const leadsQuery = useQuery({
     queryKey: ['/api/leads'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/leads');
-      if (!res.ok) return [];
-      return await res.json();
+      try {
+        const res = await retryFetch('/api/leads');
+        if (!res.ok) return [];
+        return await res.json();
+      } catch (error) {
+        console.error('Error fetching leads:', error);
+        return []; // Continue without leads rather than failing entire page
+      }
     }
   });
   
-  // Fetch loads for load details
-  const { data: loads = [] } = useQuery({
+  // Fetch loads for load details with error handling
+  const loadsQuery = useQuery({
     queryKey: ['/api/loads'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/loads');
-      if (!res.ok) return [];
-      return await res.json();
+      try {
+        const res = await retryFetch('/api/loads');
+        if (!res.ok) return [];
+        return await res.json();
+      } catch (error) {
+        console.error('Error fetching loads:', error);
+        return []; // Continue without loads rather than failing entire page
+      }
     }
   });
   
-  // Fetch users for created by name
-  const { data: users = [] } = useQuery({
+  // Fetch users for created by name with error handling
+  const usersQuery = useQuery({
     queryKey: ['/api/users'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/users');
-      if (!res.ok) return [];
-      return await res.json();
+      try {
+        const res = await retryFetch('/api/users');
+        if (!res.ok) return [];
+        return await res.json();
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        return []; // Continue without users rather than failing entire page
+      }
     }
   });
   
-  // Delete invoice mutation
+  // Delete invoice mutation with better error handling
   const deleteInvoiceMutation = useMutation({
     mutationFn: async () => {
       if (!invoiceId) return;
       
-      const res = await apiRequest('DELETE', `/api/invoices/${invoiceId}`);
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Failed to delete invoice');
+      try {
+        const res = await retryFetch(`/api/invoices/${invoiceId}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({ message: 'Failed to delete invoice' }));
+          throw new Error(data.message || 'Failed to delete invoice');
+        }
+        
+        return true;
+      } catch (error) {
+        return handleApiError(error, 'Invoice Deletion', 'invoice');
       }
-      return true;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
       toast({
-        title: 'Invoice deleted',
+        title: 'Success',
         description: 'The invoice has been deleted successfully',
       });
       
       // Navigate back to the invoices list
       window.location.href = '/invoices';
-    },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error deleting invoice',
-        description: error.message,
-        variant: 'destructive',
-      });
     }
   });
   
@@ -128,179 +156,173 @@ export default function InvoiceDetailsPage() {
   const confirmDelete = () => {
     deleteInvoiceMutation.mutate();
   };
+
+  // Common page header with back button
+  const PageHeader = () => (
+    <div className="mb-6">
+      <Link to="/invoices">
+        <Button variant="outline" size="sm">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Invoices
+        </Button>
+      </Link>
+    </div>
+  );
   
-  if (isLoading || !invoice) {
+  // Show loading skeleton
+  if (invoiceQuery.isLoading) {
     return (
       <div className="container py-6">
         <Helmet>
-          <title>Invoice Details - MetaSys ERP</title>
+          <title>Loading Invoice - MetaSys ERP</title>
         </Helmet>
-        
-        <div className="mb-6">
-          <Link to="/invoices">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Invoices
-            </Button>
-          </Link>
-        </div>
-        
+        <PageHeader />
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <Skeleton className="h-8 w-64" />
             <Skeleton className="h-9 w-32" />
           </div>
-          
           <Skeleton className="h-[600px] w-full" />
         </div>
       </div>
     );
   }
-  
-  if (error) {
-    return (
+
+  return (
+    <ErrorBoundary moduleName="invoice details">
       <div className="container py-6">
         <Helmet>
-          <title>Error - Invoice Details - MetaSys ERP</title>
+          <title>Invoice Details - MetaSys ERP</title>
         </Helmet>
         
-        <div className="mb-6">
-          <Link to="/invoices">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Invoices
-            </Button>
-          </Link>
-        </div>
+        <PageHeader />
         
-        <div className="bg-destructive/10 border border-destructive text-destructive p-4 rounded-md">
-          <h2 className="text-lg font-semibold mb-2">Error Loading Invoice</h2>
-          <p>There was an error loading the invoice details. Please try again or contact support if the issue persists.</p>
-          <Button 
-            variant="outline" 
-            className="mt-4"
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </Button>
-        </div>
+        <QueryErrorHandler
+          query={invoiceQuery}
+          moduleName="invoice"
+          emptyStateMessage="This invoice could not be found. It may have been deleted."
+        >
+          {(invoice) => {
+            // Extract related data
+            const leads = leadsQuery.data || [];
+            const loads = loadsQuery.data || [];
+            const users = usersQuery.data || [];
+            
+            // Get client name from leads
+            const lead = leads.find(l => l.id === invoice.leadId);
+            const clientName = lead ? lead.companyName : `Client ${invoice.leadId}`;
+            const clientEmail = lead ? lead.email : '';
+            
+            // Get creator name
+            const creator = users.find(u => u.id === invoice.createdBy);
+            const creatorName = creator ? `${creator.firstName} ${creator.lastName}` : `User ${invoice.createdBy}`;
+            
+            // Prepare invoice items with load details
+            const invoiceItemsWithLoadInfo = invoice.items.map(item => {
+              const load = loads.find(l => l.id === item.loadId);
+              
+              return {
+                ...item,
+                loadInfo: load ? {
+                  loadNumber: load.loadNumber,
+                  origin: load.origin,
+                  destination: load.destination,
+                  date: load.date
+                } : undefined
+              };
+            });
+            
+            // Prepare the complete invoice data for the component
+            const invoiceData: InvoiceDetailsData = {
+              ...invoice,
+              clientName,
+              clientEmail,
+              createdByName: creatorName,
+              items: invoiceItemsWithLoadInfo
+            };
+            
+            // Prepare form data for editing
+            const initialFormData = {
+              id: invoice.id,
+              leadId: invoice.leadId,
+              invoiceNumber: invoice.invoiceNumber,
+              issuedDate: new Date(invoice.issuedDate),
+              dueDate: new Date(invoice.dueDate),
+              items: invoice.items.map(item => ({
+                loadId: item.loadId,
+                description: item.description,
+                amount: item.amount
+              })),
+              notes: invoice.notes,
+              status: invoice.status
+            };
+                        
+            return (
+              <>
+                <Helmet>
+                  <title>Invoice {invoice.invoiceNumber} - MetaSys ERP</title>
+                </Helmet>
+                
+                <div className="flex justify-between items-center mb-6">
+                  <h1 className="text-2xl font-bold">
+                    Invoice #{invoice.invoiceNumber}
+                  </h1>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleDelete}
+                    >
+                      <Trash className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                    
+                    <Button 
+                      size="sm"
+                      onClick={() => setEditDialogOpen(true)}
+                    >
+                      <FileEdit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                  </div>
+                </div>
+                
+                <InvoiceDetails invoice={invoiceData} />
+                
+                {/* Edit Invoice Form */}
+                <InvoiceForm 
+                  open={editDialogOpen}
+                  onOpenChange={setEditDialogOpen}
+                  initialData={initialFormData}
+                  isEditing={true}
+                />
+                
+                {/* Delete Confirmation Dialog */}
+                <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete invoice #{invoice.invoiceNumber}? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={confirmDelete}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            );
+          }}
+        </QueryErrorHandler>
       </div>
-    );
-  }
-  
-  // Get client name from leads
-  const lead = leads.find(l => l.id === invoice.leadId);
-  const clientName = lead ? lead.companyName : `Client ${invoice.leadId}`;
-  const clientEmail = lead ? lead.email : '';
-  
-  // Get creator name
-  const creator = users.find(u => u.id === invoice.createdBy);
-  const creatorName = creator ? `${creator.firstName} ${creator.lastName}` : `User ${invoice.createdBy}`;
-  
-  // Prepare invoice items with load details
-  const invoiceItemsWithLoadInfo = invoice.items.map(item => {
-    const load = loads.find(l => l.id === item.loadId);
-    
-    return {
-      ...item,
-      loadInfo: load ? {
-        loadNumber: load.loadNumber,
-        origin: load.origin,
-        destination: load.destination,
-        date: load.date
-      } : undefined
-    };
-  });
-  
-  // Prepare the complete invoice data for the component
-  const invoiceData: InvoiceDetailsData = {
-    ...invoice,
-    clientName,
-    clientEmail,
-    createdByName: creatorName,
-    items: invoiceItemsWithLoadInfo
-  };
-  
-  // Prepare form data for editing
-  const initialFormData = {
-    id: invoice.id,
-    leadId: invoice.leadId,
-    invoiceNumber: invoice.invoiceNumber,
-    issuedDate: new Date(invoice.issuedDate),
-    dueDate: new Date(invoice.dueDate),
-    items: invoice.items.map(item => ({
-      loadId: item.loadId,
-      description: item.description,
-      amount: item.amount
-    })),
-    notes: invoice.notes,
-    status: invoice.status
-  };
-  
-  return (
-    <div className="container py-6">
-      <Helmet>
-        <title>Invoice {invoice.invoiceNumber} - MetaSys ERP</title>
-      </Helmet>
-      
-      <div className="flex justify-between items-center mb-6">
-        <Link to="/invoices">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Invoices
-          </Button>
-        </Link>
-        
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleDelete}
-          >
-            <Trash className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
-          
-          <Button 
-            size="sm"
-            onClick={() => setEditDialogOpen(true)}
-          >
-            <FileEdit className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
-        </div>
-      </div>
-      
-      <InvoiceDetails invoice={invoiceData} />
-      
-      {/* Edit Invoice Form */}
-      <InvoiceForm 
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        initialData={initialFormData}
-        isEditing={true}
-      />
-      
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete invoice #{invoice.invoiceNumber}? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+    </ErrorBoundary>
   );
 }
