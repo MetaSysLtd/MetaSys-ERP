@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LeadNotificationContainer } from "@/components/dispatch/lead-notification-container";
 import { useLeadNotifications } from "@/hooks/use-lead-notifications";
 import { useAuth } from "@/hooks/use-auth";
@@ -6,7 +6,26 @@ import { useSocket } from "@/hooks/use-socket";
 import { MotionWrapper } from "@/components/ui/motion-wrapper-fixed";
 import { useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
-import useMediaQuery from 'react-use/lib/useMediaQuery';
+import { useMeasure, useMouse, useWindowSize } from 'react-use';
+
+// Define a custom useMediaQuery hook
+const useMediaQuery = (query: string): boolean => {
+  const [matches, setMatches] = React.useState(
+    () => window.matchMedia(query).matches
+  );
+
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
+    const handleChange = (e: MediaQueryListEvent) => {
+      setMatches(e.matches);
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [query]);
+
+  return matches;
+};
 
 
 /**
