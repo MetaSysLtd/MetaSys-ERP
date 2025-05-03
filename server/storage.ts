@@ -5613,148 +5613,214 @@ export class DatabaseStorage implements IStorage {
   
   // Bug Reporting operations
   async getBugs(orgId: number): Promise<Bug[]> {
-    return Array.from(this.bugs.values()).filter(bug => bug.orgId === orgId);
+    try {
+      return await db.select().from(bugs)
+        .where(eq(bugs.orgId, orgId))
+        .orderBy(desc(bugs.createdAt));
+    } catch (error) {
+      console.error('Error getting bugs:', error);
+      return [];
+    }
   }
   
   async getBugsByStatus(status: string, orgId: number): Promise<Bug[]> {
-    return Array.from(this.bugs.values()).filter(bug => 
-      bug.orgId === orgId && bug.status === status
-    );
+    try {
+      return await db.select().from(bugs)
+        .where(and(
+          eq(bugs.orgId, orgId),
+          eq(bugs.status, status)
+        ))
+        .orderBy(desc(bugs.createdAt));
+    } catch (error) {
+      console.error('Error getting bugs by status:', error);
+      return [];
+    }
   }
   
   async getBugsByUrgency(urgency: string, orgId: number): Promise<Bug[]> {
-    return Array.from(this.bugs.values()).filter(bug => 
-      bug.orgId === orgId && bug.urgency === urgency
-    );
+    try {
+      return await db.select().from(bugs)
+        .where(and(
+          eq(bugs.orgId, orgId),
+          eq(bugs.urgency, urgency)
+        ))
+        .orderBy(desc(bugs.createdAt));
+    } catch (error) {
+      console.error('Error getting bugs by urgency:', error);
+      return [];
+    }
   }
   
   async getBugsByModule(module: string, orgId: number): Promise<Bug[]> {
-    return Array.from(this.bugs.values()).filter(bug => 
-      bug.orgId === orgId && bug.module === module
-    );
+    try {
+      return await db.select().from(bugs)
+        .where(and(
+          eq(bugs.orgId, orgId),
+          eq(bugs.module, module)
+        ))
+        .orderBy(desc(bugs.createdAt));
+    } catch (error) {
+      console.error('Error getting bugs by module:', error);
+      return [];
+    }
   }
   
   async getBugsByReporter(reporterId: number): Promise<Bug[]> {
-    return Array.from(this.bugs.values()).filter(bug => 
-      bug.reportedBy === reporterId
-    );
+    try {
+      return await db.select().from(bugs)
+        .where(eq(bugs.reportedBy, reporterId))
+        .orderBy(desc(bugs.createdAt));
+    } catch (error) {
+      console.error('Error getting bugs by reporter:', error);
+      return [];
+    }
   }
   
   async getBugsByAssignee(assigneeId: number): Promise<Bug[]> {
-    return Array.from(this.bugs.values()).filter(bug => 
-      bug.assignedTo === assigneeId
-    );
+    try {
+      return await db.select().from(bugs)
+        .where(eq(bugs.assignedTo, assigneeId))
+        .orderBy(desc(bugs.createdAt));
+    } catch (error) {
+      console.error('Error getting bugs by assignee:', error);
+      return [];
+    }
   }
   
   async getBug(id: number): Promise<Bug | undefined> {
-    return this.bugs.get(id);
+    try {
+      const [bug] = await db.select().from(bugs).where(eq(bugs.id, id));
+      return bug;
+    } catch (error) {
+      console.error('Error getting bug:', error);
+      return undefined;
+    }
   }
   
   async createBug(bug: InsertBug): Promise<Bug> {
-    const now = new Date();
-    const newBug: Bug = {
-      id: this.bugIdCounter++,
-      ...bug,
-      createdAt: now,
-      updatedAt: now,
-      fixedAt: null,
-      closedAt: null
-    };
-    
-    this.bugs.set(newBug.id, newBug);
-    return newBug;
+    try {
+      const [newBug] = await db.insert(bugs)
+        .values({
+          ...bug,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      return newBug;
+    } catch (error) {
+      console.error('Error creating bug:', error);
+      throw error;
+    }
   }
   
   async updateBug(id: number, updates: Partial<Bug>): Promise<Bug | undefined> {
-    const bug = this.bugs.get(id);
-    if (!bug) return undefined;
-    
-    const updatedBug: Bug = {
-      ...bug,
-      ...updates,
-      updatedAt: new Date(),
-      id
-    };
-    
-    this.bugs.set(id, updatedBug);
-    return updatedBug;
+    try {
+      const [updatedBug] = await db.update(bugs)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(bugs.id, id))
+        .returning();
+      
+      return updatedBug;
+    } catch (error) {
+      console.error('Error updating bug:', error);
+      return undefined;
+    }
   }
   
   async assignBug(id: number, assigneeId: number): Promise<Bug | undefined> {
-    const bug = this.bugs.get(id);
-    if (!bug) return undefined;
-    
-    const updatedBug: Bug = {
-      ...bug,
-      assignedTo: assigneeId,
-      updatedAt: new Date()
-    };
-    
-    this.bugs.set(id, updatedBug);
-    return updatedBug;
+    try {
+      const [updatedBug] = await db.update(bugs)
+        .set({
+          assignedTo: assigneeId,
+          updatedAt: new Date()
+        })
+        .where(eq(bugs.id, id))
+        .returning();
+      
+      return updatedBug;
+    } catch (error) {
+      console.error('Error assigning bug:', error);
+      return undefined;
+    }
   }
   
   async changeBugStatus(id: number, status: string): Promise<Bug | undefined> {
-    const bug = this.bugs.get(id);
-    if (!bug) return undefined;
-    
-    const updatedBug: Bug = {
-      ...bug,
-      status,
-      updatedAt: new Date()
-    };
-    
-    this.bugs.set(id, updatedBug);
-    return updatedBug;
+    try {
+      const [updatedBug] = await db.update(bugs)
+        .set({
+          status,
+          updatedAt: new Date()
+        })
+        .where(eq(bugs.id, id))
+        .returning();
+      
+      return updatedBug;
+    } catch (error) {
+      console.error('Error changing bug status:', error);
+      return undefined;
+    }
   }
   
   async fixBug(id: number, fixVersion: string): Promise<Bug | undefined> {
-    const bug = this.bugs.get(id);
-    if (!bug) return undefined;
-    
-    const now = new Date();
-    const updatedBug: Bug = {
-      ...bug,
-      status: "Fixed",
-      fixVersion,
-      fixedAt: now,
-      updatedAt: now
-    };
-    
-    this.bugs.set(id, updatedBug);
-    return updatedBug;
+    try {
+      const now = new Date();
+      const [updatedBug] = await db.update(bugs)
+        .set({
+          status: "Fixed",
+          fixVersion,
+          fixedAt: now,
+          updatedAt: now
+        })
+        .where(eq(bugs.id, id))
+        .returning();
+      
+      return updatedBug;
+    } catch (error) {
+      console.error('Error fixing bug:', error);
+      return undefined;
+    }
   }
   
   async closeBug(id: number): Promise<Bug | undefined> {
-    const bug = this.bugs.get(id);
-    if (!bug) return undefined;
-    
-    const now = new Date();
-    const updatedBug: Bug = {
-      ...bug,
-      status: "Closed",
-      closedAt: now,
-      updatedAt: now
-    };
-    
-    this.bugs.set(id, updatedBug);
-    return updatedBug;
+    try {
+      const now = new Date();
+      const [updatedBug] = await db.update(bugs)
+        .set({
+          status: "Closed",
+          closedAt: now,
+          updatedAt: now
+        })
+        .where(eq(bugs.id, id))
+        .returning();
+      
+      return updatedBug;
+    } catch (error) {
+      console.error('Error closing bug:', error);
+      return undefined;
+    }
   }
   
   async reopenBug(id: number): Promise<Bug | undefined> {
-    const bug = this.bugs.get(id);
-    if (!bug) return undefined;
-    
-    const updatedBug: Bug = {
-      ...bug,
-      status: "Reopened",
-      fixedAt: null,
-      closedAt: null,
-      updatedAt: new Date()
-    };
-    
-    this.bugs.set(id, updatedBug);
-    return updatedBug;
+    try {
+      const [updatedBug] = await db.update(bugs)
+        .set({
+          status: "Reopened",
+          fixedAt: null,
+          closedAt: null,
+          updatedAt: new Date()
+        })
+        .where(eq(bugs.id, id))
+        .returning();
+      
+      return updatedBug;
+    } catch (error) {
+      console.error('Error reopening bug:', error);
+      return undefined;
+    }
   }
 }
 
