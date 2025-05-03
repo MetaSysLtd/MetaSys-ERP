@@ -253,7 +253,7 @@ export default function DispatchLoadsPage() {
             {canCreateLoad && (
               <Button
                 onClick={() => setLocation("/dispatch/new-load")}
-                className="mt-4 sm:mt-0"
+                className="mt-4 sm:mt-0 bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white rounded-md transition-all duration-200"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 New Load
@@ -357,6 +357,7 @@ export default function DispatchLoadsPage() {
                   <TableHead>Load #</TableHead>
                   <TableHead>Route</TableHead>
                   <TableHead>Client</TableHead>
+                  <TableHead>Equipment</TableHead>
                   <TableHead>Dates</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Rate</TableHead>
@@ -366,7 +367,7 @@ export default function DispatchLoadsPage() {
               <TableBody>
                 {displayLoads.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                       No loads found. Create a new load to get started.
                     </TableCell>
                   </TableRow>
@@ -395,6 +396,16 @@ export default function DispatchLoadsPage() {
                         {load.driver && (
                           <div className="text-xs text-gray-500">
                             Driver: {load.driver}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          {load.equipment || "Standard"}
+                        </Badge>
+                        {load.weight && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Weight: {load.weight}
                           </div>
                         )}
                       </TableCell>
@@ -430,9 +441,10 @@ export default function DispatchLoadsPage() {
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
                           <Button 
-                            variant="ghost" 
+                            variant="outline"
                             size="sm"
                             onClick={() => setLocation(`/dispatch/loads/${load.id}`)}
+                            className="text-[#025E73] border-[#025E73] hover:bg-[#025E73]/10"
                           >
                             View
                           </Button>
@@ -445,6 +457,7 @@ export default function DispatchLoadsPage() {
                                 description: "Load editing is coming soon",
                               });
                             }}
+                            className="text-[#025E73] border-[#025E73] hover:bg-[#025E73]/10"
                           >
                             Edit
                           </Button>
