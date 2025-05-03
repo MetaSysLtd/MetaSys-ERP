@@ -1682,38 +1682,33 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         createdBy: req.session.userId as number
       };
       
-      // Create invoice
-      const newInvoice = await storage.createInvoice(invoiceData);
+      let result;
       
-      // Handle invoice items if provided
-      if (req.body.items && Array.isArray(req.body.items)) {
-        for (const item of req.body.items) {
-          await storage.createInvoiceItem({
-            invoiceId: newInvoice.id,
-            loadId: item.loadId,
-            description: item.description,
-            amount: item.amount
-          });
-        }
+      // Use transaction for creating invoice with items if provided
+      if (req.body.items && Array.isArray(req.body.items) && req.body.items.length > 0) {
+        const itemsData = req.body.items.map(item => ({
+          loadId: item.loadId,
+          description: item.description,
+          amount: item.amount
+        }));
         
-        // Get the updated invoice with items
-        const invoiceWithItems = await storage.getInvoiceWithItems(newInvoice.id);
-        
-        // Emit real-time update
-        if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceCreated) {
-          invoiceRealTimeMiddleware.emitInvoiceCreated(invoiceWithItems);
-        }
-        
-        return res.status(201).json(invoiceWithItems);
+        // Create invoice with items in a single transaction
+        result = await storage.createInvoiceWithItems(invoiceData, itemsData);
+      } else {
+        // Create invoice only (no items)
+        const newInvoice = await storage.createInvoice(invoiceData);
+        result = { invoice: newInvoice, items: [] };
       }
       
       // Emit real-time update
       if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceCreated) {
-        invoiceRealTimeMiddleware.emitInvoiceCreated({ invoice: newInvoice, items: [] });
+        invoiceRealTimeMiddleware.emitInvoiceCreated(result);
       }
       
-      res.status(201).json({ invoice: newInvoice, items: [] });
+      res.status(201).json(result);
     } catch (error) {
+      console.error('Error creating invoice:', error);
+      
       if (error instanceof ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ 
