@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gt, gte, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, gt, gte, lte, sql, sum } from "drizzle-orm";
 import { db } from "./db";
 import { leads, loads, users } from "@shared/schema";
 import { addDays, endOfWeek, format, startOfWeek, subWeeks } from "date-fns";
@@ -221,8 +221,8 @@ export async function getWeekOverWeekComparison(
     .select({ count: count() })
     .from(loads)
     .where(and(
-      gte(loads.createdAt, format(thisWeekStart, 'yyyy-MM-dd')),
-      sql`${loads.createdAt} <= ${format(thisWeekEnd, 'yyyy-MM-dd')}`,
+      gte(loads.createdAt, sql`${format(thisWeekStart, 'yyyy-MM-dd')}`),
+      lte(loads.createdAt, sql`${format(thisWeekEnd, 'yyyy-MM-dd')}`),
       eq(loads.orgId, organizationId)
     ));
   
@@ -249,8 +249,8 @@ export async function getWeekOverWeekComparison(
     .select({ count: count() })
     .from(leads)
     .where(and(
-      gte(leads.createdAt, format(prevWeekStart, 'yyyy-MM-dd')),
-      sql`${leads.createdAt} <= ${format(prevWeekEnd, 'yyyy-MM-dd')}`,
+      gte(leads.createdAt, sql`${format(prevWeekStart, 'yyyy-MM-dd')}`),
+      lte(leads.createdAt, sql`${format(prevWeekEnd, 'yyyy-MM-dd')}`),
       eq(leads.orgId, organizationId),
       eq(leads.status, 'HandToDispatch')
     ));
@@ -259,8 +259,8 @@ export async function getWeekOverWeekComparison(
     .select({ count: count() })
     .from(loads)
     .where(and(
-      gte(loads.createdAt, format(prevWeekStart, 'yyyy-MM-dd')),
-      sql`${loads.createdAt} <= ${format(prevWeekEnd, 'yyyy-MM-dd')}`,
+      gte(loads.createdAt, sql`${format(prevWeekStart, 'yyyy-MM-dd')}`),
+      lte(loads.createdAt, sql`${format(prevWeekEnd, 'yyyy-MM-dd')}`),
       eq(loads.orgId, organizationId)
     ));
   
