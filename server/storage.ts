@@ -1112,8 +1112,64 @@ export class MemStorage implements IStorage {
     return Array.from(this.invoices.values()).find(invoice => invoice.invoiceNumber === invoiceNumber);
   }
 
+  // Core getInvoices method (keep for compatibility with other methods)
   async getInvoices(): Promise<Invoice[]> {
     return Array.from(this.invoices.values());
+  }
+  
+  // Paginated getInvoices method with filtering
+  async getInvoices(page: number = 1, limit: number = 10, filters: any = {}): Promise<{
+    data: Invoice[], 
+    pagination: {
+      total: number, 
+      page: number, 
+      limit: number, 
+      pages: number
+    }
+  }> {
+    let filteredInvoices = Array.from(this.invoices.values());
+    
+    // Apply filters
+    if (filters.status) {
+      filteredInvoices = filteredInvoices.filter(invoice => invoice.status === filters.status);
+    }
+    
+    if (filters.leadId) {
+      filteredInvoices = filteredInvoices.filter(invoice => invoice.leadId === filters.leadId);
+    }
+    
+    if (filters.dateFrom && filters.dateTo) {
+      const fromDate = new Date(filters.dateFrom);
+      const toDate = new Date(filters.dateTo);
+      filteredInvoices = filteredInvoices.filter(invoice => {
+        const issuedDate = new Date(invoice.issuedDate);
+        return issuedDate >= fromDate && issuedDate <= toDate;
+      });
+    }
+    
+    if (filters.createdBy) {
+      filteredInvoices = filteredInvoices.filter(invoice => invoice.createdBy === filters.createdBy);
+    }
+    
+    if (filters.orgId) {
+      filteredInvoices = filteredInvoices.filter(invoice => invoice.orgId === filters.orgId);
+    }
+    
+    // Calculate pagination
+    const total = filteredInvoices.length;
+    const pages = Math.ceil(total / limit);
+    const offset = (page - 1) * limit;
+    const paginatedInvoices = filteredInvoices.slice(offset, offset + limit);
+    
+    return {
+      data: paginatedInvoices,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages
+      }
+    };
   }
 
   async getInvoicesByStatus(status: string): Promise<Invoice[]> {
@@ -1147,6 +1203,50 @@ export class MemStorage implements IStorage {
     this.invoices.set(id, updatedInvoice);
     return updatedInvoice;
   }
+  
+  async markInvoiceAsPaid(id: number, paidDate: Date, paidAmount: number): Promise<Invoice | undefined> {
+    const invoice = await this.getInvoice(id);
+    if (!invoice) return undefined;
+    
+    // Update the invoice with payment information
+    const updatedInvoice = await this.updateInvoice(id, {
+      status: 'paid',
+      paidDate: paidDate.toISOString(),
+      paidAmount
+    });
+    
+    // Update any related commissions to approved status
+    const relatedCommissions = await this.getCommissionsByInvoice(id);
+    for (const commission of relatedCommissions) {
+      await this.updateCommission(commission.id, {
+        status: 'approved',
+        paidDate: paidDate.toISOString()
+      });
+    }
+    
+    return updatedInvoice;
+  }
+  
+  async deleteInvoice(id: number): Promise<boolean> {
+    const invoice = await this.getInvoice(id);
+    if (!invoice) return false;
+    
+    // Delete associated invoice items first
+    const items = await this.getInvoiceItemsByInvoice(id);
+    for (const item of items) {
+      this.invoiceItems.delete(item.id);
+    }
+    
+    // Delete any related commissions
+    const commissions = await this.getCommissionsByInvoice(id);
+    for (const commission of commissions) {
+      this.commissions.delete(commission.id);
+    }
+    
+    // Delete the invoice
+    this.invoices.delete(id);
+    return true;
+  }
 
   // Invoice items operations
   async getInvoiceItem(id: number): Promise<InvoiceItem | undefined> {
@@ -1165,6 +1265,112 @@ export class MemStorage implements IStorage {
     };
     this.invoiceItems.set(id, item);
     return item;
+  }
+
+  async createInvoiceWithItems(insertInvoice: InsertInvoice, items: Omit<InsertInvoiceItem, 'invoiceId'>[]): Promise<{invoice: Invoice, items: InvoiceItem[]}> {
+    // Create the invoice first
+    const newInvoice = await this.createInvoice(insertInvoice);
+    
+    // Create all the invoice items with the new invoice ID
+    const invoiceItems: InvoiceItem[] = [];
+    for (const itemData of items) {
+      const item = await this.createInvoiceItem({
+        ...itemData,
+        invoiceId: newInvoice.id
+      });
+      invoiceItems.push(item);
+    }
+    
+    // Calculate total amount from items and update the invoice
+    const totalAmount = invoiceItems.reduce((sum, item) => sum + item.amount, 0);
+    if (newInvoice.totalAmount !== totalAmount) {
+      await this.updateInvoice(newInvoice.id, { totalAmount });
+      // Update local reference
+      newInvoice.totalAmount = totalAmount;
+    }
+    
+    return { invoice: newInvoice, items: invoiceItems };
+  }
+
+  async getInvoiceWithItems(id: number): Promise<{invoice: Invoice, items: InvoiceItem[]} | undefined> {
+    const invoice = await this.getInvoice(id);
+    if (!invoice) return undefined;
+    
+    const items = await this.getInvoiceItemsByInvoice(id);
+    return { invoice, items };
+  }
+  
+  async generateInvoicesForDeliveredLoads(): Promise<{count: number, invoices: Invoice[]}> {
+    // Get all delivered loads that don't have an invoice yet
+    const loads = await this.getLoadsByStatus('delivered');
+    const existingInvoiceItems = Array.from(this.invoiceItems.values());
+    
+    // Filter out loads that already have an invoice
+    const uninvoicedLoads = loads.filter(load => {
+      return !existingInvoiceItems.some(item => item.loadId === load.id);
+    });
+    
+    if (uninvoicedLoads.length === 0) {
+      return { count: 0, invoices: [] };
+    }
+    
+    // Group loads by leadId (client) to create one invoice per client
+    const loadsByClient = new Map<number, Load[]>();
+    for (const load of uninvoicedLoads) {
+      if (!loadsByClient.has(load.leadId)) {
+        loadsByClient.set(load.leadId, []);
+      }
+      loadsByClient.get(load.leadId)!.push(load);
+    }
+    
+    // Create invoices for each client
+    const invoices: Invoice[] = [];
+    for (const [leadId, clientLoads] of loadsByClient.entries()) {
+      const now = new Date();
+      const dueDate = new Date();
+      dueDate.setDate(now.getDate() + 30); // Due in 30 days
+      
+      // Calculate total amount for this client's loads
+      const totalAmount = clientLoads.reduce((sum, load) => sum + load.totalAmount, 0);
+      
+      // Create the invoice
+      const invoice = await this.createInvoice({
+        leadId,
+        invoiceNumber: this.generateInvoiceNumber(),
+        status: 'draft',
+        totalAmount,
+        issuedDate: now.toISOString(),
+        dueDate: dueDate.toISOString(),
+        orgId: clientLoads[0].orgId || null,
+        notes: `Automatically generated invoice for ${clientLoads.length} delivered loads`,
+        createdBy: clientLoads[0].createdBy // Using the creator of the first load
+      });
+      
+      // Create invoice items for each load
+      for (const load of clientLoads) {
+        await this.createInvoiceItem({
+          invoiceId: invoice.id,
+          loadId: load.id,
+          description: `Load #${load.loadNumber}: ${load.origin} to ${load.destination}`,
+          amount: load.totalAmount
+        });
+      }
+      
+      invoices.push(invoice);
+    }
+    
+    return {
+      count: invoices.length,
+      invoices
+    };
+  }
+  
+  private generateInvoiceNumber(): string {
+    const date = new Date();
+    const year = date.getFullYear().toString().substr(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const random = Math.floor(1000 + Math.random() * 9000).toString();
+    return `INV-${year}${month}-${random}`;
   }
 
   // Commission operations
