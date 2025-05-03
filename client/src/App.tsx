@@ -34,6 +34,7 @@ import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import ProfilePage from "@/pages/settings/profile";
 import AdminDashboard from "@/pages/admin";
+import BugsPage from "@/pages/admin/bugs";
 import HRPage from "@/pages/hr";
 import FinancePage from "@/pages/finance";
 import MarketingPage from "@/pages/marketing";
@@ -48,6 +49,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { MessageProvider } from "@/contexts/MessageContext";
 import { AnimationProvider } from "@/contexts/AnimationContext";
+import { OrganizationProvider } from "@/hooks/use-organization";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
@@ -253,6 +255,14 @@ function Router() {
         )}
       </Route>
 
+      <Route path="/admin/bugs">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={BugsPage} />
+          </AppLayout>
+        )}
+      </Route>
+
       <Route path="/hr">
         {() => (
           <AppLayout>
@@ -373,10 +383,12 @@ function App() {
               <NotificationProvider>
                 <MessageProvider>
                   <AnimationProvider>
-                    <LeadNotificationProvider>
-                      <AppContent />
-                      <Toaster />
-                    </LeadNotificationProvider>
+                    <OrganizationProvider>
+                      <LeadNotificationProvider>
+                        <AppContent />
+                        <Toaster />
+                      </LeadNotificationProvider>
+                    </OrganizationProvider>
                   </AnimationProvider>
                 </MessageProvider>
               </NotificationProvider>

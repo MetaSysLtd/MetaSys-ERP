@@ -1,106 +1,64 @@
-import React from 'react';
-import { UseQueryResult } from '@tanstack/react-query';
-import { EmptyState } from '@/components/ui/empty-state';
-import { AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-
-type QueryErrorHandlerProps<TData, TError> = {
-  query: UseQueryResult<TData, TError>;
-  children: (data: TData) => React.ReactNode;
-  moduleName: string;
-  loadingComponent?: React.ReactNode;
-  emptyStateMessage?: string;
-  emptyStateIcon?: React.ReactNode;
-  emptyStateAction?: React.ReactNode;
-};
+import { useCallback, ReactNode } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 /**
- * QueryErrorHandler - A component that gracefully handles error states in React Query
- * 
- * This component wraps around React Query results and provides consistent loading,
- * error, and empty state handling. It is designed to:
- * 
- * 1. Show a loading state while the query is loading (can be customized)
- * 2. Show an error state if the query fails (with a retry button)
- * 3. Show an empty state if the query returns no data
- * 4. Render children with the data if all is well
- * 
- * @example
- * ```tsx
- * <QueryErrorHandler
- *   query={usersQuery}
- *   moduleName="users"
- * >
- *   {(data) => (
- *     <UserTable data={data} />
- *   )}
- * </QueryErrorHandler>
- * ```
+ * Hook that provides a consistent way to handle errors from React Query
  */
-export function QueryErrorHandler<TData, TError>({
-  query,
-  children,
-  moduleName,
-  loadingComponent,
-  emptyStateMessage,
-  emptyStateIcon,
-  emptyStateAction,
-}: QueryErrorHandlerProps<TData, TError>) {
-  const { data, isLoading, isError, error, refetch } = query;
+export function useQueryErrorHandler() {
+  const { toast } = useToast();
 
-  // Loading state
-  if (isLoading) {
-    if (loadingComponent) {
-      return <>{loadingComponent}</>;
+  /**
+   * Handles an error from a React Query operation
+   */
+  const handleError = useCallback((error: Error) => {
+    console.error('Query error:', error);
+    
+    // Get the error message
+    const errorMessage = error?.message || 'An unknown error occurred';
+    
+    // Show a toast with the error message
+    toast({
+      title: 'Error',
+      description: errorMessage,
+      variant: 'destructive',
+    });
+  }, [toast]);
+
+  return { handleError };
+}
+
+// This is a component wrapper for error handling
+interface QueryErrorHandlerProps {
+  error: Error | null;
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+export function QueryErrorHandler({ error, children, fallback }: QueryErrorHandlerProps) {
+  const { handleError } = useQueryErrorHandler();
+  
+  // Handle the error with our hook
+  if (error) {
+    handleError(error);
+    
+    // Return a fallback UI if provided, otherwise show an error alert
+    if (fallback) {
+      return <>{fallback}</>;
     }
     
     return (
-      <EmptyState
-        icon={<Loader2 className="h-12 w-12 text-primary animate-spin" />}
-        title="Loading data..."
-        description="Please wait while we retrieve the latest information."
-        className="my-8"
-      />
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          {error.message || 'An error occurred while loading the data.'}
+        </AlertDescription>
+      </Alert>
     );
   }
-
-  // Error state
-  if (isError) {
-    const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-    
-    return (
-      <EmptyState
-        icon={<AlertTriangle className="h-12 w-12 text-destructive" />}
-        title={`Unable to load ${moduleName}`}
-        description={errorMessage}
-        className="my-8 border border-destructive/10 bg-destructive/5"
-        action={
-          <Button 
-            onClick={() => refetch()} 
-            variant="outline"
-            className="mt-4"
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Try Again
-          </Button>
-        }
-      />
-    );
-  }
-
-  // Empty state
-  if (!data || (Array.isArray(data) && data.length === 0)) {
-    return (
-      <EmptyState
-        icon={emptyStateIcon || <AlertTriangle className="h-12 w-12 text-muted-foreground" />}
-        title={`No ${moduleName} found`}
-        description={emptyStateMessage || `We couldn't find any ${moduleName} matching your criteria.`}
-        className="my-8"
-        action={emptyStateAction}
-      />
-    );
-  }
-
-  // Data is available, render children with data
-  return <>{children(data)}</>;
+  
+  // No error, render children normally
+  return <>{children}</>;
 }

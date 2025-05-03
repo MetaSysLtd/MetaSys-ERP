@@ -19,7 +19,8 @@ import {
   ShieldAlert,
   HeartPulse,
   Megaphone,
-  Trophy
+  Trophy,
+  Bug
 } from "lucide-react";
 import { useDispatch, useSelector } from 'react-redux';
 import { setPreferences, syncToggleDropdown, toggleDropdown } from '@/store/uiPreferencesSlice';
@@ -427,6 +428,13 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
                   name: "Admin Dashboard",
                   href: "/admin",
                   icon: ShieldAlert
+                }} 
+              />
+              <NavItemComponent 
+                item={{
+                  name: "Bug Management",
+                  href: "/admin/bugs",
+                  icon: Bug
                 }} 
               />
             </div>
