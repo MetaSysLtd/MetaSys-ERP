@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Card,
@@ -48,19 +48,21 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [tabValue, setTabValue] = useState("monthly");
+  const [historicalCommissions, setHistoricalCommissions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Format month string for API request
   const month = selectedDate ? format(selectedDate, 'yyyy-MM') : format(new Date(), 'yyyy-MM');
-  
+
   // User ID to fetch (if admin and userId prop is provided, use that; otherwise use current user)
   const targetUserId = (isAdmin && userId) ? userId : user?.id;
 
   // Fetch commission for current user and selected month
-  const { data: commissionData, isLoading } = useQuery({
+  const { data: commissionData, isLoading: isMonthlyLoading } = useQuery({
     queryKey: ['/api/commissions/monthly', targetUserId, month],
     queryFn: async () => {
       if (!targetUserId) return null;
-      
+
       const response = await fetch(`/api/commissions/monthly/user/${targetUserId}/${month}`);
       if (!response.ok) {
         if (response.status === 404) {
@@ -74,27 +76,45 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
   });
 
   // Fetch historical commission data for charts
-  const { data: historicalCommissions } = useQuery({
-    queryKey: ['/api/commissions/monthly/history', targetUserId],
-    queryFn: async () => {
-      if (!targetUserId) return [];
-      
-      const response = await fetch(`/api/commissions/monthly/user/${targetUserId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch historical commission data');
+  //const { data: historicalCommissions } = useQuery({
+  //  queryKey: ['/api/commissions/monthly/history', targetUserId],
+  //  queryFn: async () => {
+  //    if (!targetUserId) return [];
+
+  //    const response = await fetch(`/api/commissions/monthly/user/${targetUserId}`);
+  //    if (!response.ok) {
+  //      throw new Error('Failed to fetch historical commission data');
+  //    }
+  //    return response.json();
+  //  },
+  //  enabled: !!targetUserId,
+  //});
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        if (!user?.id) return;
+        const response = await fetch(`/api/commissions/monthly/user/${user.id}`);
+        const data = await response.json();
+        setHistoricalCommissions(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Error fetching commission data:', error);
+        setHistoricalCommissions([]);
+      } finally {
+        setIsLoading(false);
       }
-      return response.json();
-    },
-    enabled: !!targetUserId,
-  });
+    };
+    fetchData();
+  }, [user]);
 
   // Process historical data for chart
-  const chartData = historicalCommissions?.map((commission: any) => ({
-    month: format(new Date(commission.month + '-01'), 'MMM'),
-    amount: commission.amount,
-    base: commission.baseAmount,
-    bonus: commission.bonusAmount
-  })) || [];
+  const chartData = Array.isArray(historicalCommissions) ? historicalCommissions.map(commission => ({
+        month: format(new Date(commission.month + '-01'), 'MMM'),
+        amount: commission.amount || 0,
+        base: commission.baseAmount || 0,
+        bonus: commission.bonusAmount || 0
+      })) : [];
 
   // Handle recalculation request
   const handleRecalculate = async () => {
@@ -102,16 +122,16 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
       const response = await fetch(`/api/commissions/calculate/${targetUserId}/${month}`, {
         method: 'POST'
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to recalculate commission');
       }
-      
+
       toast({
         title: "Commission Recalculated",
         description: "Commission has been recalculated successfully.",
       });
-      
+
       // Refresh the data
       await fetch(`/api/commissions/monthly/user/${targetUserId}/${month}`);
     } catch (error) {
@@ -124,7 +144,7 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
   };
 
   // No commission data yet
-  if (!isLoading && !commissionData) {
+  if (!isMonthlyLoading && !commissionData) {
     return (
       <Card>
         <CardHeader>
@@ -249,7 +269,7 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
           <TabsContent value="monthly">
-            {isLoading ? (
+            {isMonthlyLoading ? (
               <div className="flex justify-center items-center h-40">
                 <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
               </div>
@@ -285,7 +305,7 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
                     </div>
                   </div>
                 </div>
-                
+
                 {commissionData.metrics && (
                   <div>
                     <h3 className="text-lg font-medium mb-2">Performance Metrics</h3>
@@ -392,7 +412,11 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
           <TabsContent value="history">
             <div className="space-y-6">
               <h3 className="text-lg font-medium mb-2">Commission History</h3>
-              {chartData.length > 0 ? (
+              {isLoading ? (
+                <div className="flex justify-center items-center h-40">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
+                </div>
+              ) : chartData.length > 0 ? (
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData}>
@@ -410,7 +434,7 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
                   <p className="text-muted-foreground">No historical commission data available</p>
                 </div>
               )}
-              
+
               {historicalCommissions && historicalCommissions.length > 0 && (
                 <div>
                   <h3 className="text-lg font-medium mb-2">Monthly Breakdown</h3>
