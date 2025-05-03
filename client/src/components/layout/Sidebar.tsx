@@ -130,7 +130,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   // Define helper functions
   const isActiveRoute = useCallback((route: string) => {
     if (route === "/" && location === "/") return true;
-    if (route === location) return true;
+    if (route !== "/" && location === route) return true;
     return false;
   }, [location]);
 
