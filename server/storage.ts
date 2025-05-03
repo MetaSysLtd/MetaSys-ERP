@@ -422,6 +422,7 @@ export class MemStorage implements IStorage {
   private exitRequestIdCounter: number;
   private companyDocumentIdCounter: number;
   private dashboardWidgetIdCounter: number;
+  private bugIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
@@ -498,6 +499,7 @@ export class MemStorage implements IStorage {
     this.exitRequestIdCounter = 1;
     this.companyDocumentIdCounter = 1;
     this.dashboardWidgetIdCounter = 1;
+    this.bugIdCounter = 1;
     
     // Initialize with default roles
     this.initializeRoles();
