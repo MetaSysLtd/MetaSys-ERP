@@ -28,6 +28,9 @@ import { Badge } from "@/components/ui/badge";
 import {
   Truck,
   Plus,
+  MapPin,
+  Calendar,
+  DollarSign,
   FileEdit,
   MoreHorizontal,
   AlertCircle,
@@ -360,11 +363,11 @@ export default function DispatchClientsPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[300px]">Client Name</TableHead>
-                          <TableHead>Contact</TableHead>
-                          <TableHead>MC #</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Onboarding Date</TableHead>
+                          <TableHead className="w-[300px]">Name</TableHead>
+                          <TableHead>Location</TableHead>
+                          <TableHead>Onboarded Date</TableHead>
+                          <TableHead>Last Load</TableHead>
+                          <TableHead>Value Booked</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -373,8 +376,8 @@ export default function DispatchClientsPage() {
                           <TableRow key={client.id}>
                             <TableCell className="font-medium">
                               <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8 bg-blue-100">
-                                  <AvatarFallback className="text-blue-700">
+                                <Avatar className="h-8 w-8 bg-[#025E73]/10">
+                                  <AvatarFallback className="text-[#025E73]">
                                     {client.lead?.companyName
                                       ? client.lead.companyName
                                           .substring(0, 2)
@@ -387,50 +390,39 @@ export default function DispatchClientsPage() {
                                     {client.lead?.companyName || "Unknown Company"}
                                   </div>
                                   <div className="text-xs text-gray-500">
-                                    Added: {format(new Date(client.createdAt), "MMM d, yyyy")}
+                                    {client.lead?.contactName || "No contact"}
                                   </div>
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell>
-                              {client.lead?.contactName ? (
-                                <div className="flex flex-col">
-                                  <span>{client.lead.contactName}</span>
-                                  <span className="text-xs text-gray-500">
-                                    {client.lead.email || "No email"}
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="text-gray-400 italic">Not specified</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {client.lead?.mcNumber ? (
-                                <span className="font-mono text-sm">
-                                  {client.lead.mcNumber}
-                                </span>
-                              ) : (
-                                <span className="text-gray-400 italic">Not specified</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant="outline"
-                                className={`flex items-center gap-1 ${
-                                  CLIENT_STATUSES[client.status]?.color ||
-                                  "bg-gray-100 text-gray-800"
-                                }`}
-                              >
-                                {getStatusIcon(client.status)}
-                                {CLIENT_STATUSES[client.status]?.label || "Unknown"}
-                              </Badge>
+                              <div className="flex items-center gap-1">
+                                <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                                <span>{client.location || client.lead?.location || "Unknown"}</span>
+                              </div>
                             </TableCell>
                             <TableCell>
                               {client.onboardingDate ? (
-                                format(new Date(client.onboardingDate), "MMM d, yyyy")
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                                  <span>{format(new Date(client.onboardingDate), "MMM d, yyyy")}</span>
+                                </div>
                               ) : (
-                                <span className="text-gray-400 italic">Pending</span>
+                                <span className="text-gray-400 italic">Not onboarded</span>
                               )}
+                            </TableCell>
+                            <TableCell>
+                              {client.lastLoadDate ? (
+                                format(new Date(client.lastLoadDate), "MMM d, yyyy")
+                              ) : (
+                                <span className="text-gray-400 italic">No loads yet</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1 text-emerald-600 font-medium">
+                                <DollarSign className="h-3.5 w-3.5" />
+                                <span>${client.valueBooked?.toLocaleString() || "0"}</span>
+                              </div>
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-2">
