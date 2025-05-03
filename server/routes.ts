@@ -2852,9 +2852,18 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         })
       );
       
-      res.json(clientsWithLeads);
+      // Return a structured JSON response
+      res.status(200).json({
+        status: "success",
+        data: clientsWithLeads || []
+      });
     } catch (error) {
-      next(error);
+      console.error("Error fetching dispatch clients:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch dispatch clients",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
   
@@ -3227,16 +3236,25 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
       let commissions;
       
       // If the user is a rep, only show their own commissions
-      if (req.userRole.level === 1) {
-        commissions = await storage.getCommissionsByUser(req.user.id);
+      if (req.userRole?.level === 1) {
+        commissions = await storage.getCommissionsByUser(req.user?.id || 0);
       } else {
         // Managers and above can see all commissions
         commissions = await storage.getCommissions();
       }
       
-      res.json(commissions);
+      // Return a structured JSON response
+      res.status(200).json({
+        status: "success",
+        data: commissions || []
+      });
     } catch (error) {
-      next(error);
+      console.error("Error fetching commissions:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch commissions",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
