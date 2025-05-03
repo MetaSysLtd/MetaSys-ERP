@@ -234,36 +234,64 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
         onMenuItemClick();
       }
     };
+
+    const handleNavigation = (e: React.MouseEvent) => {
+      if (!hasSubItems) {
+        if (mobile && onMenuItemClick) {
+          onMenuItemClick();
+        }
+      }
+    };
     
     return (
       <div key={item.href} className="mb-1">
         {/* Main navigation item */}
-        <div 
-          onClick={handleClick}
-          className={`
-            flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all cursor-pointer
-            ${isActive || isChildActive
-              ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
-              : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'
-            }
-          `}
-        >
-          <item.icon className={`h-[18px] w-[18px] ${(isActive || isChildActive) ? 'text-white' : 'text-[#025E73]'}`} />
-          
-          {(!collapsed || mobile) && (
-            <>
+        {hasSubItems ? (
+          <div 
+            onClick={handleClick}
+            className={`
+              flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all cursor-pointer
+              ${isActive || isChildActive
+                ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
+                : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'
+              }
+            `}
+          >
+            <item.icon className={`h-[18px] w-[18px] ${(isActive || isChildActive) ? 'text-white' : 'text-[#025E73]'}`} />
+            
+            {(!collapsed || mobile) && (
+              <>
+                <span className="flex-1">{item.name}</span>
+                {hasSubItems && (
+                  <div className="ml-auto">
+                    {isExpanded 
+                      ? <ChevronDown className={`w-4 h-4 ${(isActive || isChildActive) ? 'text-white' : ''}`} />
+                      : <ChevronRight className={`w-4 h-4 ${(isActive || isChildActive) ? 'text-white' : ''}`} />
+                    }
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        ) : (
+          <Link 
+            href={item.href}
+            onClick={handleNavigation}
+            className={`
+              flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all cursor-pointer
+              ${isActive || isChildActive
+                ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
+                : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'
+              }
+            `}
+          >
+            <item.icon className={`h-[18px] w-[18px] ${(isActive || isChildActive) ? 'text-white' : 'text-[#025E73]'}`} />
+            
+            {(!collapsed || mobile) && (
               <span className="flex-1">{item.name}</span>
-              {hasSubItems && (
-                <div className="ml-auto">
-                  {isExpanded 
-                    ? <ChevronDown className={`w-4 h-4 ${(isActive || isChildActive) ? 'text-white' : ''}`} />
-                    : <ChevronRight className={`w-4 h-4 ${(isActive || isChildActive) ? 'text-white' : ''}`} />
-                  }
-                </div>
-              )}
-            </>
-          )}
-        </div>
+            )}
+          </Link>
+        )}
         
         {/* Sub-items */}
         {hasSubItems && isExpanded && (!collapsed || mobile) && (
