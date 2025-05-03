@@ -163,6 +163,75 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   // Register status routes
   apiRouter.use('/status', statusRoutes);
   
+  // Leaderboard routes
+  apiRouter.get('/leaderboard/sales', async (req, res) => {
+    try {
+      if (!req.user || !req.orgId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      
+      const salesLeaderboard = await leaderboardService.getSalesLeaderboard(req.orgId);
+      res.json(salesLeaderboard);
+    } catch (error: any) {
+      console.error('Error fetching sales leaderboard:', error);
+      res.status(500).json({ 
+        status: 'error', 
+        message: error.message || 'Failed to fetch sales leaderboard'
+      });
+    }
+  });
+  
+  apiRouter.get('/leaderboard/dispatch', async (req, res) => {
+    try {
+      if (!req.user || !req.orgId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      
+      const dispatchLeaderboard = await leaderboardService.getDispatchLeaderboard(req.orgId);
+      res.json(dispatchLeaderboard);
+    } catch (error: any) {
+      console.error('Error fetching dispatch leaderboard:', error);
+      res.status(500).json({ 
+        status: 'error', 
+        message: error.message || 'Failed to fetch dispatch leaderboard'
+      });
+    }
+  });
+  
+  apiRouter.get('/leaderboard/combined', async (req, res) => {
+    try {
+      if (!req.user || !req.orgId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      
+      const combinedLeaderboard = await leaderboardService.getCombinedLeaderboard(req.orgId);
+      res.json(combinedLeaderboard);
+    } catch (error: any) {
+      console.error('Error fetching combined leaderboard:', error);
+      res.status(500).json({ 
+        status: 'error', 
+        message: error.message || 'Failed to fetch combined leaderboard'
+      });
+    }
+  });
+  
+  apiRouter.get('/leaderboard/week-over-week', async (req, res) => {
+    try {
+      if (!req.user || !req.orgId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      
+      const weekOverWeek = await leaderboardService.getWeekOverWeekComparison(req.orgId);
+      res.json(weekOverWeek);
+    } catch (error: any) {
+      console.error('Error fetching week-over-week comparison:', error);
+      res.status(500).json({ 
+        status: 'error', 
+        message: error.message || 'Failed to fetch week-over-week comparison'
+      });
+    }
+  });
+  
   // We don't need to initialize Socket.IO here as it's already done in server/index.ts
   // and imported from server/socket.ts
   

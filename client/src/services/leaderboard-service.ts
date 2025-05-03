@@ -1,103 +1,68 @@
 import { apiRequest } from "@/lib/queryClient";
 
-// Types for leaderboard data
-export interface LeaderboardEntry {
-  userId: number;
-  firstName: string;
-  lastName: string;
-  department: string;
-  metric: number;
-  secondaryMetric: number;
-  rank: number;
-  change: number;  // change in rank from previous week
-  avatar?: string;
+export interface LeaderboardUser {
+  id: number;
+  name: string;
+  profileImageUrl?: string | null;
+  score: number;
+  leadsCount?: number;
+  loadsCount?: number;
+  position?: number;
 }
 
-export interface WeeklyComparisonData {
+export interface WeekOverWeekData {
   thisWeek: {
-    totalLeads: number;
+    totalSalesLeads: number;
     totalLoads: number;
-    closedLeads: number;
-    completedLoads: number;
-    newLeads: number;
-    cancelledLoads: number;
+    totalCombined: number;
+    salesUsers: number;
+    dispatchUsers: number;
   };
-  lastWeek: {
-    totalLeads: number;
+  prevWeek: {
+    totalSalesLeads: number;
     totalLoads: number;
-    closedLeads: number;
-    completedLoads: number;
-    newLeads: number;
-    cancelledLoads: number;
-  };
-  changes: {
-    totalLeads: number;
-    totalLoads: number;
-    closedLeads: number;
-    completedLoads: number;
-    newLeads: number;
-    cancelledLoads: number;
+    totalCombined: number;
+    salesUsers: number;
+    dispatchUsers: number;
   };
 }
 
 /**
- * Fetches the sales leaderboard data for the specified date (week)
- * @param date - Date within the week to get leaderboard for
- * @returns Promise with sales leaderboard data
+ * Fetches the sales department leaderboard
+ * @returns Promise resolving to leaderboard data
  */
-export async function getSalesLeaderboard(date?: Date): Promise<LeaderboardEntry[]> {
-  try {
-    const dateParam = date ? `?date=${date.toISOString()}` : '';
-    const response = await apiRequest('GET', `/api/leaderboard/sales${dateParam}`);
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching sales leaderboard:', error);
-    throw error;
-  }
+export async function getSalesLeaderboard(): Promise<LeaderboardUser[]> {
+  const response = await apiRequest('GET', '/leaderboard/sales');
+  const data = await response.json();
+  return data;
 }
 
 /**
- * Fetches the dispatch leaderboard data for the specified date (week)
- * @param date - Date within the week to get leaderboard for
- * @returns Promise with dispatch leaderboard data
+ * Fetches the dispatch department leaderboard
+ * @returns Promise resolving to leaderboard data
  */
-export async function getDispatchLeaderboard(date?: Date): Promise<LeaderboardEntry[]> {
-  try {
-    const dateParam = date ? `?date=${date.toISOString()}` : '';
-    const response = await apiRequest('GET', `/api/leaderboard/dispatch${dateParam}`);
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching dispatch leaderboard:', error);
-    throw error;
-  }
+export async function getDispatchLeaderboard(): Promise<LeaderboardUser[]> {
+  const response = await apiRequest('GET', '/leaderboard/dispatch');
+  const data = await response.json();
+  return data;
 }
 
 /**
- * Fetches the combined leaderboard data for the specified date (week)
- * @param date - Date within the week to get leaderboard for
- * @returns Promise with combined leaderboard data
+ * Fetches the combined departments leaderboard
+ * @returns Promise resolving to leaderboard data
  */
-export async function getCombinedLeaderboard(date?: Date): Promise<LeaderboardEntry[]> {
-  try {
-    const dateParam = date ? `?date=${date.toISOString()}` : '';
-    const response = await apiRequest('GET', `/api/leaderboard/combined${dateParam}`);
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching combined leaderboard:', error);
-    throw error;
-  }
+export async function getCombinedLeaderboard(): Promise<LeaderboardUser[]> {
+  const response = await apiRequest('GET', '/leaderboard/combined');
+  const data = await response.json();
+  return data;
 }
 
 /**
- * Fetches week-over-week comparison data
- * @returns Promise with comparison data
+ * Fetches the week-over-week comparison data
+ * @returns Promise resolving to week-over-week comparison data
  */
-export async function getWeekComparison(): Promise<WeeklyComparisonData> {
-  try {
-    const response = await apiRequest('GET', '/api/leaderboard/week-comparison');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching week comparison data:', error);
-    throw error;
-  }
+export async function getWeekOverWeekComparison(): Promise<WeekOverWeekData> {
+  const response = await apiRequest('GET', '/leaderboard/week-over-week');
+  const data = await response.json();
+  return data;
 }
