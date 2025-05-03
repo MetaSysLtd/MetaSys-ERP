@@ -2386,8 +2386,29 @@ export class DatabaseStorage implements IStorage {
     return load;
   }
 
-  async getLoads(): Promise<Load[]> {
-    return db.select().from(loads);
+  async getLoads(orgId?: number): Promise<Load[]> {
+    try {
+      let query = db.select().from(loads);
+      
+      // Filter by organization if specified
+      if (orgId) {
+        query = query.where(eq(loads.orgId, orgId));
+      }
+      
+      return await query;
+    } catch (error) {
+      console.error('Error in getLoads:', error);
+      throw error;
+    }
+  }
+  
+  async getLoadsByLead(leadId: number): Promise<Load[]> {
+    try {
+      return await db.select().from(loads).where(eq(loads.leadId, leadId));
+    } catch (error) {
+      console.error('Error in getLoadsByLead:', error);
+      throw error;
+    }
   }
 
   async getLoadsByStatus(status: string): Promise<Load[]> {
