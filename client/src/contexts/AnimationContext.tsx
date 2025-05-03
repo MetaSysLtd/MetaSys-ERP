@@ -1,17 +1,24 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 
+type TransitionSpeed = 'fast' | 'normal' | 'slow';
+type AnimationDurationType = 'standard' | 'complex' | 'subtle';
+
 interface AnimationContextType {
   animationsEnabled: boolean;
   toggleAnimations: () => void;
   reducedMotion: boolean;
-  getDuration: (baseDuration: number) => number;
+  transitionSpeed: TransitionSpeed;
+  setTransitionSpeed: (speed: TransitionSpeed) => void;
+  getDuration: (type: AnimationDurationType | number) => number;
 }
 
 const defaultContext: AnimationContextType = {
   animationsEnabled: true,
   toggleAnimations: () => {},
   reducedMotion: false,
-  getDuration: (baseDuration: number) => baseDuration,
+  transitionSpeed: 'normal',
+  setTransitionSpeed: () => {},
+  getDuration: (type: AnimationDurationType | number) => typeof type === 'number' ? type : 0.3,
 };
 
 export const AnimationContext = createContext<AnimationContextType>(defaultContext);
@@ -19,14 +26,26 @@ export const AnimationContext = createContext<AnimationContextType>(defaultConte
 export function AnimationProvider({ children }: { children: ReactNode }) {
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [transitionSpeed, setTransitionSpeed] = useState<TransitionSpeed>('normal');
 
-  // On mount, check local storage for animation preference
+  // On mount, check local storage for animation preferences
   useEffect(() => {
     try {
+      // Check for animations enabled preference
       const storedPreference = localStorage.getItem('metasys_animations_enabled');
       // Only disable if explicitly set to "false"
       if (storedPreference === 'false') {
         setAnimationsEnabled(false);
+      }
+      
+      // Check for transition speed preference
+      const storedSpeed = localStorage.getItem('metasys_transition_speed');
+      // Default to 'normal' if not set
+      if (storedSpeed && ['fast', 'normal', 'slow'].includes(storedSpeed)) {
+        setTransitionSpeed(storedSpeed as TransitionSpeed);
+      } else {
+        // If no preference is set, store the default 'normal' speed
+        localStorage.setItem('metasys_transition_speed', 'normal');
       }
       
       // Check for reduced motion preference
@@ -41,7 +60,7 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
         mediaQuery.removeEventListener('change', handleChange);
       };
     } catch (error) {
-      console.error('Failed to read animation preference from localStorage:', error);
+      console.error('Failed to read animation preferences from localStorage:', error);
     }
   }, []);
 
@@ -55,11 +74,34 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  // Utility function to adjust animation duration based on user preferences
-  const getDuration = (baseDuration: number): number => {
+  const handleSetTransitionSpeed = (speed: TransitionSpeed) => {
+    setTransitionSpeed(speed);
+    try {
+      localStorage.setItem('metasys_transition_speed', speed);
+    } catch (error) {
+      console.error('Failed to save transition speed preference to localStorage:', error);
+    }
+  };
+  
+  // Utility function to adjust animation duration based on user preferences and type
+  const getDuration = (type: AnimationDurationType | number): number => {
     if (!animationsEnabled) return 0;
-    if (reducedMotion) return baseDuration * 0.5;
-    return baseDuration;
+    if (reducedMotion) return typeof type === 'number' ? type * 0.5 : 0.15;
+    
+    // If a number is provided, apply speed modifier directly
+    if (typeof type === 'number') {
+      const speedMultiplier = transitionSpeed === 'fast' ? 0.7 : transitionSpeed === 'slow' ? 1.5 : 1;
+      return type * speedMultiplier;
+    }
+    
+    // For named animation types, provide appropriate durations based on speed setting
+    const baseDurations = {
+      standard: transitionSpeed === 'fast' ? 0.15 : transitionSpeed === 'slow' ? 0.4 : 0.25,
+      complex: transitionSpeed === 'fast' ? 0.3 : transitionSpeed === 'slow' ? 0.8 : 0.5,
+      subtle: transitionSpeed === 'fast' ? 0.1 : transitionSpeed === 'slow' ? 0.3 : 0.2
+    };
+    
+    return baseDurations[type];
   };
 
   return (
@@ -68,6 +110,8 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
         animationsEnabled,
         toggleAnimations,
         reducedMotion,
+        transitionSpeed,
+        setTransitionSpeed: handleSetTransitionSpeed,
         getDuration,
       }}
     >
