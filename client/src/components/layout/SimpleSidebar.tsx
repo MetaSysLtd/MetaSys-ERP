@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Logo } from '@/components/ui/logo';
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SidebarProps {
   mobile: boolean;
@@ -196,21 +197,27 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
     };
     
     return (
-      <Link 
-        key={item.href} 
-        href={item.href} 
-        onClick={handleClick}
-        className={`
-          flex items-center gap-2 ml-6 pl-3 py-2 text-sm rounded-md border-l-2 
-          ${isActive 
-            ? 'border-l-[#F2A71B] text-[#025E73] font-medium bg-white/50' 
-            : 'border-l-gray-300 text-gray-600 hover:text-[#025E73] hover:border-l-[#F2A71B]'
-          }
-        `}
+      <motion.div
+        key={item.href}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.2, delay: 0.1 }}
       >
-        {item.icon && <item.icon className="h-[14px] w-[14px]" />}
-        <span>{item.name}</span>
-      </Link>
+        <Link 
+          href={item.href} 
+          onClick={handleClick}
+          className={`
+            flex items-center gap-2 ml-6 pl-3 py-2 text-sm rounded-md border-l-2 
+            ${isActive 
+              ? 'border-l-[#F2A71B] text-[#025E73] font-medium bg-white/50' 
+              : 'border-l-gray-300 text-gray-600 hover:text-[#025E73] hover:border-l-[#F2A71B]'
+            }
+          `}
+        >
+          {item.icon && <item.icon className="h-[14px] w-[14px]" />}
+          <span>{item.name}</span>
+        </Link>
+      </motion.div>
     );
   };
 
@@ -244,10 +251,19 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
     };
     
     return (
-      <div key={item.href} className="mb-1">
+      <motion.div 
+        key={item.href} 
+        className="mb-1"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.2,
+          delay: 0.05 * (parseInt(item.href.split('/')[1] || '0') || 0) // Slight delay based on item position
+        }}
+      >
         {/* Main navigation item */}
         {hasSubItems ? (
-          <div 
+          <motion.div 
             onClick={handleClick}
             className={`
               flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all cursor-pointer
@@ -256,6 +272,11 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
                 : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'
               }
             `}
+            whileHover={{ 
+              scale: 1.02,
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
           >
             <item.icon className={`h-[18px] w-[18px] ${(isActive || isChildActive) ? 'text-white' : 'text-[#025E73]'}`} />
             
@@ -263,43 +284,63 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
               <>
                 <span className="flex-1">{item.name}</span>
                 {hasSubItems && (
-                  <div className="ml-auto">
+                  <motion.div 
+                    className="ml-auto"
+                    animate={{ rotate: isExpanded ? 90 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
                     {isExpanded 
                       ? <ChevronDown className={`w-4 h-4 ${(isActive || isChildActive) ? 'text-white' : ''}`} />
                       : <ChevronRight className={`w-4 h-4 ${(isActive || isChildActive) ? 'text-white' : ''}`} />
                     }
-                  </div>
+                  </motion.div>
                 )}
               </>
             )}
-          </div>
+          </motion.div>
         ) : (
-          <Link 
-            href={item.href}
-            onClick={handleNavigation}
-            className={`
-              flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all cursor-pointer
-              ${isActive || isChildActive
-                ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
-                : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'
-              }
-            `}
+          <motion.div
+            whileHover={{ 
+              scale: 1.02,
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
           >
-            <item.icon className={`h-[18px] w-[18px] ${(isActive || isChildActive) ? 'text-white' : 'text-[#025E73]'}`} />
-            
-            {(!collapsed || mobile) && (
-              <span className="flex-1">{item.name}</span>
-            )}
-          </Link>
+            <Link 
+              href={item.href}
+              onClick={handleNavigation}
+              className={`
+                flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all cursor-pointer
+                ${isActive || isChildActive
+                  ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
+                  : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'
+                }
+              `}
+            >
+              <item.icon className={`h-[18px] w-[18px] ${(isActive || isChildActive) ? 'text-white' : 'text-[#025E73]'}`} />
+              
+              {(!collapsed || mobile) && (
+                <span className="flex-1">{item.name}</span>
+              )}
+            </Link>
+          </motion.div>
         )}
         
-        {/* Sub-items */}
-        {hasSubItems && isExpanded && (!collapsed || mobile) && (
-          <div className="mt-1 space-y-1 py-1">
-            {item.subItems?.map(subItem => renderSubNavItem(subItem, item.href))}
-          </div>
-        )}
-      </div>
+        {/* Sub-items - with AnimatePresence for entering/exiting */}
+        <AnimatePresence>
+          {hasSubItems && isExpanded && (!collapsed || mobile) && (
+            <motion.div 
+              className="mt-1 space-y-1 py-1"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {item.subItems?.map(subItem => renderSubNavItem(subItem, item.href))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     );
   };
 
@@ -330,29 +371,56 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
         </div>
 
         {/* User profile */}
-        <div className={`${!collapsed || mobile ? 'px-6' : 'px-4'} py-5 border-b border-gray-200 ${collapsed && !mobile ? 'text-center' : ''}`}>
-          <div className={`${!collapsed || mobile ? 'flex items-center' : 'flex flex-col items-center'}`}>
+        <motion.div 
+          className={`${!collapsed || mobile ? 'px-6' : 'px-4'} py-5 border-b border-gray-200 ${collapsed && !mobile ? 'text-center' : ''}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <motion.div 
+            className={`${!collapsed || mobile ? 'flex items-center' : 'flex flex-col items-center'}`}
+            animate={{ 
+              flexDirection: (!collapsed || mobile) ? 'row' : 'column'
+            }}
+            transition={{ duration: 0.3 }}
+          >
             {user.profileImageUrl ? (
-              <img src={user.profileImageUrl} 
-                   alt={`${user.firstName} ${user.lastName}`}
-                   className="h-10 w-10 rounded-full border-2 border-[#2170dd]" />
+              <motion.img 
+                src={user.profileImageUrl} 
+                alt={`${user.firstName} ${user.lastName}`}
+                className="h-10 w-10 rounded-full border-2 border-[#2170dd]"
+                whileHover={{ scale: 1.1 }}
+                transition={{ duration: 0.2 }}
+              />
             ) : (
-              <div className="bg-[#025E73] rounded-full h-10 w-10 flex items-center justify-center text-lg font-medium border-2 border-[#F2A71B] text-white">
+              <motion.div 
+                className="bg-[#025E73] rounded-full h-10 w-10 flex items-center justify-center text-lg font-medium border-2 border-[#F2A71B] text-white"
+                whileHover={{ scale: 1.1, borderColor: '#fff' }}
+                transition={{ duration: 0.2 }}
+              >
                 {getInitials(user.firstName, user.lastName)}
-              </div>
+              </motion.div>
             )}
-            {(!collapsed || mobile) && (
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">
-                  {user.firstName} {user.lastName}
-                </p>
-                <p className="text-xs text-[#025E73] font-medium">
-                  {role.name}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+            <AnimatePresence>
+              {(!collapsed || mobile) && (
+                <motion.div 
+                  className="ml-3"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <p className="text-sm font-medium text-gray-900">
+                    {user.firstName} {user.lastName}
+                  </p>
+                  <p className="text-xs text-[#025E73] font-medium">
+                    {role.name}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </motion.div>
 
         {/* Navigation */}
         <nav className="pt-5 flex-1 overflow-y-auto">
@@ -401,19 +469,77 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
           </div>
 
           {/* Logout button */}
-          <div className="px-4 py-4 mt-auto">
-            <button onClick={handleLogout}
-                    className="w-full flex items-center justify-center gap-3 rounded-md px-3 py-2.5 text-gray-800 font-medium transition-all bg-white/50 hover:bg-[#025E73] hover:text-white">
-              <LogOut className="h-[18px] w-[18px]" />
-              {(!collapsed || mobile) && <span>Logout</span>}
-            </button>
-          </div>
+          <motion.div 
+            className="px-4 py-4 mt-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <motion.button 
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-3 rounded-md px-3 py-2.5 text-gray-800 font-medium transition-all bg-white/50 hover:bg-[#025E73] hover:text-white"
+              whileHover={{ 
+                scale: 1.03,
+                boxShadow: "0 5px 15px rgba(0,0,0,0.1)",
+                backgroundColor: "#025E73", 
+                color: "#ffffff"
+              }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <motion.div
+                whileHover={{ rotate: 90 }}
+                transition={{ duration: 0.3 }}
+              >
+                <LogOut className="h-[18px] w-[18px]" />
+              </motion.div>
+              <AnimatePresence>
+                {(!collapsed || mobile) && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: "auto" }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    Logout
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          </motion.div>
         </nav>
 
         {/* Version info */}
-        <div className="px-5 py-3 border-t border-gray-200 text-xs text-gray-600 text-center bg-white/30">
-          {!collapsed || mobile ? 'MetaSys ERP v1.0' : 'v1.0'}
-        </div>
+        <motion.div 
+          className="px-5 py-3 border-t border-gray-200 text-xs text-gray-600 text-center bg-white/30"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          whileHover={{ backgroundColor: "rgba(255,255,255,0.5)" }}
+        >
+          <AnimatePresence mode="wait">
+            {!collapsed || mobile ? (
+              <motion.span
+                key="full-version"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                MetaSys ERP v1.0
+              </motion.span>
+            ) : (
+              <motion.span
+                key="short-version"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                v1.0
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </div>
   );
