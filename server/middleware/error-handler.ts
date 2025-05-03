@@ -153,9 +153,11 @@ export function errorHandler(
   // Send appropriate response to client
   // Don't expose error stack in production
   const response = {
-    success: false,
+    status: 'error',
     message: errorMessage,
     error: errorCode,
+    path: req.originalUrl,
+    method: req.method,
     ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
     ...(details && { details }),
   };
@@ -172,8 +174,13 @@ export function notFoundHandler(req: Request, res: Response, next: NextFunction)
 
   // For API routes, return proper JSON errors
   if (req.path.startsWith('/api/')) {
-    const err = new NotFoundError(`Route not found: ${req.method} ${req.path}`);
-    return next(err);
+    // Always return a structured JSON response for API routes
+    return res.status(404).json({
+      status: "error",
+      message: `Route not found: ${req.method} ${req.path}`,
+      path: req.path,
+      method: req.method
+    });
   }
 
   // For any other non-API routes, let them be handled by the frontend router (SPA)
@@ -194,7 +201,13 @@ export function sessionHandler(req: Request, res: Response, next: NextFunction) 
     if (req.path.startsWith('/api/errors/')) {
       return next();
     }
-    return next(new AuthenticationError());
+    
+    // Return a structured JSON response for authentication errors
+    return res.status(401).json({
+      status: "error",
+      message: "Unauthorized: Please log in to access this resource",
+      authenticated: false
+    });
   }
   next();
 }

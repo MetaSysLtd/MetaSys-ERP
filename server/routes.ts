@@ -1865,11 +1865,11 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
       const { status, assigned } = req.query;
       
       // Determine which leads the user can access based on role
-      if (req.userRole.department === 'sales' || req.userRole.department === 'admin') {
-        if (req.userRole.level === 1) {
+      if (req.userRole?.department === 'sales' || req.userRole?.department === 'admin') {
+        if (req.userRole?.level === 1) {
           // Sales Reps can only see their own leads
-          leads = await storage.getLeadsByAssignee(req.user.id);
-        } else if (req.userRole.level === 2) {
+          leads = await storage.getLeadsByAssignee(req.user?.id || 0);
+        } else if (req.userRole?.level === 2) {
           // Team Leads can see all leads (we would filter by team in a real app)
           leads = await storage.getLeads();
         } else {
@@ -1894,9 +1894,18 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         }
       }
       
-      res.json(leads);
+      // Return a proper structured JSON response
+      res.status(200).json({
+        status: "success",
+        data: leads || []
+      });
     } catch (error) {
-      next(error);
+      console.error("Error fetching leads:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch leads",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
