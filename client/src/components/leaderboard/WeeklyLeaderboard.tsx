@@ -64,12 +64,17 @@ export function WeeklyLeaderboard({ data, departmentType, period }: WeeklyLeader
           <div className="flex flex-col gap-1 min-w-[100px]">
             <Progress
               value={(user.score / highestScore) * 100}
-              className="h-2 w-full"
-              indicatorClassName={
-                index === 0 ? "bg-[#F2A71B]" : 
-                index === 1 ? "bg-[#025E73]" : 
-                "bg-[#412754]"
-              }
+              className={`h-2 w-full ${
+                index === 0 ? "bg-[#F2A71B]/20" : 
+                index === 1 ? "bg-[#025E73]/20" : 
+                "bg-[#412754]/20"
+              }`}
+              // Apply color to the indicator via direct className
+              style={{
+                "--progress-indicator-color": index === 0 ? "#F2A71B" : 
+                                             index === 1 ? "#025E73" : 
+                                             "#412754"
+              } as React.CSSProperties}
             />
             <div className="text-sm text-right font-medium">
               {departmentType === 'sales' || departmentType === 'dispatch' ? (

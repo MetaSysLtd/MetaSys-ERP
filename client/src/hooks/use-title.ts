@@ -1,31 +1,20 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from "react";
 
 /**
- * A hook to dynamically update the document title.
- * @param title - The title to set for the document
- * @param options - Options for title behavior
- * @returns void
+ * Hook to set document title with optional company name
+ * @param title Page title to set
+ * @param includeCompanyName Whether to include company name after the title
  */
-export function useTitle(
-  title: string,
-  options: { 
-    restoreOnUnmount?: boolean 
-  } = {}
-) {
-  const { restoreOnUnmount = false } = options;
-  const previousTitle = useRef(document.title);
-
+export function useTitle(title: string, includeCompanyName = true) {
   useEffect(() => {
-    // Update the document title
-    document.title = title;
-  }, [title]);
-
-  // Restore the previous title when the component unmounts if specified
-  useEffect(() => {
-    if (restoreOnUnmount) {
-      return () => {
-        document.title = previousTitle.current;
-      };
-    }
-  }, [restoreOnUnmount]);
+    const companyName = "MetaSys ERP";
+    document.title = includeCompanyName ? `${title} | ${companyName}` : title;
+    
+    return () => {
+      // Optionally reset to default on unmount
+      if (includeCompanyName) {
+        document.title = companyName;
+      }
+    };
+  }, [title, includeCompanyName]);
 }
