@@ -42,12 +42,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Edit, Truck, FileText, Activity, UserCheck, AlertTriangle } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Edit, 
+  Truck, 
+  FileText, 
+  Activity, 
+  UserCheck, 
+  AlertTriangle,
+  Clipboard,
+  ArrowRightCircle,
+  Check,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-interface ContactDetailsProps {
+interface LeadDetailsProps {
   params: {
     id: string;
   };
@@ -60,26 +71,28 @@ const statusUpdateSchema = z.object({
 
 type StatusUpdateFormValues = z.infer<typeof statusUpdateSchema>;
 
-export default function ContactDetails({ params }: ContactDetailsProps) {
+export default function LeadDetails({ params }: LeadDetailsProps) {
   const { id } = params;
   const { toast } = useToast();
   const { user, role } = useAuth();
   const [, navigate] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [remarkDialogOpen, setRemarkDialogOpen] = useState(false);
+  const [remark, setRemark] = useState("");
   
-  // Fetch contact details
-  const { data: contact, isLoading, error } = useQuery({
+  // Fetch lead details
+  const { data: lead, isLoading, error } = useQuery({
     queryKey: [`/api/leads/${id}`],
   });
   
-  // Fetch activities for this contact
+  // Fetch activities for this lead
   const { data: activities } = useQuery({
     queryKey: [`/api/activities/entity/lead/${id}`],
     enabled: !!id,
   });
   
-  // Fetch loads for this contact
+  // Fetch loads for this lead
   const { data: loads } = useQuery({
     queryKey: [`/api/loads`, { leadId: id }],
     enabled: !!id,
@@ -94,34 +107,151 @@ export default function ContactDetails({ params }: ContactDetailsProps) {
     },
   });
   
-  // Set default status when contact data is loaded
+  // Set default status when lead data is loaded
   useEffect(() => {
-    if (contact) {
-      form.setValue("status", contact.status);
+    if (lead) {
+      form.setValue("status", lead.status);
     }
-  }, [contact, form]);
+  }, [lead, form]);
+  
+  // Determine next status based on current status
+  const getNextStatus = (currentStatus: string) => {
+    const statusFlow = {
+      "New": "InProgress",
+      "InProgress": "HandToDispatch",
+      "HandToDispatch": "Active", 
+      "Active": "Active" // No next state after Active
+    };
+    
+    return statusFlow[currentStatus as keyof typeof statusFlow] || currentStatus;
+  };
+  
+  // Get status display text
+  const getStatusDisplayText = (status: string) => {
+    const statusMap: Record<string, string> = {
+      "New": "New",
+      "InProgress": "In Progress",
+      "HandToDispatch": "Hand To Dispatch",
+      "Active": "Active",
+      "Lost": "Lost"
+    };
+    
+    return statusMap[status] || status;
+  };
+  
+  // Create Dispatch Client when lead is set to Active
+  const createDispatchClient = async (leadId: number) => {
+    try {
+      // Create a new dispatch client record
+      const res = await apiRequest("POST", "/api/dispatch-clients", {
+        leadId: leadId,
+        status: "Active",
+        orgId: user?.orgId || 1,
+        approvedBy: user?.id,
+        notes: "Automatically created from CRM lead"
+      });
+      
+      if (!res.ok) {
+        throw new Error("Failed to create dispatch client");
+      }
+      
+      return await res.json();
+    } catch (error: any) {
+      console.error("Error creating dispatch client:", error);
+      throw error;
+    }
+  };
   
   // Status update mutation
   const updateStatusMutation = useMutation({
     mutationFn: async (values: StatusUpdateFormValues) => {
-      return apiRequest("PATCH", `/api/leads/${id}`, {
+      const response = await apiRequest("PATCH", `/api/leads/${id}`, {
         status: values.status,
         notes: values.notes,
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update lead status");
+      }
+      
+      const data = await response.json();
+      
+      // If status is now Active, create a dispatch client
+      if (values.status === "Active") {
+        await createDispatchClient(Number(id));
+        
+        // Notify administrators and dispatch users
+        await apiRequest("POST", "/api/notifications", {
+          title: "Lead Activated",
+          message: `${lead.companyName} has been activated and is ready for dispatch`,
+          type: "lead_activation",
+          entityId: Number(id),
+          entityType: "lead",
+          userId: user?.id,
+          targetRoles: ["admin", "dispatch"]
+        });
+      }
+      
+      // Log the status change activity
+      await apiRequest("POST", "/api/activities", {
+        entityType: "lead",
+        entityId: Number(id),
+        action: "status_changed",
+        details: `Status changed from ${lead.status} to ${values.status}`,
+        notes: values.notes || undefined
+      });
+      
+      return data;
     },
     onSuccess: () => {
       toast({
         title: "Status updated",
-        description: "The contact status has been updated successfully.",
+        description: "The lead status has been updated successfully.",
       });
       setStatusDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: [`/api/leads/${id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/activities/entity/lead/${id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/dispatch-clients`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update lead status.",
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Add remark mutation
+  const addRemarkMutation = useMutation({
+    mutationFn: async (remarkText: string) => {
+      // Add a remark to the lead
+      const response = await apiRequest("POST", "/api/lead-remarks", {
+        leadId: Number(id),
+        text: remarkText,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add remark");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Remark added",
+        description: "Your remark has been added to the lead timeline.",
+      });
+      setRemarkDialogOpen(false);
+      setRemark("");
       queryClient.invalidateQueries({ queryKey: [`/api/activities/entity/lead/${id}`] });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to update contact status.",
+        description: error.message || "Failed to add remark.",
         variant: "destructive",
       });
     },
@@ -131,48 +261,65 @@ export default function ContactDetails({ params }: ContactDetailsProps) {
     updateStatusMutation.mutate(values);
   };
   
-  // Check if user can edit this contact
-  const canEditContact = () => {
-    if (!user || !role || !contact) return false;
+  const handleRemarkSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!remark.trim()) {
+      toast({
+        title: "Empty remark",
+        description: "Please add some text for your remark.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    // Super admin can edit all contacts
+    addRemarkMutation.mutate(remark);
+  };
+  
+  // Check if user can edit this lead
+  const canEditLead = () => {
+    if (!user || !role || !lead) return false;
+    
+    // Super admin can edit all leads
     if (role.level === 5) return true;
     
-    // Only sales department can edit contacts
+    // Only sales department can edit leads
     if (role.department !== "sales" && role.department !== "admin") return false;
     
-    // Sales reps can only edit their own contacts
-    if (role.level === 1 && contact.assignedTo !== user.id) return false;
+    // Sales reps can only edit their own leads
+    if (role.level === 1 && lead.assignedTo !== user.id) return false;
     
     return true;
   };
   
-  // Check if user can convert contact to active
-  const canConvertToActive = () => {
-    if (!contact) return false;
-    if (contact.status === "active") return false;
-    return canEditContact() && contact.status === "qualified";
+  // Check if the lead can be moved to the next status
+  const canMoveToNextStatus = () => {
+    if (!lead || !canEditLead()) return false;
+    
+    // Can't progress past Active
+    if (lead.status === "Active" || lead.status === "Lost") return false;
+    
+    return true;
   };
   
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center p-8">
         <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-900">Loading contact details...</h3>
+          <h3 className="text-lg font-medium text-gray-900">Loading lead details...</h3>
           <p className="mt-1 text-sm text-gray-500">Please wait while we fetch the data.</p>
         </div>
       </div>
     );
   }
   
-  if (error || !contact) {
+  if (error || !lead) {
     return (
       <div className="flex h-full items-center justify-center p-8">
         <div className="text-center">
           <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500" />
-          <h3 className="mt-2 text-lg font-medium text-gray-900">Contact not found</h3>
+          <h3 className="mt-2 text-lg font-medium text-gray-900">Lead not found</h3>
           <p className="mt-1 text-sm text-gray-500">
-            The contact you're looking for doesn't exist or you don't have permission to view it.
+            The lead you're looking for doesn't exist or you don't have permission to view it.
           </p>
           <Button 
             className="mt-4" 
@@ -187,7 +334,8 @@ export default function ContactDetails({ params }: ContactDetailsProps) {
     );
   }
   
-  const statusStyle = getStatusColor(contact.status);
+  const statusStyle = getStatusColor(lead.status);
+  const nextStatus = getNextStatus(lead.status);
   
   return (
     <div>
@@ -205,17 +353,44 @@ export default function ContactDetails({ params }: ContactDetailsProps) {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <h1 className="text-2xl font-semibold text-gray-900">
-                {contact.companyName}
+                {lead.companyName}
               </h1>
               <Badge 
                 variant="outline"
                 className={`ml-3 ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
               >
-                {contact.status.charAt(0).toUpperCase() + contact.status.slice(1)}
+                {getStatusDisplayText(lead.status)}
               </Badge>
             </div>
             <div className="flex space-x-2 mt-2 sm:mt-0">
-              {canEditContact() && (
+              {canMoveToNextStatus() && (
+                <Button
+                  size="sm"
+                  className="h-9 bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white"
+                  onClick={() => {
+                    form.setValue("status", nextStatus);
+                    form.setValue("notes", `Moving lead to ${getStatusDisplayText(nextStatus)} status`);
+                    setStatusDialogOpen(true);
+                  }}
+                >
+                  <ArrowRightCircle className="h-4 w-4 mr-1" />
+                  {lead.status === "HandToDispatch" ? "Activate Lead" : `Move to ${getStatusDisplayText(nextStatus)}`}
+                </Button>
+              )}
+              
+              {canEditLead() && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9"
+                  onClick={() => setRemarkDialogOpen(true)}
+                >
+                  <Clipboard className="h-4 w-4 mr-1" />
+                  Add Remark
+                </Button>
+              )}
+              
+              {canEditLead() && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -226,19 +401,89 @@ export default function ContactDetails({ params }: ContactDetailsProps) {
                   Update Status
                 </Button>
               )}
-              {canConvertToActive() && (
-                <Button
-                  size="sm"
-                  className="h-9"
-                  onClick={() => {
-                    form.setValue("status", "active");
-                    setStatusDialogOpen(true);
-                  }}
-                >
-                  <UserCheck className="h-4 w-4 mr-1" />
-                  Convert to Active
-                </Button>
-              )}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Status Progress Indicators */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <div className="flex items-center space-x-2 w-full sm:w-1/4 justify-center">
+              <div className={`rounded-full h-10 w-10 flex items-center justify-center 
+                ${lead.status === "New" || lead.status === "InProgress" || lead.status === "HandToDispatch" || lead.status === "Active" 
+                  ? "bg-green-100 text-green-600" 
+                  : "bg-gray-100 text-gray-400"}`}>
+                <Check className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">New</p>
+                <p className="text-xs text-gray-500">Initial Contact</p>
+              </div>
+            </div>
+            
+            <div className="w-full sm:w-1/6 px-2">
+              <div className={`h-1 ${lead.status === "InProgress" || lead.status === "HandToDispatch" || lead.status === "Active" 
+                ? "bg-green-400" 
+                : "bg-gray-200"}`}></div>
+            </div>
+            
+            <div className="flex items-center space-x-2 w-full sm:w-1/4 justify-center">
+              <div className={`rounded-full h-10 w-10 flex items-center justify-center 
+                ${lead.status === "InProgress" || lead.status === "HandToDispatch" || lead.status === "Active" 
+                  ? "bg-green-100 text-green-600" 
+                  : "bg-gray-100 text-gray-400"}`}>
+                {lead.status === "InProgress" || lead.status === "HandToDispatch" || lead.status === "Active" 
+                  ? <Check className="h-5 w-5" /> 
+                  : <ArrowRightCircle className="h-5 w-5" />}
+              </div>
+              <div>
+                <p className="text-sm font-medium">In Progress</p>
+                <p className="text-xs text-gray-500">Qualification</p>
+              </div>
+            </div>
+            
+            <div className="w-full sm:w-1/6 px-2">
+              <div className={`h-1 ${lead.status === "HandToDispatch" || lead.status === "Active" 
+                ? "bg-green-400" 
+                : "bg-gray-200"}`}></div>
+            </div>
+            
+            <div className="flex items-center space-x-2 w-full sm:w-1/4 justify-center">
+              <div className={`rounded-full h-10 w-10 flex items-center justify-center 
+                ${lead.status === "HandToDispatch" || lead.status === "Active" 
+                  ? "bg-green-100 text-green-600" 
+                  : "bg-gray-100 text-gray-400"}`}>
+                {lead.status === "HandToDispatch" || lead.status === "Active" 
+                  ? <Check className="h-5 w-5" /> 
+                  : <ArrowRightCircle className="h-5 w-5" />}
+              </div>
+              <div>
+                <p className="text-sm font-medium">Hand To Dispatch</p>
+                <p className="text-xs text-gray-500">Ready for dispatch</p>
+              </div>
+            </div>
+            
+            <div className="w-full sm:w-1/6 px-2">
+              <div className={`h-1 ${lead.status === "Active" 
+                ? "bg-green-400" 
+                : "bg-gray-200"}`}></div>
+            </div>
+            
+            <div className="flex items-center space-x-2 w-full sm:w-1/4 justify-center">
+              <div className={`rounded-full h-10 w-10 flex items-center justify-center 
+                ${lead.status === "Active" 
+                  ? "bg-green-100 text-green-600" 
+                  : "bg-gray-100 text-gray-400"}`}>
+                {lead.status === "Active" 
+                  ? <Check className="h-5 w-5" /> 
+                  : <ArrowRightCircle className="h-5 w-5" />}
+              </div>
+              <div>
+                <p className="text-sm font-medium">Active</p>
+                <p className="text-xs text-gray-500">Client Onboarded</p>
+              </div>
             </div>
           </div>
         </div>
@@ -255,59 +500,67 @@ export default function ContactDetails({ params }: ContactDetailsProps) {
           
           <TabsContent value="details">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Contact Information */}
+              {/* Lead Information */}
               <Card className="md:col-span-2">
                 <CardHeader>
-                  <CardTitle>Contact Information</CardTitle>
+                  <CardTitle>Lead Information</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Company Name</h3>
-                      <p className="mt-1 text-sm text-gray-900">{contact.companyName}</p>
+                      <p className="mt-1 text-sm text-gray-900">{lead.companyName}</p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500">MC Number</h3>
-                      <p className="mt-1 text-sm text-gray-900">{contact.mcNumber}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">DOT Number</h3>
-                      <p className="mt-1 text-sm text-gray-900">{contact.dotNumber || "-"}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Equipment Type</h3>
-                      <p className="mt-1 text-sm text-gray-900 capitalize">
-                        {contact.equipmentType.replace("-", " ")}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Truck Category</h3>
-                      <p className="mt-1 text-sm text-gray-900 capitalize">
-                        {contact.truckCategory ? contact.truckCategory.replace("-", " ") : "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Factoring Status</h3>
-                      <p className="mt-1 text-sm text-gray-900 capitalize">
-                        {contact.factoringStatus.replace("-", " ")}
-                      </p>
+                      <h3 className="text-sm font-medium text-gray-500">MC Age</h3>
+                      <p className="mt-1 text-sm text-gray-900">{lead.mcNumber}</p>
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Service Charges</h3>
-                      <p className="mt-1 text-sm text-gray-900">{contact.serviceCharges}%</p>
+                      <p className="mt-1 text-sm text-gray-900">{lead.serviceCharges}%</p>
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Created Date</h3>
-                      <p className="mt-1 text-sm text-gray-900">{formatDate(contact.createdAt)}</p>
+                      <p className="mt-1 text-sm text-gray-900">{formatDate(lead.createdAt)}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Last Updated</h3>
+                      <p className="mt-1 text-sm text-gray-900">{formatDate(lead.updatedAt)}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                      <Badge 
+                        variant="outline"
+                        className={`mt-1 ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
+                      >
+                        {getStatusDisplayText(lead.status)}
+                      </Badge>
                     </div>
                   </div>
                   
                   <Separator className="my-6" />
                   
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">Notes</h3>
+                    <h3 className="text-sm font-medium text-gray-500">Tags</h3>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {lead.tags && lead.tags.length > 0 ? (
+                        lead.tags.map((tag: string, i: number) => (
+                          <Badge key={i} variant="secondary" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-sm text-gray-500">No tags</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <Separator className="my-6" />
+                  
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Remarks</h3>
                     <p className="mt-1 text-sm text-gray-900 whitespace-pre-line">
-                      {contact.notes || "No notes available."}
+                      {lead.remarks || "No remarks available."}
                     </p>
                   </div>
                 </CardContent>
@@ -322,24 +575,37 @@ export default function ContactDetails({ params }: ContactDetailsProps) {
                   <div className="space-y-4">
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Contact Name</h3>
-                      <p className="mt-1 text-sm text-gray-900">{contact.contactName}</p>
+                      <p className="mt-1 text-sm text-gray-900">{lead.contactName}</p>
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Phone Number</h3>
-                      <p className="mt-1 text-sm text-gray-900">{formatPhone(contact.phoneNumber)}</p>
+                      <p className="mt-1 text-sm text-gray-900">{formatPhone(lead.phoneNumber)}</p>
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                      <p className="mt-1 text-sm text-gray-900">{contact.email || "-"}</p>
+                      <p className="mt-1 text-sm text-gray-900">{lead.email || "-"}</p>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Assigned To</h3>
+                      <div className="flex items-center mt-1">
+                        <div className="h-7 w-7 rounded-full bg-gray-200 flex items-center justify-center">
+                          <UserCheck className="h-3.5 w-3.5 text-gray-500" />
+                        </div>
+                        <p className="ml-2 text-sm text-gray-900">
+                          {lead.assignedToName || "Unassigned"}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter>
                   <div className="w-full space-y-2">
-                    <Button className="w-full" variant="outline">
-                      Call Contact
-                    </Button>
-                    {contact.email && (
+                    {lead.phoneNumber && (
+                      <Button className="w-full" variant="outline">
+                        Call Contact
+                      </Button>
+                    )}
+                    {lead.email && (
                       <Button className="w-full" variant="outline">
                         Email Contact
                       </Button>
@@ -361,11 +627,11 @@ export default function ContactDetails({ params }: ContactDetailsProps) {
                     <Truck className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-2 text-sm font-medium text-gray-900">No loads found</h3>
                     <p className="mt-1 text-sm text-gray-500">
-                      {contact.status === "active"
-                        ? "There are no loads associated with this contact yet."
-                        : "This contact needs to be converted to active status before loads can be created."}
+                      {lead.status === "Active"
+                        ? "There are no loads associated with this lead yet."
+                        : "This lead needs to be activated before loads can be created."}
                     </p>
-                    {contact.status === "active" && role?.department === "dispatch" && (
+                    {lead.status === "Active" && role?.department === "dispatch" && (
                       <Button className="mt-4">
                         Create Load
                       </Button>
