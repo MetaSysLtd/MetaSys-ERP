@@ -444,6 +444,7 @@ export class MemStorage implements IStorage {
     this.probationEvaluations = new Map();
     this.exitRequests = new Map();
     this.companyDocuments = new Map();
+    this.dashboardWidgets = new Map();
     
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
@@ -477,6 +478,7 @@ export class MemStorage implements IStorage {
     this.probationEvaluationIdCounter = 1;
     this.exitRequestIdCounter = 1;
     this.companyDocumentIdCounter = 1;
+    this.dashboardWidgetIdCounter = 1;
     
     // Initialize with default roles
     this.initializeRoles();
@@ -5415,6 +5417,86 @@ export class DatabaseStorage implements IStorage {
         avgOnboardingTime: 0,
         documentCompletionRate: 0
       };
+    }
+  }
+
+  // Dashboard Widget operations
+  async getDashboardWidgets(userId: number): Promise<DashboardWidget[]> {
+    try {
+      const widgets = await db.select().from(dashboardWidgets)
+        .where(eq(dashboardWidgets.userId, userId))
+        .orderBy(dashboardWidgets.position);
+      
+      return widgets;
+    } catch (error) {
+      console.error('Error getting dashboard widgets:', error);
+      return [];
+    }
+  }
+  
+  async getDashboardWidget(id: number): Promise<DashboardWidget | undefined> {
+    try {
+      const [widget] = await db.select().from(dashboardWidgets).where(eq(dashboardWidgets.id, id));
+      return widget;
+    } catch (error) {
+      console.error('Error getting dashboard widget:', error);
+      return undefined;
+    }
+  }
+  
+  async createDashboardWidget(widget: InsertDashboardWidget): Promise<DashboardWidget> {
+    try {
+      const [newWidget] = await db.insert(dashboardWidgets).values(widget).returning();
+      return newWidget;
+    } catch (error) {
+      console.error('Error creating dashboard widget:', error);
+      throw error;
+    }
+  }
+  
+  async updateDashboardWidget(id: number, updates: Partial<DashboardWidget>): Promise<DashboardWidget | undefined> {
+    try {
+      const [updatedWidget] = await db.update(dashboardWidgets)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(dashboardWidgets.id, id))
+        .returning();
+      
+      return updatedWidget;
+    } catch (error) {
+      console.error('Error updating dashboard widget:', error);
+      return undefined;
+    }
+  }
+  
+  async deleteDashboardWidget(id: number): Promise<boolean> {
+    try {
+      await db.delete(dashboardWidgets).where(eq(dashboardWidgets.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting dashboard widget:', error);
+      return false;
+    }
+  }
+  
+  async reorderDashboardWidgets(widgets: DashboardWidget[]): Promise<DashboardWidget[]> {
+    try {
+      // Use a transaction to update all widgets atomically
+      await db.transaction(async (tx) => {
+        for (const widget of widgets) {
+          await tx.update(dashboardWidgets)
+            .set({ position: widget.position, updatedAt: new Date() })
+            .where(eq(dashboardWidgets.id, widget.id));
+        }
+      });
+      
+      // Return the updated widgets
+      return this.getDashboardWidgets(widgets[0].userId);
+    } catch (error) {
+      console.error('Error reordering dashboard widgets:', error);
+      throw error;
     }
   }
 }
