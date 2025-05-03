@@ -1509,6 +1509,136 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
     }
   });
 
+  // Commissions routes
+  const commissionsRouter = express.Router();
+  app.use("/api/commissions", commissionsRouter);
+
+  // GET monthly commissions for user
+  commissionsRouter.get("/monthly/user/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const userId = Number(req.params.id);
+      const month = req.query.month as string || new Date().toISOString().slice(0, 7); // Default to current month
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "User not found" 
+        });
+      }
+
+      // Default commission response
+      const commissions = {
+        userId,
+        month,
+        deals: [],
+        total: 0,
+        previousMonth: {
+          total: 0
+        },
+        stats: {
+          totalDeals: 0,
+          avgCommission: 0,
+          percentChange: 0
+        }
+      };
+      
+      // Check if the user has a sales or dispatch role
+      const role = await storage.getUserRole(userId);
+      
+      if (role?.department === "sales") {
+        // Calculate sales commissions
+        const salesCommissions = await calculateSalesCommission(userId, month, req.user.id);
+        res.json(salesCommissions);
+      } else if (role?.department === "dispatch") {
+        // Calculate dispatch commissions
+        const dispatchCommissions = await calculateDispatchCommission(userId, month, req.user.id);
+        res.json(dispatchCommissions);
+      } else {
+        // Return default structure for users without commissions
+        res.json(commissions);
+      }
+    } catch (error) {
+      console.error("Error fetching user commissions:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch commission data",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // GET commissions for all users
+  commissionsRouter.get("/monthly", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const month = req.query.month as string || new Date().toISOString().slice(0, 7); // Default to current month
+      const department = req.query.department as string || "all"; // Filter by department
+      
+      // Fetch users with their roles
+      const users = await storage.getAllUsers();
+      const userIds = users.map(u => u.id);
+      
+      // Get commissions for each user
+      const usersWithCommissions = await Promise.all(
+        userIds.map(async (userId) => {
+          try {
+            const role = await storage.getUserRole(userId);
+            
+            // Skip users not in the requested department
+            if (department !== "all" && role?.department !== department) {
+              return null;
+            }
+            
+            let commissions;
+            if (role?.department === "sales") {
+              commissions = await calculateSalesCommission(userId, month, req.user.id);
+            } else if (role?.department === "dispatch") {
+              commissions = await calculateDispatchCommission(userId, month, req.user.id);
+            } else {
+              // Default empty commission data
+              commissions = {
+                userId,
+                month,
+                deals: [],
+                total: 0,
+                previousMonth: { total: 0 },
+                stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 }
+              };
+            }
+            
+            const user = users.find(u => u.id === userId);
+            
+            return {
+              ...commissions,
+              user: {
+                id: user?.id,
+                name: `${user?.firstName} ${user?.lastName}`,
+                department: role?.department || "unknown"
+              }
+            };
+          } catch (error) {
+            console.error(`Error calculating commissions for user ${userId}:`, error);
+            return null;
+          }
+        })
+      );
+      
+      // Filter out nulls and sort by total commission amount
+      const filteredResults = usersWithCommissions
+        .filter(Boolean)
+        .sort((a, b) => b.total - a.total);
+      
+      res.json(filteredResults);
+    } catch (error) {
+      console.error("Error fetching all commissions:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch commission data",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // User routes
   const userRouter = express.Router();
   app.use("/api/users", userRouter); // Using the full path to match frontend expectations
@@ -2563,6 +2693,138 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   });
 
   // Dispatch Client routes
+  // Load routes for dispatch module
+  const dispatchLoadRouter = express.Router();
+  app.use("/api/dispatch/loads", dispatchLoadRouter);
+
+  // GET loads
+  dispatchLoadRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      // Fetch loads based on organization and user role
+      const loads = await storage.getLoads(req.orgId);
+      res.json(loads || []);
+    } catch (error) {
+      console.error("Error fetching dispatch loads:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch loads",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // GET a specific load
+  dispatchLoadRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const loadId = Number(req.params.id);
+      const load = await storage.getLoad(loadId);
+      
+      if (!load) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Load not found" 
+        });
+      }
+      
+      res.json(load);
+    } catch (error) {
+      console.error("Error fetching specific load:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch load details",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Create a new load
+  dispatchLoadRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const loadData = {
+        ...req.body,
+        createdBy: req.user.id,
+        orgId: req.orgId
+      };
+      
+      const newLoad = await storage.createLoad(loadData);
+      res.status(201).json(newLoad);
+    } catch (error) {
+      console.error("Error creating load:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to create load",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Update a load
+  dispatchLoadRouter.patch("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const loadId = Number(req.params.id);
+      const load = await storage.getLoad(loadId);
+      
+      if (!load) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Load not found" 
+        });
+      }
+      
+      const updatedLoad = await storage.updateLoad(loadId, {
+        ...req.body,
+        updatedBy: req.user.id
+      });
+      
+      res.json(updatedLoad);
+    } catch (error) {
+      console.error("Error updating load:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to update load",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Tracking endpoint for dispatch
+  const trackingRouter = express.Router();
+  app.use("/api/dispatch/tracking", trackingRouter);
+
+  trackingRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      // Return empty array for now - tracking data would be implementation-specific
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching tracking data:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch tracking data",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  trackingRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const trackingId = req.params.id;
+      
+      // Return empty object for now - tracking implementation would be specific
+      res.json({
+        id: trackingId,
+        status: "in_transit"
+      });
+    } catch (error) {
+      console.error("Error fetching specific tracking:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch tracking details",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Dispatch client routes
   const dispatchClientRouter = express.Router();
   app.use("/api/dispatch/clients", dispatchClientRouter);
   
