@@ -368,22 +368,20 @@ export default function AdminDashboard() {
         
         <TabsContent value="commissions" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <TopCommissionEarners 
-              limit={5} 
-              type="sales" 
-              className="col-span-1" 
-            />
-            
-            <TopCommissionEarners 
-              limit={5} 
-              type="dispatch" 
-              className="col-span-1" 
-            />
+            {/* Create a dynamically-generated set of commission widgets for all departments */}
+            {['sales', 'dispatch', 'hr', 'finance', 'marketing'].map((dept) => (
+              <TopCommissionEarners 
+                key={dept}
+                limit={5} 
+                type={dept as any}
+                className="col-span-1" 
+              />
+            ))}
             
             <TopCommissionEarners 
               limit={5} 
               type="all" 
-              className="col-span-1" 
+              className="col-span-1 md:col-span-2 lg:col-span-3" 
             />
           </div>
           
@@ -405,8 +403,9 @@ export default function AdminDashboard() {
               <div className="text-sm text-muted-foreground">
                 <p>
                   The commission calculation rules determine how commissions are calculated for 
-                  sales representatives and dispatchers. Click the button above to configure 
-                  these rules and set tiers based on performance metrics.
+                  all departments including sales, dispatch, HR, finance, and marketing personnel. 
+                  Click the button above to configure these rules and set tiers based on performance 
+                  metrics for each department.
                 </p>
               </div>
             </CardContent>

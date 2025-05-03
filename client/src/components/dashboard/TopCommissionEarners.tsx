@@ -24,7 +24,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 interface TopCommissionEarnersProps {
   limit?: number;
-  type?: 'sales' | 'dispatch' | 'all';
+  type?: 'sales' | 'dispatch' | 'hr' | 'finance' | 'marketing' | 'accounting' | 'admin' | 'all';
   className?: string;
 }
 
@@ -126,7 +126,9 @@ export default function TopCommissionEarners({
           <div>
             <CardTitle>Top Commission Earners</CardTitle>
             <CardDescription>
-              {type === 'all' ? 'Overall' : type === 'sales' ? 'Sales' : 'Dispatch'} top performers 
+              {type === 'all' 
+                ? 'Overall' 
+                : type.charAt(0).toUpperCase() + type.slice(1)} top performers 
             </CardDescription>
           </div>
           {connected && (
@@ -173,7 +175,22 @@ export default function TopCommissionEarners({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={earner.dept === 'sales' ? 'default' : 'secondary'}>
+                    <Badge 
+                      variant={
+                        earner.dept === 'sales' ? 'default' : 
+                        earner.dept === 'dispatch' ? 'secondary' :
+                        earner.dept === 'hr' ? 'outline' :
+                        earner.dept === 'finance' ? 'destructive' :
+                        earner.dept === 'marketing' ? 'default' :
+                        earner.dept === 'accounting' ? 'secondary' :
+                        earner.dept === 'admin' ? 'outline' : 'secondary'
+                      }
+                      className={
+                        earner.dept === 'marketing' ? 'bg-purple-100 hover:bg-purple-200 text-purple-800 border-purple-300' :
+                        earner.dept === 'accounting' ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300' :
+                        earner.dept === 'admin' ? 'border-blue-300 text-blue-700' : ''
+                      }
+                    >
                       {earner.dept.charAt(0).toUpperCase() + earner.dept.slice(1)}
                     </Badge>
                   </TableCell>
