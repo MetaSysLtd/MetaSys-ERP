@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { QueryErrorHandler } from '@/hooks/use-query-error-handler';
-import { handleFetchError } from '@/lib/global-error-handler';
+import { handleApiError } from '@/lib/api-error-handler';
 
 // This is a placeholder component that shows how to use our new error handling approach
 export default function InvoicesPage() {
@@ -25,7 +25,7 @@ export default function InvoicesPage() {
         
         return response.json();
       } catch (error) {
-        return handleFetchError(error, 'invoices');
+        return handleApiError(error, 'Invoices page', 'invoices');
       }
     },
     // This will minimize showing the loading state when refreshing data
