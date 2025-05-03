@@ -82,11 +82,11 @@ export default function InvoicesPage() {
           
           {/* Invoices content using the error handler */}
           <QueryErrorHandler
-            query={invoicesQuery}
-            moduleName="invoices"
+            error={invoicesQuery.error}
+            fallback={<div className="text-center py-8">Error loading invoice data</div>}
           >
-            {(data) => (
-              <div className="grid gap-6 mt-4">
+            <div className="grid gap-6 mt-4">
+              {invoicesQuery.data?.invoices?.length === 0 || !invoicesQuery.data ? (
                 <EmptyState
                   title="No invoices found"
                   description="You haven't created any invoices yet. Create your first invoice to get started."
@@ -101,8 +101,13 @@ export default function InvoicesPage() {
                     </Button>
                   }
                 />
-              </div>
-            )}
+              ) : (
+                <div>
+                  {/* Invoice list will go here */}
+                  <p>Invoice list will be displayed here</p>
+                </div>
+              )}
+            </div>
           </QueryErrorHandler>
         </div>
       </div>
