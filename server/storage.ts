@@ -31,7 +31,7 @@ import {
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { eq, and, desc, inArray, gte, lte, lt, sql } from "drizzle-orm";
+import { eq, and, desc, inArray, gte, lte, lt, sql, count } from "drizzle-orm";
 import createMemoryStore from "memorystore";
 import { db, pgPool, pool } from './db';
 
@@ -246,6 +246,7 @@ export interface IStorage {
   getClientCount(orgId?: number): Promise<number>;
   getLoadCount(orgId?: number): Promise<number>;
   getInvoiceCount(orgId?: number): Promise<number>;
+  getRecentLeads(limit?: number, orgId?: number): Promise<Lead[]>;
   
   // HR Hiring & Onboarding operations
   
@@ -3418,6 +3419,22 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error getting invoice count:', error);
       return 0;
+    }
+  }
+  
+  // Get recent leads for dashboard
+  async getRecentLeads(limit: number = 5, orgId?: number): Promise<Lead[]> {
+    try {
+      let query = db.select().from(leads).orderBy(desc(leads.createdAt)).limit(limit);
+      
+      if (orgId) {
+        query = query.where(eq(leads.orgId, orgId));
+      }
+      
+      return await query;
+    } catch (error) {
+      console.error('Error getting recent leads:', error);
+      return [];
     }
   }
   
