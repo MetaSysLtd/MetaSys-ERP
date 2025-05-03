@@ -8,9 +8,10 @@ import {
   invoices, 
   performanceTargets, 
   leads,
-  roles
+  roles,
+  notifications
 } from '@shared/schema';
-import { eq, and, gte, lte, or, ne, sql } from 'drizzle-orm';
+import { eq, and, gte, lte, or, ne, sql, not, isNull, desc } from 'drizzle-orm';
 import { storage } from './storage';
 import { 
   addHours, 
@@ -20,13 +21,14 @@ import {
   subMinutes,
   subDays,
   subWeeks,
-  isAfter
+  isAfter,
+  startOfDay,
+  endOfDay,
+  differenceInDays
 } from 'date-fns';
 // Import required modules
 import { initializeDispatchReportAutomation } from './dispatch-report-automation';
-import { getIo } from './socket';
-import { RealTimeEvents } from './socket';
-import { storage } from './storage';
+import { sendSlackMessage, sendSlackNotification } from './slack';
 import { not, isNull, desc } from 'drizzle-orm';
 
 /**
@@ -343,6 +345,453 @@ export function scheduleWeeklyInactiveLeadsReminder() {
 }
 
 /**
+ * Send daily performance alerts and notifications based on invoice targets
+ * Runs at the end of each day (19:00) to check on daily performance
+ */
+export function scheduleDailyPerformanceAlerts() {
+  return new CronJob('0 19 * * *', async () => {
+    console.log('Running daily performance alerts cron job');
+    try {
+      // Get all dispatchers
+      const dispatchers = await db.select()
+        .from(users)
+        .innerJoin(roles, eq(users.roleId, roles.id))
+        .where(eq(roles.department, 'dispatch'));
+      
+      // Get daily performance targets
+      const targetsResult = await db.select()
+        .from(performanceTargets)
+        .where(eq(performanceTargets.type, 'daily'))
+        .limit(1);
+      
+      const dailyTarget = targetsResult[0];
+      if (!dailyTarget) {
+        console.warn('No daily performance target found');
+        return;
+      }
+
+      const today = new Date();
+      
+      for (const dispatcher of dispatchers) {
+        // Get today's invoices for this dispatcher
+        const dispatcherInvoices = await db.select()
+          .from(invoices)
+          .where(
+            and(
+              eq(invoices.createdBy, dispatcher.users.id),
+              gte(invoices.createdAt, startOfDay(today)),
+              lte(invoices.createdAt, endOfDay(today))
+            )
+          );
+        
+        // Calculate total amount
+        const totalInvoiceAmount = dispatcherInvoices.reduce(
+          (sum, invoice) => sum + invoice.totalAmount,
+          0
+        );
+        
+        // Compare against targets
+        const percentOfGoal = (totalInvoiceAmount / dailyTarget.maxPct) * 100;
+        
+        // Determine alert type
+        let alertType: 'critical' | 'warning' | 'success' | null = null;
+        let alertMessage = '';
+        
+        if (percentOfGoal < 40) {
+          // Critical alert for very low performance
+          alertType = 'critical';
+          alertMessage = `Your daily invoice total is less than 40% of target. Current: $${totalInvoiceAmount.toFixed(2)}`;
+          
+          // Create notification
+          await db.insert(notifications).values({
+            userId: dispatcher.users.id,
+            orgId: dispatcher.users.orgId || 1,
+            title: 'Daily Invoice Alert',
+            message: alertMessage,
+            type: 'performance_alert',
+            read: false,
+            entityType: 'invoice',
+            entityId: null, // Generic alert, not tied to specific invoice
+            createdAt: new Date()
+          });
+          
+          // Emit real-time notification
+          getIo().to(`user:${dispatcher.users.id}`).emit(RealTimeEvents.PERFORMANCE_ALERT, {
+            type: 'daily_invoice',
+            alertType: 'critical',
+            message: alertMessage,
+            percentOfGoal: Math.round(percentOfGoal),
+            target: dailyTarget.maxPct,
+            actual: totalInvoiceAmount
+          });
+        } else if (percentOfGoal >= 100) {
+          // Success alert for exceeding target
+          alertType = 'success';
+          alertMessage = `Congratulations! You've exceeded your daily invoice target by ${(percentOfGoal - 100).toFixed(0)}%`;
+          
+          // Create notification
+          await db.insert(notifications).values({
+            userId: dispatcher.users.id,
+            orgId: dispatcher.users.orgId || 1,
+            title: 'Daily Performance Achievement',
+            message: alertMessage,
+            type: 'performance_success',
+            read: false,
+            entityType: 'invoice',
+            entityId: null,
+            createdAt: new Date()
+          });
+          
+          // Emit real-time notification
+          getIo().to(`user:${dispatcher.users.id}`).emit(RealTimeEvents.PERFORMANCE_ALERT, {
+            type: 'daily_invoice',
+            alertType: 'success',
+            message: alertMessage,
+            percentOfGoal: Math.round(percentOfGoal),
+            target: dailyTarget.maxPct,
+            actual: totalInvoiceAmount
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error in daily performance alerts cron job:', error);
+    }
+  }, null, true, 'America/New_York');
+}
+
+/**
+ * When a Team Lead assigns a lead to a dispatcher, send a notification
+ * This is triggered via API, not scheduled
+ */
+export async function sendLeadAssignmentNotification(
+  leadId: number,
+  dispatcherId: number,
+  teamLeadId: number
+) {
+  try {
+    // Get lead details
+    const lead = await storage.getLead(leadId);
+    if (!lead) {
+      console.error(`Lead notification failed: Lead ${leadId} not found`);
+      return;
+    }
+    
+    // Get team lead details for the notification
+    const teamLead = await storage.getUser(teamLeadId);
+    if (!teamLead) {
+      console.error(`Lead notification failed: Team Lead ${teamLeadId} not found`);
+      return;
+    }
+    
+    const teamLeadName = `${teamLead.firstName} ${teamLead.lastName}`;
+    const companyName = lead.companyName || 'Unnamed Lead';
+    
+    // Create a notification for the dispatcher
+    await db.insert(notifications).values({
+      userId: dispatcherId,
+      orgId: lead.orgId || 1,
+      title: 'New Lead Assigned',
+      message: `${teamLeadName} has assigned ${companyName} to you`,
+      type: 'lead_assignment',
+      read: false,
+      entityType: 'lead',
+      entityId: leadId,
+      createdAt: new Date()
+    });
+    
+    // Send real-time notification
+    getIo().to(`user:${dispatcherId}`).emit(RealTimeEvents.LEAD_ASSIGNED, {
+      leadId,
+      companyName,
+      assignedBy: teamLeadName,
+      timestamp: new Date()
+    });
+    
+    // Also notify relevant teams in Slack if enabled
+    if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_SALES_CHANNEL_ID) {
+      await sendSlackMessage({
+        channel: process.env.SLACK_SALES_CHANNEL_ID,
+        text: `${teamLeadName} assigned lead ${companyName} to ${dispatcherId}`,
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: `*Lead Assignment Notification*`
+            }
+          },
+          {
+            type: "section",
+            fields: [
+              {
+                type: "mrkdwn",
+                text: `*Lead:* ${companyName}`
+              },
+              {
+                type: "mrkdwn",
+                text: `*Assigned By:* ${teamLeadName}`
+              },
+              {
+                type: "mrkdwn",
+                text: `*Assigned To:* Dispatcher #${dispatcherId}`
+              }
+            ]
+          }
+        ]
+      });
+    }
+  } catch (error) {
+    console.error('Error sending lead assignment notification:', error);
+  }
+}
+
+/**
+ * Send notifications when lead status changes
+ * This is triggered via API, not scheduled
+ */
+export async function sendLeadStatusChangeNotification(
+  leadId: number, 
+  newStatus: string, 
+  previousStatus: string,
+  changedById: number
+) {
+  try {
+    // Get lead details
+    const lead = await storage.getLead(leadId);
+    if (!lead) {
+      console.error(`Status change notification failed: Lead ${leadId} not found`);
+      return;
+    }
+    
+    // Get user who changed the status
+    const changedBy = await storage.getUser(changedById);
+    if (!changedBy) {
+      console.error(`Status change notification failed: User ${changedById} not found`);
+      return;
+    }
+    
+    const userName = `${changedBy.firstName} ${changedBy.lastName}`;
+    const companyName = lead.companyName || 'Unnamed Lead';
+    
+    // Determine who should be notified
+    let notifyUserIds: number[] = [];
+    
+    // Always notify the team lead
+    const teamLeads = await db.select()
+      .from(users)
+      .innerJoin(roles, eq(users.roleId, roles.id))
+      .where(
+        and(
+          eq(roles.department, 'dispatch'),
+          eq(roles.name, 'Team Lead')
+        )
+      );
+    
+    teamLeads.forEach(teamLead => {
+      notifyUserIds.push(teamLead.users.id);
+    });
+    
+    // Notify the sales team if the lead is activated or unqualified
+    if (newStatus === 'Active' || newStatus === 'Unqualified') {
+      const salesTeam = await db.select()
+        .from(users)
+        .innerJoin(roles, eq(users.roleId, roles.id))
+        .where(eq(roles.department, 'sales'));
+      
+      salesTeam.forEach(salesPerson => {
+        notifyUserIds.push(salesPerson.users.id);
+      });
+      
+      // Also notify via Slack if configured
+      if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_SALES_CHANNEL_ID) {
+        await sendSlackMessage({
+          channel: process.env.SLACK_SALES_CHANNEL_ID,
+          text: `Lead ${companyName} status changed from ${previousStatus} to ${newStatus}`,
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `*Lead Status Change*`
+              }
+            },
+            {
+              type: "section",
+              fields: [
+                {
+                  type: "mrkdwn",
+                  text: `*Lead:* ${companyName}`
+                },
+                {
+                  type: "mrkdwn",
+                  text: `*New Status:* ${newStatus}`
+                },
+                {
+                  type: "mrkdwn",
+                  text: `*Previous Status:* ${previousStatus}`
+                },
+                {
+                  type: "mrkdwn",
+                  text: `*Changed By:* ${userName}`
+                }
+              ]
+            }
+          ]
+        });
+      }
+    }
+    
+    // Remove duplicates and send notifications
+    notifyUserIds = [...new Set(notifyUserIds)];
+    
+    for (const userId of notifyUserIds) {
+      await db.insert(notifications).values({
+        userId,
+        orgId: lead.orgId || 1,
+        title: 'Lead Status Changed',
+        message: `${companyName} status changed from ${previousStatus} to ${newStatus}`,
+        type: 'lead_status_change',
+        read: false,
+        entityType: 'lead',
+        entityId: leadId,
+        createdAt: new Date()
+      });
+      
+      // Send real-time notification
+      getIo().to(`user:${userId}`).emit(RealTimeEvents.LEAD_STATUS_CHANGED, {
+        leadId,
+        companyName,
+        previousStatus,
+        newStatus,
+        changedBy: userName,
+        timestamp: new Date()
+      });
+    }
+  } catch (error) {
+    console.error('Error sending lead status change notification:', error);
+  }
+}
+
+/**
+ * Send weekly lead status check notifications
+ * Runs every Monday at 09:30 AM to remind dispatchers to update inactive leads
+ */
+export function scheduleWeeklyLeadStatusCheck() {
+  return new CronJob('30 9 * * 1', async () => {
+    console.log('Running weekly lead status check cron job');
+    try {
+      // Get all dispatchers
+      const dispatchers = await db.select()
+        .from(users)
+        .innerJoin(roles, eq(users.roleId, roles.id))
+        .where(eq(roles.department, 'dispatch'));
+      
+      // For each dispatcher, check leads that haven't been updated in the past 7 days
+      const sevenDaysAgo = subDays(new Date(), 7);
+      
+      for (const dispatcher of dispatchers) {
+        // Find leads assigned to this dispatcher that haven't been updated in 7 days
+        const staleLeads = await db.select()
+          .from(leads)
+          .where(
+            and(
+              eq(leads.assignedTo, dispatcher.users.id),
+              not(eq(leads.status, 'Closed')),
+              not(eq(leads.status, 'Unqualified')),
+              lte(leads.updatedAt, sevenDaysAgo)
+            )
+          )
+          .orderBy(leads.updatedAt);
+        
+        if (staleLeads.length > 0) {
+          // Create notification with list of stale leads
+          const leadNames = staleLeads.map(lead => lead.companyName || 'Unnamed Lead').join(', ');
+          const leadIds = staleLeads.map(lead => lead.id);
+          
+          await db.insert(notifications).values({
+            userId: dispatcher.users.id,
+            orgId: dispatcher.users.orgId || 1,
+            title: 'Weekly Lead Status Update Required',
+            message: `You have ${staleLeads.length} leads that need status updates`,
+            type: 'lead_status_reminder',
+            read: false,
+            entityType: 'leads',
+            entityId: leadIds[0], // Primary entity is first lead
+            createdAt: new Date()
+          });
+          
+          // Send real-time notification
+          getIo().to(`user:${dispatcher.users.id}`).emit(RealTimeEvents.LEAD_FOLLOWUP_REMINDER, {
+            count: staleLeads.length,
+            leadIds,
+            leadNames,
+            daysSinceUpdate: 7,
+            message: `You have ${staleLeads.length} leads that require status updates`
+          });
+          
+          // Also notify team lead
+          const teamLeads = await db.select()
+            .from(users)
+            .innerJoin(roles, eq(users.roleId, roles.id))
+            .where(
+              and(
+                eq(roles.department, 'dispatch'),
+                eq(roles.name, 'Team Lead')
+              )
+            );
+          
+          for (const teamLead of teamLeads) {
+            await db.insert(notifications).values({
+              userId: teamLead.users.id,
+              orgId: teamLead.users.orgId || 1,
+              title: 'Dispatcher Inactive Leads',
+              message: `${dispatcher.users.firstName} ${dispatcher.users.lastName} has ${staleLeads.length} inactive leads`,
+              type: 'team_lead_alert',
+              read: false,
+              entityType: 'dispatcher',
+              entityId: dispatcher.users.id,
+              createdAt: new Date()
+            });
+          }
+          
+          // Send to Slack if configured
+          if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_DISPATCH_CHANNEL_ID) {
+            await sendSlackMessage({
+              channel: process.env.SLACK_DISPATCH_CHANNEL_ID,
+              text: `${dispatcher.users.firstName} ${dispatcher.users.lastName} has ${staleLeads.length} leads requiring updates`,
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: `*Weekly Lead Status Update Required*`
+                  }
+                },
+                {
+                  type: "section",
+                  fields: [
+                    {
+                      type: "mrkdwn",
+                      text: `*Dispatcher:* ${dispatcher.users.firstName} ${dispatcher.users.lastName}`
+                    },
+                    {
+                      type: "mrkdwn",
+                      text: `*Inactive Leads:* ${staleLeads.length}`
+                    }
+                  ]
+                }
+              ]
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error in weekly lead status check cron job:', error);
+    }
+  }, null, true, 'America/New_York');
+}
+
+/**
  * Initializes all scheduler jobs
  */
 export function initializeScheduler() {
@@ -351,6 +800,8 @@ export function initializeScheduler() {
   const weeklyInvoiceJob = scheduleWeeklyInvoiceTargetCheck();
   const leadFollowUpJob = scheduleLeadFollowUpCheck();
   const weeklyInactiveLeadsJob = scheduleWeeklyInactiveLeadsReminder();
+  const dailyPerformanceAlertsJob = scheduleDailyPerformanceAlerts();
+  const weeklyLeadStatusCheckJob = scheduleWeeklyLeadStatusCheck();
 
   // Initialize the dispatch report automation jobs
   const dispatchReportJobs = initializeDispatchReportAutomation();
@@ -361,6 +812,8 @@ export function initializeScheduler() {
   console.log('- Weekly Invoice Target Check: runs at 23:00 on Fridays');
   console.log('- Lead Follow-up Check: runs at 10:00 daily');
   console.log('- Weekly Inactive Leads Reminder: runs at 10:00 on Mondays');
+  console.log('- Daily Performance Alerts: runs at 19:00 daily');
+  console.log('- Weekly Lead Status Check: runs at 09:30 on Mondays');
   console.log('- Daily Report Generation: runs at 18:00 daily');
   console.log('- Monthly Report Generation: runs at 01:00 on the 1st of each month');
 
@@ -370,6 +823,8 @@ export function initializeScheduler() {
     weeklyInvoiceJob,
     leadFollowUpJob,
     weeklyInactiveLeadsJob,
+    dailyPerformanceAlertsJob,
+    weeklyLeadStatusCheckJob,
     dispatchReportJobs
   };
 }

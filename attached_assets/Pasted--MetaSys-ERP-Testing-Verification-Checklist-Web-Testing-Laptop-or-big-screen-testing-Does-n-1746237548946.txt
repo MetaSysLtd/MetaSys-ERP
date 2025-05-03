@@ -1,0 +1,87 @@
+✅ MetaSys ERP Testing & Verification Checklist
+
+Web Testing = Laptop or big screen testing. Does not include mobile testing. 
+
+
+1. Basic Login & Session Tests
+ Correct login works? 
+=Yes, working.
+
+ Incorrect login shows clear error? 
+=Yes, it shows this "Authentication Error
+Invalid username or password"
+
+ Forgot Password link available? 
+=yes, available
+
+ After login, correct dashboard is shown based on user role? 
+=Right now, not sure, since there is jsut one test user as System Admin or Superadmin right now. But yes, showing the dashboard right now
+
+ Session expiration/timeout handled? 
+=Not sure. I guess, not. 
+
+2. Sidebar Navigation
+ Sidebar modules are visible: CRM, Dispatch, Invoices, HR, Finance, Marketing, Admin, Settings.
+=yes, visible
+CRM
+Dispatch
+Marketing == **Missing** 
+Invoices == **Missing** 
+Tasks
+Notifications
+Time Tracking == **Missing** 
+Human Resources == **Missing** 
+Finance 
+Reports
+Settings  == **Missing** 
+Admin Dashboard == **Missing** 
+Logout
+
+
+ Sidebar expands/collapses properly.
+=Needs work, but working
+
+ Sidebar on mobile collapses after clicking a menu item.
+=Will review it separately everything in mobile view
+
+ Clicking each menu opens the correct page — no 404s.
+=Here is the final one:
+CRM == Missing. Instead showing Sales. Not clicking or working. But the sub-module right now (which needs to be fixed) Sales>CRM is working when clicked. Sales>Leads not working. Sales>Clients shows 404. Sales>Commissions shows 404.
+Dispatch == Dispatch itself is a Main Module. Not working. Should provide extensive overview only of Dispatch when clicked. When clicked, sub-modules does appears. Dispatch>Loads is 404. Dispatch>Clients shows Unexpected token '<', "<!DOCTYPE "... is not valid JSON. Dispatch>New Load is 404. Dispatch>Load Tracking
+Marketing == **Missing Completely. It working before and there was an extensive module by the name of Marketing** 
+Invoices == Nothing happens. Broken. Not even 404. I spent 1 month just to build this module. Now broken. Was working before Architecture changes. 
+Tasks == Nothing happens. Broken. Not even 404. Was working before Architecture changes. 
+Notifications == Nothing happens. Broken. Not even 404. Was working before Architecture changes.
+Time Tracking == Nothing happens. Broken. Not even 404. Was working before Architecture changes.
+Human Resources == Itself and all 4 sub-modules (Team Members, Job Postings, Onboarding, Time Off) shows 404. 
+Finance == Nothing happens. Broken. Not even 404. Was working before Architecture changes.
+Reports == Nothing happens. Broken. Not even 404. Was working before Architecture changes.
+Settings == Nothing happens. Broken. Not even 404. Was working before Architecture changes.
+Admin Dashboard == Nothing happens. Broken. Not even 404. Was working before Architecture changes.
+Logout
+Client Portal == Missing.
+
+ Organization switcher works (no crash on switch).
+=Organization switcher was there before, but it isn't even showing now on the top header.
+
+3. CRM Module
+ All Leads list view loads.
+=All leads list view works. Kanban view also working but with wrong branding colours and UI. It is showing some brownish colour, completely wrong from our branding. New Lead button does work and opens a form to add a lead but responsivessness is soo off that even my laptop is not properly show the form. Unresposnsivessnes.
+
+ SQL, MQL tabs open separately.
+=SQL, MQL tabs disappeared now. Missing
+
+ Leads can be added manually.
+=Does not work. Form is unresponsiveness, also does not work. Even data is data and clicked on "Create Lead", it shows this "Failed to execute 'fetch' on 'Windows': /api/lead..... etc etc"
+
+ Status update flow (New → In Progress → HandToDispatch → Active) works.
+=Not working
+
+ Remarks/timeline visible under each lead.
+=Not working
+
+ Mandatory field validations (MC Age, Service Charges) work.
+=Not working. 
+
+ Notification generated when lead becomes Active.
+=Not working
