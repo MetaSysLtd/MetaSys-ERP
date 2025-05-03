@@ -61,7 +61,7 @@ export async function getSalesLeaderboard(
     })
     .from(users)
     .leftJoin(leads, and(
-      eq(leads.assignedToId, users.id),
+      eq(leads.assignedTo, users.id),
       gte(leads.createdAt, startDate),
       sql`${leads.createdAt} <= ${endDate}`,
       eq(leads.status, 'HandToDispatch')

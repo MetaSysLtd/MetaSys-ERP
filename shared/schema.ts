@@ -501,6 +501,7 @@ export const loads = pgTable("loads", {
   rateConfirmationUrl: text("rate_confirmation_url"),
   podUrl: text("pod_url"),
   assignedTo: integer("assigned_to").notNull(),
+  dispatcherId: integer("dispatcher_id").references(() => users.id), // Added for leaderboard functionality
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
