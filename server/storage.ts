@@ -5889,6 +5889,316 @@ export class DatabaseStorage implements IStorage {
       return undefined;
     }
   }
+  
+  // Organization Settings implementation
+  async getOrganizationSettings(orgId: number): Promise<OrganizationSettings | undefined> {
+    try {
+      const [settings] = await db.select().from(organizationSettings).where(eq(organizationSettings.orgId, orgId));
+      return settings;
+    } catch (error) {
+      console.error('Error getting organization settings:', error);
+      return undefined;
+    }
+  }
+  
+  async createOrganizationSettings(settings: InsertOrganizationSettings): Promise<OrganizationSettings> {
+    try {
+      const now = new Date();
+      const [newSettings] = await db.insert(organizationSettings).values({
+        ...settings,
+        createdAt: now,
+        updatedAt: now
+      }).returning();
+      return newSettings;
+    } catch (error) {
+      console.error('Error creating organization settings:', error);
+      throw error;
+    }
+  }
+  
+  async updateOrganizationSettings(orgId: number, updates: Partial<OrganizationSettings>): Promise<OrganizationSettings> {
+    try {
+      // First check if settings exist
+      const settings = await this.getOrganizationSettings(orgId);
+      
+      if (settings) {
+        // Update existing settings
+        const [updatedSettings] = await db.update(organizationSettings)
+          .set({
+            ...updates,
+            updatedAt: new Date()
+          })
+          .where(eq(organizationSettings.orgId, orgId))
+          .returning();
+        return updatedSettings;
+      } else {
+        // Create new settings
+        return this.createOrganizationSettings({
+          orgId,
+          ...updates
+        } as InsertOrganizationSettings);
+      }
+    } catch (error) {
+      console.error('Error updating organization settings:', error);
+      throw error;
+    }
+  }
+  
+  // User Settings implementation
+  async getUserSettings(userId: number): Promise<UserSettings | undefined> {
+    try {
+      const [settings] = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
+      return settings;
+    } catch (error) {
+      console.error('Error getting user settings:', error);
+      // If the table doesn't exist yet, return undefined
+      return undefined;
+    }
+  }
+
+  async createUserSettings(settings: InsertUserSettings): Promise<UserSettings> {
+    try {
+      const now = new Date();
+      const [newSettings] = await db.insert(userSettings).values({
+        ...settings,
+        createdAt: now,
+        updatedAt: now
+      }).returning();
+      return newSettings;
+    } catch (error) {
+      console.error('Error creating user settings:', error);
+      throw error;
+    }
+  }
+
+  async updateUserSettings(userId: number, updates: Partial<UserSettings>): Promise<UserSettings> {
+    try {
+      // First check if settings exist
+      const settings = await this.getUserSettings(userId);
+      
+      if (settings) {
+        // Update existing settings
+        const [updatedSettings] = await db.update(userSettings)
+          .set({
+            ...updates,
+            updatedAt: new Date()
+          })
+          .where(eq(userSettings.userId, userId))
+          .returning();
+        return updatedSettings;
+      } else {
+        // Create new settings
+        return this.createUserSettings({
+          userId,
+          ...updates
+        } as InsertUserSettings);
+      }
+    } catch (error) {
+      console.error('Error updating user settings:', error);
+      throw error;
+    }
+  }
+  
+  // Permission Template implementation
+  async getPermissionTemplate(id: number): Promise<PermissionTemplate | undefined> {
+    try {
+      const [template] = await db.select().from(permissionTemplates).where(eq(permissionTemplates.id, id));
+      return template;
+    } catch (error) {
+      console.error('Error getting permission template:', error);
+      return undefined;
+    }
+  }
+  
+  async getPermissionTemplateByName(name: string): Promise<PermissionTemplate | undefined> {
+    try {
+      const [template] = await db.select().from(permissionTemplates).where(eq(permissionTemplates.name, name));
+      return template;
+    } catch (error) {
+      console.error('Error getting permission template by name:', error);
+      return undefined;
+    }
+  }
+  
+  async getPermissionTemplates(): Promise<PermissionTemplate[]> {
+    try {
+      return await db.select().from(permissionTemplates);
+    } catch (error) {
+      console.error('Error getting permission templates:', error);
+      return [];
+    }
+  }
+  
+  async getPermissionTemplatesByDepartment(department: string): Promise<PermissionTemplate[]> {
+    try {
+      return await db.select().from(permissionTemplates).where(eq(permissionTemplates.department, department));
+    } catch (error) {
+      console.error('Error getting permission templates by department:', error);
+      return [];
+    }
+  }
+  
+  async createPermissionTemplate(template: InsertPermissionTemplate): Promise<PermissionTemplate> {
+    try {
+      const now = new Date();
+      const [newTemplate] = await db.insert(permissionTemplates).values({
+        ...template,
+        createdAt: now,
+        updatedAt: now
+      }).returning();
+      return newTemplate;
+    } catch (error) {
+      console.error('Error creating permission template:', error);
+      throw error;
+    }
+  }
+  
+  async updatePermissionTemplate(id: number, updates: Partial<PermissionTemplate>): Promise<PermissionTemplate | undefined> {
+    try {
+      const [updatedTemplate] = await db.update(permissionTemplates)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(permissionTemplates.id, id))
+        .returning();
+      return updatedTemplate;
+    } catch (error) {
+      console.error('Error updating permission template:', error);
+      return undefined;
+    }
+  }
+  
+  async deletePermissionTemplate(id: number): Promise<boolean> {
+    try {
+      await db.delete(permissionTemplates).where(eq(permissionTemplates.id, id));
+      return true;
+    } catch (error) {
+      console.error('Error deleting permission template:', error);
+      return false;
+    }
+  }
+  
+  // Feature Flag implementation
+  async getFeatureFlag(id: number): Promise<FeatureFlag | undefined> {
+    try {
+      const [flag] = await db.select().from(featureFlags).where(eq(featureFlags.id, id));
+      return flag;
+    } catch (error) {
+      console.error('Error getting feature flag:', error);
+      return undefined;
+    }
+  }
+  
+  async getFeatureFlagByKey(key: string): Promise<FeatureFlag | undefined> {
+    try {
+      const [flag] = await db.select().from(featureFlags).where(eq(featureFlags.key, key));
+      return flag;
+    } catch (error) {
+      console.error('Error getting feature flag by key:', error);
+      return undefined;
+    }
+  }
+  
+  async getFeatureFlags(): Promise<FeatureFlag[]> {
+    try {
+      return await db.select().from(featureFlags);
+    } catch (error) {
+      console.error('Error getting feature flags:', error);
+      return [];
+    }
+  }
+  
+  async getFeatureFlagsByOrg(orgId: number): Promise<FeatureFlag[]> {
+    try {
+      return await db.select().from(featureFlags).where(eq(featureFlags.orgId, orgId));
+    } catch (error) {
+      console.error('Error getting feature flags by org:', error);
+      return [];
+    }
+  }
+  
+  async createFeatureFlag(flag: InsertFeatureFlag): Promise<FeatureFlag> {
+    try {
+      const now = new Date();
+      const [newFlag] = await db.insert(featureFlags).values({
+        ...flag,
+        createdAt: now,
+        updatedAt: now
+      }).returning();
+      return newFlag;
+    } catch (error) {
+      console.error('Error creating feature flag:', error);
+      throw error;
+    }
+  }
+  
+  async updateFeatureFlag(id: number, updates: Partial<FeatureFlag>): Promise<FeatureFlag | undefined> {
+    try {
+      const [updatedFlag] = await db.update(featureFlags)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(featureFlags.id, id))
+        .returning();
+      return updatedFlag;
+    } catch (error) {
+      console.error('Error updating feature flag:', error);
+      return undefined;
+    }
+  }
+  
+  // User Location implementation
+  async getUserLocation(id: number): Promise<UserLocation | undefined> {
+    try {
+      const [location] = await db.select().from(userLocations).where(eq(userLocations.id, id));
+      return location;
+    } catch (error) {
+      console.error('Error getting user location:', error);
+      return undefined;
+    }
+  }
+  
+  async getUserLocations(userId: number): Promise<UserLocation[]> {
+    try {
+      return await db.select().from(userLocations)
+        .where(eq(userLocations.userId, userId))
+        .orderBy(desc(userLocations.createdAt));
+    } catch (error) {
+      console.error('Error getting user locations:', error);
+      return [];
+    }
+  }
+  
+  async getUserLocationsByTimeRange(userId: number, startTime: Date, endTime: Date): Promise<UserLocation[]> {
+    try {
+      return await db.select().from(userLocations)
+        .where(and(
+          eq(userLocations.userId, userId),
+          gte(userLocations.createdAt, startTime),
+          lte(userLocations.createdAt, endTime)
+        ))
+        .orderBy(desc(userLocations.createdAt));
+    } catch (error) {
+      console.error('Error getting user locations by time range:', error);
+      return [];
+    }
+  }
+  
+  async createUserLocation(location: InsertUserLocation): Promise<UserLocation> {
+    try {
+      const now = new Date();
+      const [newLocation] = await db.insert(userLocations).values({
+        ...location,
+        createdAt: now
+      }).returning();
+      return newLocation;
+    } catch (error) {
+      console.error('Error creating user location:', error);
+      throw error;
+    }
+  }
 }
 
 // Use database storage instead of memory storage
