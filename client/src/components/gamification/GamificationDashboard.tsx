@@ -13,7 +13,8 @@ import {
   Star,
   Medal,
   Award,
-  CalendarClock
+  CalendarClock,
+  ArrowUp
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import {
