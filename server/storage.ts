@@ -123,6 +123,23 @@ export interface IStorage {
   getInvoicesByLead(leadId: number): Promise<Invoice[]>;
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
   updateInvoice(id: number, invoice: Partial<Invoice>): Promise<Invoice | undefined>;
+  getInvoiceWithItems(id: number): Promise<{invoice: Invoice, items: InvoiceItem[]} | undefined>;
+  generateInvoicesForDeliveredLoads(): Promise<{count: number, invoices: Invoice[]}>;
+  getInvoices(page?: number, limit?: number, filters?: any): Promise<{
+    data: Invoice[], 
+    pagination: {
+      total: number, 
+      page: number, 
+      limit: number, 
+      pages: number
+    }
+  }>;
+  createInvoiceWithItems(invoice: InsertInvoice, items: Omit<InsertInvoiceItem, 'invoiceId'>[]): Promise<{
+    invoice: Invoice, 
+    items: InvoiceItem[]
+  }>;
+  markInvoiceAsPaid(id: number, paidDate: Date, paidAmount: number): Promise<Invoice | undefined>;
+  deleteInvoice(id: number): Promise<boolean>;
   
   // Invoice items operations
   getInvoiceItem(id: number): Promise<InvoiceItem | undefined>;
