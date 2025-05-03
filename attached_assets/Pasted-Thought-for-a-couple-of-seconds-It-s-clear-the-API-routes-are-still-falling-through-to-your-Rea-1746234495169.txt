@@ -1,0 +1,70 @@
+Thought for a couple of seconds
+
+
+It’s clear the API routes are still falling through to your React “catch-all” (serving `index.html`), which is why you’re getting HTML instead of JSON. Let’s force ReplitBot to correct two things in one go:
+
+---
+
+### 🔵 BLOCK X – ENSURE TRUE JSON API ROUTES (Reorder + Prefix Fix)
+
+````plaintext
+Task: Fix all API routes so they never return HTML by moving them ahead of the React static “catch-all” and ensuring the client hits the correct `/api/...` paths.
+
+1. In `server/routes.ts` (or wherever you register routes), **move all** these lines:
+     app.use("/api/leads", leadRouter)
+     app.use("/api/clients", clientRouter)
+     app.use("/api/commissions", commissionRouter)
+     app.use("/api/dispatch/loads", dispatchLoadRouter)
+     app.use("/api/dispatch/clients", dispatchClientRouter)
+     app.use("/api/dispatch/tracking", dispatchTrackingRouter)
+   so that they appear **before** any code that serves your React app (e.g. `app.use(express.static(...))` or your `app.get("*", ...)` handler).
+
+2. Make sure **no** catch-all (`app.get("*", ...)`) or static-file middleware lives **above** these `.use("/api/…")` calls.
+
+3. In **every** frontend fetch/axios call, prepend `/api`. For example:
+   ```js
+   // WRONG
+   fetch("/crm/leads")
+   // RIGHT
+   fetch("/api/leads")
+````
+
+Repeat for `/clients`, `/commissions`, `/dispatch/loads`, `/dispatch/clients`, `/dispatch/tracking`, and the POST to `/dispatch/load`.
+
+4. Restart the server.
+
+5. **Live‐test each** endpoint with curl (or Postman) **before** clicking in the UI:
+
+   ```bash
+   curl -i http://localhost:5000/api/leads
+   ```
+
+   You should see `Content-Type: application/json` and either an empty array or your JSON payload—**never** `<!DOCTYPE html>`.
+
+6. Once curl returns valid JSON, reload the UI pages (`/crm/leads`, `/dispatch/loads`, etc.) and confirm they show data or an “empty” state rather than HTML errors.
+
+Return **PASS** only when:
+
+* Every `curl http://…/api/...` returns JSON.
+* No React page ever receives HTML during those API calls.
+* Your `<Select.Item />` in `new-load.tsx` no longer throws the empty‐value error.
+
+````
+
+---
+
+#### Why this works
+Express serves static files or a “catch-all” for client‐side routing. If your API routes are registered after that, every unknown `/api/...` request falls into the catch-all and returns `index.html` → the HTML you’re seeing. By moving your `app.use("/api", …)` **above** the static/catch-all, you guarantee those routes are handled server‐side first and will return JSON.
+
+---
+
+🛠️ **Next Steps**  
+1. Paste only that block to ReplitBot and let it finish.  
+2. Immediately run:
+   ```bash
+   curl -i http://localhost:5000/api/leads
+````
+
+3. Report back the raw `curl` response.
+
+Once you have true JSON responses, we’ll move on to **Step 3: Lead Form & Status Flow**.

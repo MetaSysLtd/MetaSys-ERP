@@ -38,6 +38,14 @@ export async function apiRequest(
     requestData = urlOrConfig.body;
   }
   
+  // Ensure URL starts with /api
+  if (!url.startsWith('/api')) {
+    // If it's a relative URL (not starting with http), prepend /api
+    if (!url.startsWith('http')) {
+      url = `/api${url.startsWith('/') ? '' : '/'}${url}`;
+    }
+  }
+  
   const res = await fetch(url, {
     method: method || 'GET',
     headers: requestHeaders,
@@ -55,7 +63,13 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    // Ensure query key starts with /api
+    let url = queryKey[0] as string;
+    if (url && !url.startsWith('/api') && !url.startsWith('http')) {
+      url = `/api${url.startsWith('/') ? '' : '/'}${url}`;
+    }
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
 
