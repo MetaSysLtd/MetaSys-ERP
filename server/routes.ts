@@ -2803,7 +2803,11 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   trackingRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
       // Return empty array for now - tracking data would be implementation-specific
-      res.json([]);
+      // Use a structured response format for consistency
+      res.status(200).json({
+        status: "success",
+        data: []
+      });
     } catch (error) {
       console.error("Error fetching tracking data:", error);
       res.status(500).json({ 
@@ -2819,9 +2823,13 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
       const trackingId = req.params.id;
       
       // Return empty object for now - tracking implementation would be specific
-      res.json({
-        id: trackingId,
-        status: "in_transit"
+      // Use consistent response format with status and data fields
+      res.status(200).json({
+        status: "success",
+        data: {
+          id: trackingId,
+          status: "in_transit"
+        }
       });
     } catch (error) {
       console.error("Error fetching specific tracking:", error);
@@ -2872,7 +2880,10 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
       const client = await storage.getDispatchClient(Number(req.params.id));
       
       if (!client) {
-        return res.status(404).json({ message: "Dispatch client not found" });
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Dispatch client not found" 
+        });
       }
       
       // Get the associated lead
@@ -2881,13 +2892,22 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
       // Get loads for this client
       const loads = await storage.getLoadsByLead(client.leadId);
       
-      res.json({
-        ...client,
-        lead,
-        loads
+      // Return with consistent response format
+      res.status(200).json({
+        status: "success",
+        data: {
+          ...client,
+          lead,
+          loads
+        }
       });
     } catch (error) {
-      next(error);
+      console.error("Error fetching specific dispatch client:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch dispatch client details",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
   
