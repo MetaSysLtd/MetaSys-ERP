@@ -60,7 +60,7 @@ export default function NewLoadPage() {
   });
   
   // Filter to only active leads (considered as clients)
-  const activeClients = allLeads?.filter((lead: any) => lead.status === "Active") || [];
+  const activeClients = Array.isArray(allLeads) ? allLeads.filter((lead: any) => lead.status === "Active") : [];
   
   // Create load mutation
   const createLoadMutation = useMutation({
@@ -219,14 +219,14 @@ export default function NewLoadPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {activeClients.length === 0 ? (
-                            <SelectItem value="" disabled>No active clients</SelectItem>
+                            <SelectItem value="no_clients" disabled>No active clients</SelectItem>
                           ) : (
                             activeClients.map((client: any) => (
                               <SelectItem 
                                 key={client.id} 
                                 value={client.id.toString()}
                               >
-                                {client.companyName}
+                                {client.companyName || client.name || `Client ${client.id}`}
                               </SelectItem>
                             ))
                           )}

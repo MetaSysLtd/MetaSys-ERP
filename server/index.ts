@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
-import { registerRoutes } from "./simplified-routes";
+import { registerRoutes } from "./consolidated-routes";
 import { setupVite, serveStatic, log } from "./vite";
 import * as notificationService from "./notifications";
 import session from "express-session";

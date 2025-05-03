@@ -34,8 +34,7 @@ export function initSocketIO(server: HttpServer): SocketIOServer {
     cors: {
       origin: '*',
       methods: ['GET', 'POST'],
-    },
-    path: '/socket.io'
+    }
   });
 
   // Set up middleware for authentication

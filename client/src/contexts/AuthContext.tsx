@@ -54,21 +54,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
     const checkAuth = async () => {
       try {
         // Use the apiRequest helper for consistent error handling
-        const res = await fetch(API_ROUTES.AUTH.CURRENT_USER, {
-          credentials: "include",
-        });
+        const res = await apiRequest("GET", API_ROUTES.AUTH.CURRENT_USER);
+        const data = await res.json();
         
-        if (res.ok) {
-          const data = await res.json();
-          if (data.authenticated) {
-            setIsAuthenticated(true);
-            setUser(data.user);
-            setRole(data.role);
-          } else {
-            setIsAuthenticated(false);
-            setUser(null);
-            setRole(null);
-          }
+        if (data.authenticated) {
+          setIsAuthenticated(true);
+          setUser(data.user);
+          setRole(data.role);
         } else {
           setIsAuthenticated(false);
           setUser(null);
@@ -95,33 +87,14 @@ function AuthProvider({ children }: { children: ReactNode }) {
       // Log the attempt for debugging
       console.log(`Attempting to login with username: ${username}`);
       
-      // Use the API_ROUTES constant for consistent URLs
-      const res = await fetch(API_ROUTES.AUTH.LOGIN, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ username, password }),
-      });
+      // Use apiRequest for consistent error handling and URL prefixing
+      const res = await apiRequest("POST", API_ROUTES.AUTH.LOGIN, { username, password });
       
       // Log detailed information for debugging
       console.log(`Login attempt to ${API_ROUTES.AUTH.LOGIN}, status: ${res.status}`);
       
-      let data;
-      try {
-        const text = await res.text();
-        console.log("Raw response text:", text);
-        data = JSON.parse(text);
-        console.log("Login response:", { status: res.status, data });
-      } catch (parseError) {
-        console.error("Error parsing JSON response:", parseError);
-        throw new Error("Failed to parse server response. The server might be returning HTML instead of JSON.");
-      }
-      
-      if (!res.ok) {
-        throw new Error(data.message || "Invalid username or password");
-      }
+      const data = await res.json();
+      console.log("Login response:", { status: res.status, data });
       
       if (!data.user) {
         throw new Error("Server returned no user data");
@@ -147,10 +120,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     
     try {
-      await apiRequest({
-        url: API_ROUTES.AUTH.LOGOUT,
-        method: "POST"
-      });
+      await apiRequest("POST", API_ROUTES.AUTH.LOGOUT);
       setIsAuthenticated(false);
       setUser(null);
       setRole(null);

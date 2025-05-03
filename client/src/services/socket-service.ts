@@ -78,15 +78,11 @@ class SocketService {
         return;
       }
       
-      // Get the base URL dynamically
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      const socketUrl = `${protocol}//${host}`;
-      
+      // Get the base URL dynamically - use standard HTTP/HTTPS protocol for Socket.IO
+      const socketUrl = window.location.origin;
       console.log('Connecting to socket at:', socketUrl);
       
       this.socket = io(socketUrl, {
-        path: '/socket.io',
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
