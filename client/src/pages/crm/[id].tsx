@@ -719,7 +719,7 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                     <Activity className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-2 text-sm font-medium text-gray-900">No activity found</h3>
                     <p className="mt-1 text-sm text-gray-500">
-                      No activities have been recorded for this contact yet.
+                      No activities have been recorded for this lead yet.
                     </p>
                   </div>
                 ) : (
@@ -727,16 +727,19 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                     {activities.map((activity: any) => (
                       <div key={activity.id} className="flex py-3 border-b border-gray-200 last:border-0">
                         <div className="mr-4 flex-shrink-0">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100">
-                            <Activity className="h-4 w-4 text-primary-600" />
+                          <div className={`flex h-8 w-8 items-center justify-center rounded-full 
+                            ${activity.action === 'created' ? 'bg-blue-100' : 
+                              activity.action === 'status_changed' ? 'bg-green-100' : 'bg-primary-100'}`}>
+                            {activity.action === 'created' && <Clipboard className="h-4 w-4 text-blue-600" />}
+                            {activity.action === 'status_changed' && <ArrowRightCircle className="h-4 w-4 text-green-600" />}
+                            {activity.action !== 'created' && activity.action !== 'status_changed' && 
+                              <Activity className="h-4 w-4 text-primary-600" />}
                           </div>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{activity.description}</p>
+                          <p className="text-sm font-medium text-gray-900">{activity.details}</p>
                           <div className="mt-1 flex space-x-2 text-xs text-gray-500">
-                            <p>{formatDate(activity.createdAt)}</p>
-                            <p>•</p>
-                            <p>By {activity.user.name}</p>
+                            <p>{formatDate(activity.timestamp)}</p>
                           </div>
                           {activity.notes && (
                             <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">
@@ -758,9 +761,9 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Update Contact Status</DialogTitle>
+            <DialogTitle>Update Lead Status</DialogTitle>
             <DialogDescription>
-              Change the status of this contact and optionally add notes about the change.
+              Change the status of this lead and add optional notes about the change.
             </DialogDescription>
           </DialogHeader>
           
@@ -782,13 +785,11 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="qualified">Qualified</SelectItem>
-                        <SelectItem value="unqualified">Unqualified</SelectItem>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="lost">Lost</SelectItem>
-                        <SelectItem value="won">Won</SelectItem>
-                        <SelectItem value="follow-up">Follow-Up</SelectItem>
-                        <SelectItem value="nurture">Nurture</SelectItem>
+                        <SelectItem value="New">New</SelectItem>
+                        <SelectItem value="InProgress">In Progress</SelectItem>
+                        <SelectItem value="HandToDispatch">Hand To Dispatch</SelectItem>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Lost">Lost</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -822,12 +823,72 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={updateStatusMutation.isPending}>
-                  {updateStatusMutation.isPending ? "Updating..." : "Update Status"}
+                <Button 
+                  type="submit" 
+                  disabled={updateStatusMutation.isPending}
+                  className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white"
+                >
+                  {updateStatusMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Status"
+                  )}
                 </Button>
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add Remark Dialog */}
+      <Dialog open={remarkDialogOpen} onOpenChange={setRemarkDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Remark</DialogTitle>
+            <DialogDescription>
+              Add a new remark to this lead's timeline.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleRemarkSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="remark">Remark</Label>
+              <Textarea
+                id="remark"
+                placeholder="Enter your remark here"
+                value={remark}
+                onChange={(e) => setRemark(e.target.value)}
+                rows={4}
+              />
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setRemarkDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={addRemarkMutation.isPending}
+                className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white"
+              >
+                {addRemarkMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  "Add Remark"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
