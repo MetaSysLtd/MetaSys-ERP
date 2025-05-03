@@ -1,7 +1,9 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 
 type TransitionSpeed = 'fast' | 'normal' | 'slow';
 type AnimationDurationType = 'standard' | 'complex' | 'subtle';
+type TransitionType = 'fade' | 'slide' | 'zoom' | 'gradient';
 
 interface AnimationContextType {
   animationsEnabled: boolean;
@@ -10,6 +12,10 @@ interface AnimationContextType {
   transitionSpeed: TransitionSpeed;
   setTransitionSpeed: (speed: TransitionSpeed) => void;
   getDuration: (type: AnimationDurationType | number) => number;
+  pageTransition: TransitionType;
+  setPageTransition: (type: TransitionType) => void;
+  currentPath: string;
+  previousPath: string | null;
 }
 
 const defaultContext: AnimationContextType = {
@@ -19,6 +25,10 @@ const defaultContext: AnimationContextType = {
   transitionSpeed: 'normal',
   setTransitionSpeed: () => {},
   getDuration: (type: AnimationDurationType | number) => typeof type === 'number' ? type : 0.3,
+  pageTransition: 'gradient',
+  setPageTransition: () => {},
+  currentPath: '/',
+  previousPath: null,
 };
 
 export const AnimationContext = createContext<AnimationContextType>(defaultContext);
@@ -27,6 +37,10 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [transitionSpeed, setTransitionSpeed] = useState<TransitionSpeed>('normal');
+  const [pageTransition, setPageTransition] = useState<TransitionType>('gradient');
+  const [currentPath, setCurrentPath] = useState('/');
+  const [previousPath, setPreviousPath] = useState<string | null>(null);
+  const [location] = useLocation();
 
   // On mount, check local storage for animation preferences
   useEffect(() => {
@@ -63,6 +77,29 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
       console.error('Failed to read animation preferences from localStorage:', error);
     }
   }, []);
+  
+  // Track location changes to update path tracking
+  useEffect(() => {
+    if (location !== currentPath) {
+      setPreviousPath(currentPath);
+      setCurrentPath(location);
+    }
+  }, [location, currentPath]);
+  
+  // Check for page transition preference in local storage
+  useEffect(() => {
+    try {
+      const storedTransitionType = localStorage.getItem('metasys_page_transition');
+      if (storedTransitionType && ['fade', 'slide', 'zoom', 'gradient'].includes(storedTransitionType)) {
+        setPageTransition(storedTransitionType as TransitionType);
+      } else {
+        // If no preference is set, store the default 'gradient' transition
+        localStorage.setItem('metasys_page_transition', 'gradient');
+      }
+    } catch (error) {
+      console.error('Failed to read page transition preference from localStorage:', error);
+    }
+  }, []);
 
   const toggleAnimations = () => {
     const newValue = !animationsEnabled;
@@ -80,6 +117,15 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('metasys_transition_speed', speed);
     } catch (error) {
       console.error('Failed to save transition speed preference to localStorage:', error);
+    }
+  };
+  
+  const handleSetPageTransition = (type: TransitionType) => {
+    setPageTransition(type);
+    try {
+      localStorage.setItem('metasys_page_transition', type);
+    } catch (error) {
+      console.error('Failed to save page transition preference to localStorage:', error);
     }
   };
   
@@ -113,6 +159,10 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
         transitionSpeed,
         setTransitionSpeed: handleSetTransitionSpeed,
         getDuration,
+        pageTransition,
+        setPageTransition: handleSetPageTransition,
+        currentPath,
+        previousPath,
       }}
     >
       {children}

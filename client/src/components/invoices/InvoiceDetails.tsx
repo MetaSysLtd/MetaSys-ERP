@@ -214,6 +214,11 @@ export function InvoiceDetails({ invoice }: { invoice: InvoiceDetailsData }) {
     markAsPaidMutation.mutate(invoice.id);
   };
   
+  // Handle approve and send invoice
+  const handleApproveAndSend = () => {
+    approveAndSendMutation.mutate(invoice.id);
+  };
+  
   return (
     <div className="space-y-8">
       <Card>
@@ -309,6 +314,28 @@ export function InvoiceDetails({ invoice }: { invoice: InvoiceDetailsData }) {
                   <Mail className="h-4 w-4 mr-2" />
                   Send Email
                 </Button>
+                {invoice.status === 'draft' && (
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    className="h-9 bg-[#025E73] text-white hover:bg-[#025E73]/90"
+                    onClick={handleApproveAndSend}
+                    disabled={approveAndSendMutation.isPending}
+                  >
+                    {approveAndSendMutation.isPending ? (
+                      <>
+                        <MessageSquare className="h-4 w-4 mr-2 animate-pulse" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Approve & Send
+                      </>
+                    )}
+                  </Button>
+                )}
+                
                 {invoice.status !== 'paid' && (
                   <Button 
                     variant="default" 
