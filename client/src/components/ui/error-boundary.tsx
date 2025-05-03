@@ -39,12 +39,25 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Log the error to an error reporting service
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Log the error with additional context
+    console.error('ErrorBoundary caught an error:', {
+      error,
+      errorInfo,
+      location: window.location.href,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent
+    });
 
-    // Update state with error info
+    // Categorize the error
+    const errorType = error.name === 'ChunkLoadError' ? 'loading' 
+                   : error.name === 'NetworkError' ? 'network'
+                   : error.name === 'SecurityError' ? 'security'
+                   : 'unknown';
+
+    // Update state with error info and type
     this.setState({
       errorInfo,
+      errorType
     });
 
     // Call the onError callback if provided

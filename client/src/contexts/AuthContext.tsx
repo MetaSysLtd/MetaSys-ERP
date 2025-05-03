@@ -112,11 +112,18 @@ function AuthProvider({ children }: { children: ReactNode }) {
       
       if (!res.ok) {
         const errorData = await res.json().catch(() => null);
-        throw new Error(
-          errorData?.message || 
-          errorData?.error || 
-          `Login failed with status ${res.status}`
-        );
+        const errorMessage = errorData?.message || errorData?.error;
+        
+        // Provide more specific error messages based on status
+        if (res.status === 401) {
+          throw new Error('Invalid username or password');
+        } else if (res.status === 403) {
+          throw new Error('Account is locked or inactive');
+        } else if (res.status === 429) {
+          throw new Error('Too many login attempts. Please try again later');
+        }
+        
+        throw new Error(errorMessage || `Login failed with status ${res.status}`);
       }
       
       const data = await res.json();

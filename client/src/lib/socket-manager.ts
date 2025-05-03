@@ -69,12 +69,8 @@ export function initializeSocket() {
       reconnectTimer = setTimeout(() => {
         if (socket && !socket.connected) {
           updateStatus('error');
-          const { toast } = useToast();
-          toast({
-            title: "Connection Lost",
-            description: "Real-time updates are not available. Please refresh the page.",
-            variant: "destructive",
-          });
+          // Emit a custom event that React components can listen to
+          window.dispatchEvent(new CustomEvent('socket-connection-lost'));
         }
       }, RECONNECTION_TIMEOUT);
     }
