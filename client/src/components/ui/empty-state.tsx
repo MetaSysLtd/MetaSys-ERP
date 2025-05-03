@@ -1,166 +1,87 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { Inbox, Search, AlertCircle, FileX, ShieldAlert, BarChart, RefreshCw } from 'lucide-react';
+import { 
+  DatabaseIcon, 
+  AlertCircleIcon, 
+  SearchIcon, 
+  FileXIcon, 
+  InboxIcon, 
+  ClipboardXIcon
+} from 'lucide-react';
 
-export type EmptyStateType = 
-  | 'no-data' 
-  | 'no-results' 
-  | 'error' 
-  | 'no-access' 
-  | 'empty-file' 
-  | 'loading-error' 
-  | 'no-activity';
-
-interface EmptyStateProps {
-  type?: EmptyStateType;
-  title?: string;
+export interface EmptyStateProps {
+  title: string;
   description?: string;
-  icon?: React.ReactNode;
-  action?: {
-    label: string;
-    onClick: () => void;
-    icon?: React.ReactNode;
-  };
-  secondaryAction?: {
-    label: string;
-    onClick: () => void;
-    icon?: React.ReactNode;
-  };
-  className?: string;
-  compact?: boolean;
-  iconClassName?: string;
+  icon?: 'database' | 'warning' | 'search' | 'empty' | 'inbox' | 'tasks';
+  iconSize?: number;
+  iconColor?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
+  children?: React.ReactNode;
 }
 
-/**
- * Default titles and descriptions for each empty state type
- */
-const defaultEmptyStates: Record<EmptyStateType, { 
-  title: string; 
-  description: string; 
-  icon: React.ReactNode;
-}> = {
-  'no-data': {
-    title: 'No data available',
-    description: 'There is no data to display at this time.',
-    icon: <Inbox />
-  },
-  'no-results': {
-    title: 'No results found',
-    description: 'Try adjusting your search or filters to find what you\'re looking for.',
-    icon: <Search />
-  },
-  'error': {
-    title: 'Error loading data',
-    description: 'There was a problem loading this data. Please try again later.',
-    icon: <AlertCircle />
-  },
-  'no-access': {
-    title: 'Access restricted',
-    description: 'You don\'t have permission to view this content.',
-    icon: <ShieldAlert />
-  },
-  'empty-file': {
-    title: 'No files uploaded',
-    description: 'Upload files to get started.',
-    icon: <FileX />
-  },
-  'loading-error': {
-    title: 'Failed to load',
-    description: 'There was a problem loading this content. Please try again.',
-    icon: <RefreshCw />
-  },
-  'no-activity': {
-    title: 'No recent activity',
-    description: 'There has been no recent activity to display.',
-    icon: <BarChart />
-  }
-};
-
-export const EmptyState: React.FC<EmptyStateProps> = ({
-  type = 'no-data',
+export function EmptyState({
   title,
   description,
-  icon,
-  action,
-  secondaryAction,
-  className,
-  compact = false,
-  iconClassName
-}) => {
-  // Get default values based on type
-  const defaultState = defaultEmptyStates[type];
-  
-  const finalTitle = title || defaultState.title;
-  const finalDescription = description || defaultState.description;
-  const finalIcon = icon || defaultState.icon;
+  icon = 'empty',
+  iconSize = 40,
+  iconColor = '#767676',
+  actionLabel,
+  onAction,
+  secondaryActionLabel,
+  onSecondaryAction,
+  children,
+}: EmptyStateProps) {
+  const renderIcon = () => {
+    const iconProps = {
+      size: iconSize,
+      color: iconColor,
+      strokeWidth: 1.5,
+      className: 'mb-4 opacity-80'
+    };
+
+    switch (icon) {
+      case 'database':
+        return <DatabaseIcon {...iconProps} />;
+      case 'warning':
+        return <AlertCircleIcon {...iconProps} />;
+      case 'search':
+        return <SearchIcon {...iconProps} />;
+      case 'empty':
+        return <FileXIcon {...iconProps} />;
+      case 'inbox':
+        return <InboxIcon {...iconProps} />;
+      case 'tasks':
+        return <ClipboardXIcon {...iconProps} />;
+      default:
+        return <FileXIcon {...iconProps} />;
+    }
+  };
 
   return (
-    <div className={cn(
-      "flex flex-col items-center justify-center text-center p-6",
-      compact ? "space-y-3 py-4" : "space-y-4 p-8",
-      className
-    )}>
-      <div className={cn(
-        "text-muted-foreground/70 flex items-center justify-center", 
-        compact ? "w-12 h-12" : "w-16 h-16",
-        type === 'error' ? "text-destructive/80" : "",
-        iconClassName
-      )}>
-        {React.isValidElement(finalIcon) 
-          ? React.cloneElement(finalIcon as React.ReactElement, { 
-              className: cn(
-                compact ? "h-10 w-10" : "h-14 w-14",
-                (finalIcon as React.ReactElement).props.className
-              )
-            }) 
-          : finalIcon}
-      </div>
-      
-      <div className="space-y-2 max-w-xs">
-        <h3 className={cn(
-          "font-semibold text-foreground",
-          compact ? "text-base" : "text-lg"
-        )}>
-          {finalTitle}
-        </h3>
-        <p className={cn(
-          "text-muted-foreground",
-          compact ? "text-sm" : "text-base"
-        )}>
-          {finalDescription}
-        </p>
-      </div>
-      
-      {(action || secondaryAction) && (
-        <div className={cn(
-          "flex",
-          secondaryAction ? "space-x-3" : ""
-        )}>
-          {action && (
-            <Button 
-              onClick={action.onClick}
-              size={compact ? "sm" : "default"}
-            >
-              {action.icon && <span className="mr-2">{action.icon}</span>}
-              {action.label}
+    <div className="flex flex-col items-center justify-center text-center p-8 border border-muted rounded-lg bg-muted/20 min-h-[200px]">
+      {renderIcon()}
+      <h3 className="text-xl font-semibold mb-2 text-[#025E73]">{title}</h3>
+      {description && (
+        <p className="text-sm text-muted-foreground max-w-md mb-4">{description}</p>
+      )}
+      {children}
+      {(actionLabel || secondaryActionLabel) && (
+        <div className="flex gap-3 mt-4">
+          {actionLabel && (
+            <Button onClick={onAction} className="bg-[#025E73] hover:bg-[#025E73]/90">
+              {actionLabel}
             </Button>
           )}
-          
-          {secondaryAction && (
-            <Button 
-              variant="outline" 
-              onClick={secondaryAction.onClick}
-              size={compact ? "sm" : "default"}
-            >
-              {secondaryAction.icon && <span className="mr-2">{secondaryAction.icon}</span>}
-              {secondaryAction.label}
+          {secondaryActionLabel && (
+            <Button variant="outline" onClick={onSecondaryAction}>
+              {secondaryActionLabel}
             </Button>
           )}
         </div>
       )}
     </div>
   );
-};
-
-export default EmptyState;
+}

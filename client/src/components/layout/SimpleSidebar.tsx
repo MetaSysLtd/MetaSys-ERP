@@ -96,12 +96,19 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
   
   // Simple pure functions for determining active states
   const isActiveRoute = useCallback((route: string) => {
-    if (route === "/" && location === "/") return true;
-    if (route === location) return true;
-    return false;
+    // Special case for the dashboard - only highlight when exactly at "/"
+    if (route === "/") {
+      return location === "/";
+    }
+    // For other routes, check if the current location matches exactly
+    return route === location;
   }, [location]);
 
   const isParentActive = useCallback((parentRoute: string) => {
+    // Skip parent activation logic for the dashboard
+    if (parentRoute === "/") return false;
+    
+    // For other routes, check if location starts with the parent route but isn't exactly the parent route
     return location.startsWith(parentRoute) && location !== parentRoute;
   }, [location]);
   
