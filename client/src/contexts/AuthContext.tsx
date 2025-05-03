@@ -1,6 +1,5 @@
 
 import { createContext, useState, useEffect, ReactNode } from "react";
-import { apiRequest } from "@/lib/queryClient";
 import { API_ROUTES } from "@shared/constants";
 
 interface User {
@@ -53,8 +52,22 @@ function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Use the apiRequest helper for consistent error handling
-        const res = await apiRequest("GET", API_ROUTES.AUTH.CURRENT_USER);
+        const res = await fetch(API_ROUTES.AUTH.CURRENT_USER, {
+          method: "GET",
+          credentials: "include"
+        });
+        
+        if (res.status === 401) {
+          setIsAuthenticated(false);
+          setUser(null);
+          setRole(null);
+          return;
+        }
+        
+        if (!res.ok) {
+          throw new Error(`${res.status}: ${await res.text() || res.statusText}`);
+        }
+        
         const data = await res.json();
         
         if (data.authenticated) {
@@ -84,14 +97,23 @@ function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     
     try {
-      // Log the attempt for debugging
       console.log(`Attempting to login with username: ${username}`);
       
-      // Use apiRequest for consistent error handling and URL prefixing
-      const res = await apiRequest("POST", API_ROUTES.AUTH.LOGIN, { username, password });
+      const res = await fetch(API_ROUTES.AUTH.LOGIN, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({ username, password })
+      });
       
-      // Log detailed information for debugging
       console.log(`Login attempt to ${API_ROUTES.AUTH.LOGIN}, status: ${res.status}`);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || `Login failed with status ${res.status}`);
+      }
       
       const data = await res.json();
       console.log("Login response:", { status: res.status, data });
@@ -120,7 +142,15 @@ function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     
     try {
-      await apiRequest("POST", API_ROUTES.AUTH.LOGOUT);
+      const res = await fetch(API_ROUTES.AUTH.LOGOUT, {
+        method: "POST",
+        credentials: "include"
+      });
+      
+      if (!res.ok) {
+        console.error(`Logout failed with status ${res.status}`);
+      }
+      
       setIsAuthenticated(false);
       setUser(null);
       setRole(null);
