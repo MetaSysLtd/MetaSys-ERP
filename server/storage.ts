@@ -241,6 +241,12 @@ export interface IStorage {
   createPerformanceTarget(target: InsertPerformanceTarget): Promise<PerformanceTarget>;
   updatePerformanceTarget(id: number, target: Partial<PerformanceTarget>): Promise<PerformanceTarget | undefined>;
   
+  // Dashboard operations
+  getLeadCount(orgId?: number): Promise<number>;
+  getClientCount(orgId?: number): Promise<number>;
+  getLoadCount(orgId?: number): Promise<number>;
+  getInvoiceCount(orgId?: number): Promise<number>;
+  
   // HR Hiring & Onboarding operations
   
   // Hiring Candidate operations
@@ -3347,6 +3353,71 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error updating notification:', error);
       return undefined;
+    }
+  }
+  
+  // Dashboard count functions
+  async getLeadCount(orgId?: number): Promise<number> {
+    try {
+      let query = db.select({ count: count() }).from(leads);
+      
+      if (orgId) {
+        query = query.where(eq(leads.orgId, orgId));
+      }
+      
+      const result = await query;
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error getting lead count:', error);
+      return 0;
+    }
+  }
+  
+  async getClientCount(orgId?: number): Promise<number> {
+    try {
+      let query = db.select({ count: count() }).from(dispatchClients);
+      
+      if (orgId) {
+        query = query.where(eq(dispatchClients.orgId, orgId));
+      }
+      
+      const result = await query;
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error getting client count:', error);
+      return 0;
+    }
+  }
+  
+  async getLoadCount(orgId?: number): Promise<number> {
+    try {
+      let query = db.select({ count: count() }).from(loads);
+      
+      if (orgId) {
+        query = query.where(eq(loads.orgId, orgId));
+      }
+      
+      const result = await query;
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error getting load count:', error);
+      return 0;
+    }
+  }
+  
+  async getInvoiceCount(orgId?: number): Promise<number> {
+    try {
+      let query = db.select({ count: count() }).from(invoices);
+      
+      if (orgId) {
+        query = query.where(eq(invoices.orgId, orgId));
+      }
+      
+      const result = await query;
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error getting invoice count:', error);
+      return 0;
     }
   }
   
