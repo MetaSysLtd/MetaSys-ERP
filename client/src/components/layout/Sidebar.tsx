@@ -221,12 +221,12 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
 
   const secondaryNavItems: NavItem[] = [
     { name: "Time Tracking", href: "/time-tracking", icon: Clock },
-    { name: "Human Resources", href: "/hr", icon: HeartPulse, showFor: ["hr", "admin"] },
-    { name: "Finance", href: "/finance", icon: Banknote, showFor: ["finance", "admin"], minLevel: 3 },
-    { name: "Marketing", href: "/marketing", icon: Megaphone, showFor: ["marketing", "admin"], minLevel: 2 },
+    { name: "Human Resources", href: "/hr", icon: HeartPulse },
+    { name: "Finance", href: "/finance", icon: Banknote },
+    { name: "Marketing", href: "/marketing", icon: Megaphone },
     { name: "Client Portal", href: "/client-portal", icon: Building2 },
     { name: "Gamification", href: "/gamification", icon: Trophy },
-    { name: "Reports", href: "/reports", icon: BarChart2, showFor: ["sales", "dispatch", "finance", "hr", "admin"], minLevel: 2 },
+    { name: "Reports", href: "/reports", icon: BarChart2 },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
 
