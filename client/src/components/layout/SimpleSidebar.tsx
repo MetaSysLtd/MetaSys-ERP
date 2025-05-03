@@ -167,9 +167,10 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
       href: "/hr", 
       icon: HeartPulse,
       subItems: hrSubItems,
-      hidden: true // Hide HR module as it's still in development
     },
-    { name: "Finance", href: "/finance", icon: Banknote, hidden: true }, // Hide Finance module as it's still in development
+    { name: "Finance", href: "/finance", icon: Banknote },
+    { name: "Marketing", href: "/marketing", icon: Megaphone },
+    { name: "Client Portal", href: "/client-portal", icon: Building2 },
     { name: "Reports", href: "/reports", icon: BarChart2 },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
@@ -357,21 +358,19 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
             </div>
           </div>
 
-          {/* Admin section */}
-          {role.department === "admin" && role.level >= 5 && (
-            <div className="px-4 mb-6 pt-4">
-              <h3 className={`px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1 ${collapsed && !mobile ? 'text-center' : ''}`}>
-                {collapsed && !mobile ? '' : 'Administration'}
-              </h3>
-              <div className="space-y-1">
-                {renderNavItem({
-                  name: "Admin Dashboard",
-                  href: "/admin",
-                  icon: ShieldAlert
-                })}
-              </div>
+          {/* Admin section - always visible */}
+          <div className="px-4 mb-6 pt-4">
+            <h3 className={`px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1 ${collapsed && !mobile ? 'text-center' : ''}`}>
+              {collapsed && !mobile ? '' : 'Administration'}
+            </h3>
+            <div className="space-y-1">
+              {renderNavItem({
+                name: "Admin Dashboard",
+                href: "/admin",
+                icon: ShieldAlert
+              })}
             </div>
-          )}
+          </div>
 
           {/* Logout button */}
           <div className="px-4 py-4 mt-auto">
