@@ -36,7 +36,7 @@ export function DispatchReportAutomation() {
   });
   
   // Fetch performance targets
-  const { data: targets } = useQuery<PerformanceTarget[]>({
+  const { data: targets } = useQuery<{ sales: any; dispatch: any; }>({
     queryKey: ['/api/performance-targets', 'daily'],
     queryFn: async () => {
       const res = await fetch('/api/performance-targets?type=daily', {
@@ -52,7 +52,8 @@ export function DispatchReportAutomation() {
   });
   
   // Get the appropriate target for the user's organization
-  const dailyTarget = targets?.find(t => t.orgId === user?.orgId && t.type === 'daily');
+  // Use the targets data directly since it's now an object, not an array
+  const dailyTarget = targets?.dispatch?.daily;
   
   // Manual report generation mutation
   const generateReportMutation = useMutation({
