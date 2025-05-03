@@ -13,6 +13,7 @@ import {
 } from "@shared/schema";
 import * as slackNotifications from "./slack";
 import * as notificationService from "./notifications";
+import * as leaderboardService from "./leaderboard";
 import { NotificationPreferences, defaultNotificationPreferences } from "./notifications";
 // Removed WebSocket import as we're using Socket.IO exclusively
 import errorLoggingRoutes from "./routes/error-logging";
@@ -1594,6 +1595,72 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         } : null
       });
     } catch (error) {
+      next(error);
+    }
+  });
+
+  // Leaderboard routes for weekly performance metrics
+  const leaderboardRouter = express.Router();
+  apiRouter.use("/leaderboard", leaderboardRouter);
+
+  // Get sales leaderboard data
+  leaderboardRouter.get("/sales", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      // Extract the query parameter for date, defaulting to current date
+      const dateParam = req.query.date ? new Date(req.query.date as string) : new Date();
+      const orgId = req.user?.orgId || 1;
+      
+      // Get the sales leaderboard data from service
+      const leaderboardData = await leaderboardService.getSalesLeaderboard(orgId, dateParam);
+      res.json(leaderboardData);
+    } catch (error) {
+      console.error('Error fetching sales leaderboard:', error);
+      next(error);
+    }
+  });
+
+  // Get dispatch leaderboard data
+  leaderboardRouter.get("/dispatch", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      // Extract the query parameter for date, defaulting to current date
+      const dateParam = req.query.date ? new Date(req.query.date as string) : new Date();
+      const orgId = req.user?.orgId || 1;
+      
+      // Get the dispatch leaderboard data from service
+      const leaderboardData = await leaderboardService.getDispatchLeaderboard(orgId, dateParam);
+      res.json(leaderboardData);
+    } catch (error) {
+      console.error('Error fetching dispatch leaderboard:', error);
+      next(error);
+    }
+  });
+
+  // Get combined leaderboard data
+  leaderboardRouter.get("/combined", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      // Extract the query parameter for date, defaulting to current date
+      const dateParam = req.query.date ? new Date(req.query.date as string) : new Date();
+      const orgId = req.user?.orgId || 1;
+      
+      // Get the combined leaderboard data from service
+      const leaderboardData = await leaderboardService.getCombinedLeaderboard(orgId, dateParam);
+      res.json(leaderboardData);
+    } catch (error) {
+      console.error('Error fetching combined leaderboard:', error);
+      next(error);
+    }
+  });
+
+  // Get week-over-week comparison
+  leaderboardRouter.get("/week-comparison", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const orgId = req.user?.orgId || 1;
+      
+      // Get the week-over-week comparison data
+      const comparisonData = await leaderboardService.getWeekOverWeekComparison(orgId);
+      res.json(comparisonData);
+    } catch (error) {
+      console.error('Error fetching week-over-week comparison:', error);
       next(error);
     }
   });
