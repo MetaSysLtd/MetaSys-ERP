@@ -1,0 +1,158 @@
+🧭 Vision for Replit = Invoices (Module-Level Working)
+You previously removed a critical automation feature from the Invoices module during your error-handling fixes. That feature enabled:
+One-click generation of all pending weekly invoices.
+
+
+Automatic grouping by client/carrier, so if a client had 5 loads, they received 1 consolidated invoice.
+
+
+A second tab inside Invoices where pre-generated weekly invoices were automatically prepared (without clicking anything) and just needed manual approval to send.
+
+
+Upon approval, email with PDF invoice was automatically sent using a defined template with personalization.
+
+
+This workflow helped Sales and Dispatch teams save hours of admin effort. It was deeply tied to platform efficiency.
+
+💡 What Needs to Be Restored or Rebuilt (But Smarter)
+Replit should now:
+Restore the One-Click Button:
+
+
+Label: “Generate This Week’s Invoices”
+
+
+Action: Triggers invoice generation for all eligible loads from current week.
+
+
+Output: Creates client-wise grouped invoices (one per client), stored in DB.
+
+
+Display Generated Invoices Tab:
+
+
+UI Tab: “Pending Weekly Invoices”
+
+
+Shows list of invoices grouped by client, each with:
+
+
+PDF preview
+
+
+Approve & Send button
+
+
+Download button
+
+
+Edit (optional)
+
+
+On Approval:
+
+
+Automatically send invoice via email to stored client email address.
+
+
+Use a customizable email template.
+
+
+Attach the invoice PDF.
+
+
+Mark invoice as “Sent” in the system.
+
+
+Error Handling & Safeguards:
+
+
+If no client email, flag for manual action.
+
+
+If invoice already exists for that date+client, skip or warn.
+
+
+Ensure grouping logic is correct and doesn't duplicate or over-invoice.
+
+
+
+🔐 Permissions Logic
+Role
+Can Generate?
+Can Approve & Send?
+Can they see the Invoices Module?
+Will they get notification within our platform’s notification tab of the invoice sent to their carrier/client?
+Dispatcher
+No
+No
+No
+Yes, maybe just a very short summary of the Client’s Name and the Amount for which the invoice is sent, and the number of loads for which it is sent to that Dispatcher.
+Dispatch TL
+Yes
+No
+No
+Yes, maybe just a very short summary of the Client’s Name and the Amount for which the invoice is sent, and the number of loads for which it is sent along with their’s team member’s (Dispatcher’s Name)
+Sales TL
+No
+No
+No
+No
+Admin
+Yes
+Yes
+Yes
+Yes
+
+
+
+
+
+
+
+
+
+
+
+
+⚙️ System Behavior Expected
+Action
+System Should Do
+Click “Generate This Week’s Invoices”
+Query all unbilled loads for past 7 days, group by client
+Grouping Logic
+Group by client + billing cycle (weekly)
+On Approve
+Generate PDF → Send email with template → Mark as Sent
+Invoices Tab
+Show Pending, Sent, and Errors
+
+
+🔁 Smart Enhancements You Can Add
+Let admins edit the email template from Settings.
+
+
+Add filters: Week Selector, Client Selector.
+
+
+
+🚫 DO NOT
+Don’t remove the current working invoice sending logic.
+
+
+Don’t add placeholder buttons without functional backend.
+
+
+Don’t remove the previous records of auto-generated invoices.
+
+
+
+✅ Final Product Should Feel Like:
+A mini accounting dashboard for dispatch-generated revenue.
+
+
+An easy-to-use, approve-and-send workflow for weekly billing.
+
+
+A trusted automation layer — not a manual spreadsheet.
+
