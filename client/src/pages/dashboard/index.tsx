@@ -115,103 +115,99 @@ export default function Dashboard() {
   
         {/* Use QueryErrorHandler to handle dashboard data gracefully */}
         <QueryErrorHandler
-          query={dashboardQuery}
-          moduleName="dashboard data"
+          error={dashboardQuery.error}
+          fallback={<div className="text-center py-8">Error loading dashboard data</div>}
         >
-          {(data) => (
-            <>
-              <MotionWrapper animation="scale-up" delay={0.4}>
-                <RevenueCard data={data?.revenueData} />
-              </MotionWrapper>
-    
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <MotionWrapper animation="fade-right" delay={0.5}>
-                  <OnboardingRatio data={data?.onboardingMetrics} />
+          <MotionWrapper animation="scale-up" delay={0.4}>
+            <RevenueCard data={dashboardQuery.data?.revenueData} />
+          </MotionWrapper>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <MotionWrapper animation="fade-right" delay={0.5}>
+              <OnboardingRatio data={dashboardQuery.data?.onboardingMetrics} />
+            </MotionWrapper>
+            <MotionWrapper animation="fade-left" delay={0.5}>
+              <TeamPerformance data={dashboardQuery.data?.teamMetrics} />
+            </MotionWrapper>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <MotionWrapper animation="fade-up" delay={0.6} className="lg:col-span-2">
+              <TeamPerformance 
+                title="Sales Team Performance" 
+                type="sales" 
+                data={dashboardQuery.data?.salesPerformance} 
+                className="border-blue-500 dark:border-blue-400"
+              />
+            </MotionWrapper>
+            {(role?.department === "dispatch" || role?.department === "admin") && (
+              <>
+                <MotionWrapper animation="fade-up" delay={0.65}>
+                  <PerformanceAlertWidget />
                 </MotionWrapper>
-                <MotionWrapper animation="fade-left" delay={0.5}>
-                  <TeamPerformance data={data?.teamMetrics} />
+                <MotionWrapper animation="fade-up" delay={0.7}>
+                  <DispatchReportAutomation />
                 </MotionWrapper>
-              </div>
-    
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <MotionWrapper animation="fade-up" delay={0.6} className="lg:col-span-2">
-                  <TeamPerformance 
-                    title="Sales Team Performance" 
-                    type="sales" 
-                    data={data?.salesPerformance} 
-                    className="border-blue-500 dark:border-blue-400"
-                  />
-                </MotionWrapper>
-                {(role?.department === "dispatch" || role?.department === "admin") && (
-                  <>
-                    <MotionWrapper animation="fade-up" delay={0.65}>
-                      <PerformanceAlertWidget />
-                    </MotionWrapper>
-                    <MotionWrapper animation="fade-up" delay={0.7}>
-                      <DispatchReportAutomation />
-                    </MotionWrapper>
-                  </>
-                )}
-                <MotionWrapper animation="fade-up" delay={0.7} className={role?.department === "dispatch" || role?.department === "admin" ? "lg:col-span-2" : "lg:col-span-1"}>
-                  <TeamPerformance 
-                    title="Dispatch Team Performance" 
-                    type="dispatch" 
-                    data={data?.dispatchPerformance}
-                    className="border-amber-500 dark:border-amber-400" 
-                  />
-                </MotionWrapper>
-              </div>
-    
-              <MotionList animation="fade-up" delay={0.8}>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <ActivityFeed activities={data?.activities?.slice(0, 10)} />
-                  <RecentLeads leads={data?.leads} />
-                </div>
-              </MotionList>
-    
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <MotionWrapper animation="fade-in" delay={0.9}>
-                  <CommissionBreakdown 
-                    isAdmin={role && role.level ? role.level >= 4 : false}
-                  />
-                </MotionWrapper>
-                
-                <MotionWrapper animation="fade-in" delay={0.95}>
-                  <CommissionPerformance 
-                    type={user?.roleId === 5 || user?.roleId === 6 ? 'dispatch' : 'sales'}
-                  />
-                </MotionWrapper>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <MotionWrapper animation="fade-in" delay={1.0}>
-                  <DispatchPerformance 
-                    data={[
-                      { name: 'Mike', activeLeads: 8, loadsBooked: 22, invoiceGenerated: 12500, invoiceCleared: 9800, highestLoad: 3200 },
-                      { name: 'Lisa', activeLeads: 6, loadsBooked: 18, invoiceGenerated: 10200, invoiceCleared: 8100, highestLoad: 2700 },
-                      { name: 'Carlos', activeLeads: 10, loadsBooked: 25, invoiceGenerated: 14800, invoiceCleared: 11200, highestLoad: 3700 },
-                      { name: 'Priya', activeLeads: 7, loadsBooked: 20, invoiceGenerated: 13100, invoiceCleared: 10500, highestLoad: 3300 },
-                      { name: 'Raj', activeLeads: 5, loadsBooked: 17, invoiceGenerated: 9400, invoiceCleared: 7800, highestLoad: 2500 }
-                    ]}
-                  />
-                </MotionWrapper>
-                
-                <MotionWrapper animation="fade-in" delay={1.05}>
-                  <CommissionPerformance 
-                    type="dispatch"
-                  />
-                </MotionWrapper>
-              </div>
-              
-              <MotionWrapper animation="fade-in" delay={1.0}>
-                <FinanceOverview data={data?.finance} />
-              </MotionWrapper>
-              
-              <MotionWrapper animation="fade-in" delay={1.1}>
-                <EmployeeSummary data={data?.employees} />
-              </MotionWrapper>
-            </>
-          )}
+              </>
+            )}
+            <MotionWrapper animation="fade-up" delay={0.7} className={role?.department === "dispatch" || role?.department === "admin" ? "lg:col-span-2" : "lg:col-span-1"}>
+              <TeamPerformance 
+                title="Dispatch Team Performance" 
+                type="dispatch" 
+                data={dashboardQuery.data?.dispatchPerformance}
+                className="border-amber-500 dark:border-amber-400" 
+              />
+            </MotionWrapper>
+          </div>
+
+          <MotionList animation="fade-up" delay={0.8}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ActivityFeed activities={dashboardQuery.data?.activities?.slice(0, 10)} />
+              <RecentLeads leads={dashboardQuery.data?.leads} />
+            </div>
+          </MotionList>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <MotionWrapper animation="fade-in" delay={0.9}>
+              <CommissionBreakdown 
+                isAdmin={role && role.level ? role.level >= 4 : false}
+              />
+            </MotionWrapper>
+            
+            <MotionWrapper animation="fade-in" delay={0.95}>
+              <CommissionPerformance 
+                type={user?.roleId === 5 || user?.roleId === 6 ? 'dispatch' : 'sales'}
+              />
+            </MotionWrapper>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <MotionWrapper animation="fade-in" delay={1.0}>
+              <DispatchPerformance 
+                data={[
+                  { name: 'Mike', activeLeads: 8, loadsBooked: 22, invoiceGenerated: 12500, invoiceCleared: 9800, highestLoad: 3200 },
+                  { name: 'Lisa', activeLeads: 6, loadsBooked: 18, invoiceGenerated: 10200, invoiceCleared: 8100, highestLoad: 2700 },
+                  { name: 'Carlos', activeLeads: 10, loadsBooked: 25, invoiceGenerated: 14800, invoiceCleared: 11200, highestLoad: 3700 },
+                  { name: 'Priya', activeLeads: 7, loadsBooked: 20, invoiceGenerated: 13100, invoiceCleared: 10500, highestLoad: 3300 },
+                  { name: 'Raj', activeLeads: 5, loadsBooked: 17, invoiceGenerated: 9400, invoiceCleared: 7800, highestLoad: 2500 }
+                ]}
+              />
+            </MotionWrapper>
+            
+            <MotionWrapper animation="fade-in" delay={1.05}>
+              <CommissionPerformance 
+                type="dispatch"
+              />
+            </MotionWrapper>
+          </div>
+          
+          <MotionWrapper animation="fade-in" delay={1.0}>
+            <FinanceOverview data={dashboardQuery.data?.finance} />
+          </MotionWrapper>
+          
+          <MotionWrapper animation="fade-in" delay={1.1}>
+            <EmployeeSummary data={dashboardQuery.data?.employees} />
+          </MotionWrapper>
         </QueryErrorHandler>
       </div>
     </ErrorBoundary>
