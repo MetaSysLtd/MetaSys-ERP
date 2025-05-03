@@ -225,6 +225,14 @@ export interface IStorage {
   createUserPreferences(prefs: InsertUiPreferences): Promise<UiPreferences>;
   updateUserPreferences(userId: number, prefs: Partial<UiPreferences>): Promise<UiPreferences>;
   
+  // Dashboard widget operations
+  getDashboardWidgets(userId: number): Promise<DashboardWidget[]>;
+  getDashboardWidget(id: number): Promise<DashboardWidget | undefined>;
+  createDashboardWidget(widget: InsertDashboardWidget): Promise<DashboardWidget>;
+  updateDashboardWidget(id: number, widget: Partial<DashboardWidget>): Promise<DashboardWidget | undefined>;
+  deleteDashboardWidget(id: number): Promise<boolean>;
+  reorderDashboardWidgets(widgets: { id: number, position: number }[]): Promise<DashboardWidget[]>;
+  
   // Notification operations
   createNotification(data: InsertNotification): Promise<Notification>;
   getNotifications(userId: number, limit?: number): Promise<Notification[]>;

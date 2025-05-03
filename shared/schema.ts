@@ -216,6 +216,35 @@ export const insertCompanyDocumentSchema = createInsertSchema(companyDocuments).
   updatedAt: true 
 });
 
+// Dashboard Widget System
+export const widgetTypeEnum = pgEnum('widget_type', [
+  'performance',
+  'stats',
+  'chart',
+  'tasks',
+  'notifications',
+  'calendar',
+  'leads',
+  'clients',
+  'invoices',
+  'dispatch',
+  'messages'
+]);
+
+export const widgetSizeEnum = pgEnum('widget_size', [
+  'full',
+  'half',
+  'third'
+]);
+
+export const widgetHeightEnum = pgEnum('widget_height', [
+  'small',
+  'normal',
+  'large'
+]);
+
+// Dashboard widget system - defined above to avoid duplicate definition
+
 // Type definitions
 export type HiringCandidate = typeof hiringCandidates.$inferSelect;
 export type InsertHiringCandidate = z.infer<typeof insertHiringCandidateSchema>;
