@@ -9,6 +9,7 @@ export enum NetworkErrorType {
   SERVER_ERROR = 'server_error',
   CLIENT_ERROR = 'client_error',
   AUTH_ERROR = 'auth_error',
+  NO_DATA = 'no_data',
   UNKNOWN = 'unknown'
 }
 
@@ -64,6 +65,9 @@ export function processApiError(error: unknown): NetworkError {
       message = status === 401 
         ? 'Your session has expired. Please log in again.'
         : 'You do not have permission to perform this action.';
+    } else if (status === 404) {
+      type = NetworkErrorType.NO_DATA;
+      message = 'No data available at this time.';
     } else if (status >= 400) {
       type = NetworkErrorType.CLIENT_ERROR;
       message = 'There was an issue with your request. Please check your input and try again.';
@@ -129,7 +133,11 @@ export async function logErrorToServer(error: NetworkError): Promise<void> {
  * @param error - The network error to display
  */
 export function showErrorToast(error: NetworkError): void {
-  const variant = error.type === NetworkErrorType.CONNECTION_ERROR ? 'default' : 'destructive';
+  let variant = 'destructive';
+  
+  if (error.type === NetworkErrorType.CONNECTION_ERROR || error.type === NetworkErrorType.NO_DATA) {
+    variant = 'default';
+  }
   
   toast({
     title: getErrorTitle(error.type),
@@ -156,6 +164,8 @@ function getErrorTitle(type: NetworkErrorType): string {
       return 'Request Error';
     case NetworkErrorType.AUTH_ERROR:
       return 'Authentication Error';
+    case NetworkErrorType.NO_DATA:
+      return 'No Data Available';
     case NetworkErrorType.UNKNOWN:
     default:
       return 'Unexpected Error';
