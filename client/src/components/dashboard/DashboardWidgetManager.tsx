@@ -57,9 +57,9 @@ export function DashboardWidgetManager() {
 
   // Query to get user's dashboard widgets
   const { data: widgets = [], isLoading } = useQuery({
-    queryKey: ['/api/dashboard-widgets'],
+    queryKey: ['/api/dashboard/widgets'],
     queryFn: async () => {
-      const res = await apiRequest('GET', '/api/dashboard-widgets');
+      const res = await apiRequest('GET', '/api/dashboard/widgets');
       if (!res.ok) {
         throw new Error('Failed to load dashboard widgets');
       }

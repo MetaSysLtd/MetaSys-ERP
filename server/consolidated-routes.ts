@@ -9,7 +9,8 @@ import {
   insertLoadSchema, insertInvoiceSchema, insertInvoiceItemSchema,
   insertCommissionSchema, insertActivitySchema, insertDispatchClientSchema,
   insertOrganizationSchema, insertCommissionRuleSchema, insertCommissionMonthlySchema,
-  insertTaskSchema, users, roles, dispatch_clients, organizations
+  insertTaskSchema, insertDashboardWidgetSchema, users, roles, dispatch_clients, 
+  organizations, dashboardWidgets
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { db } from './db';
@@ -2141,6 +2142,181 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
           retention: 92.5
         }
       });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Dashboard Widgets routes
+  // Get all dashboard widgets for the current user
+  dashboardRouter.get("/widgets", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const widgets = await storage.getDashboardWidgets(req.user.id);
+      res.json(widgets);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get a specific dashboard widget
+  dashboardRouter.get("/widgets/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const widgetId = parseInt(req.params.id);
+      
+      if (isNaN(widgetId)) {
+        return res.status(400).json({ error: "Invalid widget ID" });
+      }
+
+      const widget = await storage.getDashboardWidget(widgetId);
+      
+      if (!widget) {
+        return res.status(404).json({ error: "Widget not found" });
+      }
+
+      // Check if the widget belongs to the current user
+      if (widget.userId !== req.user?.id) {
+        return res.status(403).json({ error: "You don't have permission to access this widget" });
+      }
+
+      res.json(widget);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Create a new dashboard widget
+  dashboardRouter.post("/widgets", createAuthMiddleware(1), express.json(), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      try {
+        const widgetData = insertDashboardWidgetSchema.parse({
+          ...req.body,
+          userId: req.user.id,
+          orgId: req.user.orgId || null
+        });
+
+        const newWidget = await storage.createDashboardWidget(widgetData);
+        res.status(201).json(newWidget);
+      } catch (validationError) {
+        if (validationError instanceof ZodError) {
+          return res.status(400).json({ 
+            error: "Validation error", 
+            details: fromZodError(validationError).message 
+          });
+        }
+        throw validationError;
+      }
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Update a dashboard widget
+  dashboardRouter.patch("/widgets/:id", createAuthMiddleware(1), express.json(), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const widgetId = parseInt(req.params.id);
+      
+      if (isNaN(widgetId)) {
+        return res.status(400).json({ error: "Invalid widget ID" });
+      }
+
+      // Check if the widget exists and belongs to the current user
+      const existingWidget = await storage.getDashboardWidget(widgetId);
+      
+      if (!existingWidget) {
+        return res.status(404).json({ error: "Widget not found" });
+      }
+
+      if (existingWidget.userId !== req.user.id) {
+        return res.status(403).json({ error: "You don't have permission to modify this widget" });
+      }
+
+      // Update the widget
+      const updatedWidget = await storage.updateDashboardWidget(widgetId, req.body);
+      
+      if (!updatedWidget) {
+        return res.status(500).json({ error: "Failed to update widget" });
+      }
+
+      res.json(updatedWidget);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Delete a dashboard widget
+  dashboardRouter.delete("/widgets/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const widgetId = parseInt(req.params.id);
+      
+      if (isNaN(widgetId)) {
+        return res.status(400).json({ error: "Invalid widget ID" });
+      }
+
+      // Check if the widget exists and belongs to the current user
+      const existingWidget = await storage.getDashboardWidget(widgetId);
+      
+      if (!existingWidget) {
+        return res.status(404).json({ error: "Widget not found" });
+      }
+
+      if (existingWidget.userId !== req.user.id) {
+        return res.status(403).json({ error: "You don't have permission to delete this widget" });
+      }
+
+      // Delete the widget
+      const success = await storage.deleteDashboardWidget(widgetId);
+      
+      if (!success) {
+        return res.status(500).json({ error: "Failed to delete widget" });
+      }
+
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Reorder dashboard widgets
+  dashboardRouter.post("/widgets/reorder", createAuthMiddleware(1), express.json(), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { widgets } = req.body;
+      
+      if (!Array.isArray(widgets)) {
+        return res.status(400).json({ error: "Invalid widgets data. Expected an array." });
+      }
+
+      // Check if all widgets belong to the current user
+      for (const widget of widgets) {
+        if (!widget.id || widget.userId !== req.user.id) {
+          return res.status(403).json({ 
+            error: "You don't have permission to reorder one or more widgets" 
+          });
+        }
+      }
+
+      // Reorder the widgets
+      const updatedWidgets = await storage.reorderDashboardWidgets(widgets);
+      res.json(updatedWidgets);
     } catch (error) {
       next(error);
     }
