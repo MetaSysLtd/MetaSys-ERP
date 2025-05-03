@@ -913,6 +913,7 @@ export const insertDashboardWidgetSchema = createInsertSchema(dashboardWidgets).
 export const insertDispatchTaskSchema = createInsertSchema(dispatchTasks).omit({ id: true, createdAt: true });
 export const insertDispatchReportSchema = createInsertSchema(dispatchReports).omit({ id: true, createdAt: true });
 export const insertPerformanceTargetSchema = createInsertSchema(performanceTargets).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertBugSchema = createInsertSchema(bugs).omit({ id: true, createdAt: true, updatedAt: true, fixedAt: true, closedAt: true });
 
 // Types
 export type Organization = typeof organizations.$inferSelect;
@@ -1012,3 +1013,7 @@ export type InsertPerformanceTarget = z.infer<typeof insertPerformanceTargetSche
 // Dashboard widgets types
 export type DashboardWidget = typeof dashboardWidgets.$inferSelect;
 export type InsertDashboardWidget = z.infer<typeof insertDashboardWidgetSchema>;
+
+// Bug reporting types
+export type Bug = typeof bugs.$inferSelect;
+export type InsertBug = z.infer<typeof insertBugSchema>;

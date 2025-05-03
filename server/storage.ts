@@ -3,7 +3,7 @@ import {
   dispatch_clients, organizations, userOrganizations, commissionRules, commissionsMonthly,
   clockEvents, clockEventTypeEnum, uiPreferences, dispatchTasks, dispatchReports, performanceTargets,
   hiringCandidates, candidateDocuments, hiringTemplates, probationSchedules, probationEvaluations, 
-  exitRequests, companyDocuments, notifications, dashboardWidgets,
+  exitRequests, companyDocuments, notifications, dashboardWidgets, bugs, bugUrgencyEnum,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
@@ -28,7 +28,8 @@ import {
   type ProbationEvaluation, type InsertProbationEvaluation,
   type ExitRequest, type InsertExitRequest,
   type CompanyDocument, type InsertCompanyDocument,
-  type Notification, type InsertNotification
+  type Notification, type InsertNotification,
+  type Bug, type InsertBug
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -235,6 +236,14 @@ export interface IStorage {
   
   // Notification operations
   createNotification(data: InsertNotification): Promise<Notification>;
+  
+  // Bug report operations
+  getBug(id: number): Promise<Bug | undefined>;
+  getBugs(options?: { status?: string; urgency?: string; module?: string; limit?: number }): Promise<Bug[]>;
+  getBugsByReporter(userId: number): Promise<Bug[]>;
+  getBugsByAssignee(userId: number): Promise<Bug[]>;
+  createBug(bug: InsertBug): Promise<Bug>;
+  updateBug(id: number, bug: Partial<Bug>): Promise<Bug | undefined>;
   getNotifications(userId: number, limit?: number): Promise<Notification[]>;
   getUserNotifications(userId: number, limit?: number): Promise<Notification[]>;
   getUserNotificationsByType(userId: number, types: string[], limit?: number): Promise<Notification[]>;
@@ -378,6 +387,7 @@ export class MemStorage implements IStorage {
   private exitRequests: Map<number, ExitRequest>;
   private companyDocuments: Map<number, CompanyDocument>;
   private dashboardWidgets: Map<number, DashboardWidget>;
+  private bugs: Map<number, Bug>;
   
   private userIdCounter: number;
   private roleIdCounter: number;
@@ -453,6 +463,7 @@ export class MemStorage implements IStorage {
     this.exitRequests = new Map();
     this.companyDocuments = new Map();
     this.dashboardWidgets = new Map();
+    this.bugs = new Map();
     
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
