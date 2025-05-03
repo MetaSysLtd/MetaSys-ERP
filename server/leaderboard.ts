@@ -62,8 +62,8 @@ export async function getSalesLeaderboard(
     .from(users)
     .leftJoin(leads, and(
       eq(leads.assignedTo, users.id),
-      gte(leads.createdAt, format(startDate, 'yyyy-MM-dd')),
-      sql`${leads.createdAt} <= ${format(endDate, 'yyyy-MM-dd')}`,
+      gte(leads.createdAt, sql`${format(startDate, 'yyyy-MM-dd')}`),
+      lte(leads.createdAt, sql`${format(endDate, 'yyyy-MM-dd')}`),
       eq(leads.status, 'HandToDispatch')
     ))
     .where(and(
@@ -116,8 +116,8 @@ export async function getDispatchLeaderboard(
     .from(users)
     .leftJoin(loads, and(
       eq(loads.dispatcherId, users.id),
-      gte(loads.createdAt, format(startDate, 'yyyy-MM-dd')),
-      sql`${loads.createdAt} <= ${format(endDate, 'yyyy-MM-dd')}`
+      gte(loads.createdAt, sql`${format(startDate, 'yyyy-MM-dd')}`),
+      lte(loads.createdAt, sql`${format(endDate, 'yyyy-MM-dd')}`)
     ))
     .where(and(
       eq(users.orgId, organizationId),
@@ -211,8 +211,8 @@ export async function getWeekOverWeekComparison(
     .select({ count: count() })
     .from(leads)
     .where(and(
-      gte(leads.createdAt, thisWeekStart),
-      sql`${leads.createdAt} <= ${thisWeekEnd}`,
+      gte(leads.createdAt, sql`${format(thisWeekStart, 'yyyy-MM-dd')}`),
+      lte(leads.createdAt, sql`${format(thisWeekEnd, 'yyyy-MM-dd')}`),
       eq(leads.orgId, organizationId),
       eq(leads.status, 'HandToDispatch')
     ));
@@ -221,8 +221,8 @@ export async function getWeekOverWeekComparison(
     .select({ count: count() })
     .from(loads)
     .where(and(
-      gte(loads.createdAt, thisWeekStart),
-      sql`${loads.createdAt} <= ${thisWeekEnd}`,
+      gte(loads.createdAt, format(thisWeekStart, 'yyyy-MM-dd')),
+      sql`${loads.createdAt} <= ${format(thisWeekEnd, 'yyyy-MM-dd')}`,
       eq(loads.orgId, organizationId)
     ));
   
@@ -249,8 +249,8 @@ export async function getWeekOverWeekComparison(
     .select({ count: count() })
     .from(leads)
     .where(and(
-      gte(leads.createdAt, prevWeekStart),
-      sql`${leads.createdAt} <= ${prevWeekEnd}`,
+      gte(leads.createdAt, format(prevWeekStart, 'yyyy-MM-dd')),
+      sql`${leads.createdAt} <= ${format(prevWeekEnd, 'yyyy-MM-dd')}`,
       eq(leads.orgId, organizationId),
       eq(leads.status, 'HandToDispatch')
     ));
@@ -259,8 +259,8 @@ export async function getWeekOverWeekComparison(
     .select({ count: count() })
     .from(loads)
     .where(and(
-      gte(loads.createdAt, prevWeekStart),
-      sql`${loads.createdAt} <= ${prevWeekEnd}`,
+      gte(loads.createdAt, format(prevWeekStart, 'yyyy-MM-dd')),
+      sql`${loads.createdAt} <= ${format(prevWeekEnd, 'yyyy-MM-dd')}`,
       eq(loads.orgId, organizationId)
     ));
   
