@@ -2315,6 +2315,22 @@ export class DatabaseStorage implements IStorage {
     const [role] = await db.select().from(roles).where(eq(roles.id, id));
     return role;
   }
+  
+  async getUserRole(userId: number): Promise<Role | undefined> {
+    try {
+      // First get the user to find their role ID
+      const user = await this.getUser(userId);
+      if (!user || !user.roleId) {
+        return undefined;
+      }
+      
+      // Now get the role
+      return await this.getRole(user.roleId);
+    } catch (error) {
+      console.error('Error in getUserRole:', error);
+      throw error;
+    }
+  }
 
   async getRoleByName(name: string): Promise<Role | undefined> {
     const [role] = await db.select().from(roles).where(eq(roles.name, name));
@@ -2774,6 +2790,25 @@ export class DatabaseStorage implements IStorage {
   async getCommissionMonthly(id: number): Promise<CommissionMonthly | undefined> {
     const [commission] = await db.select().from(commissionsMonthly).where(eq(commissionsMonthly.id, id));
     return commission;
+  }
+  
+  async getUserCommissionByMonth(userId: number, month: string): Promise<CommissionMonthly | undefined> {
+    try {
+      const [commission] = await db
+        .select()
+        .from(commissionsMonthly)
+        .where(
+          and(
+            eq(commissionsMonthly.userId, userId),
+            eq(commissionsMonthly.month, month)
+          )
+        );
+      
+      return commission;
+    } catch (error) {
+      console.error('Error in getUserCommissionByMonth:', error);
+      throw error;
+    }
   }
 
   async getCommissionMonthlyByUserAndMonth(userId: number, month: string): Promise<CommissionMonthly | undefined> {
