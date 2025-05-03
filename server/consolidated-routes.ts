@@ -1612,6 +1612,241 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     }
   });
 
+  // Invoice routes
+  const invoiceRouter = express.Router();
+  apiRouter.use("/invoices", invoiceRouter);
+
+  // Get all invoices with pagination and filtering
+  invoiceRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      // Build filters from query params
+      const filters: any = {};
+      
+      if (req.query.status) {
+        filters.status = req.query.status;
+      }
+      
+      if (req.query.leadId) {
+        filters.leadId = parseInt(req.query.leadId as string);
+      }
+      
+      if (req.query.dateFrom && req.query.dateTo) {
+        filters.dateFrom = req.query.dateFrom;
+        filters.dateTo = req.query.dateTo;
+      }
+      
+      if (req.query.createdBy) {
+        filters.createdBy = parseInt(req.query.createdBy as string);
+      }
+      
+      if (req.orgId) {
+        filters.orgId = req.orgId;
+      }
+      
+      const result = await storage.getInvoices(page, limit, filters);
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get invoice by ID
+  invoiceRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      const invoice = await storage.getInvoiceWithItems(id);
+      
+      if (!invoice) {
+        return res.status(404).json({ error: "Invoice not found" });
+      }
+      
+      res.json(invoice);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Create new invoice
+  invoiceRouter.post("/", createAuthMiddleware(2), express.json(), async (req, res, next) => {
+    try {
+      // Validate request body
+      const validatedData = insertInvoiceSchema.parse(req.body);
+      
+      // Add creator ID from session
+      const invoiceData = {
+        ...validatedData,
+        createdBy: req.session.userId as number
+      };
+      
+      // Create invoice
+      const newInvoice = await storage.createInvoice(invoiceData);
+      
+      // Handle invoice items if provided
+      if (req.body.items && Array.isArray(req.body.items)) {
+        for (const item of req.body.items) {
+          await storage.createInvoiceItem({
+            invoiceId: newInvoice.id,
+            loadId: item.loadId,
+            description: item.description,
+            amount: item.amount
+          });
+        }
+        
+        // Get the updated invoice with items
+        const invoiceWithItems = await storage.getInvoiceWithItems(newInvoice.id);
+        
+        // Emit real-time update
+        if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceCreated) {
+          invoiceRealTimeMiddleware.emitInvoiceCreated(invoiceWithItems);
+        }
+        
+        return res.status(201).json(invoiceWithItems);
+      }
+      
+      // Emit real-time update
+      if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceCreated) {
+        invoiceRealTimeMiddleware.emitInvoiceCreated({ invoice: newInvoice, items: [] });
+      }
+      
+      res.status(201).json({ invoice: newInvoice, items: [] });
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ 
+          error: "Validation error",
+          details: validationError.details
+        });
+      }
+      next(error);
+    }
+  });
+
+  // Update invoice
+  invoiceRouter.patch("/:id", createAuthMiddleware(2), express.json(), async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Check if invoice exists
+      const existingInvoice = await storage.getInvoice(id);
+      if (!existingInvoice) {
+        return res.status(404).json({ error: "Invoice not found" });
+      }
+      
+      // Only allow updates to specific fields
+      const allowedUpdates = [
+        'status', 'notes', 'dueDate', 'paidDate', 'paidAmount'
+      ];
+      
+      const updates: any = {};
+      for (const field of allowedUpdates) {
+        if (req.body[field] !== undefined) {
+          updates[field] = req.body[field];
+        }
+      }
+      
+      const updatedInvoice = await storage.updateInvoice(id, updates);
+      
+      // Emit real-time update
+      if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceUpdated) {
+        invoiceRealTimeMiddleware.emitInvoiceUpdated(updatedInvoice);
+      }
+      
+      res.json(updatedInvoice);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Mark invoice as paid
+  invoiceRouter.post("/:id/mark-paid", createAuthMiddleware(2), express.json(), async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Validate request body
+      if (!req.body.paidDate || !req.body.paidAmount) {
+        return res.status(400).json({ 
+          error: "Validation error",
+          details: "paidDate and paidAmount are required"
+        });
+      }
+      
+      const paidDate = new Date(req.body.paidDate);
+      const paidAmount = parseFloat(req.body.paidAmount);
+      
+      const updatedInvoice = await storage.markInvoiceAsPaid(id, paidDate, paidAmount);
+      
+      if (!updatedInvoice) {
+        return res.status(404).json({ error: "Invoice not found" });
+      }
+      
+      // Emit real-time update
+      if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceUpdated) {
+        invoiceRealTimeMiddleware.emitInvoiceUpdated(updatedInvoice);
+      }
+      
+      res.json(updatedInvoice);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Delete invoice
+  invoiceRouter.delete("/:id", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Check if invoice exists
+      const existingInvoice = await storage.getInvoice(id);
+      if (!existingInvoice) {
+        return res.status(404).json({ error: "Invoice not found" });
+      }
+      
+      const success = await storage.deleteInvoice(id);
+      
+      if (success) {
+        // Emit real-time update
+        if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceDeleted) {
+          invoiceRealTimeMiddleware.emitInvoiceDeleted(id);
+        }
+        
+        res.status(200).json({ success: true, message: "Invoice deleted successfully" });
+      } else {
+        res.status(500).json({ success: false, message: "Failed to delete invoice" });
+      }
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Generate invoices for delivered loads
+  invoiceRouter.post("/generate-for-delivered", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const result = await storage.generateInvoicesForDeliveredLoads();
+      
+      // Emit real-time updates for each new invoice
+      if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceCreated && result.invoices.length > 0) {
+        for (const invoice of result.invoices) {
+          const invoiceWithItems = await storage.getInvoiceWithItems(invoice.id);
+          if (invoiceWithItems) {
+            invoiceRealTimeMiddleware.emitInvoiceCreated(invoiceWithItems);
+          }
+        }
+      }
+      
+      res.status(200).json({ 
+        success: true, 
+        message: `Generated ${result.count} invoices for delivered loads`,
+        invoices: result.invoices
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Performance targets routes
   const targetsRouter = express.Router();
   apiRouter.use("/performance-targets", targetsRouter);
