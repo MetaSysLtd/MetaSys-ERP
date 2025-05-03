@@ -11,6 +11,8 @@ import {
   insertOrganizationSchema, insertCommissionRuleSchema, insertCommissionMonthlySchema,
   insertTaskSchema, users, roles, dispatch_clients, organizations
 } from "@shared/schema";
+import { eq } from "drizzle-orm";
+import { db } from './db';
 import * as slackNotifications from "./slack";
 import * as notificationService from "./notifications";
 import * as leaderboardService from "./leaderboard";
@@ -18,6 +20,7 @@ import { NotificationPreferences, defaultNotificationPreferences } from "./notif
 // Removed WebSocket import as we're using Socket.IO exclusively
 import errorLoggingRoutes from "./routes/error-logging";
 import statusRoutes from "./routes/status";
+import { registerModuleRoutes } from "./routes/index";
 import { organizationMiddleware } from "./middleware/organizationMiddleware";
 import { 
   leadRealTimeMiddleware, 
@@ -231,6 +234,468 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   
   // Register status routes
   apiRouter.use('/status', statusRoutes);
+  
+  // Time Tracking Module Router
+  const timeTrackingRouter = express.Router();
+  apiRouter.use('/time-tracking', timeTrackingRouter);
+  
+  // Get current clock status
+  timeTrackingRouter.get("/status", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const status = getUserClockStatus(req.user.id);
+      res.json(status);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get all clock events for a user
+  timeTrackingRouter.get("/events", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const events = getUserClockEvents(req.user.id);
+      res.json(events);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get today's clock events for a user
+  timeTrackingRouter.get("/events/day", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const events = getUserClockEvents(req.user.id).filter(event => {
+        const eventDate = new Date(event.timestamp);
+        const today = new Date();
+        return eventDate.toDateString() === today.toDateString();
+      });
+
+      res.json(events);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Clock in/out
+  timeTrackingRouter.post("/clock", createAuthMiddleware(1), express.json(), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const { type } = req.body;
+      if (type !== "IN" && type !== "OUT") {
+        return res.status(400).json({ error: "Invalid clock type. Must be 'IN' or 'OUT'" });
+      }
+
+      // Check if the current status matches the requested action
+      const currentStatus = getUserClockStatus(req.user.id);
+      if (currentStatus.status === type) {
+        return res.status(400).json({ 
+          error: `Already clocked ${type === 'IN' ? 'in' : 'out'}`,
+          message: `You are already clocked ${type === 'IN' ? 'in' : 'out'}`
+        });
+      }
+
+      // Create a new clock event
+      const newEvent: ClockEvent = {
+        id: clockEvents.length + 1,
+        userId: req.user.id,
+        type,
+        timestamp: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      };
+
+      // Add to the events array
+      clockEvents.push(newEvent);
+
+      res.status(201).json({
+        message: `Successfully clocked ${type === 'IN' ? 'in' : 'out'}`,
+        event: newEvent
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // HR Module Router
+  const hrRouter = express.Router();
+  apiRouter.use('/hr', hrRouter);
+
+  // Get team members (all users with their roles)
+  hrRouter.get("/team", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      // Return all users with their roles
+      const users = await storage.getUsers();
+      const teamMembers = await Promise.all(users.map(async (user) => {
+        try {
+          const role = await storage.getRole(user.roleId);
+          const { password, ...safeUser } = user;
+          return { ...safeUser, role };
+        } catch (error) {
+          const { password, ...safeUser } = user;
+          return { ...safeUser, role: null };
+        }
+      }));
+      
+      res.json(teamMembers);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get job postings
+  hrRouter.get("/jobs", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      // Mock job postings data
+      res.json([
+        {
+          id: 1,
+          title: "Senior Dispatcher",
+          department: "Operations",
+          location: "Chicago, IL",
+          type: "Full-time",
+          postedDate: "2025-04-15",
+          status: "Active",
+          applicants: 12
+        },
+        {
+          id: 2,
+          title: "Sales Representative",
+          department: "Sales",
+          location: "Remote",
+          type: "Full-time",
+          postedDate: "2025-04-20",
+          status: "Active",
+          applicants: 8
+        },
+        {
+          id: 3,
+          title: "Administrative Assistant",
+          department: "Admin",
+          location: "Chicago, IL",
+          type: "Part-time",
+          postedDate: "2025-04-25",
+          status: "Active",
+          applicants: 15
+        }
+      ]);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get employee records (minimal version for now)
+  hrRouter.get("/employees", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const users = await storage.getUsers();
+      const employees = users.map(user => {
+        const { password, ...safeUser } = user;
+        return {
+          ...safeUser,
+          department: user.roleId === 2 ? "Sales" : user.roleId === 3 ? "Dispatch" : "Administration",
+          startDate: "2025-01-01", // Placeholder
+          status: "Active"
+        };
+      });
+      
+      res.json(employees);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Finance Module Router
+  const financeRouter = express.Router();
+  apiRouter.use('/finance', financeRouter);
+
+  // Get financial summary
+  financeRouter.get("/summary", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      res.json({
+        revenue: {
+          monthly: 246500,
+          ytd: 980000,
+          previousMonth: 227600
+        },
+        expenses: {
+          monthly: 184720,
+          ytd: 760500,
+          previousMonth: 192600
+        },
+        cashFlow: {
+          monthly: 61780,
+          ytd: 219500,
+          previousMonth: 35000
+        },
+        invoices: {
+          pending: 87320,
+          count: 12
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get expenses
+  financeRouter.get("/expenses", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      res.json([
+        {
+          id: 1,
+          category: "Payroll",
+          amount: 120000,
+          date: "2025-05-01",
+          description: "Monthly payroll"
+        },
+        {
+          id: 2,
+          category: "Rent",
+          amount: 15000,
+          date: "2025-05-01",
+          description: "Office rent"
+        },
+        {
+          id: 3,
+          category: "Software",
+          amount: 4500,
+          date: "2025-05-03",
+          description: "SaaS subscriptions"
+        },
+        {
+          id: 4,
+          category: "Utilities",
+          amount: 2800,
+          date: "2025-05-05",
+          description: "Electricity and internet"
+        },
+        {
+          id: 5,
+          category: "Insurance",
+          amount: 8600,
+          date: "2025-05-10",
+          description: "Business insurance"
+        }
+      ]);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Get profit and loss report
+  financeRouter.get("/profit-loss", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const year = req.query.year || new Date().getFullYear();
+      const month = req.query.month || new Date().getMonth() + 1;
+      
+      res.json({
+        period: `${year}-${month.toString().padStart(2, '0')}`,
+        revenue: {
+          total: 246500,
+          breakdown: {
+            "Freight Services": 198000,
+            "Consulting": 32500,
+            "Brokerage Fees": 16000
+          }
+        },
+        expenses: {
+          total: 184720,
+          breakdown: {
+            "Payroll": 120000,
+            "Rent": 15000,
+            "Software": 4500,
+            "Utilities": 2800,
+            "Insurance": 8600,
+            "Marketing": 7820,
+            "Maintenance": 5200,
+            "Travel": 12300,
+            "Miscellaneous": 8500
+          }
+        },
+        netProfit: 61780,
+        profitMargin: 25.06
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Marketing Module Router
+  const marketingRouter = express.Router();
+  apiRouter.use('/marketing', marketingRouter);
+
+  // Get marketing campaigns
+  marketingRouter.get("/campaigns", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      res.json([
+        {
+          id: 1,
+          name: "Q2 Email Series",
+          type: "Email",
+          status: "Active",
+          startDate: "2025-04-01",
+          endDate: "2025-06-30",
+          leads: 45,
+          conversionRate: 8.3
+        },
+        {
+          id: 2,
+          name: "Social Media Promotion",
+          type: "Social",
+          status: "Active",
+          startDate: "2025-04-15",
+          endDate: "2025-05-15",
+          leads: 32,
+          conversionRate: 6.2
+        },
+        {
+          id: 3,
+          name: "Industry Conference",
+          type: "Event",
+          status: "Active",
+          startDate: "2025-05-10",
+          endDate: "2025-05-12",
+          leads: 28,
+          conversionRate: 12.5
+        },
+        {
+          id: 4,
+          name: "Website Redesign",
+          type: "Website",
+          status: "Draft",
+          startDate: null,
+          endDate: null,
+          leads: 0,
+          conversionRate: 0
+        }
+      ]);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Client Portal Router
+  const portalRouter = express.Router();
+  apiRouter.use('/client-portal', portalRouter);
+
+  portalRouter.get("/clients", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      // Mock data for clients
+      res.json([
+        {
+          id: 1,
+          companyName: "ABC Logistics",
+          contactName: "John Smith",
+          email: "john@abclogistics.com",
+          phoneNumber: "312-555-1234",
+          mcNumber: "MC-123456",
+          dotNumber: "DOT-987654",
+          status: "Active",
+          createdAt: "2025-01-15T00:00:00.000Z"
+        },
+        {
+          id: 2,
+          companyName: "FastFreight Inc",
+          contactName: "Jessica Brown",
+          email: "jessica@fastfreight.com",
+          phoneNumber: "773-555-6789",
+          mcNumber: "MC-456789",
+          dotNumber: "DOT-654321",
+          status: "Active",
+          createdAt: "2025-02-20T00:00:00.000Z"
+        },
+        {
+          id: 3,
+          companyName: "Global Transport LLC",
+          contactName: "Mark Wilson",
+          email: "mark@globaltransport.com",
+          phoneNumber: "312-555-9876",
+          mcNumber: "MC-789123",
+          dotNumber: "DOT-321654",
+          status: "Active",
+          createdAt: "2025-03-10T00:00:00.000Z"
+        }
+      ]);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  portalRouter.get("/account/:clientId", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const clientId = parseInt(req.params.clientId);
+      
+      // Mock data for specific client
+      const mockClients = [
+        {
+          id: 1,
+          companyName: "ABC Logistics",
+          contactName: "John Smith",
+          email: "john@abclogistics.com",
+          phoneNumber: "312-555-1234",
+          mcNumber: "MC-123456",
+          dotNumber: "DOT-987654",
+          status: "Active",
+          createdAt: "2025-01-15T00:00:00.000Z",
+          billingAddress: "123 Main St, Chicago, IL 60601",
+          paymentTerms: "Net 30",
+          creditLimit: 50000,
+          notes: "Preferred carrier for Midwest routes"
+        },
+        {
+          id: 2,
+          companyName: "FastFreight Inc",
+          contactName: "Jessica Brown",
+          email: "jessica@fastfreight.com",
+          phoneNumber: "773-555-6789",
+          mcNumber: "MC-456789",
+          dotNumber: "DOT-654321",
+          status: "Active",
+          createdAt: "2025-02-20T00:00:00.000Z",
+          billingAddress: "456 Oak Ave, Chicago, IL 60607",
+          paymentTerms: "Net 15",
+          creditLimit: 75000,
+          notes: "Specializes in expedited freight"
+        },
+        {
+          id: 3,
+          companyName: "Global Transport LLC",
+          contactName: "Mark Wilson",
+          email: "mark@globaltransport.com",
+          phoneNumber: "312-555-9876",
+          mcNumber: "MC-789123",
+          dotNumber: "DOT-321654",
+          status: "Active",
+          createdAt: "2025-03-10T00:00:00.000Z",
+          billingAddress: "789 Elm St, Chicago, IL 60622",
+          paymentTerms: "Net 45",
+          creditLimit: 100000,
+          notes: "International shipping expertise"
+        }
+      ];
+      
+      const client = mockClients.find(c => c.id === clientId);
+      
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      
+      res.json(client);
+    } catch (error) {
+      next(error);
+    }
+  });
   
   // Leaderboard routes
   apiRouter.get('/leaderboard/sales', createAuthMiddleware(1), async (req, res) => {

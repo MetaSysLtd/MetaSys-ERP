@@ -1,0 +1,29 @@
+import express from 'express';
+import timeTrackingRouter from './time-tracking';
+import hrRouter from './hr';
+import financeRouter from './finance';
+import marketingRouter from './marketing';
+import portalRouter from './client-portal';
+
+export { default as timeTrackingRouter } from './time-tracking';
+export { default as hrRouter } from './hr';
+export { default as financeRouter } from './finance';
+export { default as marketingRouter } from './marketing';
+export { default as portalRouter } from './client-portal';
+
+export function registerModuleRoutes(apiRouter: express.Router): void {
+  // Time Tracking Module
+  apiRouter.use('/time-tracking', timeTrackingRouter);
+  
+  // HR Module
+  apiRouter.use('/hr', hrRouter);
+  
+  // Finance Module
+  apiRouter.use('/finance', financeRouter);
+  
+  // Marketing Module
+  apiRouter.use('/marketing', marketingRouter);
+  
+  // Client Portal
+  apiRouter.use('/client-portal', portalRouter);
+}
