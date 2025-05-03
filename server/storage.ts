@@ -4175,50 +4175,98 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
-  async generateInvoicesForDeliveredLoads(): Promise<{count: number, invoices: Invoice[]}> {
+  async generateInvoicesForDeliveredLoads(options: {
+    weekly?: boolean;
+    dateRange?: { start: Date; end: Date };
+  } = { weekly: true }): Promise<{count: number, invoices: Invoice[]}> {
     try {
-      // Get all loads with Delivered status but no invoice
+      // Define the date range for finding loads
+      let startDate: Date, endDate: Date;
+      
+      if (options.weekly) {
+        // Get loads from the past week
+        endDate = new Date();
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 7);
+      } else if (options.dateRange) {
+        // Use custom date range if provided
+        startDate = options.dateRange.start;
+        endDate = options.dateRange.end;
+      } else {
+        // Default to all-time if neither weekly nor custom range is specified
+        startDate = new Date(0); // Beginning of time
+        endDate = new Date();
+      }
+      
+      // Find all delivered loads that don't have invoices yet within the date range
       const deliveredLoads = await db.select()
         .from(loads)
-        .where(eq(loads.status, 'Delivered'));
+        .where(
+          and(
+            eq(loads.status, 'Delivered'),
+            gte(loads.deliveryDate, startDate),
+            lte(loads.deliveryDate, endDate),
+            sql`NOT EXISTS (SELECT 1 FROM ${invoiceItems} WHERE ${invoiceItems.loadId} = ${loads.id})`
+          )
+        );
+      
+      if (deliveredLoads.length === 0) {
+        return { count: 0, invoices: [] };
+      }
+      
+      // Group loads by leadId (client)
+      const loadsByLeadId: Record<number, typeof deliveredLoads> = {};
+      
+      for (const load of deliveredLoads) {
+        if (!loadsByLeadId[load.leadId]) {
+          loadsByLeadId[load.leadId] = [];
+        }
+        loadsByLeadId[load.leadId].push(load);
+      }
       
       const createdInvoices: Invoice[] = [];
       
-      for (const load of deliveredLoads) {
-        // Check if invoice already exists for this load
-        const existingInvoiceItems = await db.select()
-          .from(invoiceItems)
-          .where(eq(invoiceItems.loadId, load.id));
+      // Create one invoice per client for all their loads
+      for (const [leadIdStr, clientLoads] of Object.entries(loadsByLeadId)) {
+        const leadId = parseInt(leadIdStr);
         
-        if (existingInvoiceItems.length > 0) {
-          continue; // Skip if already invoiced
-        }
+        // Generate a unique invoice number with date and client ID
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
+        const invoiceNumber = `INV-${dateStr}-${leadId}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
         
-        // Generate a unique invoice number
-        const invoiceNumber = `INV-${new Date().getFullYear()}-${load.id.toString().padStart(5, '0')}`;
+        // Calculate total amount from all client loads
+        const totalAmount = clientLoads.reduce((sum, load) => sum + load.amount, 0);
         
-        // Create invoice
+        // Set due date to 30 days from now
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 30);
+        
+        // Create the consolidated invoice
         const [newInvoice] = await db.insert(invoices).values({
           invoiceNumber,
-          leadId: load.leadId,
-          orgId: load.orgId,
-          totalAmount: load.amount,
+          leadId,
+          orgId: clientLoads[0].orgId,
+          totalAmount,
           status: 'draft',
-          issuedDate: new Date(),
-          dueDate: new Date(new Date().setDate(new Date().getDate() + 30)), // Due in 30 days
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          createdBy: load.assignedTo
+          issuedDate: today,
+          dueDate,
+          notes: `Auto-generated invoice for ${clientLoads.length} delivered loads from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`,
+          createdAt: today,
+          updatedAt: today,
+          createdBy: clientLoads[0].assignedTo || 1 // Default to admin if no assignee
         }).returning();
         
-        // Create invoice item
-        await db.insert(invoiceItems).values({
-          invoiceId: newInvoice.id,
-          loadId: load.id,
-          description: `Transportation services from ${load.origin} to ${load.destination}`,
-          amount: load.amount,
-          createdAt: new Date()
-        });
+        // Create invoice items for each load
+        for (const load of clientLoads) {
+          await db.insert(invoiceItems).values({
+            invoiceId: newInvoice.id,
+            loadId: load.id,
+            description: `Load #${load.loadNumber || load.id}: ${load.origin} to ${load.destination} (${new Date(load.deliveryDate).toLocaleDateString()})`,
+            amount: load.amount,
+            createdAt: today
+          });
+        }
         
         createdInvoices.push(newInvoice);
       }

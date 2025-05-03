@@ -2530,14 +2530,49 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   // Generate invoices for delivered loads
   invoiceRouter.post("/generate-for-delivered", createAuthMiddleware(2), async (req, res, next) => {
     try {
-      const result = await storage.generateInvoicesForDeliveredLoads();
+      const { weekly = true, dateRange } = req.body;
       
-      // Emit real-time updates for each new invoice
-      if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceCreated && result.invoices.length > 0) {
+      // Parse date range if provided
+      let parsedDateRange;
+      if (dateRange && dateRange.start && dateRange.end) {
+        parsedDateRange = {
+          start: new Date(dateRange.start),
+          end: new Date(dateRange.end)
+        };
+      }
+      
+      // Generate invoices with proper client grouping
+      const result = await storage.generateInvoicesForDeliveredLoads({
+        weekly,
+        dateRange: parsedDateRange
+      });
+      
+      // Create notifications for each invoice
+      if (result.invoices.length > 0) {
         for (const invoice of result.invoices) {
-          const invoiceWithItems = await storage.getInvoiceWithItems(invoice.id);
-          if (invoiceWithItems) {
-            invoiceRealTimeMiddleware.emitInvoiceCreated(invoiceWithItems);
+          // Get lead/client info for the notification
+          const lead = await storage.getLead(invoice.leadId);
+          
+          if (lead) {
+            // Create a notification for finance team
+            await storage.createNotification({
+              title: 'New Weekly Invoice Generated',
+              message: `Invoice #${invoice.invoiceNumber} for ${lead.companyName} has been generated for $${invoice.totalAmount.toFixed(2)}`,
+              type: 'invoice_generated',
+              entityType: 'invoice',
+              entityId: invoice.id,
+              orgId: invoice.orgId,
+              read: false,
+              createdAt: new Date()
+            });
+            
+            // Emit real-time updates for each new invoice if socket middleware exists
+            if (invoiceRealTimeMiddleware && typeof invoiceRealTimeMiddleware.emitInvoiceCreated === 'function') {
+              const invoiceWithItems = await storage.getInvoiceWithItems(invoice.id);
+              if (invoiceWithItems) {
+                invoiceRealTimeMiddleware.emitInvoiceCreated(invoiceWithItems);
+              }
+            }
           }
         }
       }
@@ -2548,6 +2583,146 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         invoices: result.invoices
       });
     } catch (error) {
+      console.error('Error generating invoices:', error);
+      next(error);
+    }
+  });
+  
+  // Generate weekly invoices specifically
+  invoiceRouter.post("/generate-weekly", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      // Always use weekly setting (last 7 days)
+      const result = await storage.generateInvoicesForDeliveredLoads({
+        weekly: true
+      });
+      
+      // Create notifications and emit events
+      if (result.invoices.length > 0) {
+        for (const invoice of result.invoices) {
+          // Get lead/client info for the notification
+          const lead = await storage.getLead(invoice.leadId);
+          
+          if (lead) {
+            // Create a notification for finance team
+            await storage.createNotification({
+              title: 'Weekly Invoice Generated',
+              message: `Invoice #${invoice.invoiceNumber} for ${lead.companyName} has been generated for $${invoice.totalAmount.toFixed(2)}`,
+              type: 'invoice_generated',
+              entityType: 'invoice',
+              entityId: invoice.id,
+              orgId: invoice.orgId,
+              read: false,
+              createdAt: new Date()
+            });
+          }
+          
+          // Emit real-time updates
+          if (invoiceRealTimeMiddleware && typeof invoiceRealTimeMiddleware.emitInvoiceCreated === 'function') {
+            const invoiceWithItems = await storage.getInvoiceWithItems(invoice.id);
+            if (invoiceWithItems) {
+              invoiceRealTimeMiddleware.emitInvoiceCreated(invoiceWithItems);
+            }
+          }
+        }
+      }
+      
+      res.status(200).json({ 
+        success: true, 
+        message: `Generated ${result.count} weekly invoices with client grouping`,
+        invoices: result.invoices
+      });
+    } catch (error) {
+      console.error('Error generating weekly invoices:', error);
+      next(error);
+    }
+  });
+  
+  // Approve and send invoice email
+  invoiceRouter.post("/:id/approve-and-send", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const invoiceId = Number(req.params.id);
+      
+      // Get the invoice with items
+      const invoiceWithItems = await storage.getInvoiceWithItems(invoiceId);
+      
+      if (!invoiceWithItems) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Invoice not found"
+        });
+      }
+      
+      const { invoice, items } = invoiceWithItems;
+      
+      // Get the lead/client info
+      const lead = await storage.getLead(invoice.leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Client information not found"
+        });
+      }
+      
+      // First update the invoice status to 'sent'
+      const updatedInvoice = await storage.updateInvoice(invoiceId, { 
+        status: 'sent',
+        approvedBy: req.user?.id || 1,  // Default to admin if no user ID
+        updatedAt: new Date()
+      });
+      
+      // Format invoice items for email
+      const emailItems = items.map(item => ({
+        description: item.description,
+        quantity: 1,
+        unitPrice: item.amount,
+        amount: item.amount
+      }));
+      
+      // Import email function
+      const { sendInvoiceEmail } = await import('./email');
+      
+      // Send email to client
+      const emailResult = await sendInvoiceEmail({
+        id: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        companyName: lead.companyName,
+        contactEmail: lead.email || lead.contactEmail || '',
+        contactName: lead.contactName,
+        totalAmount: invoice.totalAmount,
+        dueDate: invoice.dueDate,
+        items: emailItems,
+        notes: invoice.notes || `Invoice for transportation services. Due date: ${new Date(invoice.dueDate).toLocaleDateString()}`
+      });
+      
+      // Create notification for the invoice being sent
+      await storage.createNotification({
+        title: 'Invoice Sent to Client',
+        message: `Invoice #${invoice.invoiceNumber} for ${lead.companyName} has been approved and sent via email`,
+        type: 'invoice_sent',
+        entityType: 'invoice',
+        entityId: invoice.id,
+        orgId: invoice.orgId,
+        read: false,
+        createdAt: new Date()
+      });
+      
+      // Emit real-time update if available
+      if (invoiceRealTimeMiddleware && typeof invoiceRealTimeMiddleware.emitInvoiceUpdated === 'function') {
+        const refreshedInvoice = await storage.getInvoiceWithItems(invoiceId);
+        if (refreshedInvoice) {
+          invoiceRealTimeMiddleware.emitInvoiceUpdated(refreshedInvoice);
+        }
+      }
+      
+      res.status(200).json({ 
+        success: true,
+        message: `Invoice approved and ${emailResult ? 'sent via email' : 'could not be sent via email (check SMTP settings)'}`,
+        invoice: updatedInvoice,
+        emailSent: emailResult
+      });
+    } catch (error) {
+      console.error('Error approving and sending invoice:', error);
       next(error);
     }
   });

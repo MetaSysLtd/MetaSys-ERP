@@ -133,6 +133,34 @@ export function InvoiceDetails({ invoice }: { invoice: InvoiceDetailsData }) {
     }
   });
   
+  // Approve and send invoice mutation
+  const approveAndSendMutation = useMutation({
+    mutationFn: async (invoiceId: number) => {
+      const res = await apiRequest('POST', `/api/invoices/${invoiceId}/approve-and-send`, {});
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to approve and send invoice');
+      }
+      
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/invoices', invoice.id] });
+      toast({
+        title: "Invoice approved and sent",
+        description: `Invoice #${invoice.invoiceNumber} has been approved and ${data.emailSent ? 'sent via email' : 'could not be sent via email (check SMTP settings)'}`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error approving invoice",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
   // Mark as paid mutation
   const markAsPaidMutation = useMutation({
     mutationFn: async (invoiceId: number) => {
