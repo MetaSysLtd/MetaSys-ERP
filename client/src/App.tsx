@@ -38,6 +38,7 @@ import HRPage from "@/pages/hr";
 import FinancePage from "@/pages/finance";
 import MarketingPage from "@/pages/marketing";
 import NotificationsPage from "@/pages/notifications";
+import GamificationPage from "@/pages/gamification";
 import LeaderboardPage from "@/pages/leaderboard";
 // Team pages
 import SalesTeamPage from "@/pages/teams/sales";
@@ -319,6 +320,14 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={LeaderboardPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/gamification">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={GamificationPage} />
           </AppLayout>
         )}
       </Route>

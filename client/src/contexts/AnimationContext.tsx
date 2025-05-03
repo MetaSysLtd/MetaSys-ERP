@@ -1,83 +1,80 @@
-import React, { createContext, ReactNode, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 
-type AnimationContextType = {
-  // Global animation settings
+interface AnimationContextType {
   animationsEnabled: boolean;
-  transitionSpeed: 'fast' | 'normal' | 'slow';
-  reducedMotion: boolean;
-  
-  // Helper methods
   toggleAnimations: () => void;
-  setTransitionSpeed: (speed: 'fast' | 'normal' | 'slow') => void;
-  
-  // Animation specific durations
-  getDuration: (type: 'micro' | 'standard' | 'complex') => number;
-};
-
-export const AnimationContext = createContext<AnimationContextType | undefined>(undefined);
-
-interface AnimationProviderProps {
-  children: ReactNode;
+  reducedMotion: boolean;
+  getDuration: (baseDuration: number) => number;
 }
 
-export function AnimationProvider({ children }: AnimationProviderProps) {
+const defaultContext: AnimationContextType = {
+  animationsEnabled: true,
+  toggleAnimations: () => {},
+  reducedMotion: false,
+  getDuration: (baseDuration: number) => baseDuration,
+};
+
+export const AnimationContext = createContext<AnimationContextType>(defaultContext);
+
+export function AnimationProvider({ children }: { children: ReactNode }) {
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
-  const [transitionSpeed, setTransitionSpeed] = useState<'fast' | 'normal' | 'slow'>('normal');
   const [reducedMotion, setReducedMotion] = useState(false);
 
-  // Check for user's reduced motion preference
+  // On mount, check local storage for animation preference
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducedMotion(mediaQuery.matches);
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      setReducedMotion(e.matches);
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    try {
+      const storedPreference = localStorage.getItem('metasys_animations_enabled');
+      // Only disable if explicitly set to "false"
+      if (storedPreference === 'false') {
+        setAnimationsEnabled(false);
+      }
+      
+      // Check for reduced motion preference
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      setReducedMotion(mediaQuery.matches);
+      
+      // Listen for changes
+      const handleChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+      mediaQuery.addEventListener('change', handleChange);
+      
+      return () => {
+        mediaQuery.removeEventListener('change', handleChange);
+      };
+    } catch (error) {
+      console.error('Failed to read animation preference from localStorage:', error);
+    }
   }, []);
 
-  const toggleAnimations = () => setAnimationsEnabled(prev => !prev);
-
-  const getDuration = (type: 'micro' | 'standard' | 'complex'): number => {
-    // Base durations in seconds
-    const baseDurations = {
-      micro: 0.15,     // Very quick animations (button hover, etc)
-      standard: 0.3,   // Standard transitions (page elements fading in)
-      complex: 0.5,    // More complex animations (charts, etc)
-    };
-    
-    // Speed multipliers
-    const speedMultipliers = {
-      fast: 0.7,
-      normal: 1,
-      slow: 1.3,
-    };
-    
-    return baseDurations[type] * speedMultipliers[transitionSpeed];
+  const toggleAnimations = () => {
+    const newValue = !animationsEnabled;
+    setAnimationsEnabled(newValue);
+    try {
+      localStorage.setItem('metasys_animations_enabled', String(newValue));
+    } catch (error) {
+      console.error('Failed to save animation preference to localStorage:', error);
+    }
   };
-
-  const value = {
-    animationsEnabled,
-    transitionSpeed,
-    reducedMotion,
-    toggleAnimations,
-    setTransitionSpeed,
-    getDuration,
+  
+  // Utility function to adjust animation duration based on user preferences
+  const getDuration = (baseDuration: number): number => {
+    if (!animationsEnabled) return 0;
+    if (reducedMotion) return baseDuration * 0.5;
+    return baseDuration;
   };
 
   return (
-    <AnimationContext.Provider value={value}>
+    <AnimationContext.Provider
+      value={{
+        animationsEnabled,
+        toggleAnimations,
+        reducedMotion,
+        getDuration,
+      }}
+    >
       {children}
     </AnimationContext.Provider>
   );
 }
 
-export function useAnimation() {
-  const context = useContext(AnimationContext);
-  if (context === undefined) {
-    throw new Error('useAnimation must be used within an AnimationProvider');
-  }
-  return context;
-}
+export const useAnimationContext = () => useContext(AnimationContext);
+export const useAnimation = () => useContext(AnimationContext);

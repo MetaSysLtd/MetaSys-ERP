@@ -1,154 +1,117 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Progress } from "@/components/ui/progress";
-import { Crown, Medal, Star, Trophy, Award, Zap, Flame } from 'lucide-react';
 import { MotionWrapper } from '@/components/ui/motion-wrapper';
+import { cn } from '@/lib/utils';
+import { Trophy, Check, Lock, Clock } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
-export interface AchievementProps {
+export type AchievementType = 'daily' | 'weekly' | 'monthly' | 'special';
+
+interface AchievementProps {
   title: string;
   description: string;
-  type: 'daily' | 'weekly' | 'monthly' | 'special';
-  category: 'sales' | 'dispatch' | 'personal' | 'company';
-  tier: 'bronze' | 'silver' | 'gold' | 'platinum';
-  progress: number; // 0-100
+  type: AchievementType;
+  category: string;
+  tier: string;
+  progress: number;
   unlocked: boolean;
   date?: string;
   points: number;
   className?: string;
 }
 
-// Map achievement tier to icon and color
-const tierConfig = {
-  bronze: { 
-    icon: Medal, 
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-100',
-    borderColor: 'border-amber-200'
-  },
-  silver: { 
-    icon: Award, 
-    color: 'text-slate-500', 
-    bgColor: 'bg-slate-100',
-    borderColor: 'border-slate-200'
-  },
-  gold: { 
-    icon: Trophy, 
-    color: 'text-yellow-500',
-    bgColor: 'bg-yellow-100',
-    borderColor: 'border-yellow-200'
-  },
-  platinum: { 
-    icon: Crown, 
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100',
-    borderColor: 'border-purple-200'
-  }
+const tierColors = {
+  'bronze': 'from-amber-700 to-amber-500',
+  'silver': 'from-slate-400 to-slate-300',
+  'gold': 'from-yellow-500 to-yellow-300',
+  'platinum': 'from-cyan-300 to-cyan-100',
+  'diamond': 'from-purple-500 to-blue-300',
 };
 
-// Map achievement category to color scheme
-const categoryConfig = {
-  sales: { 
-    icon: Flame,
-    badge: 'bg-[#412754] text-white',
-    labelText: 'Sales Achievement'
-  },
-  dispatch: { 
-    icon: Zap,
-    badge: 'bg-[#025E73] text-white',
-    labelText: 'Dispatch Achievement'
-  },
-  personal: { 
-    icon: Star,
-    badge: 'bg-[#F2A71B] text-white',
-    labelText: 'Personal Achievement'
-  },
-  company: { 
-    icon: Medal,
-    badge: 'bg-[#011F26] text-white',
-    labelText: 'Company Achievement'
-  }
-};
-
-export const Achievement: React.FC<AchievementProps> = ({ 
-  title, 
-  description, 
-  type, 
-  category, 
-  tier, 
-  progress, 
-  unlocked, 
-  date, 
+export function Achievement({
+  title,
+  description,
+  type,
+  category,
+  tier,
+  progress,
+  unlocked,
+  date,
   points,
   className
-}) => {
-  const { icon: TierIcon, color: tierColor, bgColor, borderColor } = tierConfig[tier];
-  const { badge: categoryBadge, labelText, icon: CategoryIcon } = categoryConfig[category];
+}: AchievementProps) {
+  const tierColor = tierColors[tier as keyof typeof tierColors] || 'from-gray-500 to-gray-300';
   
   return (
-    <MotionWrapper animation="fade" delay={0.1}>
-      <Card className={`overflow-hidden border ${unlocked ? borderColor : 'border-gray-200'} ${className}`}>
-        <div className={`h-2 ${unlocked ? bgColor : 'bg-gray-100'}`}></div>
-        <CardHeader className="py-4 px-4">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-full ${unlocked ? bgColor : 'bg-gray-100'}`}>
-                <TierIcon className={`h-5 w-5 ${unlocked ? tierColor : 'text-gray-400'}`} />
-              </div>
-              <div>
-                <CardTitle className={`text-base font-medium ${unlocked ? '' : 'text-gray-500'}`}>
-                  {title}
-                </CardTitle>
-                <CardDescription className="text-xs">{description}</CardDescription>
-              </div>
+    <MotionWrapper animation="scale" delay={0.05} className="w-full">
+      <div className={cn(
+        "bg-white/80 backdrop-blur-sm border rounded-lg p-4 relative overflow-hidden h-full transition-all duration-200",
+        unlocked 
+          ? "border-[#025E73]/30 hover:border-[#025E73]/70 shadow-sm hover:shadow-md" 
+          : "border-gray-200 opacity-80 hover:opacity-100",
+        className
+      )}>
+        {/* Status icon */}
+        <div className="absolute top-3 right-3">
+          {unlocked ? (
+            <div className="bg-green-100 text-green-600 rounded-full p-1">
+              <Check className="h-4 w-4" />
             </div>
+          ) : (
+            <div className="bg-gray-100 text-gray-500 rounded-full p-1">
+              <Lock className="h-4 w-4" />
+            </div>
+          )}
+        </div>
+        
+        {/* Achievement icon with tier color */}
+        <div className={cn(
+          "w-10 h-10 rounded-full flex items-center justify-center mb-3 text-white",
+          `bg-gradient-to-br ${tierColor}`
+        )}>
+          <Trophy className="h-5 w-5" />
+        </div>
+        
+        {/* Title and description */}
+        <h3 className="text-base font-semibold mb-1 text-gray-900 pr-8">{title}</h3>
+        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{description}</p>
+        
+        {/* Progress bar */}
+        <div className="mb-3">
+          <div className="flex justify-between text-xs mb-1">
+            <span className="text-gray-600 font-medium">{`Progress: ${Math.round(progress)}%`}</span>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Badge className={unlocked ? categoryBadge : 'bg-gray-200 text-gray-600'}>
-                    <CategoryIcon className="h-3 w-3 mr-1" />
-                    <span className="text-xs">{labelText}</span>
-                  </Badge>
+                  <span className="text-[#025E73] font-semibold flex items-center">
+                    {points} pts
+                  </span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="text-xs">{type.charAt(0).toUpperCase() + type.slice(1)} achievement</p>
-                  {date && <p className="text-xs">Unlocked: {date}</p>}
+                  <p>Points awarded when achievement is unlocked</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
-        </CardHeader>
-        <CardContent className="px-4 pb-4">
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Progress</span>
-              <span className={unlocked ? 'font-medium text-green-600' : 'text-muted-foreground'}>
-                {progress}%
-              </span>
-            </div>
-            <Progress 
-              value={progress} 
-              className="h-2" 
-              indicatorClassName={
-                unlocked ? "bg-green-500" : 
-                progress >= 75 ? "bg-blue-500" : 
-                progress >= 50 ? "bg-amber-500" : 
-                "bg-gray-300"
-              } 
-            />
-          </div>
-        </CardContent>
-        <CardFooter className="px-4 py-3 bg-slate-50 flex justify-between">
-          <span className="text-xs text-muted-foreground">
-            {unlocked ? 'Completed' : 'In Progress'}
-          </span>
-          <Badge variant={unlocked ? 'default' : 'outline'} className="gap-1">
-            <Star className="h-3 w-3" />
-            <span>{points}</span>
-          </Badge>
-        </CardFooter>
-      </Card>
+          <Progress value={progress} className="h-1.5" />
+        </div>
+        
+        {/* Footer info */}
+        <div className="flex justify-between text-xs text-gray-500 mt-3">
+          <span className="uppercase tracking-wide">{category}</span>
+          {date && (
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {date}
+            </span>
+          )}
+        </div>
+      </div>
     </MotionWrapper>
   );
-};
+}

@@ -18,7 +18,8 @@ import {
   ChevronDown,
   ShieldAlert,
   HeartPulse,
-  Megaphone
+  Megaphone,
+  Trophy
 } from "lucide-react";
 import { useDispatch, useSelector } from 'react-redux';
 import { setPreferences, syncToggleDropdown, toggleDropdown } from '@/store/uiPreferencesSlice';
@@ -224,6 +225,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
     { name: "Finance", href: "/finance", icon: Banknote, showFor: ["finance", "admin"], minLevel: 3 },
     { name: "Marketing", href: "/marketing", icon: Megaphone, showFor: ["marketing", "admin"], minLevel: 2 },
     { name: "Client Portal", href: "/client-portal", icon: Building2, showFor: ["sales", "dispatch", "admin"], minLevel: 3 },
+    { name: "Gamification", href: "/gamification", icon: Trophy },
     { name: "Reports", href: "/reports", icon: BarChart2, showFor: ["sales", "dispatch", "finance", "hr", "admin"], minLevel: 2 },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
