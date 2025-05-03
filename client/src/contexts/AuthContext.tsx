@@ -111,8 +111,12 @@ function AuthProvider({ children }: { children: ReactNode }) {
       console.log(`Login attempt to ${API_ROUTES.AUTH.LOGIN}, status: ${res.status}`);
       
       if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || `Login failed with status ${res.status}`);
+        const errorData = await res.json().catch(() => null);
+        throw new Error(
+          errorData?.message || 
+          errorData?.error || 
+          `Login failed with status ${res.status}`
+        );
       }
       
       const data = await res.json();

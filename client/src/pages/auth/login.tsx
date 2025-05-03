@@ -99,6 +99,7 @@ function LoginForm() {
           description: "Username and password are required.",
           variant: "destructive",
         });
+        setIsSubmitting(false);
         return;
       }
       
@@ -112,6 +113,16 @@ function LoginForm() {
       navigate("/");
     } catch (err: any) {
       console.error("Login error caught in form:", err);
+      
+      // Show specific error message
+      const errorMessage = err?.response?.data?.message || err.message || "Login failed. Please check your credentials.";
+      
+      toast({
+        title: "Authentication Error",
+        description: errorMessage,
+        variant: "destructive",
+        duration: 5000,
+      });
       
       // Increment login attempts
       setLoginAttempts(prev => prev + 1);
