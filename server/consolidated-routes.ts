@@ -164,13 +164,13 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   apiRouter.use('/status', statusRoutes);
   
   // Leaderboard routes
-  apiRouter.get('/leaderboard/sales', async (req, res) => {
+  apiRouter.get('/leaderboard/sales', createAuthMiddleware(1), async (req, res) => {
     try {
-      if (!req.user || !req.orgId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+      if (!req.user || !req.user.orgId) {
+        return res.status(401).json({ error: 'Unauthorized - Missing organization' });
       }
       
-      const salesLeaderboard = await leaderboardService.getSalesLeaderboard(req.orgId);
+      const salesLeaderboard = await leaderboardService.getSalesLeaderboard(req.user.orgId);
       res.json(salesLeaderboard);
     } catch (error: any) {
       console.error('Error fetching sales leaderboard:', error);
@@ -181,13 +181,13 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     }
   });
   
-  apiRouter.get('/leaderboard/dispatch', async (req, res) => {
+  apiRouter.get('/leaderboard/dispatch', createAuthMiddleware(1), async (req, res) => {
     try {
-      if (!req.user || !req.orgId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+      if (!req.user || !req.user.orgId) {
+        return res.status(401).json({ error: 'Unauthorized - Missing organization' });
       }
       
-      const dispatchLeaderboard = await leaderboardService.getDispatchLeaderboard(req.orgId);
+      const dispatchLeaderboard = await leaderboardService.getDispatchLeaderboard(req.user.orgId);
       res.json(dispatchLeaderboard);
     } catch (error: any) {
       console.error('Error fetching dispatch leaderboard:', error);
@@ -198,13 +198,13 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     }
   });
   
-  apiRouter.get('/leaderboard/combined', async (req, res) => {
+  apiRouter.get('/leaderboard/combined', createAuthMiddleware(1), async (req, res) => {
     try {
-      if (!req.user || !req.orgId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+      if (!req.user || !req.user.orgId) {
+        return res.status(401).json({ error: 'Unauthorized - Missing organization' });
       }
       
-      const combinedLeaderboard = await leaderboardService.getCombinedLeaderboard(req.orgId);
+      const combinedLeaderboard = await leaderboardService.getCombinedLeaderboard(req.user.orgId);
       res.json(combinedLeaderboard);
     } catch (error: any) {
       console.error('Error fetching combined leaderboard:', error);
@@ -215,13 +215,13 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     }
   });
   
-  apiRouter.get('/leaderboard/week-over-week', async (req, res) => {
+  apiRouter.get('/leaderboard/week-over-week', createAuthMiddleware(1), async (req, res) => {
     try {
-      if (!req.user || !req.orgId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+      if (!req.user || !req.user.orgId) {
+        return res.status(401).json({ error: 'Unauthorized - Missing organization' });
       }
       
-      const weekOverWeek = await leaderboardService.getWeekOverWeekComparison(req.orgId);
+      const weekOverWeek = await leaderboardService.getWeekOverWeekComparison(req.user.orgId);
       res.json(weekOverWeek);
     } catch (error: any) {
       console.error('Error fetching week-over-week comparison:', error);

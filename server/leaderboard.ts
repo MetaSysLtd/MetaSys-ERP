@@ -62,8 +62,8 @@ export async function getSalesLeaderboard(
     .from(users)
     .leftJoin(leads, and(
       eq(leads.assignedTo, users.id),
-      gte(leads.createdAt, startDate),
-      sql`${leads.createdAt} <= ${endDate}`,
+      gte(leads.createdAt, format(startDate, 'yyyy-MM-dd')),
+      sql`${leads.createdAt} <= ${format(endDate, 'yyyy-MM-dd')}`,
       eq(leads.status, 'HandToDispatch')
     ))
     .where(and(
@@ -116,8 +116,8 @@ export async function getDispatchLeaderboard(
     .from(users)
     .leftJoin(loads, and(
       eq(loads.dispatcherId, users.id),
-      gte(loads.createdAt, startDate),
-      sql`${loads.createdAt} <= ${endDate}`
+      gte(loads.createdAt, format(startDate, 'yyyy-MM-dd')),
+      sql`${loads.createdAt} <= ${format(endDate, 'yyyy-MM-dd')}`
     ))
     .where(and(
       eq(users.orgId, organizationId),
