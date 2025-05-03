@@ -40,6 +40,7 @@ import MarketingPage from "@/pages/marketing";
 import NotificationsPage from "@/pages/notifications";
 import GamificationPage from "@/pages/gamification";
 import LeaderboardPage from "@/pages/leaderboard";
+import ClientPortalPage from "@/pages/client-portal";
 // Team pages
 import SalesTeamPage from "@/pages/teams/sales";
 import DispatchTeamPage from "@/pages/teams/dispatch";
@@ -328,6 +329,14 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={GamificationPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/client-portal">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={ClientPortalPage} />
           </AppLayout>
         )}
       </Route>
