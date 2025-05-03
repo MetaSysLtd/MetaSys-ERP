@@ -15,10 +15,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { LayoutGrid, Plus, Settings, X, Grabber, Edit } from 'lucide-react';
+import { LayoutGrid, Plus, Settings, X, GripVertical, Edit } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from '@/hooks/use-auth';
+
+// Extended User interface with orgId
+interface ExtendedUser {
+  id: number;
+  orgId: number;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
 
 interface Widget {
   id: number;
@@ -30,6 +40,8 @@ interface Widget {
   height: 'small' | 'normal' | 'large';
   isVisible: boolean;
   config: Record<string, any>;
+  userId: number;
+  orgId: number;
 }
 
 // Available widget definitions
@@ -51,6 +63,7 @@ export function DashboardWidgetManager() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const extendedUser = user as unknown as ExtendedUser;
   const [open, setOpen] = useState(false);
   const [editWidget, setEditWidget] = useState<Widget | null>(null);
   const [availableList, setAvailableList] = useState<Array<typeof availableWidgets[0]>>([]);
@@ -82,14 +95,14 @@ export function DashboardWidgetManager() {
   // Add widget mutation
   const addWidgetMutation = useMutation({
     mutationFn: async (newWidget: Omit<Widget, 'id'>) => {
-      const res = await apiRequest('POST', '/api/dashboard-widgets', newWidget);
+      const res = await apiRequest('POST', '/api/dashboard/widgets', newWidget);
       if (!res.ok) {
         throw new Error('Failed to add widget');
       }
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard-widgets'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/widgets'] });
       toast({
         title: 'Widget added',
         description: 'Your dashboard has been updated',
@@ -108,14 +121,14 @@ export function DashboardWidgetManager() {
   // Update widget mutation
   const updateWidgetMutation = useMutation({
     mutationFn: async (widget: Widget) => {
-      const res = await apiRequest('PATCH', `/api/dashboard-widgets/${widget.id}`, widget);
+      const res = await apiRequest('PATCH', `/api/dashboard/widgets/${widget.id}`, widget);
       if (!res.ok) {
         throw new Error('Failed to update widget');
       }
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard-widgets'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/widgets'] });
       toast({
         title: 'Widget updated',
         description: 'Your dashboard has been updated',
@@ -134,14 +147,14 @@ export function DashboardWidgetManager() {
   // Delete widget mutation
   const deleteWidgetMutation = useMutation({
     mutationFn: async (widgetId: number) => {
-      const res = await apiRequest('DELETE', `/api/dashboard-widgets/${widgetId}`);
+      const res = await apiRequest('DELETE', `/api/dashboard/widgets/${widgetId}`);
       if (!res.ok) {
         throw new Error('Failed to delete widget');
       }
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard-widgets'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/widgets'] });
       toast({
         title: 'Widget removed',
         description: 'Your dashboard has been updated',
@@ -159,14 +172,14 @@ export function DashboardWidgetManager() {
   // Reorder widgets mutation
   const reorderWidgetsMutation = useMutation({
     mutationFn: async (updatedWidgets: Widget[]) => {
-      const res = await apiRequest('POST', '/api/dashboard-widgets/reorder', { widgets: updatedWidgets });
+      const res = await apiRequest('POST', '/api/dashboard/widgets/reorder', { widgets: updatedWidgets });
       if (!res.ok) {
         throw new Error('Failed to reorder widgets');
       }
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard-widgets'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/widgets'] });
       toast({
         title: 'Dashboard updated',
         description: 'Widget order has been saved',
@@ -193,12 +206,12 @@ export function DashboardWidgetManager() {
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
     
-    const items = Array.from(widgets);
+    const items = Array.from(widgets as Widget[]);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
     
     // Update positions
-    const updatedItems = items.map((item, index) => ({
+    const updatedItems = items.map((item: Widget, index: number) => ({
       ...item,
       position: index,
     }));
@@ -220,8 +233,8 @@ export function DashboardWidgetManager() {
       height: 'normal',
       isVisible: true,
       config: {},
-      userId: user?.id || 0,
-      orgId: user?.orgId || 1,
+      userId: extendedUser?.id || 0,
+      orgId: extendedUser?.orgId || 1,
     });
   };
 
@@ -296,7 +309,7 @@ export function DashboardWidgetManager() {
                             >
                               <div className="flex items-center gap-2">
                                 <div {...provided.dragHandleProps} className="cursor-move">
-                                  <Grabber className="h-4 w-4 text-muted-foreground" />
+                                  <GripVertical className="h-4 w-4 text-muted-foreground" />
                                 </div>
                                 <span className={widget.isVisible ? '' : 'text-muted-foreground line-through'}>
                                   {widget.title}
