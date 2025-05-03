@@ -38,6 +38,7 @@ import HRPage from "@/pages/hr";
 import FinancePage from "@/pages/finance";
 import MarketingPage from "@/pages/marketing";
 import NotificationsPage from "@/pages/notifications";
+import LeaderboardPage from "@/pages/leaderboard";
 // Team pages
 import SalesTeamPage from "@/pages/teams/sales";
 import DispatchTeamPage from "@/pages/teams/dispatch";
@@ -310,6 +311,14 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={DispatchTeamPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/leaderboard">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={LeaderboardPage} />
           </AppLayout>
         )}
       </Route>
