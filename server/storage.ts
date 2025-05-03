@@ -5610,6 +5610,152 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+  
+  // Bug Reporting operations
+  async getBugs(orgId: number): Promise<Bug[]> {
+    return Array.from(this.bugs.values()).filter(bug => bug.orgId === orgId);
+  }
+  
+  async getBugsByStatus(status: string, orgId: number): Promise<Bug[]> {
+    return Array.from(this.bugs.values()).filter(bug => 
+      bug.orgId === orgId && bug.status === status
+    );
+  }
+  
+  async getBugsByUrgency(urgency: string, orgId: number): Promise<Bug[]> {
+    return Array.from(this.bugs.values()).filter(bug => 
+      bug.orgId === orgId && bug.urgency === urgency
+    );
+  }
+  
+  async getBugsByModule(module: string, orgId: number): Promise<Bug[]> {
+    return Array.from(this.bugs.values()).filter(bug => 
+      bug.orgId === orgId && bug.module === module
+    );
+  }
+  
+  async getBugsByReporter(reporterId: number): Promise<Bug[]> {
+    return Array.from(this.bugs.values()).filter(bug => 
+      bug.reportedBy === reporterId
+    );
+  }
+  
+  async getBugsByAssignee(assigneeId: number): Promise<Bug[]> {
+    return Array.from(this.bugs.values()).filter(bug => 
+      bug.assignedTo === assigneeId
+    );
+  }
+  
+  async getBug(id: number): Promise<Bug | undefined> {
+    return this.bugs.get(id);
+  }
+  
+  async createBug(bug: InsertBug): Promise<Bug> {
+    const now = new Date();
+    const newBug: Bug = {
+      id: this.bugIdCounter++,
+      ...bug,
+      createdAt: now,
+      updatedAt: now,
+      fixedAt: null,
+      closedAt: null
+    };
+    
+    this.bugs.set(newBug.id, newBug);
+    return newBug;
+  }
+  
+  async updateBug(id: number, updates: Partial<Bug>): Promise<Bug | undefined> {
+    const bug = this.bugs.get(id);
+    if (!bug) return undefined;
+    
+    const updatedBug: Bug = {
+      ...bug,
+      ...updates,
+      updatedAt: new Date(),
+      id
+    };
+    
+    this.bugs.set(id, updatedBug);
+    return updatedBug;
+  }
+  
+  async assignBug(id: number, assigneeId: number): Promise<Bug | undefined> {
+    const bug = this.bugs.get(id);
+    if (!bug) return undefined;
+    
+    const updatedBug: Bug = {
+      ...bug,
+      assignedTo: assigneeId,
+      updatedAt: new Date()
+    };
+    
+    this.bugs.set(id, updatedBug);
+    return updatedBug;
+  }
+  
+  async changeBugStatus(id: number, status: string): Promise<Bug | undefined> {
+    const bug = this.bugs.get(id);
+    if (!bug) return undefined;
+    
+    const updatedBug: Bug = {
+      ...bug,
+      status,
+      updatedAt: new Date()
+    };
+    
+    this.bugs.set(id, updatedBug);
+    return updatedBug;
+  }
+  
+  async fixBug(id: number, fixVersion: string): Promise<Bug | undefined> {
+    const bug = this.bugs.get(id);
+    if (!bug) return undefined;
+    
+    const now = new Date();
+    const updatedBug: Bug = {
+      ...bug,
+      status: "Fixed",
+      fixVersion,
+      fixedAt: now,
+      updatedAt: now
+    };
+    
+    this.bugs.set(id, updatedBug);
+    return updatedBug;
+  }
+  
+  async closeBug(id: number): Promise<Bug | undefined> {
+    const bug = this.bugs.get(id);
+    if (!bug) return undefined;
+    
+    const now = new Date();
+    const updatedBug: Bug = {
+      ...bug,
+      status: "Closed",
+      closedAt: now,
+      updatedAt: now
+    };
+    
+    this.bugs.set(id, updatedBug);
+    return updatedBug;
+  }
+  
+  async reopenBug(id: number): Promise<Bug | undefined> {
+    const bug = this.bugs.get(id);
+    if (!bug) return undefined;
+    
+    const updatedBug: Bug = {
+      ...bug,
+      status: "Reopened",
+      fixedAt: null,
+      closedAt: null,
+      updatedAt: new Date()
+    };
+    
+    this.bugs.set(id, updatedBug);
+    return updatedBug;
+  }
 }
 
 // Use database storage instead of memory storage
