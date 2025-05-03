@@ -1827,6 +1827,80 @@ export class MemStorage implements IStorage {
     }
   }
 
+  // Dashboard Widget operations
+  async getDashboardWidgets(userId: number): Promise<DashboardWidget[]> {
+    const widgets: DashboardWidget[] = [];
+    
+    for (const widget of this.dashboardWidgets.values()) {
+      if (widget.userId === userId) {
+        widgets.push(widget);
+      }
+    }
+    
+    // Sort by position
+    return widgets.sort((a, b) => a.position - b.position);
+  }
+  
+  async getDashboardWidget(id: number): Promise<DashboardWidget | undefined> {
+    return this.dashboardWidgets.get(id);
+  }
+  
+  async createDashboardWidget(widget: InsertDashboardWidget): Promise<DashboardWidget> {
+    const id = this.dashboardWidgetIdCounter++;
+    const now = new Date();
+    
+    const newWidget: DashboardWidget = {
+      id,
+      ...widget,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    this.dashboardWidgets.set(id, newWidget);
+    return newWidget;
+  }
+  
+  async updateDashboardWidget(id: number, updates: Partial<DashboardWidget>): Promise<DashboardWidget | undefined> {
+    const widget = this.dashboardWidgets.get(id);
+    if (!widget) {
+      return undefined;
+    }
+    
+    const updatedWidget = {
+      ...widget,
+      ...updates,
+      updatedAt: new Date()
+    };
+    
+    this.dashboardWidgets.set(id, updatedWidget);
+    return updatedWidget;
+  }
+  
+  async deleteDashboardWidget(id: number): Promise<boolean> {
+    return this.dashboardWidgets.delete(id);
+  }
+  
+  async reorderDashboardWidgets(widgets: { id: number, position: number }[]): Promise<DashboardWidget[]> {
+    for (const updateInfo of widgets) {
+      const widget = this.dashboardWidgets.get(updateInfo.id);
+      if (widget) {
+        widget.position = updateInfo.position;
+        widget.updatedAt = new Date();
+        this.dashboardWidgets.set(widget.id, widget);
+      }
+    }
+    
+    // Return all widgets for the user
+    if (widgets.length > 0) {
+      const widget = this.dashboardWidgets.get(widgets[0].id);
+      if (widget) {
+        return this.getDashboardWidgets(widget.userId);
+      }
+    }
+    
+    return [];
+  }
+
   // Dispatch Report operations
   async getDispatchReport(id: number): Promise<DispatchReport | undefined> {
     return this.dispatchReports.get(id);
