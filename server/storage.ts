@@ -349,6 +349,22 @@ export interface IStorage {
   updateDashboardWidget(id: number, updates: Partial<DashboardWidget>): Promise<DashboardWidget | undefined>;
   deleteDashboardWidget(id: number): Promise<boolean>;
   reorderDashboardWidgets(widgets: DashboardWidget[]): Promise<DashboardWidget[]>;
+  
+  // Bug Reporting operations
+  getBugs(orgId: number): Promise<Bug[]>;
+  getBugsByStatus(status: string, orgId: number): Promise<Bug[]>;
+  getBugsByUrgency(urgency: string, orgId: number): Promise<Bug[]>;
+  getBugsByModule(module: string, orgId: number): Promise<Bug[]>;
+  getBugsByReporter(reporterId: number): Promise<Bug[]>;
+  getBugsByAssignee(assigneeId: number): Promise<Bug[]>;
+  getBug(id: number): Promise<Bug | undefined>;
+  createBug(bug: InsertBug): Promise<Bug>;
+  updateBug(id: number, updates: Partial<Bug>): Promise<Bug | undefined>;
+  assignBug(id: number, assigneeId: number): Promise<Bug | undefined>;
+  changeBugStatus(id: number, status: string): Promise<Bug | undefined>;
+  fixBug(id: number, fixVersion: string): Promise<Bug | undefined>;
+  closeBug(id: number): Promise<Bug | undefined>;
+  reopenBug(id: number): Promise<Bug | undefined>;
 }
 
 export class MemStorage implements IStorage {
