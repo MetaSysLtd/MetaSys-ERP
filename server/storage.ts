@@ -324,6 +324,14 @@ export interface IStorage {
     avgOnboardingTime: number;
     documentCompletionRate: number;
   }>;
+  
+  // Dashboard Widget operations
+  getDashboardWidgets(userId: number): Promise<DashboardWidget[]>;
+  getDashboardWidget(id: number): Promise<DashboardWidget | undefined>;
+  createDashboardWidget(widget: InsertDashboardWidget): Promise<DashboardWidget>;
+  updateDashboardWidget(id: number, updates: Partial<DashboardWidget>): Promise<DashboardWidget | undefined>;
+  deleteDashboardWidget(id: number): Promise<boolean>;
+  reorderDashboardWidgets(widgets: DashboardWidget[]): Promise<DashboardWidget[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -361,6 +369,7 @@ export class MemStorage implements IStorage {
   private probationEvaluations: Map<number, ProbationEvaluation>;
   private exitRequests: Map<number, ExitRequest>;
   private companyDocuments: Map<number, CompanyDocument>;
+  private dashboardWidgets: Map<number, DashboardWidget>;
   
   private userIdCounter: number;
   private roleIdCounter: number;
@@ -394,6 +403,7 @@ export class MemStorage implements IStorage {
   private probationEvaluationIdCounter: number;
   private exitRequestIdCounter: number;
   private companyDocumentIdCounter: number;
+  private dashboardWidgetIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
