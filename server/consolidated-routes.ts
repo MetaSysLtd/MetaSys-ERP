@@ -153,6 +153,75 @@ async function calculateDispatchCommission(userId: number, month: string, calcul
 }
 
 // Register all API routes
+// Time Tracking Types
+interface ClockEvent {
+  id: number;
+  userId: number;
+  type: "IN" | "OUT";
+  timestamp: string;
+  createdAt: string;
+}
+
+interface ClockStatus {
+  status: "IN" | "OUT";
+  lastEvent?: ClockEvent;
+}
+
+// In-memory storage for time tracking events (will be moved to database later)
+let clockEvents: ClockEvent[] = [
+  {
+    id: 1,
+    userId: 1,
+    type: "IN",
+    timestamp: new Date(new Date().setHours(9, 0, 0)).toISOString(),
+    createdAt: new Date(new Date().setHours(9, 0, 0)).toISOString()
+  },
+  {
+    id: 2,
+    userId: 1,
+    type: "OUT",
+    timestamp: new Date(new Date().setHours(12, 0, 0)).toISOString(),
+    createdAt: new Date(new Date().setHours(12, 0, 0)).toISOString()
+  },
+  {
+    id: 3,
+    userId: 1,
+    type: "IN",
+    timestamp: new Date(new Date().setHours(13, 0, 0)).toISOString(),
+    createdAt: new Date(new Date().setHours(13, 0, 0)).toISOString()
+  },
+  {
+    id: 4,
+    userId: 1,
+    type: "OUT",
+    timestamp: new Date(new Date().setHours(17, 0, 0)).toISOString(),
+    createdAt: new Date(new Date().setHours(17, 0, 0)).toISOString()
+  }
+];
+
+// Helper functions for time tracking
+function getUserClockEvents(userId: number): ClockEvent[] {
+  return clockEvents.filter(event => event.userId === userId);
+}
+
+function getUserClockStatus(userId: number): ClockStatus {
+  const userEvents = getUserClockEvents(userId);
+  
+  if (userEvents.length === 0) {
+    return { status: "OUT" };
+  }
+  
+  // Sort events by timestamp (newest first)
+  const sortedEvents = [...userEvents].sort((a, b) => 
+    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+  
+  return {
+    status: sortedEvents[0].type,
+    lastEvent: sortedEvents[0]
+  };
+}
+
 export async function registerRoutes(apiRouter: Router, httpServer: Server): Promise<Server> {
   // Apply organization middleware to all API routes
   apiRouter.use('/', organizationMiddleware);
