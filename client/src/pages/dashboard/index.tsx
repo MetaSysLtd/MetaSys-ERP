@@ -25,10 +25,12 @@ import { PerformanceAlertWidget } from "@/components/dispatch/performance-alert-
 import { DispatchReportAutomation } from "@/components/dashboard/DispatchReportAutomation";
 import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
 import { AnimationSettings } from "@/components/ui/animation-settings";
+import { DashboardWidgetManager } from "@/components/dashboard/DashboardWidgetManager";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { QueryErrorHandler } from "@/hooks/use-query-error-handler";
 import { handleApiError } from "@/lib/api-error-handler";
 import { retryFetch } from "@/lib/api-error-handler";
+import { Separator } from "@/components/ui/separator";
 
 export default function Dashboard() {
   const { user, role } = useAuth();
@@ -92,6 +94,9 @@ export default function Dashboard() {
             </MotionWrapper>
             <MotionWrapper animation="fade-left" delay={0.3}>
               <AnimationSettings />
+            </MotionWrapper>
+            <MotionWrapper animation="fade-left" delay={0.35}>
+              <DashboardWidgetManager />
             </MotionWrapper>
           </div>
         </div>
