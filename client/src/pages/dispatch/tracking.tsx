@@ -236,7 +236,10 @@ export default function TrackingPage() {
                     />
                   </div>
                 </div>
-                <Button onClick={handleSearch}>
+                <Button 
+                  onClick={handleSearch}
+                  className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white rounded-md transition-all duration-200"
+                >
                   <Search className="h-4 w-4 mr-2" />
                   Track
                 </Button>
@@ -288,6 +291,7 @@ export default function TrackingPage() {
                     description: "Tracking information updated",
                   });
                 }}
+                className="text-[#025E73] border-[#025E73] hover:bg-[#025E73]/10"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
@@ -295,7 +299,7 @@ export default function TrackingPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="ml-2"
+                className="ml-2 text-[#025E73] border-[#025E73] hover:bg-[#025E73]/10"
                 onClick={() => {
                   // Reset tracking
                   setLoadId(null);
@@ -412,8 +416,8 @@ export default function TrackingPage() {
                 <div className="space-y-6">
                   {displayData.events.map((event) => (
                     <div key={event.id} className="relative pl-8 pb-8">
-                      <div className="absolute left-0 top-0 mt-1 h-full w-px bg-gray-200"></div>
-                      <div className="absolute left-0 top-1 h-4 w-4 rounded-full border bg-card"></div>
+                      <div className="absolute left-0 top-0 mt-1 h-full w-px bg-[#025E73]/20"></div>
+                      <div className="absolute left-0 top-1 h-4 w-4 rounded-full border-2 border-[#025E73] bg-white"></div>
                       <div className="mb-1 text-sm font-medium">{event.status}</div>
                       <div className="text-xs text-muted-foreground mb-1">
                         {formatDateWithTime(event.time)}
@@ -526,7 +530,11 @@ export default function TrackingPage() {
                         <div className="flex items-center">
                           <Phone className="h-4 w-4 text-gray-500 mr-2" />
                           <p>{displayData.driver.phoneNumber}</p>
-                          <Button variant="ghost" size="sm" className="ml-2 h-8 px-2 text-xs">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="ml-2 h-8 px-2 text-xs text-[#025E73] hover:bg-[#025E73]/10"
+                          >
                             Call
                           </Button>
                         </div>

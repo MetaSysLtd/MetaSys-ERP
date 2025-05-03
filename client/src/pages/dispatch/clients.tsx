@@ -239,12 +239,12 @@ export default function DispatchClientsPage() {
     <div className="container mx-auto py-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
-          <Users className="h-6 w-6 text-[#457B9D]" />
+          <Users className="h-6 w-6 text-[#025E73]" />
           Dispatch Clients
         </h1>
         <Button
           onClick={() => setLocation("/crm?createClient=true")}
-          className="bg-[#457B9D] hover:bg-[#2EC4B6] text-white rounded-md transition-colors duration-200"
+          className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white rounded-md transition-all duration-200"
         >
           <Plus className="h-4 w-4 mr-1" />
           Add New Client
@@ -431,7 +431,7 @@ export default function DispatchClientsPage() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleCreateLoad(client.leadId)}
-                                    className="flex items-center gap-1"
+                                    className="flex items-center gap-1 text-[#025E73] border-[#025E73] hover:bg-[#025E73]/10"
                                   >
                                     <Truck className="h-3.5 w-3.5" />
                                     <span>New Load</span>
