@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,15 +62,15 @@ function LoginForm() {
     if (user) {
       navigate("/");
     }
-    
+
     // Set mobile state based on screen size
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-    
+
     checkIfMobile();
     window.addEventListener("resize", checkIfMobile);
-    
+
     return () => {
       window.removeEventListener("resize", checkIfMobile);
     };
@@ -88,9 +87,9 @@ function LoginForm() {
 
   const onSubmit = async (data: LoginFormValues) => {
     if (isSubmitting) return; // Prevent double submission
-    
+
     setIsSubmitting(true);
-    
+
     try {
       // Validate form data is present
       if (!data.username || !data.password) {
@@ -102,31 +101,37 @@ function LoginForm() {
         setIsSubmitting(false);
         return;
       }
-      
+
       // Attempt to login
       await login(data.username, data.password);
-      
+
       // Reset login attempts on success
       setLoginAttempts(0);
-      
+
       // Navigate on success
       navigate("/");
     } catch (err: any) {
       console.error("Login error caught in form:", err);
-      
-      // Show specific error message
-      const errorMessage = err?.response?.data?.message || err.message || "Login failed. Please check your credentials.";
-      
+
+      // Extract error message from response or error object
+      const errorData = err?.response?.data;
+      const errorMessage = errorData?.message || errorData?.error || err.message || "Login failed. Please check your credentials.";
+
       toast({
         title: "Authentication Error",
         description: errorMessage,
         variant: "destructive",
         duration: 5000,
       });
-      
+
+      // Reset form on specific error types
+      if (errorData?.missing?.includes("user") || errorData?.missing?.includes("valid_credentials")) {
+        form.reset({ username: form.getValues("username"), password: "" });
+      }
+
       // Increment login attempts
       setLoginAttempts(prev => prev + 1);
-      
+
       // Show specific error message
       if (loginAttempts >= 2) {
         toast({
@@ -136,7 +141,7 @@ function LoginForm() {
           duration: 5000,
         });
       }
-      
+
       // Reset form password field for security
       form.setValue('password', '');
       form.setFocus('password');
@@ -172,7 +177,7 @@ function LoginForm() {
           </div>
         </div>
       )}
-      
+
       {/* Right side - Login Form */}
       <div 
         className={`lg:w-1/2 md:w-full flex flex-col justify-center items-center p-8
@@ -189,7 +194,7 @@ function LoginForm() {
             />
           </Link>
         </div>
-        
+
         {/* Login form card */}
         <Card 
           className="w-full max-w-md border-0 shadow-lg animate-[fadeUp_.4s_ease-out_both] 
@@ -266,7 +271,7 @@ function LoginForm() {
                     Forgot password?
                   </Button>
                 </div>
-                
+
                 <Button 
                   type="submit" 
                   className="w-full h-11 mt-2 bg-[#025E73] hover:bg-[#F2A71B] active:bg-[#C78A14] text-white 
@@ -295,7 +300,7 @@ function LoginForm() {
             </div>
           </CardFooter>
         </Card>
-        
+
         {/* Copyright text */}
         <div className="mt-8 text-center text-white text-sm">
           <p>&copy; {new Date().getFullYear()} MetaSys</p>

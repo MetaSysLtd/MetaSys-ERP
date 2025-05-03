@@ -134,7 +134,7 @@ function updateStatus(status: SocketStatus) {
       variant: "warning",
     });
   }
-  
+
   // Show banner for successful reconnection
   if (status === 'connected' && reconnectAttempts > 0) {
     const { toast } = useToast();
