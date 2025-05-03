@@ -61,6 +61,34 @@ export interface IStorage {
   createOrganizationSettings(settings: InsertOrganizationSettings): Promise<OrganizationSettings>;
   updateOrganizationSettings(orgId: number, settings: Partial<OrganizationSettings>): Promise<OrganizationSettings>;
   
+  // User Settings operations - implementations completed
+  getUserSettings(userId: number): Promise<UserSettings | undefined>;
+  createUserSettings(settings: InsertUserSettings): Promise<UserSettings>;
+  updateUserSettings(userId: number, updates: Partial<UserSettings>): Promise<UserSettings>;
+  
+  // Permission Template operations - implementations completed
+  getPermissionTemplate(id: number): Promise<PermissionTemplate | undefined>;
+  getPermissionTemplateByName(name: string): Promise<PermissionTemplate | undefined>;
+  getPermissionTemplates(): Promise<PermissionTemplate[]>;
+  getPermissionTemplatesByDepartment(department: string): Promise<PermissionTemplate[]>;
+  createPermissionTemplate(template: InsertPermissionTemplate): Promise<PermissionTemplate>;
+  updatePermissionTemplate(id: number, updates: Partial<PermissionTemplate>): Promise<PermissionTemplate | undefined>;
+  deletePermissionTemplate(id: number): Promise<boolean>;
+  
+  // Feature Flag operations
+  getFeatureFlag(id: number): Promise<FeatureFlag | undefined>;
+  getFeatureFlagByKey(key: string): Promise<FeatureFlag | undefined>;
+  getFeatureFlags(): Promise<FeatureFlag[]>;
+  getFeatureFlagsByOrg(orgId: number): Promise<FeatureFlag[]>;
+  createFeatureFlag(flag: InsertFeatureFlag): Promise<FeatureFlag>;
+  updateFeatureFlag(id: number, updates: Partial<FeatureFlag>): Promise<FeatureFlag | undefined>;
+  
+  // User Location operations
+  getUserLocation(id: number): Promise<UserLocation | undefined>;
+  getUserLocations(userId: number): Promise<UserLocation[]>;
+  getUserLocationsByTimeRange(userId: number, startTime: Date, endTime: Date): Promise<UserLocation[]>;
+  createUserLocation(location: InsertUserLocation): Promise<UserLocation>;
+  
   // User & Role operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -237,29 +265,12 @@ export interface IStorage {
   createUserPreferences(prefs: InsertUiPreferences): Promise<UiPreferences>;
   updateUserPreferences(userId: number, prefs: Partial<UiPreferences>): Promise<UiPreferences>;
   
-  // User Settings operations
-  getUserSettings(userId: number): Promise<UserSettings | undefined>;
-  createUserSettings(settings: InsertUserSettings): Promise<UserSettings>;
-  updateUserSettings(userId: number, settings: Partial<UserSettings>): Promise<UserSettings>;
+  // These user management methods are already defined at the top of the interface
+  // and have been fully implemented
   
-  // Permission Template operations
-  getPermissionTemplate(id: number): Promise<PermissionTemplate | undefined>;
-  getPermissionTemplateByName(name: string): Promise<PermissionTemplate | undefined>;
-  getPermissionTemplates(): Promise<PermissionTemplate[]>;
-  getPermissionTemplatesByDepartment(department: string): Promise<PermissionTemplate[]>;
-  createPermissionTemplate(template: InsertPermissionTemplate): Promise<PermissionTemplate>;
-  updatePermissionTemplate(id: number, template: Partial<PermissionTemplate>): Promise<PermissionTemplate | undefined>;
-  deletePermissionTemplate(id: number): Promise<boolean>;
+  // These feature flag methods are already fully implemented
   
-  // Feature Flag operations
-  getFeatureFlag(id: number): Promise<FeatureFlag | undefined>;
-  getFeatureFlagByKey(key: string): Promise<FeatureFlag | undefined>;
-  getFeatureFlags(): Promise<FeatureFlag[]>;
-  getFeatureFlagsByOrg(orgId: number): Promise<FeatureFlag[]>;
-  createFeatureFlag(flag: InsertFeatureFlag): Promise<FeatureFlag>;
-  updateFeatureFlag(id: number, flag: Partial<FeatureFlag>): Promise<FeatureFlag | undefined>;
-  
-  // Location Tracking operations
+  // User Location operations - implementations completed
   getUserLocation(id: number): Promise<UserLocation | undefined>;
   getUserLocations(userId: number): Promise<UserLocation[]>;
   getUserLocationsByTimeRange(userId: number, startTime: Date, endTime: Date): Promise<UserLocation[]>;
