@@ -6,6 +6,8 @@ import { useSocket } from "@/hooks/use-socket";
 import { MotionWrapper } from "@/components/ui/motion-wrapper-fixed";
 import { useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
+import useMediaQuery from 'react-use/lib/useMediaQuery';
+
 
 /**
  * Global notification container that integrates socket events with UI components
@@ -19,20 +21,21 @@ export function NotificationContainer() {
   const { notifications, isLoading } = useLeadNotifications();
   const [location] = useLocation();
   const [showSkeleton, setShowSkeleton] = useState(false);
-  
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
   // Show skeleton loader if data takes more than 1 second to load
   useEffect(() => {
     if (isLoading) {
       const timer = setTimeout(() => {
         setShowSkeleton(true);
       }, 1000);
-      
+
       return () => clearTimeout(timer);
     } else {
       setShowSkeleton(false);
     }
   }, [isLoading]);
-  
+
   // Authenticate socket connection when user is logged in
   useEffect(() => {
     if (socket && user?.id) {
@@ -46,14 +49,14 @@ export function NotificationContainer() {
     role?.department === 'dispatch' || 
     role?.department === 'sales' ||
     (role?.department === 'admin' && role.level >= 3);
-  
+
   // Check if current route is a dashboard route
   const isDashboardRoute = 
     location === "/" || 
     location === "/dashboard" || 
     location === "/dispatch/dashboard" ||
     location === "/sales/dashboard";
-  
+
   // Don't show on explicitly excluded routes
   const isExcludedRoute = 
     location.startsWith("/crm") ||
@@ -83,10 +86,10 @@ export function NotificationContainer() {
     <MotionWrapper 
       animation="fade" 
       delay={0.3}
-      className="z-50 sticky top-0 mb-6"
+      className={`z-50 sticky top-0 mb-6 ${isMobile ? 'w-full' : 'max-w-3xl mx-auto'}`}
     >
       {isLoading && showSkeleton ? (
-        <div className="w-full max-w-3xl mx-auto mb-6 rounded-md border border-gray-200 p-4 md:w-full sm:w-[95%]">
+        <div className={`w-full rounded-md border border-gray-200 p-4 ${isMobile ? 'sm:w-[95%]' : 'md:w-full sm:w-[95%]'} `}>
           <div className="space-y-2">
             <Skeleton className="h-8 w-1/3" />
             <Skeleton className="h-12 w-full" />

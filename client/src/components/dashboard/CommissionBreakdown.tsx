@@ -262,9 +262,9 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
           </div>
         )}
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-2 sm:p-6">
         <Tabs value={tabValue} onValueChange={setTabValue}>
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2 gap-1">
             <TabsTrigger value="monthly">Current Month</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>

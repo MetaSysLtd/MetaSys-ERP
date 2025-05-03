@@ -25,6 +25,7 @@ import { setPreferences, syncToggleDropdown, toggleDropdown } from '@/store/uiPr
 import { useEffect, useCallback, useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Logo } from '@/components/ui/logo';
+import useMediaQuery from 'use-media-query';
 
 // Import the store and gradient background
 import { store } from '@/store/store';
@@ -57,7 +58,10 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   const { user, role } = useAuth();
   const dispatch = useDispatch();
   const preferences = useSelector((state: RootState) => state.uiPreferences);
-  
+  const [isMounted, setIsMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
   // Initialize the expandedDropdown state from localStorage on first render
   useEffect(() => {
     try {
@@ -69,7 +73,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
       console.error('Failed to load dropdown state from localStorage:', error);
     }
   }, [dispatch]);
-  
+
   // Define helper functions
   const isActiveRoute = useCallback((route: string) => {
     if (route === "/" && location === "/") return true;
@@ -80,7 +84,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   const isParentActive = useCallback((parentRoute: string) => {
     return location.startsWith(parentRoute) && location !== parentRoute;
   }, [location]);
-  
+
   // Handle window resize for mobile breakpoint
   const handleResize = useCallback(() => {
     if (window.innerWidth < 768) {
@@ -93,7 +97,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
     handleResize(); // Check initial size
     return () => window.removeEventListener('resize', handleResize);
   }, [handleResize]);
-  
+
   const handleLogout = useCallback(async () => {
     try {
       await fetch("/api/logout", {
@@ -195,7 +199,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
     e.preventDefault();
     e.stopPropagation();
     dispatch(toggleDropdown(name));
-    
+
     // Save to localStorage
     try {
       const currentExpanded = preferences.expandedDropdown === name ? null : name;
@@ -209,13 +213,13 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   const renderNavItem = (item: NavItem, isMain = false) => {
     const hasSubItems = item.subItems && item.subItems.length > 0;
     const isExpanded = preferences.expandedDropdown === item.name;
-    
+
     // Determine if any children are active
     const hasActiveChild = hasSubItems && item.subItems?.some(subItem => 
       location === subItem.href || 
       (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
     );
-    
+
     return (
       <div key={item.href}>
         {hasSubItems ? (
@@ -240,7 +244,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
                 </>
               ) : null}
             </div>
-            
+
             {/* Dropdown menu with animation */}
             <div 
               className="overflow-hidden transition-[max-height] duration-200 ease-in-out"
@@ -301,7 +305,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
     >
       {/* Semi-transparent overlay for legibility */}
       <div className="absolute inset-0 bg-white/50 backdrop-blur-sm"></div>
-      
+
       {/* Content container (above the overlay) */}
       <div className="relative z-10 flex flex-col h-full">
         {/* Logo */}
@@ -355,7 +359,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
             </h3>
             <div className="space-y-1">
               {filteredTaskItems.map((item) => (
-                <NavItemComponent key={item.href} item={item} />
+                renderNavItem(item)
               ))}
             </div>
           </div>
@@ -367,7 +371,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
             </h3>
             <div className="space-y-1">
               {filteredSecondaryItems.map((item) => (
-                <NavItemComponent key={item.href} item={item} />
+                renderNavItem(item)
               ))}
             </div>
           </div>
