@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -66,8 +66,6 @@ export function DashboardWidgetManager() {
   const extendedUser = user as unknown as ExtendedUser;
   const [open, setOpen] = useState(false);
   const [editWidget, setEditWidget] = useState<Widget | null>(null);
-  const [availableList, setAvailableList] = useState<Array<typeof availableWidgets[0]>>([]);
-
   // Query to get user's dashboard widgets
   const { data: widgets = [], isLoading } = useQuery({
     queryKey: ['/api/dashboard/widgets'],
@@ -85,16 +83,14 @@ export function DashboardWidgetManager() {
     },
   });
 
-  // Update available widgets based on what the user already has
-  useEffect(() => {
-    if (widgets.length) {
-      const userWidgetKeys = widgets.map((w: Widget) => w.widgetKey);
-      setAvailableList(
-        availableWidgets.filter(w => !userWidgetKeys.includes(w.key))
-      );
-    } else {
-      setAvailableList([...availableWidgets]);
-    }
+  // Use memoized list of available widgets instead of state + useEffect
+  const availableList = useMemo(() => {
+    if (!Array.isArray(widgets)) return availableWidgets;
+    
+    if (widgets.length === 0) return availableWidgets;
+    
+    const userWidgetKeys = widgets.map((w: Widget) => w.widgetKey);
+    return availableWidgets.filter(w => !userWidgetKeys.includes(w.key));
   }, [widgets]);
 
   // Add widget mutation
@@ -248,9 +244,9 @@ export function DashboardWidgetManager() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="sm" 
-            className="gap-2 whitespace-nowrap md:flex hidden"
+            className="gap-2 whitespace-nowrap md:flex hidden border-[#025E73] text-[#025E73] hover:bg-[#025E73]/10"
             aria-label="Customize Dashboard"
           >
             <LayoutGrid className="h-4 w-4" />
@@ -260,10 +256,11 @@ export function DashboardWidgetManager() {
         {/* Mobile-friendly icon-only button */}
         <DialogTrigger asChild>
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="sm"
-            className="md:hidden flex"
+            className="md:hidden flex border-[#025E73] text-[#025E73] hover:bg-[#025E73]/10"
             aria-label="Customize Dashboard"
+            title="Customize Dashboard"
           >
             <LayoutGrid className="h-4 w-4" />
           </Button>
@@ -292,9 +289,9 @@ export function DashboardWidgetManager() {
                 </SelectContent>
               </Select>
               <Button
-                variant="outline"
+                variant="default"
                 size="sm"
-                className="sm:w-auto w-full"
+                className="sm:w-auto w-full bg-[#025E73] hover:bg-[#025E73]/90 text-white"
                 disabled={availableList.length === 0}
                 onClick={() => {
                   if (availableList.length > 0) {
@@ -302,7 +299,7 @@ export function DashboardWidgetManager() {
                   }
                 }}
               >
-                <Plus className="h-4 w-4 mr-1" /> Add
+                <Plus className="h-4 w-4 mr-1" /> Add Widget
               </Button>
             </div>
             
@@ -491,7 +488,7 @@ export function DashboardWidgetManager() {
               <Button
                 onClick={() => updateWidgetMutation.mutate(editWidget)}
                 disabled={updateWidgetMutation.isPending}
-                className="w-full sm:w-auto order-1 sm:order-2"
+                className="w-full sm:w-auto order-1 sm:order-2 bg-[#025E73] hover:bg-[#025E73]/90 text-white"
               >
                 {updateWidgetMutation.isPending ? (
                   <>
