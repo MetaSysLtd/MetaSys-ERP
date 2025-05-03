@@ -1,0 +1,139 @@
+Perfect — let’s move to Step 5: Invoices Module
+This is where all the financial logic starts coming together.
+
+
+---
+
+STEP 5: Invoice System Setup
+
+
+---
+
+Overview
+
+The Invoices Module connects Dispatch (loads booked) with Finance (revenue tracking).
+It helps dispatchers, admins, and finance teams see what’s earned, what’s pending, and what’s been paid.
+
+This module will also feed into dashboards, scorecards, and future accounting workflows.
+
+
+---
+
+Core Goals of Step 5
+
+
+---
+
+Key Pages to be Built or Fixed
+
+1. /invoices
+
+Table of all invoices (default: latest first)
+
+Columns: Invoice ID, Client, Date, Amount, Status, Created By
+
+Filter bar: by Dispatcher, Date Range, Status
+
+
+
+2. Invoice Detail Page
+
+Shows: Load info, Client, Dispatcher, Line Items, Totals
+
+Buttons: Export PDF, Mark as Paid, Edit (Admin only)
+
+Notes field for finance comments
+
+
+
+3. Manual Invoice Creation Page (Optional)
+
+Fields: Client, Amount, Notes, Dispatcher (if commission relevant)
+
+Use this for bonuses, one-off billing not linked to a load
+
+
+
+
+
+---
+
+Core Functional Flow
+
+
+---
+
+Important Logic & Conditions
+
+
+---
+
+Branding & UI Notes
+
+Use MetaSys primary blue (#025E73) and accent yellow (#F2A71B) on headers, buttons
+
+Keep table consistent with CRM/Dispatch views
+
+PDF layout should match brand doc styling (e.g. logo top-left, table in center)
+
+Add “Send Invoice” or “Mark Paid” buttons with proper access controls (Admin only)
+
+
+
+---
+
+Common Bugs to Prevent
+
+
+---
+
+How This Connects to Other Systems
+
+Dispatch: Invoices are generated from loads booked
+
+Finance: Amounts feed into reports, KPIs, profit margins
+
+HR: Commissions paid later via Payroll (if implemented)
+
+Scorecards: Weekly bonuses shown on dashboard
+
+Gamification: Badges like “$5000+ Invoiced”
+
+Notifications: Triggers alert on invoice sent/paid
+
+
+
+---
+
+Final Vision Description for Replit Agent (Human-style)
+
+> We’re now building the Invoices Module — the financial heartbeat of MetaSys ERP.
+
+Think of it as a record of all value booked and earned. It pulls data from Dispatch (loads) and feeds into Finance (revenue + commissions).
+
+Focus areas:
+
+Create Invoice table + detail view
+
+Connect with loads when marked Delivered
+
+Add basic filters, manual creation
+
+PDF generation with clean branding
+
+Commission sync when marked Paid
+
+
+Use dummy data if APIs fail — but get the UI/flow 100% working.
+
+Don’t break other modules. Reuse the same table + card UI where possible.
+Branding matters here — PDF needs to look professional.
+
+
+
+
+---
+
+Let me know when you’re ready for Step 6: Gamification Layer (Scorecards, Badges, Leaderboard)
+Or if you want to first run this by Replit.
+
