@@ -1,0 +1,138 @@
+
+STEP 4: Dispatch Module Core Fixes
+
+
+---
+
+Overview
+
+Now that CRM’s backend is stabilizing, Step 4 focuses on getting the Dispatch Module to work in sync.
+Think of it as the operational engine where leads become paying clients.
+
+This module enables your dispatchers to book loads, manage clients, add notes, and trigger invoices.
+
+
+---
+
+Core Goals of Step 4
+
+
+---
+
+Key Pages to be Built or Fixed
+
+1. /dispatch/clients
+
+Table of all active clients (from CRM → Active)
+
+Columns: Name, Location, Onboarded Date, Last Load, Value Booked
+
+“View” button to go into client detail
+
+Use placeholder data if backend not ready
+
+
+
+2. /dispatch/loads
+
+Table of all loads (filterable by date/client)
+
+Columns: Load ID, Client, Rate, Dispatcher, Status
+
+Each row has action menu (Edit, Invoice, Track)
+
+
+
+3. /dispatch/new-load
+
+Form to create a new load:
+
+Fields: Client (dropdown), Rate, Pickup, Drop, Service Fee, Comments
+
+Required validations for Rate, Client, Pickup/Drop
+
+Submit = Save + show in /loads
+
+
+Pre-fill client from CRM if coming via sync
+
+
+
+4. /dispatch/tracking
+
+Show simple table or cards of current loads
+
+Columns: Load ID, Client, Status, Last Update
+
+Later: Add filters (Delivered, In Transit, Booked)
+
+
+
+
+
+---
+
+Important Functional Notes
+
+
+---
+
+UI Guidelines (Flexible)
+
+Use MetaSys branding colors (Primary: #025E73, Accent: #F2A71B)
+
+Table layout like CRM
+
+Use modals for load creation if not navigating to new page
+
+Placeholder dummy data where APIs not working
+
+
+
+---
+
+Common Bugs We Should Prevent
+
+
+---
+
+How This Connects to Other Systems
+
+CRM Sync: Active Lead → Dispatch Client
+
+Finance: Load value will affect revenue tracking
+
+Invoice: Load data will feed into Invoice Module
+
+Gamification: Loads booked = bonus/scorecard metric
+
+Notifications: Can later trigger “Load Booked” alert
+
+
+
+---
+
+Final Summary for Replit Agent (Human-style)
+
+> We're now moving to bring the Dispatch module to life.
+This is the main operational unit for our platform — where real value is booked.
+Focus on:
+
+A clean way to see Dispatch Clients
+
+A reliable Load Booking form (with validations)
+
+Ability to track loads
+
+Smooth CRM → Dispatch sync logic
+
+Smart use of permissions
+
+
+Don’t break what’s already working.
+If an API route fails, return dummy data but keep the UI ready.
+Follow the same branding + UI pattern as CRM.
+Assume Dispatcher is a logged-in user and only sees their own data.
+
+
+

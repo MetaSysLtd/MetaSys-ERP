@@ -7,6 +7,17 @@ import session from "express-session";
 import { storage } from "./storage";
 import { sessionHandler } from "./middleware/error-handler";
 
+// JSON error handler middleware
+function jsonErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
+  if (err instanceof SyntaxError && 'body' in err && err.type === 'entity.parse.failed') {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'Invalid JSON payload'
+    });
+  }
+  next(err);
+}
+
 // Generate a secure random string for session secret if not provided
 const SESSION_SECRET = process.env.SESSION_SECRET || "metasys_erp_secure_session_secret";
 
