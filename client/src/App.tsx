@@ -408,7 +408,7 @@ function AppContent() {
   useEffect(() => {
     if (user && isConnected) {
       // Subscribe to UI preferences updates from the real-time system
-      const unsubscribeUiPrefs = subscribe('uiPrefsUpdated', (prefs) => {
+      const unsubscribeUiPrefs = subscribe('uiPrefsUpdated', (prefs: any) => {
         dispatch(setPreferences(prefs));
       });
       
@@ -419,7 +419,7 @@ function AppContent() {
       });
       
       // Subscribe to general data updates
-      const unsubscribeDataUpdates = subscribe('data:updated', (data) => {
+      const unsubscribeDataUpdates = subscribe('data:updated', (data: any) => {
         console.log('Real-time data update received:', data);
         
         // If this is a dashboard-related update, refresh dashboard data
@@ -431,11 +431,10 @@ function AppContent() {
           queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
         }
         
-        // If user has related reports, refresh them
-        if (user.canViewReports && 
-            (data.entityType === 'report' || 
-             data.entityType === 'dispatch' || 
-             data.entityType === 'sales')) {
+        // If this is a report-related update, refresh report data
+        if (data.entityType === 'report' || 
+            data.entityType === 'dispatch' || 
+            data.entityType === 'sales') {
           queryClient.invalidateQueries({ queryKey: ['/api/reports'] });
         }
       });
