@@ -1312,24 +1312,12 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   // Use provided server or create a new one
   let httpServer = server || createServer();
   
-  // Initialize Socket.IO only if we don't have it already
-  if (!io) {
-    io = new SocketIOServer(httpServer, {
-      cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-      }
-    });
-  }
+  // Do not create a new Socket.IO server here
+  // Socket.IO is initialized only once in server/index.ts
+  // and imported from server/socket.ts
   
-  // Set up Socket.IO events
-  io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
-    
-    socket.on('disconnect', () => {
-      console.log('Client disconnected:', socket.id);
-    });
-  });
+  // Get the io instance from socket.ts or a global reference
+  // We need to reference io from somewhere since it's used in other functions
 
   // Authentication routes
   const authRouter = express.Router();

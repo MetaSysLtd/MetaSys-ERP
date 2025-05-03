@@ -162,40 +162,11 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   // Register status routes
   apiRouter.use('/status', statusRoutes);
   
-  // Initialize Socket.IO - use a single WebSocket implementation
-  if (!io) {
-    io = new SocketIOServer(httpServer, {
-      cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-      }
-    });
-    
-    // Set up Socket.IO events
-    io.on('connection', (socket) => {
-      console.log('Client connected:', socket.id);
-      
-      socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
-      });
-    });
-  }
+  // We don't need to initialize Socket.IO here as it's already done in server/index.ts
+  // and imported from server/socket.ts
   
   // Don't initialize a separate WebSocket server to avoid conflicts
-  // Socket.IO will handle all WebSocket connections
-  
-  // Configure Socket.IO for message handling - handle the same functionality
-  // that was previously in the WebSocket server
-  io.on('message', (socket, message) => {
-    try {
-      console.log('Received Socket.IO message:', message);
-      
-      // Echo back for testing
-      socket.emit('echo', { type: 'echo', data: message });
-    } catch (err) {
-      console.error('Error handling Socket.IO message:', err);
-    }
-  });
+  // Socket.IO is initialized only once in the entire application
 
   // Authentication routes
   const authRouter = express.Router();

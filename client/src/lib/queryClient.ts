@@ -38,13 +38,10 @@ export async function apiRequest(
     requestData = urlOrConfig.body;
   }
   
-  // Ensure URL starts with /api
-  if (!url.startsWith('/api')) {
-    // If it's a relative URL (not starting with http), prepend /api
-    if (!url.startsWith('http')) {
-      url = `/api${url.startsWith('/') ? '' : '/'}${url}`;
-    }
-  }
+  // Don't modify URLs that already include the protocol or are absolute
+  // The URL is already correct as provided in the API_ROUTES constants
+  
+  console.log('Making API request to:', url, 'with method:', method);
   
   const res = await fetch(url, {
     method: method || 'GET',
@@ -63,11 +60,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Ensure query key starts with /api
-    let url = queryKey[0] as string;
-    if (url && !url.startsWith('/api') && !url.startsWith('http')) {
-      url = `/api${url.startsWith('/') ? '' : '/'}${url}`;
-    }
+    // Don't modify the URL, assume it's correct as specified in API_ROUTES
+    const url = queryKey[0] as string;
+    
+    console.log('Making query to:', url);
     
     const res = await fetch(url, {
       credentials: "include",
