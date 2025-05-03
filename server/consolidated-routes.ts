@@ -2098,7 +2098,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
           loads: recentLoads,
           invoices: recentInvoices
         },
-        activities: await storage.getRecentActivities(10)
+        activities: await storage.getActivities(10)
       });
     } catch (error) {
       next(error);
