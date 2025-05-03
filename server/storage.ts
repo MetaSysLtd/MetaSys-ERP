@@ -3376,10 +3376,10 @@ export class DatabaseStorage implements IStorage {
   
   async getClientCount(orgId?: number): Promise<number> {
     try {
-      let query = db.select({ count: count() }).from(dispatchClients);
+      let query = db.select({ count: count() }).from(dispatch_clients);
       
       if (orgId) {
-        query = query.where(eq(dispatchClients.orgId, orgId));
+        query = query.where(eq(dispatch_clients.orgId, orgId));
       }
       
       const result = await query;
@@ -3435,6 +3435,328 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error getting recent leads:', error);
       return [];
+    }
+  }
+  
+  // Get recent loads for dashboard
+  async getRecentLoads(limit: number = 5, orgId?: number): Promise<Load[]> {
+    try {
+      let query = db.select().from(loads).orderBy(desc(loads.createdAt)).limit(limit);
+      
+      if (orgId) {
+        query = query.where(eq(loads.orgId, orgId));
+      }
+      
+      return await query;
+    } catch (error) {
+      console.error('Error getting recent loads:', error);
+      return [];
+    }
+  }
+  
+  // Get recent invoices for dashboard
+  async getRecentInvoices(limit: number = 5, orgId?: number): Promise<Invoice[]> {
+    try {
+      let query = db.select().from(invoices).orderBy(desc(invoices.createdAt)).limit(limit);
+      
+      if (orgId) {
+        query = query.where(eq(invoices.orgId, orgId));
+      }
+      
+      return await query;
+    } catch (error) {
+      console.error('Error getting recent invoices:', error);
+      return [];
+    }
+  }
+  
+  // Invoice operations
+  async getInvoice(id: number): Promise<Invoice | undefined> {
+    try {
+      const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
+      return invoice;
+    } catch (error) {
+      console.error('Error fetching invoice:', error);
+      return undefined;
+    }
+  }
+  
+  async getInvoiceWithItems(id: number): Promise<{invoice: Invoice, items: InvoiceItem[]} | undefined> {
+    try {
+      const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
+      
+      if (!invoice) {
+        return undefined;
+      }
+      
+      const items = await db.select().from(invoiceItems).where(eq(invoiceItems.invoiceId, id));
+      
+      return { invoice, items };
+    } catch (error) {
+      console.error('Error fetching invoice with items:', error);
+      return undefined;
+    }
+  }
+  
+  async getInvoices(page: number = 1, limit: number = 10, filters: any = {}): Promise<{data: Invoice[], pagination: {total: number, page: number, limit: number, pages: number}}> {
+    try {
+      const offset = (page - 1) * limit;
+      
+      // Base query
+      let query = db.select().from(invoices);
+      let countQuery = db.select({ count: count() }).from(invoices);
+      
+      // Apply filters
+      if (filters.orgId) {
+        query = query.where(eq(invoices.orgId, filters.orgId));
+        countQuery = countQuery.where(eq(invoices.orgId, filters.orgId));
+      }
+      
+      if (filters.status) {
+        query = query.where(eq(invoices.status, filters.status));
+        countQuery = countQuery.where(eq(invoices.status, filters.status));
+      }
+      
+      if (filters.createdBy) {
+        query = query.where(eq(invoices.createdBy, filters.createdBy));
+        countQuery = countQuery.where(eq(invoices.createdBy, filters.createdBy));
+      }
+      
+      if (filters.leadId) {
+        query = query.where(eq(invoices.leadId, filters.leadId));
+        countQuery = countQuery.where(eq(invoices.leadId, filters.leadId));
+      }
+      
+      if (filters.dateFrom && filters.dateTo) {
+        query = query.where(
+          and(
+            gte(invoices.issuedDate, new Date(filters.dateFrom)),
+            lte(invoices.issuedDate, new Date(filters.dateTo))
+          )
+        );
+        countQuery = countQuery.where(
+          and(
+            gte(invoices.issuedDate, new Date(filters.dateFrom)),
+            lte(invoices.issuedDate, new Date(filters.dateTo))
+          )
+        );
+      }
+      
+      // Add pagination
+      query = query.limit(limit).offset(offset).orderBy(desc(invoices.createdAt));
+      
+      // Execute queries
+      const data = await query;
+      const totalResult = await countQuery;
+      
+      const total = totalResult[0]?.count || 0;
+      const pages = Math.ceil(total / limit);
+      
+      return {
+        data,
+        pagination: {
+          total,
+          page,
+          limit,
+          pages
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      return {
+        data: [],
+        pagination: {
+          total: 0,
+          page,
+          limit,
+          pages: 0
+        }
+      };
+    }
+  }
+  
+  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
+    try {
+      const now = new Date();
+      const [newInvoice] = await db.insert(invoices).values({
+        ...invoice,
+        createdAt: now,
+        updatedAt: now
+      }).returning();
+      
+      return newInvoice;
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      throw error;
+    }
+  }
+  
+  async createInvoiceItem(item: InsertInvoiceItem): Promise<InvoiceItem> {
+    try {
+      const [newItem] = await db.insert(invoiceItems).values({
+        ...item,
+        createdAt: new Date()
+      }).returning();
+      
+      return newItem;
+    } catch (error) {
+      console.error('Error creating invoice item:', error);
+      throw error;
+    }
+  }
+  
+  async createInvoiceWithItems(invoice: InsertInvoice, items: Omit<InsertInvoiceItem, 'invoiceId'>[]): Promise<{invoice: Invoice, items: InvoiceItem[]}> {
+    try {
+      // Start a transaction
+      const now = new Date();
+      const [newInvoice] = await db.insert(invoices).values({
+        ...invoice,
+        createdAt: now,
+        updatedAt: now
+      }).returning();
+      
+      const newItems: InvoiceItem[] = [];
+      
+      for (const item of items) {
+        const [newItem] = await db.insert(invoiceItems).values({
+          ...item,
+          invoiceId: newInvoice.id,
+          createdAt: now
+        }).returning();
+        
+        newItems.push(newItem);
+      }
+      
+      return {
+        invoice: newInvoice,
+        items: newItems
+      };
+    } catch (error) {
+      console.error('Error creating invoice with items:', error);
+      throw error;
+    }
+  }
+  
+  async updateInvoice(id: number, invoice: Partial<Invoice>): Promise<Invoice | undefined> {
+    try {
+      const [updatedInvoice] = await db
+        .update(invoices)
+        .set({
+          ...invoice,
+          updatedAt: new Date()
+        })
+        .where(eq(invoices.id, id))
+        .returning();
+      
+      return updatedInvoice;
+    } catch (error) {
+      console.error('Error updating invoice:', error);
+      return undefined;
+    }
+  }
+  
+  async markInvoiceAsPaid(id: number, paidDate: Date, paidAmount: number): Promise<Invoice | undefined> {
+    try {
+      const [updatedInvoice] = await db
+        .update(invoices)
+        .set({
+          status: 'paid',
+          paidDate: paidDate,
+          paidAmount: paidAmount,
+          updatedAt: new Date()
+        })
+        .where(eq(invoices.id, id))
+        .returning();
+        
+      // Update related commissions
+      await db
+        .update(commissions)
+        .set({
+          status: 'approved', // Commissions are approved when invoice is paid
+          updatedAt: new Date()
+        })
+        .where(eq(commissions.invoiceId, id));
+      
+      return updatedInvoice;
+    } catch (error) {
+      console.error('Error marking invoice as paid:', error);
+      return undefined;
+    }
+  }
+  
+  async deleteInvoice(id: number): Promise<boolean> {
+    try {
+      // Delete all invoice items first
+      await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, id));
+      
+      // Then delete the invoice
+      await db.delete(invoices).where(eq(invoices.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      return false;
+    }
+  }
+  
+  async generateInvoicesForDeliveredLoads(): Promise<{count: number, invoices: Invoice[]}> {
+    try {
+      // Get all loads with Delivered status but no invoice
+      const deliveredLoads = await db.select()
+        .from(loads)
+        .where(eq(loads.status, 'Delivered'));
+      
+      const createdInvoices: Invoice[] = [];
+      
+      for (const load of deliveredLoads) {
+        // Check if invoice already exists for this load
+        const existingInvoiceItems = await db.select()
+          .from(invoiceItems)
+          .where(eq(invoiceItems.loadId, load.id));
+        
+        if (existingInvoiceItems.length > 0) {
+          continue; // Skip if already invoiced
+        }
+        
+        // Generate a unique invoice number
+        const invoiceNumber = `INV-${new Date().getFullYear()}-${load.id.toString().padStart(5, '0')}`;
+        
+        // Create invoice
+        const [newInvoice] = await db.insert(invoices).values({
+          invoiceNumber,
+          leadId: load.leadId,
+          orgId: load.orgId,
+          totalAmount: load.amount,
+          status: 'draft',
+          issuedDate: new Date(),
+          dueDate: new Date(new Date().setDate(new Date().getDate() + 30)), // Due in 30 days
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          createdBy: load.assignedTo
+        }).returning();
+        
+        // Create invoice item
+        await db.insert(invoiceItems).values({
+          invoiceId: newInvoice.id,
+          loadId: load.id,
+          description: `Transportation services from ${load.origin} to ${load.destination}`,
+          amount: load.amount,
+          createdAt: new Date()
+        });
+        
+        createdInvoices.push(newInvoice);
+      }
+      
+      return {
+        count: createdInvoices.length,
+        invoices: createdInvoices
+      };
+    } catch (error) {
+      console.error('Error generating invoices for delivered loads:', error);
+      return {
+        count: 0,
+        invoices: []
+      };
     }
   }
   
