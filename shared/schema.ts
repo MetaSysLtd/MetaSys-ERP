@@ -5,6 +5,9 @@ import { z } from "zod";
 // Clock event types enum
 export const clockEventTypeEnum = pgEnum('clock_event_type', ['IN', 'OUT']);
 
+// Bug reporting enum
+export const bugUrgencyEnum = pgEnum('bug_urgency', ['Low', 'Medium', 'High']);
+
 // CRM Lead enums
 export const leadSourceEnum = pgEnum('lead_source', ['SQL', 'MQL']);
 export const leadStatusEnum = pgEnum('lead_status', ['New', 'InProgress', 'FollowUp', 'HandToDispatch', 'Active', 'Lost']);
@@ -823,6 +826,39 @@ export const commissionsMonthly = pgTable("commissions_monthly", {
   totalCommission: real("total_commission").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Error Tracking and Bug Reporting
+export const bugs = pgTable("bugs", {
+  id: serial("id").primaryKey(),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  reportedBy: integer("reported_by").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  urgency: bugUrgencyEnum("urgency").notNull().default("Medium"),
+  status: text("status").notNull().default("New"), // "New", "In Progress", "Fixed", "Closed", "Reopened"
+  module: text("module").notNull(), // The module where the bug was found: "sales", "dispatch", "hr", etc.
+  page: text("page"), // The specific page/screen where the bug was encountered
+  browser: text("browser"), // Browser information
+  device: text("device"), // Device information
+  os: text("os"), // Operating system information
+  screenshotUrl: text("screenshot_url"), // URL to screenshot (if any)
+  steps: text("steps"), // Steps to reproduce
+  assignedTo: integer("assigned_to").references(() => users.id),
+  fixVersion: text("fix_version"), // Version where the fix was implemented
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  fixedAt: timestamp("fixed_at"),
+  closedAt: timestamp("closed_at"),
+}, (table) => {
+  return {
+    orgIdIdx: index("bugs_org_id_idx").on(table.orgId),
+    reportedByIdx: index("bugs_reported_by_idx").on(table.reportedBy),
+    statusIdx: index("bugs_status_idx").on(table.status),
+    urgencyIdx: index("bugs_urgency_idx").on(table.urgency),
+    moduleIdx: index("bugs_module_idx").on(table.module),
+    createdAtIdx: index("bugs_created_at_idx").on(table.createdAt),
+  };
 });
 
 // Schema validation
