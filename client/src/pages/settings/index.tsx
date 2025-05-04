@@ -4,6 +4,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useSearch } from "wouter";
+import { useAnimationContext } from "@/contexts/AnimationContext";
+import { AnimationSettings } from "@/components/ui/animation-settings";
 
 import {
   Tabs,
@@ -49,6 +51,7 @@ import {
   UserCheck,
   AlertTriangle,
   Check,
+  Sparkles,
 } from "lucide-react";
 import { getDepartmentColor } from "@/lib/utils";
 
@@ -349,6 +352,13 @@ export default function SettingsPage() {
                     >
                       <Bell className="h-4 w-4 mr-2" />
                       Notifications
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="animations" 
+                      className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Animations
                     </TabsTrigger>
                     {role.level >= 4 && (
                       <TabsTrigger 
@@ -760,6 +770,23 @@ export default function SettingsPage() {
                         </Button>
                       </form>
                     </Form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="animations" className="m-0">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-[#F2A71B]" />
+                      Animation Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Customize animation effects and transitions across the MetaSys ERP platform
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <AnimationSettings />
                   </CardContent>
                 </Card>
               </TabsContent>
