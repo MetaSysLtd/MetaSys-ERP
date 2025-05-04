@@ -1221,6 +1221,322 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   const commissionsRouter = express.Router();
   apiRouter.use("/commissions", commissionsRouter);
 
+  // Commission Policy routes
+  // GET all commission policies
+  commissionsRouter.get("/policy", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const type = req.query.type as string;
+      const orgId = req.query.orgId ? Number(req.query.orgId) : req.user?.orgId;
+      
+      if (!orgId) {
+        return res.status(400).json({ 
+          status: "error", 
+          message: "Organization ID is required" 
+        });
+      }
+      
+      let policies;
+      if (type) {
+        policies = await storage.getCommissionPoliciesByType(type);
+      } else {
+        policies = await storage.getCommissionPoliciesByOrg(orgId);
+      }
+      
+      res.json(policies);
+    } catch (error) {
+      console.error("Error fetching commission policies:", error);
+      next(error);
+    }
+  });
+  
+  // GET a specific commission policy
+  commissionsRouter.get("/policy/:id", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      const policy = await storage.getCommissionPolicy(id);
+      
+      if (!policy) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Commission policy not found" 
+        });
+      }
+      
+      res.json(policy);
+    } catch (error) {
+      console.error("Error fetching commission policy:", error);
+      next(error);
+    }
+  });
+  
+  // POST create a new commission policy
+  commissionsRouter.post("/policy", createAuthMiddleware(5), express.json(), async (req, res, next) => {
+    try {
+      // Validate the request body
+      const result = insertCommissionPolicySchema.safeParse(req.body);
+      if (!result.success) {
+        const validationError = fromZodError(result.error);
+        return res.status(400).json({ 
+          status: "error", 
+          message: "Invalid commission policy data", 
+          details: validationError.details 
+        });
+      }
+      
+      // Set the organization ID from the authenticated user
+      const policyData = {
+        ...result.data,
+        orgId: req.user?.orgId || 1,
+        updatedBy: req.user?.id
+      };
+      
+      const newPolicy = await storage.createCommissionPolicy(policyData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: "commission_policy",
+        entityId: newPolicy.id,
+        action: "created",
+        details: `Commission policy created: ${newPolicy.type}`
+      });
+      
+      res.status(201).json(newPolicy);
+    } catch (error) {
+      console.error("Error creating commission policy:", error);
+      next(error);
+    }
+  });
+  
+  // PUT update a commission policy
+  commissionsRouter.put("/policy/:id", createAuthMiddleware(5), express.json(), async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Make sure the policy exists
+      const existingPolicy = await storage.getCommissionPolicy(id);
+      if (!existingPolicy) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Commission policy not found" 
+        });
+      }
+      
+      // Update the policy
+      const updates = {
+        ...req.body,
+        updatedBy: req.user?.id,
+        updatedAt: new Date()
+      };
+      
+      const updatedPolicy = await storage.updateCommissionPolicy(id, updates);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: "commission_policy",
+        entityId: id,
+        action: "updated",
+        details: `Commission policy updated: ${existingPolicy.type}`
+      });
+      
+      res.json(updatedPolicy);
+    } catch (error) {
+      console.error("Error updating commission policy:", error);
+      next(error);
+    }
+  });
+  
+  // Commission Run routes
+  // GET commission runs
+  commissionsRouter.get("/run", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const orgId = req.query.orgId ? Number(req.query.orgId) : req.user?.orgId;
+      const month = req.query.month as string;
+      const userId = req.query.userId ? Number(req.query.userId) : undefined;
+      
+      if (!orgId) {
+        return res.status(400).json({ 
+          status: "error", 
+          message: "Organization ID is required" 
+        });
+      }
+      
+      let runs;
+      if (month) {
+        runs = await storage.getCommissionRunsByMonth(month);
+        if (userId) {
+          runs = runs.filter(run => run.userId === userId);
+        }
+      } else {
+        runs = await storage.getCommissionRunsByOrg(orgId);
+        if (userId) {
+          runs = runs.filter(run => run.userId === userId);
+        }
+      }
+      
+      res.json(runs);
+    } catch (error) {
+      console.error("Error fetching commission runs:", error);
+      next(error);
+    }
+  });
+  
+  // POST create a new commission run
+  commissionsRouter.post("/run", createAuthMiddleware(5), express.json(), async (req, res, next) => {
+    try {
+      // Validate the request body
+      const result = insertCommissionRunSchema.safeParse(req.body);
+      if (!result.success) {
+        const validationError = fromZodError(result.error);
+        return res.status(400).json({ 
+          status: "error", 
+          message: "Invalid commission run data", 
+          details: validationError.details 
+        });
+      }
+      
+      // Set the organization ID and calculated by user ID
+      const runData = {
+        ...result.data,
+        orgId: req.user?.orgId || 1,
+        calculatedBy: req.user?.id
+      };
+      
+      const newRun = await storage.createCommissionRun(runData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: "commission_run",
+        entityId: newRun.id,
+        action: "created",
+        details: `Commission calculation run created for user ${newRun.userId} (${newRun.year}-${newRun.month})`
+      });
+      
+      res.status(201).json(newRun);
+    } catch (error) {
+      console.error("Error creating commission run:", error);
+      next(error);
+    }
+  });
+
+  // Lead Sales User routes
+  // GET lead sales users for a lead
+  commissionsRouter.get("/lead-sales-users/:leadId", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const leadId = Number(req.params.leadId);
+      
+      // Validate lead exists
+      const lead = await storage.getLead(leadId);
+      if (!lead) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Lead not found" 
+        });
+      }
+      
+      const leadSalesUsersList = await storage.getLeadSalesUsersByLead(leadId);
+      
+      // Augment with user details
+      const detailedUsers = await Promise.all(
+        leadSalesUsersList.map(async (lsu) => {
+          const user = await storage.getUser(lsu.userId);
+          return {
+            ...lsu,
+            user: user ? {
+              id: user.id,
+              username: user.username,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              profileImageUrl: user.profileImageUrl
+            } : null
+          };
+        })
+      );
+      
+      res.json(detailedUsers);
+    } catch (error) {
+      console.error("Error fetching lead sales users:", error);
+      next(error);
+    }
+  });
+  
+  // POST create a lead sales user assignment
+  commissionsRouter.post("/lead-sales-users", createAuthMiddleware(3), express.json(), async (req, res, next) => {
+    try {
+      // Validate the request body
+      const result = insertLeadSalesUserSchema.safeParse(req.body);
+      if (!result.success) {
+        const validationError = fromZodError(result.error);
+        return res.status(400).json({ 
+          status: "error", 
+          message: "Invalid lead sales user data", 
+          details: validationError.details 
+        });
+      }
+      
+      // Validate lead exists
+      const lead = await storage.getLead(result.data.leadId);
+      if (!lead) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Lead not found" 
+        });
+      }
+      
+      // Validate user exists
+      const user = await storage.getUser(result.data.userId);
+      if (!user) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "User not found" 
+        });
+      }
+      
+      // Check if this assignment already exists
+      const existingUsers = await storage.getLeadSalesUsersByLead(result.data.leadId);
+      const existingAssignment = existingUsers.find(
+        lsu => lsu.userId === result.data.userId && lsu.role === result.data.role
+      );
+      
+      if (existingAssignment) {
+        return res.status(409).json({ 
+          status: "error", 
+          message: `User is already assigned as ${result.data.role} for this lead` 
+        });
+      }
+      
+      const newLeadSalesUser = await storage.createLeadSalesUser(result.data);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: "lead",
+        entityId: result.data.leadId,
+        action: "user_assigned",
+        details: `${user.firstName} ${user.lastName} assigned as ${result.data.role} to lead #${result.data.leadId}`
+      });
+      
+      // Get the user details to return
+      const userDetails = {
+        id: user.id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl
+      };
+      
+      res.status(201).json({
+        ...newLeadSalesUser,
+        user: userDetails
+      });
+    } catch (error) {
+      console.error("Error creating lead sales user assignment:", error);
+      next(error);
+    }
+  });
+
   // GET monthly commissions for user
   commissionsRouter.get("/monthly/user/:id", createAuthMiddleware(1), async (req, res, next) => {
     try {

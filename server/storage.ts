@@ -1828,43 +1828,74 @@ export class MemStorage implements IStorage {
     return clockEvent;
   }
 
-  // Commission Rules operations
-  async getCommissionRule(id: number): Promise<CommissionRule | undefined> {
-    return this.commissionRules.get(id);
+  // Commission Policy operations
+  async getCommissionPolicy(id: number): Promise<CommissionPolicy | undefined> {
+    const [policy] = await db.select().from(commissionPolicy).where(eq(commissionPolicy.id, id));
+    return policy;
   }
 
-  async getCommissionRulesByType(type: string): Promise<CommissionRule[]> {
-    return Array.from(this.commissionRules.values()).filter(rule => rule.type === type);
+  async getCommissionPoliciesByType(type: string): Promise<CommissionPolicy[]> {
+    return await db.select().from(commissionPolicy).where(eq(commissionPolicy.type, type));
   }
 
-  async getCommissionRulesByOrg(orgId: number): Promise<CommissionRule[]> {
-    return Array.from(this.commissionRules.values()).filter(rule => rule.orgId === orgId);
+  async getCommissionPoliciesByOrg(orgId: number): Promise<CommissionPolicy[]> {
+    return await db.select().from(commissionPolicy).where(eq(commissionPolicy.orgId, orgId));
   }
 
-  async createCommissionRule(rule: InsertCommissionRule): Promise<CommissionRule> {
-    const id = this.commissionRuleIdCounter++;
-    const now = new Date();
-    const commissionRule: CommissionRule = {
-      ...rule,
-      id,
-      createdAt: now,
-      updatedAt: now
-    };
-    this.commissionRules.set(id, commissionRule);
-    return commissionRule;
+  async createCommissionPolicy(policy: InsertCommissionPolicy): Promise<CommissionPolicy> {
+    const [newPolicy] = await db.insert(commissionPolicy).values(policy).returning();
+    return newPolicy;
   }
 
-  async updateCommissionRule(id: number, updates: Partial<CommissionRule>): Promise<CommissionRule | undefined> {
-    const rule = await this.getCommissionRule(id);
-    if (!rule) return undefined;
-    
-    const updatedRule = {
-      ...rule,
-      ...updates,
-      updatedAt: new Date()
-    };
-    this.commissionRules.set(id, updatedRule);
-    return updatedRule;
+  async updateCommissionPolicy(id: number, updates: Partial<CommissionPolicy>): Promise<CommissionPolicy | undefined> {
+    const [updatedPolicy] = await db.update(commissionPolicy)
+      .set({...updates, updatedAt: new Date()})
+      .where(eq(commissionPolicy.id, id))
+      .returning();
+    return updatedPolicy;
+  }
+  
+  // Commission Run operations
+  async getCommissionRun(id: number): Promise<CommissionRun | undefined> {
+    const [run] = await db.select().from(commissionRun).where(eq(commissionRun.id, id));
+    return run;
+  }
+
+  async getCommissionRunsByMonth(month: string): Promise<CommissionRun[]> {
+    const [year, monthNum] = month.split('-').map(Number);
+    return await db.select().from(commissionRun)
+      .where(and(
+        eq(commissionRun.year, year),
+        eq(commissionRun.month, monthNum)
+      ));
+  }
+
+  async getCommissionRunsByOrg(orgId: number): Promise<CommissionRun[]> {
+    return await db.select().from(commissionRun).where(eq(commissionRun.orgId, orgId));
+  }
+
+  async createCommissionRun(run: InsertCommissionRun): Promise<CommissionRun> {
+    const [newRun] = await db.insert(commissionRun).values(run).returning();
+    return newRun;
+  }
+
+  // Lead Sales User operations
+  async getLeadSalesUser(id: number): Promise<LeadSalesUser | undefined> {
+    const [leadSalesUser] = await db.select().from(leadSalesUsers).where(eq(leadSalesUsers.id, id));
+    return leadSalesUser;
+  }
+
+  async getLeadSalesUsersByLead(leadId: number): Promise<LeadSalesUser[]> {
+    return await db.select().from(leadSalesUsers).where(eq(leadSalesUsers.leadId, leadId));
+  }
+
+  async getLeadSalesUsersByUser(userId: number): Promise<LeadSalesUser[]> {
+    return await db.select().from(leadSalesUsers).where(eq(leadSalesUsers.userId, userId));
+  }
+
+  async createLeadSalesUser(data: InsertLeadSalesUser): Promise<LeadSalesUser> {
+    const [newLeadSalesUser] = await db.insert(leadSalesUsers).values(data).returning();
+    return newLeadSalesUser;
   }
   
   // Monthly Commission operations
