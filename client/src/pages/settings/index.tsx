@@ -52,6 +52,7 @@ import {
   AlertTriangle,
   Check,
   Sparkles,
+  DollarSign,
 } from "lucide-react";
 import { getDepartmentColor } from "@/lib/utils";
 
@@ -799,6 +800,49 @@ export default function SettingsPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
+              
+              {role.level >= 3 && (
+                <TabsContent value="commission-policies" className="m-0">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5 text-[#F2A71B]" />
+                        Commission Policies
+                      </CardTitle>
+                      <CardDescription>
+                        Manage sales and dispatch commission policies
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-6">
+                        <div className="flex">
+                          <div className="flex-shrink-0">
+                            <AlertTriangle className="h-5 w-5 text-yellow-400" />
+                          </div>
+                          <div className="ml-3">
+                            <h3 className="text-sm font-medium text-yellow-800">
+                              Go to the Commission Policies Page
+                            </h3>
+                            <div className="mt-2 text-sm text-yellow-700">
+                              <p>
+                                Commission policies configuration has been moved to a dedicated page for better management.
+                              </p>
+                            </div>
+                            <div className="mt-4">
+                              <Button
+                                onClick={() => navigate("/settings/commission-policies")}
+                                size="sm"
+                              >
+                                Go to Commission Policies
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              )}
               
               {role.level >= 4 && (
                 <TabsContent value="teams" className="m-0">
