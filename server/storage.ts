@@ -1863,29 +1863,7 @@ export class MemStorage implements IStorage {
     return updatedPolicy;
   }
   
-  async archiveCommissionPolicy(id: number, userId: number): Promise<CommissionPolicy | undefined> {
-    try {
-      // Set end date (validTo) as yesterday
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      
-      const [updatedPolicy] = await db
-        .update(commissionPolicy)
-        .set({
-          isActive: false,
-          validTo: yesterday,
-          updatedBy: userId,
-          updatedAt: new Date()
-        })
-        .where(eq(commissionPolicy.id, id))
-        .returning();
-        
-      return updatedPolicy;
-    } catch (error) {
-      console.error("Error archiving commission policy:", error);
-      throw error;
-    }
-  }
+  // Method moved to proper location in the class
   
   // Commission Run operations
   async getCommissionRun(id: number): Promise<CommissionRun | undefined> {
@@ -3485,14 +3463,14 @@ export class DatabaseStorage implements IStorage {
       yesterday.setDate(yesterday.getDate() - 1);
       
       const [updatedPolicy] = await db
-        .update(commissionPolicies)
+        .update(commissionPolicy)
         .set({
           isActive: false,
           validTo: yesterday,
           updatedBy: userId,
           updatedAt: new Date()
         })
-        .where(eq(commissionPolicies.id, id))
+        .where(eq(commissionPolicy.id, id))
         .returning();
         
       return updatedPolicy;

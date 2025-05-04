@@ -42,6 +42,7 @@ import NotificationsPage from "@/pages/notifications";
 import GamificationPage from "@/pages/gamification";
 import LeaderboardPage from "@/pages/leaderboard";
 import ClientPortalPage from "@/pages/client-portal";
+import CommissionPoliciesPage from "@/pages/settings/commission-policies";
 // Team pages
 import SalesTeamPage from "@/pages/teams/sales";
 import DispatchTeamPage from "@/pages/teams/dispatch";
@@ -250,7 +251,7 @@ function Router() {
       <Route path="/settings/commission-policies">
         {() => (
           <AppLayout>
-            <ProtectedRoute component={() => import("@/pages/settings/commission-policies").then(mod => mod.default)} />
+            <ProtectedRoute component={CommissionPoliciesPage} />
           </AppLayout>
         )}
       </Route>
