@@ -3,7 +3,9 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAnimationContext } from '@/contexts/AnimationContext';
 
-type AnimationType = 'fade' | 'slideUp' | 'slideDown' | 'slideLeft' | 'slideRight' | 'scale';
+type AnimationType = 
+  'fade' | 'fade-up' | 'fade-down' | 'fade-left' | 'fade-right' |
+  'slideUp' | 'slideDown' | 'slideLeft' | 'slideRight' | 'scale';
 
 interface MotionWrapperProps {
   children: ReactNode;
@@ -19,6 +21,26 @@ const animations = {
     initial: { opacity: 0 },
     animate: { opacity: 1 },
     exit: { opacity: 0 },
+  },
+  'fade-up': {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: 20 },
+  },
+  'fade-down': {
+    initial: { opacity: 0, y: -20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 },
+  },
+  'fade-left': {
+    initial: { opacity: 0, x: 20 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: 20 },
+  },
+  'fade-right': {
+    initial: { opacity: 0, x: -20 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: -20 },
   },
   slideUp: {
     initial: { opacity: 0, y: 20 },
@@ -62,7 +84,8 @@ export function MotionWrapper({
     return <div className={className}>{children}</div>;
   }
   
-  const animationProps = animations[animation] || animations.fade;
+  // TypeScript needs this explicit cast to ensure property access works
+  const animationProps = animations[animation as keyof typeof animations] || animations.fade;
   
   return (
     <motion.div
