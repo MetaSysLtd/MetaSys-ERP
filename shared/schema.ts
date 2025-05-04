@@ -841,28 +841,30 @@ export const messages = pgTable("messages", {
 // Commission source enum
 export const commissionSourceEnum = pgEnum('commission_source', ['direct', 'inbound', 'starter', 'closer']);
 
+// Commission scope enum
+export const commissionScopeEnum = pgEnum('commission_scope', ['dispatch_sales', 'dispatch_agent', 'saas_sales']);
+
 // Commission Policy - contains the commission structure configuration
 export const commissionPolicy = pgTable("commission_policy", {
   id: serial("id").primaryKey(),
   orgId: integer("org_id").notNull().references(() => organizations.id),
-  type: text("type").notNull(), // "sales", "dispatch"
-  activeLeadTable: jsonb("active_lead_table").notNull(), // Commission tiers array {activeleads: number, amount: number}
-  bonuses: jsonb("bonuses").notNull(), // Bonus definitions for rep of month, active trucks, team lead
-  inboundFactor: real("inbound_factor").notNull().default(0.75), // Inbound lead multiplier (default 75%)
-  starterSplit: real("starter_split").notNull().default(0.6), // Starter's share (default 60%)
-  closerSplit: real("closer_split").notNull().default(0.4), // Closer's share (default 40%)
-  penaltyThreshold: integer("penalty_threshold").notNull().default(20), // Call attempts threshold for penalty
-  penaltyFactor: real("penalty_factor").notNull().default(0.75), // Salary reduction factor if 0 active leads
-  teamLeadBonusAmount: integer("team_lead_bonus_amount").notNull().default(1000), // Amount per lead after target
-  isActive: boolean("is_active").notNull().default(true),
+  name: text("name").notNull(), // e.g., "Dispatch-Sales v2024-05"
+  scope: commissionScopeEnum("scope").notNull(), // "dispatch_sales", "dispatch_agent", "saas_sales"
+  rules: jsonb("rules").notNull(), // Stores tiers, bonuses, split rules, formulas
+  isActive: boolean("is_active").notNull().default(false),
+  validFrom: date("valid_from"),
+  validTo: date("valid_to"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
   updatedBy: integer("updated_by").notNull().references(() => users.id),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (table) => {
   return {
     orgIdIdx: index("commission_policy_org_id_idx").on(table.orgId),
-    typeIdx: index("commission_policy_type_idx").on(table.type),
+    scopeIdx: index("commission_policy_scope_idx").on(table.scope),
     activeIdx: index("commission_policy_active_idx").on(table.isActive),
+    nameIdx: index("commission_policy_name_idx").on(table.name),
+    validDateRangeIdx: index("commission_policy_date_range_idx").on(table.validFrom, table.validTo),
   };
 });
 
@@ -1067,7 +1069,12 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
 export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({ id: true, createdAt: true });
 export const insertClockEventSchema = createInsertSchema(clockEvents).omit({ id: true, timestamp: true });
-export const insertCommissionPolicySchema = createInsertSchema(commissionPolicy).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCommissionPolicySchema = createInsertSchema(commissionPolicy).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true,
+  validTo: true // This can be set when archiving a policy
+});
 export const insertCommissionRunSchema = createInsertSchema(commissionRun).omit({ id: true, calculatedAt: true, createdAt: true, updatedAt: true });
 export const insertLeadSalesUserSchema = createInsertSchema(leadSalesUsers).omit({ id: true, createdAt: true });
 export const insertCommissionMonthlySchema = createInsertSchema(commissionsMonthly).omit({ id: true, createdAt: true, updatedAt: true });
