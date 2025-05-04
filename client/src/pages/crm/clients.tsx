@@ -43,20 +43,22 @@ export default function ClientsPage() {
   
   // Get clients from the API - in reality this would be a separate endpoint
   // but for now we can use the leads endpoint and filter active leads
-  const { data: allLeads, isLoading, error, isError } = useQuery({
+  const { data: allLeads = [], isLoading, error, isError } = useQuery<any[]>({
     queryKey: ["/api/leads"],
   });
   
   // Filter to only active leads (considered as clients)
-  const clients = allLeads?.filter((lead: any) => lead.status === "Active") || [];
+  const clients = Array.isArray(allLeads) 
+    ? allLeads.filter((lead: any) => lead.status === "Active") 
+    : [];
   
   // Filter clients based on search query
   const filteredClients = searchQuery ? 
     clients.filter((client: any) => 
-      client.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.contactName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.mcNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.dotNumber?.toLowerCase().includes(searchQuery.toLowerCase())
+      (client.companyName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (client.contactName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (client.mcNumber || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (client.dotNumber || '').toLowerCase().includes(searchQuery.toLowerCase())
     ) : 
     clients;
 
@@ -64,7 +66,8 @@ export default function ClientsPage() {
   const canCreateClient = 
     role?.department === "admin" || 
     role?.department === "sales" ||
-    (role?.permissions && role.permissions.canCreateLeads);
+    (role?.permissions && typeof role.permissions === 'object' && 
+     'canCreateLeads' in role.permissions && role.permissions.canCreateLeads);
 
   // Render loading skeleton
   if (isLoading) {
@@ -205,14 +208,14 @@ export default function ClientsPage() {
                   <div className="flex items-start">
                     <Avatar className="h-12 w-12 mr-3">
                       <AvatarFallback className="bg-[#025E73] text-white">
-                        {client.companyName.substring(0, 2).toUpperCase()}
+                        {client.companyName ? client.companyName.substring(0, 2).toUpperCase() : 'CL'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="text-xl">{client.companyName}</CardTitle>
+                      <CardTitle className="text-xl">{client.companyName || 'Unnamed Client'}</CardTitle>
                       <p className="text-gray-500 text-sm flex items-center mt-1">
                         <Truck className="h-3.5 w-3.5 mr-1 opacity-70" />
-                        MC: {client.mcNumber} {client.dotNumber && `• DOT: ${client.dotNumber}`}
+                        MC: {client.mcNumber || 'N/A'} {client.dotNumber && `• DOT: ${client.dotNumber}`}
                       </p>
                     </div>
                   </div>
@@ -226,7 +229,7 @@ export default function ClientsPage() {
                   <div>
                     <p className="text-sm flex items-center text-gray-700">
                       <Phone className="h-3.5 w-3.5 mr-2 text-gray-500" />
-                      {client.phoneNumber}
+                      {client.phoneNumber || 'No phone provided'}
                     </p>
                     {client.email && (
                       <p className="text-sm flex items-center text-gray-700 mt-1">
@@ -242,11 +245,11 @@ export default function ClientsPage() {
                   <div>
                     <p className="text-sm flex items-center text-gray-700">
                       <span className="font-medium mr-2">Equipment:</span> 
-                      {client.equipmentType}
+                      {client.equipmentType || 'Not specified'}
                     </p>
                     <p className="text-sm flex items-center text-gray-700 mt-1">
                       <span className="font-medium mr-2">Service Charge:</span>
-                      {formatCurrency(client.serviceCharges)}
+                      {formatCurrency(client.serviceCharges || 0)}
                     </p>
                   </div>
                 </div>
