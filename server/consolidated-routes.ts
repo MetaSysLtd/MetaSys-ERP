@@ -22,6 +22,7 @@ import { NotificationPreferences, defaultNotificationPreferences } from "./notif
 import errorLoggingRoutes from "./routes/error-logging";
 import statusRoutes from "./routes/status";
 import { registerModuleRoutes } from "./routes/index";
+
 import { organizationMiddleware } from "./middleware/organizationMiddleware";
 import { 
   leadRealTimeMiddleware, 
@@ -236,7 +237,18 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   // Register status routes
   apiRouter.use('/status', statusRoutes);
   
-  // Register all module routes (including CRM)
+  // Register CRM module routes with dynamic imports to avoid circular dependencies
+  import('./routes/leads').then(module => {
+    apiRouter.use('/crm/leads', module.default);
+  });
+  
+  import('./routes/mql').then(module => {
+    apiRouter.use('/crm/mql', module.default);
+  });
+  
+  // CRM module routes are registered via dynamic imports above
+  
+  // Register all module routes
   registerModuleRoutes(apiRouter);
   
   // Time Tracking Module Router
