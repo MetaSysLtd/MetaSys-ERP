@@ -156,6 +156,146 @@ export default function DispatchLoadsPage() {
       });
     }
   };
+  
+  // Export loads to PDF
+  const exportLoadsToPDF = () => {
+    if (!filteredLoads || filteredLoads.length === 0) {
+      toast({
+        title: "No Data to Export",
+        description: "There are no loads matching your current filters to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "Generating PDF",
+        description: "Your PDF is being prepared for download",
+      });
+      
+      // Create HTML content for PDF
+      const companyLogo = "MetaSys ERP";
+      const today = new Date().toLocaleDateString();
+      
+      // Create PDF template
+      const pdfContent = `
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; color: #333; margin: 0; padding: 20px; }
+              .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #025E73; padding-bottom: 10px; }
+              .logo { font-size: 24px; font-weight: bold; color: #025E73; }
+              .title { font-size: 22px; font-weight: bold; text-align: center; margin: 20px 0; color: #025E73; }
+              .date { text-align: right; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th { background-color: #f1f5f9; text-align: left; padding: 10px; border-bottom: 2px solid #025E73; font-weight: bold; }
+              td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
+              tr:nth-child(even) { background-color: #f8fafc; }
+              .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+              .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+              .status-pending { background-color: #fff7ed; color: #c2410c; }
+              .status-assigned { background-color: #eff6ff; color: #1d4ed8; }
+              .status-in-transit { background-color: #f5f3ff; color: #6d28d9; }
+              .status-delivered { background-color: #ecfdf5; color: #047857; }
+              .status-cancelled { background-color: #fef2f2; color: #b91c1c; }
+              .status-issue { background-color: #fef2f2; color: #b91c1c; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <div class="logo">${companyLogo}</div>
+              <div class="date">Generated: ${today}</div>
+            </div>
+            
+            <div class="title">Dispatch Loads Report</div>
+            
+            <table>
+              <thead>
+                <tr>
+                  <th>Load #</th>
+                  <th>Origin</th>
+                  <th>Destination</th>
+                  <th>Client</th>
+                  <th>Pickup</th>
+                  <th>Delivery</th>
+                  <th>Status</th>
+                  <th>Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredLoads.map(load => {
+                  const status = formatStatus(load.status);
+                  const statusClass = `status-${load.status.replace('_', '-')}`;
+                  return `
+                    <tr>
+                      <td>${load.loadNumber || ''}</td>
+                      <td>${load.origin || ''}</td>
+                      <td>${load.destination || ''}</td>
+                      <td>${load.client?.name || ''}</td>
+                      <td>${formatDate(load.pickupDate) || ''}</td>
+                      <td>${formatDate(load.deliveryDate) || ''}</td>
+                      <td><span class="status-badge ${statusClass}">${status.label}</span></td>
+                      <td>$${load.rate?.toFixed(2) || '0.00'}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+            
+            <div class="footer">
+              <p>MetaSys ERP - Dispatch Management System | This report contains ${filteredLoads.length} loads</p>
+            </div>
+          </body>
+        </html>
+      `;
+      
+      // Convert HTML to PDF
+      const blob = new Blob([pdfContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      
+      // Create a temporary iframe to print the content
+      const printFrame = document.createElement('iframe');
+      printFrame.style.position = 'fixed';
+      printFrame.style.top = '0';
+      printFrame.style.left = '0';
+      printFrame.style.width = '100%';
+      printFrame.style.height = '100%';
+      printFrame.style.zIndex = '-9999';
+      document.body.appendChild(printFrame);
+      
+      printFrame.onload = () => {
+        printFrame.contentWindow?.document.open();
+        printFrame.contentWindow?.document.write(pdfContent);
+        printFrame.contentWindow?.document.close();
+        
+        // Use setTimeout to ensure content is loaded
+        setTimeout(() => {
+          printFrame.contentWindow?.print();
+          // Remove the iframe after printing
+          setTimeout(() => {
+            document.body.removeChild(printFrame);
+          }, 1000);
+          
+          toast({
+            title: "Export Successful",
+            description: "Your loads have been exported to PDF",
+            variant: "default",
+          });
+        }, 500);
+      };
+      
+      printFrame.src = url;
+      
+    } catch (error) {
+      console.error("PDF export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "There was an error generating your PDF.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Filter loads based on status and search query
   useEffect(() => {
@@ -351,6 +491,13 @@ export default function DispatchLoadsPage() {
             <TabsTrigger value="completed">Completed</TabsTrigger>
             <TabsTrigger value="issue">Issues</TabsTrigger>
           </TabsList>
+          
+          {/* These TabsContent elements are required for proper Tabs functionality */}
+          <TabsContent value="all"></TabsContent>
+          <TabsContent value="upcoming"></TabsContent>
+          <TabsContent value="in_transit"></TabsContent>
+          <TabsContent value="completed"></TabsContent>
+          <TabsContent value="issue"></TabsContent>
         </Tabs>
       </MotionWrapper>
       
@@ -405,14 +552,46 @@ export default function DispatchLoadsPage() {
                 {displayLoads.length} {displayLoads.length === 1 ? 'load' : 'loads'} found
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={exportLoadsToCSV}
-                >
-                  <FileSpreadsheet className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
+                <div className="dropdown">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center"
+                    onClick={() => {
+                      const dropdown = document.getElementById('exportDropdown');
+                      if (dropdown) {
+                        dropdown.classList.toggle('hidden');
+                      }
+                    }}
+                  >
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                  <div id="exportDropdown" className="hidden absolute z-10 mt-1 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div className="py-1">
+                      <button
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => {
+                          document.getElementById('exportDropdown')?.classList.add('hidden');
+                          exportLoadsToCSV();
+                        }}
+                      >
+                        <FileSpreadsheet className="h-4 w-4 inline-block mr-2" />
+                        Export as CSV
+                      </button>
+                      <button
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => {
+                          document.getElementById('exportDropdown')?.classList.add('hidden');
+                          exportLoadsToPDF();
+                        }}
+                      >
+                        <FileText className="h-4 w-4 inline-block mr-2" />
+                        Export as PDF
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
