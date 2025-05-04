@@ -369,6 +369,15 @@ export default function SettingsPage() {
                         Teams
                       </TabsTrigger>
                     )}
+                    {role.level >= 3 && (
+                      <TabsTrigger 
+                        value="commission-policies" 
+                        className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
+                      >
+                        <DollarSign className="h-4 w-4 mr-2" />
+                        Commission Policies
+                      </TabsTrigger>
+                    )}
                     {role.level >= 5 && (
                       <TabsTrigger 
                         value="admin" 
