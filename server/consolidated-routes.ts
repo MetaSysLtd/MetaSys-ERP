@@ -236,6 +236,9 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   // Register status routes
   apiRouter.use('/status', statusRoutes);
   
+  // Register all module routes (including CRM)
+  registerModuleRoutes(apiRouter);
+  
   // Time Tracking Module Router
   const timeTrackingRouter = express.Router();
   apiRouter.use('/time-tracking', timeTrackingRouter);
