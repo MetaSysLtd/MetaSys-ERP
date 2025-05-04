@@ -247,6 +247,14 @@ function Router() {
         )}
       </Route>
 
+      <Route path="/settings/commission-policies">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={() => import("@/pages/settings/commission-policies").then(mod => mod.default)} />
+          </AppLayout>
+        )}
+      </Route>
+
       <Route path="/admin">
         {() => (
           <AppLayout>

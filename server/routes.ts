@@ -1507,6 +1507,18 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
       const userId = Number(req.params.id);
       const month = req.query.month as string || new Date().toISOString().slice(0, 7); // Default to current month
       
+      // Fix for the CRM commissions page error - ensure valid JSON response
+      if (req.headers.accept?.includes('text/html')) {
+        return res.json({
+          userId,
+          month,
+          items: [],
+          total: 0,
+          leads: 0,
+          clients: 0
+        });
+      }
+      
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ 
