@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Plus, Trash2, Settings2, Info, Save } from "lucide-react";
+import { Loader2, Plus, Trash2, Settings2, Info, Save, Archive } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 // Define the form schema for active lead tiers
@@ -156,6 +156,34 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
     onError: (error) => {
       toast({
         title: "Failed to update policy",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Archive commission policy mutation
+  const archivePolicyMutation = useMutation({
+    mutationFn: async () => {
+      if (!policyId) throw new Error("No policy ID provided");
+      const res = await apiRequest("PATCH", `/api/commissions/policy/${policyId}/archive`, {});
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to archive policy");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Policy archived",
+        description: "Commission policy has been archived successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/commissions/policy"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/commissions/policy", policyId] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to archive policy",
         description: error.message,
         variant: "destructive",
       });
@@ -485,10 +513,34 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
               </TabsContent>
             </Tabs>
 
-            <div className="flex justify-end">
+            <div className="flex justify-between items-center">
+              {/* Archive Button - only show for existing policies that are active */}
+              {policyId && existingPolicy?.isActive && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => archivePolicyMutation.mutate()}
+                  disabled={archivePolicyMutation.isPending}
+                >
+                  {archivePolicyMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Archiving...
+                    </>
+                  ) : (
+                    <>
+                      <Archive className="mr-2 h-4 w-4" />
+                      Archive Policy
+                    </>
+                  )}
+                </Button>
+              )}
+              
+              {/* Save Button */}
               <Button
                 type="submit"
                 disabled={createPolicyMutation.isPending || updatePolicyMutation.isPending}
+                className={policyId && existingPolicy?.isActive ? "" : "ml-auto"}
               >
                 {(createPolicyMutation.isPending || updatePolicyMutation.isPending) ? (
                   <>
