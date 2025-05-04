@@ -1,5 +1,8 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
+import { useDispatch, useSelector } from 'react-redux';
+import { saveAnimationSettings } from '@/store/uiPreferencesSlice';
+import { RootState } from '@/store/store';
 
 type TransitionSpeed = 'fast' | 'normal' | 'slow';
 type AnimationDurationType = 'standard' | 'complex' | 'subtle';
@@ -34,49 +37,58 @@ const defaultContext: AnimationContextType = {
 export const AnimationContext = createContext<AnimationContextType>(defaultContext);
 
 export function AnimationProvider({ children }: { children: ReactNode }) {
-  const [animationsEnabled, setAnimationsEnabled] = useState(true);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const [transitionSpeed, setTransitionSpeed] = useState<TransitionSpeed>('normal');
-  const [pageTransition, setPageTransition] = useState<TransitionType>('gradient');
+  // Connect to Redux store
+  const dispatch = useDispatch();
+  const uiPreferences = useSelector((state: RootState) => state.uiPreferences);
+  
+  // Local state for path tracking - we don't persist these in Redux
   const [currentPath, setCurrentPath] = useState('/');
   const [previousPath, setPreviousPath] = useState<string | null>(null);
   const [location] = useLocation();
 
-  // On mount, check local storage for animation preferences
+  // States from Redux
+  const [animationsEnabled, setAnimationsEnabled] = useState(uiPreferences.animationsEnabled);
+  const [reducedMotion, setReducedMotion] = useState(uiPreferences.reducedMotion);
+  const [transitionSpeed, setTransitionSpeed] = useState<TransitionSpeed>(
+    uiPreferences.transitionSpeed as TransitionSpeed
+  );
+  const [pageTransition, setPageTransition] = useState<TransitionType>(
+    uiPreferences.pageTransition as TransitionType
+  );
+
+  // Sync local state with Redux when preferences change
+  useEffect(() => {
+    setAnimationsEnabled(uiPreferences.animationsEnabled);
+    setReducedMotion(uiPreferences.reducedMotion);
+    setTransitionSpeed(uiPreferences.transitionSpeed as TransitionSpeed);
+    setPageTransition(uiPreferences.pageTransition as TransitionType);
+  }, [uiPreferences]);
+  
+  // Check for reduced motion preference from system
   useEffect(() => {
     try {
-      // Check for animations enabled preference
-      const storedPreference = localStorage.getItem('metasys_animations_enabled');
-      // Only disable if explicitly set to "false"
-      if (storedPreference === 'false') {
-        setAnimationsEnabled(false);
-      }
-      
-      // Check for transition speed preference
-      const storedSpeed = localStorage.getItem('metasys_transition_speed');
-      // Default to 'normal' if not set
-      if (storedSpeed && ['fast', 'normal', 'slow'].includes(storedSpeed)) {
-        setTransitionSpeed(storedSpeed as TransitionSpeed);
-      } else {
-        // If no preference is set, store the default 'normal' speed
-        localStorage.setItem('metasys_transition_speed', 'normal');
-      }
-      
-      // Check for reduced motion preference
       const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-      setReducedMotion(mediaQuery.matches);
+      const systemReducedMotion = mediaQuery.matches;
+      
+      // If system preference is different from stored preference, update store
+      if (systemReducedMotion !== reducedMotion) {
+        dispatch(saveAnimationSettings({ reducedMotion: systemReducedMotion }));
+      }
       
       // Listen for changes
-      const handleChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+      const handleChange = (e: MediaQueryListEvent) => {
+        dispatch(saveAnimationSettings({ reducedMotion: e.matches }));
+      };
+      
       mediaQuery.addEventListener('change', handleChange);
       
       return () => {
         mediaQuery.removeEventListener('change', handleChange);
       };
     } catch (error) {
-      console.error('Failed to read animation preferences from localStorage:', error);
+      console.error('Failed to check system reduced motion preference:', error);
     }
-  }, []);
+  }, [dispatch]);
   
   // Track location changes to update path tracking
   useEffect(() => {
@@ -85,48 +97,21 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
       setCurrentPath(location);
     }
   }, [location, currentPath]);
-  
-  // Check for page transition preference in local storage
-  useEffect(() => {
-    try {
-      const storedTransitionType = localStorage.getItem('metasys_page_transition');
-      if (storedTransitionType && ['fade', 'slide', 'zoom', 'gradient'].includes(storedTransitionType)) {
-        setPageTransition(storedTransitionType as TransitionType);
-      } else {
-        // If no preference is set, store the default 'gradient' transition
-        localStorage.setItem('metasys_page_transition', 'gradient');
-      }
-    } catch (error) {
-      console.error('Failed to read page transition preference from localStorage:', error);
-    }
-  }, []);
 
   const toggleAnimations = () => {
     const newValue = !animationsEnabled;
     setAnimationsEnabled(newValue);
-    try {
-      localStorage.setItem('metasys_animations_enabled', String(newValue));
-    } catch (error) {
-      console.error('Failed to save animation preference to localStorage:', error);
-    }
+    dispatch(saveAnimationSettings({ animationsEnabled: newValue }));
   };
   
   const handleSetTransitionSpeed = (speed: TransitionSpeed) => {
     setTransitionSpeed(speed);
-    try {
-      localStorage.setItem('metasys_transition_speed', speed);
-    } catch (error) {
-      console.error('Failed to save transition speed preference to localStorage:', error);
-    }
+    dispatch(saveAnimationSettings({ transitionSpeed: speed }));
   };
   
   const handleSetPageTransition = (type: TransitionType) => {
     setPageTransition(type);
-    try {
-      localStorage.setItem('metasys_page_transition', type);
-    } catch (error) {
-      console.error('Failed to save page transition preference to localStorage:', error);
-    }
+    dispatch(saveAnimationSettings({ pageTransition: type }));
   };
   
   // Utility function to adjust animation duration based on user preferences and type

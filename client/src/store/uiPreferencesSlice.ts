@@ -77,7 +77,7 @@ export const { setPreferences, togglePinned, toggleCollapsed, toggleDropdown } =
 export default uiPreferencesSlice.reducer;
 
 /**
- * Helper function for saving animation settings
+ * Helper function for saving animation settings to Redux store and server
  */
 export const saveAnimationSettings = (settings: {
   animationsEnabled?: boolean;
@@ -86,7 +86,8 @@ export const saveAnimationSettings = (settings: {
   reducedMotion?: boolean;
 }) => async (dispatch: any) => {
   try {
-    dispatch(updatePreferences(settings));
+    // This will update both the Redux store and the server
+    await dispatch(updatePreferences(settings));
     return true;
   } catch (error) {
     console.error('Failed to save animation settings:', error);

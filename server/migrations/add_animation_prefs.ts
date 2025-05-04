@@ -14,7 +14,8 @@ async function main() {
       { name: 'transition_speed', sql: sql`ALTER TABLE ui_preferences ADD COLUMN IF NOT EXISTS transition_speed TEXT NOT NULL DEFAULT 'normal'` },
       { name: 'page_transition', sql: sql`ALTER TABLE ui_preferences ADD COLUMN IF NOT EXISTS page_transition TEXT NOT NULL DEFAULT 'gradient'` },
       { name: 'reduced_motion', sql: sql`ALTER TABLE ui_preferences ADD COLUMN IF NOT EXISTS reduced_motion BOOLEAN NOT NULL DEFAULT false` },
-      { name: 'theme', sql: sql`ALTER TABLE ui_preferences ADD COLUMN IF NOT EXISTS theme TEXT NOT NULL DEFAULT 'light'` }
+      { name: 'theme', sql: sql`ALTER TABLE ui_preferences ADD COLUMN IF NOT EXISTS theme TEXT NOT NULL DEFAULT 'light'` },
+      { name: 'home_dashboard', sql: sql`ALTER TABLE ui_preferences ADD COLUMN IF NOT EXISTS home_dashboard TEXT` }
     ];
     
     for (const column of columns) {
