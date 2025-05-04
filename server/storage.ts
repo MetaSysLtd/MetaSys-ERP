@@ -3413,6 +3413,71 @@ export class DatabaseStorage implements IStorage {
     return updatedPolicy;
   }
   
+  async deleteCommissionPolicy(id: number): Promise<boolean> {
+    try {
+      // First check if the policy exists and is not active
+      const [policy] = await db.select().from(commissionPolicies).where(eq(commissionPolicies.id, id));
+      
+      if (!policy) {
+        return false;
+      }
+      
+      if (policy.isActive) {
+        throw new Error("Cannot delete an active policy. Deactivate it first.");
+      }
+      
+      // Delete the policy
+      const result = await db.delete(commissionPolicies).where(eq(commissionPolicies.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting commission policy:", error);
+      throw error;
+    }
+  }
+  
+  async deactivateCommissionPoliciesByType(type: string, orgId: number): Promise<void> {
+    try {
+      await db.update(commissionPolicies)
+        .set({ 
+          isActive: false,
+          updatedAt: new Date() 
+        })
+        .where(
+          and(
+            eq(commissionPolicies.type, type),
+            eq(commissionPolicies.orgId, orgId),
+            eq(commissionPolicies.isActive, true)
+          )
+        );
+    } catch (error) {
+      console.error("Error deactivating commission policies:", error);
+      throw error;
+    }
+  }
+  
+  async archiveCommissionPolicy(id: number, userId: number): Promise<CommissionPolicy | undefined> {
+    try {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      const [updatedPolicy] = await db
+        .update(commissionPolicies)
+        .set({
+          isActive: false,
+          validTo: yesterday,
+          updatedBy: userId,
+          updatedAt: new Date()
+        })
+        .where(eq(commissionPolicies.id, id))
+        .returning();
+        
+      return updatedPolicy;
+    } catch (error) {
+      console.error("Error archiving commission policy:", error);
+      throw error;
+    }
+  }
+  
   // Commission Run operations
   async getCommissionRun(id: number): Promise<CommissionRun | undefined> {
     const [run] = await db.select().from(commissionRuns).where(eq(commissionRuns.id, id));

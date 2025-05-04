@@ -1853,6 +1853,39 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     }
   });
   
+  // Archive a commission policy (set validTo=yesterday, isActive=false)
+  commissionsRouter.patch("/policy/:id/archive", createAuthMiddleware(5), async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Make sure the policy exists
+      const existingPolicy = await storage.getCommissionPolicy(id);
+      if (!existingPolicy) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Commission policy not found" 
+        });
+      }
+      
+      // Archive the policy
+      const archivedPolicy = await storage.archiveCommissionPolicy(id, req.user?.id || 0);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: "commission_policy",
+        entityId: id,
+        action: "archived",
+        details: `Commission policy archived: ${existingPolicy.type}`
+      });
+      
+      res.json(archivedPolicy);
+    } catch (error) {
+      console.error("Error archiving commission policy:", error);
+      next(error);
+    }
+  });
+  
   // PATCH activate a commission policy
   commissionsRouter.patch("/policy/:id/activate", createAuthMiddleware(5), express.json(), async (req, res, next) => {
     try {

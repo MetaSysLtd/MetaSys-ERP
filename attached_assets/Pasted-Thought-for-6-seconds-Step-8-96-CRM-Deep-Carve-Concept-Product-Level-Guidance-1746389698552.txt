@@ -1,0 +1,153 @@
+Thought for 6 seconds
+
+
+### 📍 **Step 8 · 96 — “CRM Deep‑Carve” (Concept / Product‑Level Guidance for Replit‑Bot)**
+
+*(No low‑level code; pure product & data‑logic so the agent can build correctly.)*
+
+---
+
+## 1. Why we’re doing this
+
+* Sales reps **only sell.**
+* Dispatchers **only move freight.**
+* Data hand‑off must be **complete & auditable** so neither side re‑types info or blames the other.
+* CRM must therefore look more like **HubSpot / Pipedrive** than a half‑baked “lead + create‑load” list.
+
+---
+
+## 2. New CRM Information Architecture (Sidebar)
+
+```
+CRM
+ ├─ Leads              (SQL + MQL pipelines)
+ ├─ Accounts           (companies/clients, read‑only for Sales)
+ ├─ Activities         (call & email logs, tasks, reminders)
+ ├─ Surveys            (NPS / simple feedback forms)
+ └─ Commissions
+```
+
+*Remove the “Create Load” action from CRM entirely.*
+
+---
+
+## 3. Key Concepts & Flows
+
+### 3.1 Lead Lifecycle
+
+| Stage                | Owner            | Auto Rules / Guards                                |
+| -------------------- | ---------------- | -------------------------------------------------- |
+| **New**              | Sales            | Created (SQL or MQL)                               |
+| **In Progress**      | Sales            | At least 1 call/email logged                       |
+| **Hand To Dispatch** | Sales → Dispatch | *Guard:* `callAttempts ≥ 3` AND `mcNumber` present |
+| **Active**           | Dispatch         | 1st load booked, invoice generated                 |
+| **Dormant**          | System           | No loads ≥ 30 days                                 |
+| **Unqualified**      | Sales            | Reason mandatory                                   |
+
+Whenever a lead moves stage:
+
+1. Append timeline entry.
+2. Push notification to relevant team(s).
+3. Emit WebSocket event so dashboards refresh.
+
+### 3.2 Activity Feed Rules
+
+* **Everything** that happens to a lead or account funnels into `activities` table.
+* UI shows a **vertical timeline** (like HubSpot activity).
+* Sales & Dispatch see the *same* feed; dispatch adds load notes, sales adds call notes.
+
+### 3.3 Reminders / Follow‑ups
+
+* New “Follow‑up” button in Activity Feed → sets `dueDate` + `reminderType`.
+* Daily CRON job triggers Slack + in‑app notification: “🔔 Follow‑up with *ABC Logistics* (lead #123)”.
+
+### 3.4 Customer Surveys
+
+* Simple one‑page form link (`/survey/:leadId/:token`).
+* After load #3, system auto‑emails survey.
+* Survey result (1‑5 NPS & comment) writes to `surveys` table and posts to Activity Feed.
+
+---
+
+## 4. Data Model Additions (high level)
+
+```mermaid
+classDiagram
+    Lead *-- Activity
+    Lead *-- Survey
+    Account <|-- Lead
+    class Lead {
+      id UUID
+      accountId UUID
+      ownerId UUID
+      stage enum
+      source enum
+      mcNumber string
+      mcAgeMonths int
+      callAttempts int
+      createdAt
+    }
+    class Activity {
+      id UUID
+      leadId UUID
+      type enum(call,email,note,statusChange,reminder,survey)
+      payload JSONB
+      createdBy UUID
+      createdAt
+    }
+    class Survey {
+      id UUID
+      leadId UUID
+      score int
+      comment text
+      createdAt
+    }
+```
+
+---
+
+## 5. Permissions & UX
+
+| Role         | Leads                       | Accounts                | Activities       | Surveys | Dispatch Module |
+| ------------ | --------------------------- | ----------------------- | ---------------- | ------- | --------------- |
+| **Sales**    | R/W stages ≤ HandToDispatch | R/O                     | R/W (own leads)  | R/O     | R/O             |
+| **Dispatch** | R (after hand‑off)          | R/W loads, billing cols | R/W (load notes) | R/O     | R/W             |
+| **Admin**    | Full                        | Full                    | Full             | Full    | Full            |
+
+* Disable “Create Load” button for any user **not** in Dispatch role.
+
+---
+
+## 6. UI / UX Micro‑Guidelines
+
+* Leads page default = **Kanban**; switch to list via toggle.
+* Each lead card shows: Company, Contact, Stage, Source badge (SQL/MQL), `callAttempts/3`.
+* Activity Feed uses colour‑coded icons (📞, ✉️, 📝, 🔄, 🕑).
+* Surveys tab lists response score & comment; show “😊 / 😐 / 😠” emoji indicator.
+* Reminder chip appears red on day due, grey when future, green when done.
+
+---
+
+## 7. Acceptance Tests (Replit‑Bot must self‑confirm)
+
+1. **Create SQL Lead** → appears `stage=New`, Activity entry created.
+2. **Log 3 calls** → move to **HandToDispatch** succeeds; dispatch gets notification.
+3. **Dispatch books load** (stub) → stage auto‑moves **Active**; invoice generated.
+4. Survey email stub fires after 3 loads; response 5 ⭐ writes to feed.
+5. Sales user cannot click “Create Load”; button absent.
+6. Dispatch user can click “Create Load” under Dispatch > Clients.
+
+---
+
+### ✅ Deliverables
+
+* Updated DB migration & seed script.
+* New `/api/activities`, `/api/surveys`, `/api/followups` endpoints.
+* React components for ActivityFeed, SurveyList, Reminder modal.
+* Unit + Playwright tests covering lifecycle flow.
+
+*(Copy this conceptual brief to Replit‑Bot; let it design code internally.)*
+
+---
+
+When the bot says **“PASS: CRM Deep‑Carve implemented”**, run a quick smoke test; then we’ll proceed to GPS Clock‑In (Step 8 · 9).
