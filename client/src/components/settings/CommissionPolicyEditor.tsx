@@ -120,11 +120,15 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate all the related queries to refresh policy data
+      queryClient.invalidateQueries({ queryKey: ['/api/commissions/policy'] });
+      // Also invalidate monthly commission data since it may depend on active policies
+      queryClient.invalidateQueries({ queryKey: ['/api/commissions/monthly'] });
+      
       toast({
         title: "Policy created",
         description: "Commission policy has been created successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/commissions/policy"] });
     },
     onError: (error) => {
       toast({
@@ -146,12 +150,16 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate all the related queries to refresh policy data
+      queryClient.invalidateQueries({ queryKey: ['/api/commissions/policy'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/commissions/policy', policyId] });
+      // Also invalidate monthly commission data since it may depend on active policies
+      queryClient.invalidateQueries({ queryKey: ['/api/commissions/monthly'] });
+      
       toast({
         title: "Policy updated",
         description: "Commission policy has been updated successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/commissions/policy"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/commissions/policy", policyId] });
     },
     onError: (error) => {
       toast({
@@ -174,12 +182,16 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate all the related queries to refresh policy data
+      queryClient.invalidateQueries({ queryKey: ['/api/commissions/policy'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/commissions/policy', policyId] });
+      // Also invalidate monthly commission data since it may depend on active policies
+      queryClient.invalidateQueries({ queryKey: ['/api/commissions/monthly'] });
+      
       toast({
         title: "Policy archived",
         description: "Commission policy has been archived successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/commissions/policy"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/commissions/policy", policyId] });
     },
     onError: (error) => {
       toast({
