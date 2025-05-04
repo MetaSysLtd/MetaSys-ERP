@@ -3,11 +3,13 @@ import { storage } from '../storage';
 import { insertDashboardWidgetSchema } from '@shared/schema';
 import { ZodError } from 'zod';
 import { fromZodError } from 'zod-validation-error';
+import { createAuthMiddleware } from '../auth-middleware';
 
 const router = express.Router();
+const authMiddleware = createAuthMiddleware(1); // Require at least role level 1
 
 // Get all dashboard widgets for the current user
-router.get('/widgets', async (req, res) => {
+router.get('/widgets', authMiddleware, async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -22,7 +24,7 @@ router.get('/widgets', async (req, res) => {
 });
 
 // Get a specific dashboard widget
-router.get('/widgets/:id', async (req, res) => {
+router.get('/widgets/:id', authMiddleware, async (req, res) => {
   try {
     const widgetId = parseInt(req.params.id);
     if (isNaN(widgetId)) {
@@ -47,7 +49,7 @@ router.get('/widgets/:id', async (req, res) => {
 });
 
 // Create a new dashboard widget
-router.post('/widgets', async (req, res) => {
+router.post('/widgets', authMiddleware, async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -76,7 +78,7 @@ router.post('/widgets', async (req, res) => {
 });
 
 // Update a dashboard widget
-router.put('/widgets/:id', async (req, res) => {
+router.put('/widgets/:id', authMiddleware, async (req, res) => {
   try {
     const widgetId = parseInt(req.params.id);
     if (isNaN(widgetId)) {
