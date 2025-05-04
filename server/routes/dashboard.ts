@@ -111,7 +111,7 @@ router.put('/widgets/:id', authMiddleware, async (req, res) => {
 });
 
 // Delete a dashboard widget
-router.delete('/widgets/:id', async (req, res) => {
+router.delete('/widgets/:id', authMiddleware, async (req, res) => {
   try {
     const widgetId = parseInt(req.params.id);
     if (isNaN(widgetId)) {
@@ -141,7 +141,7 @@ router.delete('/widgets/:id', async (req, res) => {
 });
 
 // Reorder dashboard widgets
-router.post('/widgets/reorder', async (req, res) => {
+router.post('/widgets/reorder', authMiddleware, async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
