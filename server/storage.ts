@@ -468,6 +468,9 @@ export class MemStorage implements IStorage {
   private dispatchReports: Map<number, DispatchReport>;
   private dispatchTasks: Map<number, DispatchTask>;
   private performanceTargets: Map<number, PerformanceTarget>;
+  private formTemplates: Map<number, FormTemplate>;
+  private formSubmissions: Map<number, FormSubmission>;
+  private leadHandoffs: Map<number, LeadHandoff>;
   
   // HR Hiring & Onboarding
   private hiringCandidates: Map<number, HiringCandidate>;
@@ -487,10 +490,7 @@ export class MemStorage implements IStorage {
   private featureFlags: Map<number, FeatureFlag>;
   private userLocations: Map<number, UserLocation>;
   
-  // CRM enhancements
-  private formTemplates: Map<number, FormTemplate>;
-  private formSubmissions: Map<number, FormSubmission>;
-  private leadHandoffs: Map<number, LeadHandoff>;
+
   
   private userIdCounter: number;
   private roleIdCounter: number;
