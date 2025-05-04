@@ -42,17 +42,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   ArrowLeft, 
   Edit, 
   Truck, 
   FileText, 
   Activity, 
+  Calendar,
+  Phone,
+  Mail,
+  Clock,
   UserCheck, 
   AlertTriangle,
   Clipboard,
   ArrowRightCircle,
   Check,
+  Loader2,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
