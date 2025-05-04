@@ -275,7 +275,47 @@ router.post('/lead-handoffs', authMiddleware, async (req, res) => {
       salesRepId: req.body.salesRepId || userId
     });
     
-    const handoff = await storage.createLeadHandoff(data);
+    // Validate the lead has at least 3 calls logged before handoff
+    const leadId = data.leadId;
+    const callLogs = await storage.getCallLogsByLeadId(leadId);
+    
+    if (!callLogs || callLogs.length < 3) {
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        message: 'A minimum of 3 calls must be logged with this lead before handoff',
+        code: 'MIN_CALLS_REQUIRED'
+      });
+    }
+    
+    // Verify required fields are present on the lead
+    const lead = await storage.getLead(leadId);
+    if (!lead) {
+      return res.status(404).json({
+        error: 'Lead not found',
+        message: 'The specified lead does not exist'
+      });
+    }
+    
+    // Check for required fields
+    const missingFields = [];
+    if (!lead.mcNumber) missingFields.push('MC Number');
+    if (!lead.equipmentType) missingFields.push('Equipment Type');
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: `Missing required fields: ${missingFields.join(', ')}`,
+        code: 'MISSING_REQUIRED_FIELDS'
+      });
+    }
+    
+    // Create the handoff
+    const handoff = await storage.createLeadHandoff({
+      ...data,
+      callsVerified: true,
+      requiredFormsFilled: true
+    });
+    
     res.status(201).json(handoff);
   } catch (error) {
     handleZodError(error, res);
