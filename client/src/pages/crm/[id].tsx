@@ -997,6 +997,262 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Create Task Dialog */}
+      <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create Task</DialogTitle>
+            <DialogDescription>
+              Schedule a task related to this lead.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="task-title">Task Title</Label>
+                <Input id="task-title" placeholder="Call client to discuss rates" />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="task-description">Description</Label>
+                <Textarea 
+                  id="task-description" 
+                  placeholder="Additional details about the task..." 
+                  className="min-h-[80px]"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="task-due-date">Due Date</Label>
+                <Input
+                  id="task-due-date"
+                  type="date"
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="task-priority">Priority</Label>
+                <Select>
+                  <SelectTrigger id="task-priority">
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="task-assign">Assign To</Label>
+                <Select defaultValue={user?.id?.toString()}>
+                  <SelectTrigger id="task-assign">
+                    <SelectValue placeholder="Select user" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={user?.id?.toString()}>{user?.username || 'Me'}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setTaskDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white"
+              onClick={() => {
+                toast({
+                  title: "Task created",
+                  description: "The task has been created successfully.",
+                });
+                setTaskDialogOpen(false);
+              }}
+            >
+              Create Task
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Log Call Dialog */}
+      <Dialog open={callDialogOpen} onOpenChange={setCallDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Log Call</DialogTitle>
+            <DialogDescription>
+              Record details about a call with this lead.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="call-date">Call Date</Label>
+                <Input 
+                  id="call-date" 
+                  type="datetime-local" 
+                  defaultValue={new Date().toISOString().slice(0, 16)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="call-duration">Duration (minutes)</Label>
+                <Input id="call-duration" type="number" min="1" defaultValue="5" />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="call-outcome">Outcome</Label>
+                <Select>
+                  <SelectTrigger id="call-outcome">
+                    <SelectValue placeholder="Select outcome" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Answered">Answered</SelectItem>
+                    <SelectItem value="Voicemail">Voicemail</SelectItem>
+                    <SelectItem value="No Answer">No Answer</SelectItem>
+                    <SelectItem value="Wrong Number">Wrong Number</SelectItem>
+                    <SelectItem value="Not Interested">Not Interested</SelectItem>
+                    <SelectItem value="Interested">Interested</SelectItem>
+                    <SelectItem value="Follow Up">Follow Up</SelectItem>
+                    <SelectItem value="Booked">Booked</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="call-notes">Notes</Label>
+                <Textarea 
+                  id="call-notes" 
+                  placeholder="Enter call details..." 
+                  className="min-h-[80px]"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox id="schedule-followup" />
+                <Label htmlFor="schedule-followup">Schedule a follow-up task</Label>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setCallDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white"
+              onClick={() => {
+                toast({
+                  title: "Call logged",
+                  description: "The call has been recorded successfully.",
+                });
+                setCallDialogOpen(false);
+              }}
+            >
+              Log Call
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Form Dialog */}
+      <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Form</DialogTitle>
+            <DialogDescription>
+              Send a form or document to this lead.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="form-template">Form Template</Label>
+                <Select>
+                  <SelectTrigger id="form-template">
+                    <SelectValue placeholder="Select a form template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="onboarding">Carrier Onboarding</SelectItem>
+                    <SelectItem value="credit-app">Credit Application</SelectItem>
+                    <SelectItem value="package-details">Service Package Details</SelectItem>
+                    <SelectItem value="rate-agreement">Rate Agreement</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="custom-message">Custom Message</Label>
+                <Textarea 
+                  id="custom-message" 
+                  placeholder="Add a custom message to include with the form..." 
+                  className="min-h-[80px]"
+                  defaultValue={`Hello ${lead?.contactName},\n\nPlease complete the attached form at your earliest convenience.\n\nThank you,\n${user?.username}`}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="delivery-method">Delivery Method</Label>
+                <Select defaultValue="email">
+                  <SelectTrigger id="delivery-method">
+                    <SelectValue placeholder="Select delivery method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="text">Text Message</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox id="create-followup" defaultChecked />
+                <Label htmlFor="create-followup">Create follow-up task</Label>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setFormDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white"
+              onClick={() => {
+                toast({
+                  title: "Form sent",
+                  description: "The form has been sent successfully.",
+                });
+                setFormDialogOpen(false);
+              }}
+            >
+              Send Form
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
