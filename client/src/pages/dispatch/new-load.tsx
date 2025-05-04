@@ -59,6 +59,7 @@ const loadFormSchema = z.object({
   notes: z.string().optional(),
   status: z.string().default("booked"),
   assignedTo: z.number().optional(),
+  dispatcherId: z.number().optional(),
 });
 
 type LoadFormValues = z.infer<typeof loadFormSchema>;
@@ -89,6 +90,7 @@ export default function NewLoadPage() {
       serviceCharge: 0,
       notes: "",
       status: "booked",
+      dispatcherId: user?.id,
     },
   });
   
@@ -102,12 +104,22 @@ export default function NewLoadPage() {
     queryKey: ["/api/leads", { status: "active" }],
   });
   
+  // Get dispatchers for the dispatcher dropdown
+  const { data: dispatchers, isLoading: isLoadingDispatchers } = useQuery({
+    queryKey: ["/api/users/department/dispatch"],
+  });
+  
   // Create load mutation
   const createLoadMutation = useMutation({
     mutationFn: async (values: LoadFormValues) => {
       // Make sure we have the current user's ID to assign the load
       if (!values.assignedTo && user?.id) {
         values.assignedTo = user.id;
+      }
+      
+      // Make sure we have dispatcherId value
+      if (!values.dispatcherId && user?.id) {
+        values.dispatcherId = user.id;
       }
       
       return apiRequest("POST", "/api/dispatch/loads", values);
@@ -169,11 +181,16 @@ export default function NewLoadPage() {
       values.assignedTo = user.id;
     }
     
+    // Ensure we have dispatcherId value
+    if (!values.dispatcherId && user?.id) {
+      values.dispatcherId = user.id;
+    }
+    
     createLoadMutation.mutate(values);
   };
   
   // Loading state
-  if (isLoadingClients || isLoadingLeads) {
+  if (isLoadingClients || isLoadingLeads || isLoadingDispatchers) {
     return (
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
@@ -383,6 +400,57 @@ export default function NewLoadPage() {
                       </FormItem>
                     )}
                   />
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="dispatcherId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Dispatcher</FormLabel>
+                          <Select 
+                            value={field.value ? field.value.toString() : ""} 
+                            onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select dispatcher" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {!dispatchers || dispatchers.length === 0 ? (
+                                <SelectItem value="no_dispatchers" disabled>No dispatchers available</SelectItem>
+                              ) : (
+                                <>
+                                  {user?.id && (
+                                    <SelectItem 
+                                      key={`current-${user.id}`}
+                                      value={user.id.toString()}
+                                    >
+                                      {user.firstName || user.username} (You)
+                                    </SelectItem>
+                                  )}
+                                  {Array.isArray(dispatchers) && dispatchers
+                                    .filter(d => d.id !== user?.id) // Don't show current user twice
+                                    .map((dispatcher: any) => (
+                                      <SelectItem 
+                                        key={dispatcher.id} 
+                                        value={dispatcher.id.toString()}
+                                      >
+                                        {dispatcher.firstName || dispatcher.username}
+                                      </SelectItem>
+                                    ))
+                                  }
+                                </>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            The dispatcher responsible for this load
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </CardContent>
               </Card>
               
