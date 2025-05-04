@@ -8,7 +8,7 @@ import {
   insertUserSchema, insertRoleSchema, insertLeadSchema, 
   insertLoadSchema, insertInvoiceSchema, insertInvoiceItemSchema,
   insertCommissionSchema, insertActivitySchema, insertDispatchClientSchema,
-  insertOrganizationSchema, insertCommissionRuleSchema, insertCommissionMonthlySchema,
+  insertOrganizationSchema, insertCommissionPolicySchema, insertCommissionRunSchema, insertLeadSalesUserSchema, insertCommissionMonthlySchema,
   insertTaskSchema, insertDashboardWidgetSchema, users, roles, dispatch_clients, 
   organizations, dashboardWidgets
 } from "@shared/schema";

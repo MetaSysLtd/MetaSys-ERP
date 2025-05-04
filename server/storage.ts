@@ -1,11 +1,11 @@
 import {
   users, roles, leads, leadRemarks, loads, invoices, invoiceItems, commissions, activities, tasks,
-  dispatch_clients, organizations, userOrganizations, commissionRules, commissionsMonthly,
-  clockEvents, clockEventTypeEnum, uiPreferences, dispatchTasks, dispatchReports, performanceTargets,
-  hiringCandidates, candidateDocuments, hiringTemplates, probationSchedules, probationEvaluations, 
-  exitRequests, companyDocuments, notifications, dashboardWidgets, bugs, bugUrgencyEnum,
-  userSettings, organizationSettings, permissionTemplates, featureFlags, userLocations,
-  formTemplates, formSubmissions, leadHandoffs,
+  dispatch_clients, organizations, userOrganizations, commissionPolicy, commissionsMonthly,
+  commissionRun, leadSalesUsers, clockEvents, clockEventTypeEnum, uiPreferences, dispatchTasks, 
+  dispatchReports, performanceTargets, hiringCandidates, candidateDocuments, hiringTemplates, 
+  probationSchedules, probationEvaluations, exitRequests, companyDocuments, notifications, 
+  dashboardWidgets, bugs, bugUrgencyEnum, userSettings, organizationSettings, permissionTemplates, 
+  featureFlags, userLocations, formTemplates, formSubmissions, leadHandoffs,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
@@ -13,7 +13,9 @@ import {
   type DispatchClient, type InsertDispatchClient, 
   type Organization, type InsertOrganization,
   type UserOrganization, type InsertUserOrganization,
-  type CommissionRule, type InsertCommissionRule,
+  type CommissionPolicy, type InsertCommissionPolicy, 
+  type CommissionRun, type InsertCommissionRun,
+  type LeadSalesUser, type InsertLeadSalesUser,
   type CommissionMonthly, type InsertCommissionMonthly,
   type Task, type InsertTask,
   type ClockEvent, type InsertClockEvent,
@@ -225,12 +227,24 @@ export interface IStorage {
   createCommission(commission: InsertCommission): Promise<Commission>;
   updateCommission(id: number, commission: Partial<Commission>): Promise<Commission | undefined>;
   
-  // Commission Rule operations
-  getCommissionRule(id: number): Promise<CommissionRule | undefined>;
-  getCommissionRulesByType(type: string): Promise<CommissionRule[]>;
-  getCommissionRulesByOrg(orgId: number): Promise<CommissionRule[]>;
-  createCommissionRule(rule: InsertCommissionRule): Promise<CommissionRule>;
-  updateCommissionRule(id: number, rule: Partial<CommissionRule>): Promise<CommissionRule | undefined>;
+  // Commission Policy operations
+  getCommissionPolicy(id: number): Promise<CommissionPolicy | undefined>;
+  getCommissionPoliciesByType(type: string): Promise<CommissionPolicy[]>;
+  getCommissionPoliciesByOrg(orgId: number): Promise<CommissionPolicy[]>;
+  createCommissionPolicy(policy: InsertCommissionPolicy): Promise<CommissionPolicy>;
+  updateCommissionPolicy(id: number, policy: Partial<CommissionPolicy>): Promise<CommissionPolicy | undefined>;
+  
+  // Commission Run operations
+  getCommissionRun(id: number): Promise<CommissionRun | undefined>;
+  getCommissionRunsByMonth(month: string): Promise<CommissionRun[]>;
+  getCommissionRunsByOrg(orgId: number): Promise<CommissionRun[]>;
+  createCommissionRun(run: InsertCommissionRun): Promise<CommissionRun>;
+  
+  // Lead Sales User operations
+  getLeadSalesUser(id: number): Promise<LeadSalesUser | undefined>;
+  getLeadSalesUsersByLead(leadId: number): Promise<LeadSalesUser[]>;
+  getLeadSalesUsersByUser(userId: number): Promise<LeadSalesUser[]>;
+  createLeadSalesUser(leadSalesUser: InsertLeadSalesUser): Promise<LeadSalesUser>;
   
   // Commission Monthly operations
   getCommissionMonthly(id: number): Promise<CommissionMonthly | undefined>;

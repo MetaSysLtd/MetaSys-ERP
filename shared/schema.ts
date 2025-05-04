@@ -838,15 +838,77 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Commission Rules
-export const commissionRules = pgTable("commission_rules", {
+// Commission source enum
+export const commissionSourceEnum = pgEnum('commission_source', ['direct', 'inbound', 'starter', 'closer']);
+
+// Commission Policy - contains the commission structure configuration
+export const commissionPolicy = pgTable("commission_policy", {
   id: serial("id").primaryKey(),
   orgId: integer("org_id").notNull().references(() => organizations.id),
   type: text("type").notNull(), // "sales", "dispatch"
-  tiers: jsonb("tiers").notNull(), // Stores JSON array of tier objects
+  activeLeadTable: jsonb("active_lead_table").notNull(), // Commission tiers array {activeleads: number, amount: number}
+  bonuses: jsonb("bonuses").notNull(), // Bonus definitions for rep of month, active trucks, team lead
+  inboundFactor: real("inbound_factor").notNull().default(0.75), // Inbound lead multiplier (default 75%)
+  starterSplit: real("starter_split").notNull().default(0.6), // Starter's share (default 60%)
+  closerSplit: real("closer_split").notNull().default(0.4), // Closer's share (default 40%)
+  penaltyThreshold: integer("penalty_threshold").notNull().default(20), // Call attempts threshold for penalty
+  penaltyFactor: real("penalty_factor").notNull().default(0.75), // Salary reduction factor if 0 active leads
+  teamLeadBonusAmount: integer("team_lead_bonus_amount").notNull().default(1000), // Amount per lead after target
+  isActive: boolean("is_active").notNull().default(true),
   updatedBy: integer("updated_by").notNull().references(() => users.id),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    orgIdIdx: index("commission_policy_org_id_idx").on(table.orgId),
+    typeIdx: index("commission_policy_type_idx").on(table.type),
+    activeIdx: index("commission_policy_active_idx").on(table.isActive),
+  };
+});
+
+// Commission Run - stores monthly commission calculations
+export const commissionRun = pgTable("commission_run", {
+  id: serial("id").primaryKey(),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  year: integer("year").notNull(),
+  month: integer("month").notNull(), // 1-12
+  policyId: integer("policy_id").notNull().references(() => commissionPolicy.id),
+  activeLeadCount: integer("active_lead_count").notNull().default(0),
+  baseCommission: real("base_commission").notNull().default(0),
+  adjustedCommission: real("adjusted_commission").notNull().default(0), // After split/inbound factors
+  repOfMonthBonus: real("rep_of_month_bonus").notNull().default(0),
+  activeTrucksBonus: real("active_trucks_bonus").notNull().default(0),
+  teamLeadBonus: real("team_lead_bonus").notNull().default(0),
+  totalCommission: real("total_commission").notNull().default(0),
+  penaltyApplied: boolean("penalty_applied").notNull().default(false),
+  calculationDetails: jsonb("calculation_details").notNull(), // Detailed breakdown of calculation
+  calculatedBy: integer("calculated_by").notNull().references(() => users.id),
+  calculatedAt: timestamp("calculated_at").notNull().defaultNow(),
+  notes: text("notes"),
+  statusLog: jsonb("status_log").default([]), // Track status changes and notifications
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    userMonthIdx: index("commission_run_user_month_idx").on(table.userId, table.year, table.month),
+    orgIdIdx: index("commission_run_org_id_idx").on(table.orgId),
+    calculatedAtIdx: index("commission_run_calculated_at_idx").on(table.calculatedAt),
+  };
+});
+
+// Lead Sales Users - for tracking starter/closer relationships
+export const leadSalesUsers = pgTable("lead_sales_users", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull().references(() => leads.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  role: text("role").notNull(), // "starter" or "closer"
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    leadUserIdx: index("lead_sales_users_lead_user_idx").on(table.leadId, table.userId),
+    userRoleIdx: index("lead_sales_users_user_role_idx").on(table.userId, table.role),
+  };
 });
 
 // Simple Clock Events (new implementation)
@@ -1005,7 +1067,9 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
 export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({ id: true, createdAt: true });
 export const insertClockEventSchema = createInsertSchema(clockEvents).omit({ id: true, timestamp: true });
-export const insertCommissionRuleSchema = createInsertSchema(commissionRules).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCommissionPolicySchema = createInsertSchema(commissionPolicy).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCommissionRunSchema = createInsertSchema(commissionRun).omit({ id: true, calculatedAt: true, createdAt: true, updatedAt: true });
+export const insertLeadSalesUserSchema = createInsertSchema(leadSalesUsers).omit({ id: true, createdAt: true });
 export const insertCommissionMonthlySchema = createInsertSchema(commissionsMonthly).omit({ id: true, createdAt: true, updatedAt: true });
 
 // UI Preferences
@@ -1238,8 +1302,14 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type ClockEvent = typeof clockEvents.$inferSelect;
 export type InsertClockEvent = z.infer<typeof insertClockEventSchema>;
 
-export type CommissionRule = typeof commissionRules.$inferSelect;
-export type InsertCommissionRule = z.infer<typeof insertCommissionRuleSchema>;
+export type CommissionPolicy = typeof commissionPolicy.$inferSelect;
+export type InsertCommissionPolicy = z.infer<typeof insertCommissionPolicySchema>;
+
+export type CommissionRun = typeof commissionRun.$inferSelect;
+export type InsertCommissionRun = z.infer<typeof insertCommissionRunSchema>;
+
+export type LeadSalesUser = typeof leadSalesUsers.$inferSelect;
+export type InsertLeadSalesUser = z.infer<typeof insertLeadSalesUserSchema>;
 
 export type CommissionMonthly = typeof commissionsMonthly.$inferSelect;
 export type InsertCommissionMonthly = z.infer<typeof insertCommissionMonthlySchema>;
