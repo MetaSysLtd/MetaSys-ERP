@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { NotificationContainer } from "./NotificationContainer";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
+import { AnimatedPage } from "@/components/ui/AnimatedPage";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -145,7 +146,9 @@ export function AppLayout({ children }: AppLayoutProps) {
         <main className="flex-1 relative overflow-y-auto focus:outline-none bg-white dark:bg-gray-900">
           <div className="px-4 py-6">
             <NotificationContainer />
-            {children}
+            <AnimatedPage>
+              {children}
+            </AnimatedPage>
           </div>
         </main>
       </motion.div>
