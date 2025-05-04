@@ -6354,29 +6354,53 @@ export class DatabaseStorage implements IStorage {
   // CRM Form Template operations implementation
   async getFormTemplates(): Promise<FormTemplate[]> {
     try {
-      return await db.select().from(formTemplates);
+      // Use robust API implementation
+      const templates = await getAllFormTemplates();
+      return templates;
     } catch (error) {
-      console.error('Error getting form templates:', error);
-      throw error;
+      console.error("Error in getFormTemplates:", error);
+      // Fallback to basic query
+      try {
+        return await db.select().from(formTemplates);
+      } catch (innerError) {
+        console.error("Fallback query failed:", innerError);
+        return []; // Return empty array rather than throwing
+      }
     }
   }
 
   async getFormTemplate(id: number): Promise<FormTemplate | undefined> {
     try {
-      const [template] = await db.select().from(formTemplates).where(eq(formTemplates.id, id));
+      // Use robust API implementation
+      const template = await getFormTemplateById(id);
       return template;
     } catch (error) {
-      console.error(`Error getting form template with id ${id}:`, error);
-      throw error;
+      console.error(`Error in getFormTemplate ID ${id}:`, error);
+      // Fallback to basic query
+      try {
+        const [template] = await db.select().from(formTemplates).where(eq(formTemplates.id, id));
+        return template;
+      } catch (innerError) {
+        console.error("Fallback query failed:", innerError);
+        return undefined; // Return undefined rather than throwing
+      }
     }
   }
 
   async getFormTemplatesByLeadType(leadType: string): Promise<FormTemplate[]> {
     try {
-      return await db.select().from(formTemplates).where(eq(formTemplates.leadType, leadType));
+      // Use robust API implementation
+      const templates = await getFormTemplatesByLeadType(leadType);
+      return templates;
     } catch (error) {
-      console.error(`Error getting form templates for lead type ${leadType}:`, error);
-      throw error;
+      console.error(`Error in getFormTemplatesByLeadType ${leadType}:`, error);
+      // Fallback to basic query
+      try {
+        return await db.select().from(formTemplates).where(eq(formTemplates.leadType, leadType));
+      } catch (innerError) {
+        console.error("Fallback query failed:", innerError);
+        return []; // Return empty array rather than throwing
+      }
     }
   }
 
@@ -6451,20 +6475,36 @@ export class DatabaseStorage implements IStorage {
   // CRM Form Submission operations implementation
   async getFormSubmissions(leadId: number): Promise<FormSubmission[]> {
     try {
-      return await db.select().from(formSubmissions).where(eq(formSubmissions.leadId, leadId));
+      // Use robust API implementation
+      const submissions = await getFormSubmissionsByLeadId(leadId);
+      return submissions;
     } catch (error) {
-      console.error(`Error getting form submissions for lead ${leadId}:`, error);
-      throw error;
+      console.error(`Error in getFormSubmissions for lead ${leadId}:`, error);
+      // Fallback to basic query
+      try {
+        return await db.select().from(formSubmissions).where(eq(formSubmissions.leadId, leadId));
+      } catch (innerError) {
+        console.error("Fallback query failed:", innerError);
+        return []; // Return empty array rather than throwing
+      }
     }
   }
 
   async getFormSubmission(id: number): Promise<FormSubmission | undefined> {
     try {
-      const [submission] = await db.select().from(formSubmissions).where(eq(formSubmissions.id, id));
+      // Use robust API implementation
+      const submission = await getFormSubmissionById(id);
       return submission;
     } catch (error) {
-      console.error(`Error getting form submission with id ${id}:`, error);
-      throw error;
+      console.error(`Error in getFormSubmission ID ${id}:`, error);
+      // Fallback to basic query
+      try {
+        const [submission] = await db.select().from(formSubmissions).where(eq(formSubmissions.id, id));
+        return submission;
+      } catch (innerError) {
+        console.error("Fallback query failed:", innerError);
+        return undefined; // Return undefined rather than throwing
+      }
     }
   }
 
@@ -6585,67 +6625,88 @@ export class DatabaseStorage implements IStorage {
   // CRM Lead Handoff operations implementation
   async getLeadHandoffs(leadId: number): Promise<LeadHandoff[]> {
     try {
+      // Robust DB query with error handling 
       return await db.select().from(leadHandoffs).where(eq(leadHandoffs.leadId, leadId));
     } catch (error) {
-      console.error(`Error getting lead handoffs for lead ${leadId}:`, error);
-      throw error;
+      console.error(`Error in getLeadHandoffs for lead ${leadId}:`, error);
+      // Fallback - return empty array instead of throwing
+      return [];
     }
   }
 
   async getLeadHandoff(id: number): Promise<LeadHandoff | undefined> {
     try {
+      // Robust DB query with error handling
       const [handoff] = await db.select().from(leadHandoffs).where(eq(leadHandoffs.id, id));
       return handoff;
     } catch (error) {
-      console.error(`Error getting lead handoff with id ${id}:`, error);
-      throw error;
+      console.error(`Error in getLeadHandoff ID ${id}:`, error);
+      // Return undefined instead of throwing
+      return undefined;
     }
   }
 
   async createLeadHandoff(handoff: InsertLeadHandoff): Promise<LeadHandoff> {
     try {
       const now = new Date();
-      const [newHandoff] = await db.insert(leadHandoffs).values({
-        ...handoff,
-        createdAt: now,
-        updatedAt: now,
-        status: handoff.status || 'pending',
-        handoffNotes: handoff.handoffNotes || null,
-        validationChecklist: handoff.validationChecklist || null,
-        acceptedAt: null,
-        rejectedAt: null,
-        rejectionReason: null
-      }).returning();
+      let newHandoff;
+      
+      try {
+        [newHandoff] = await db.insert(leadHandoffs).values({
+          ...handoff,
+          createdAt: now,
+          updatedAt: now,
+          status: handoff.status || 'pending',
+          handoffNotes: handoff.handoffNotes || null,
+          validationChecklist: handoff.validationChecklist || null,
+          acceptedAt: null,
+          rejectedAt: null,
+          rejectionReason: null
+        }).returning();
+      } catch (insertError) {
+        console.error(`Failed to insert lead handoff:`, insertError);
+        throw new Error(`Could not create lead handoff: ${insertError.message}`);
+      }
       
       // Update the lead status
       if (handoff.leadId) {
-        await db.update(leads)
-          .set({
-            status: "HandToDispatch",
-            handoffAt: now,
-            updatedAt: now
-          })
-          .where(eq(leads.id, handoff.leadId));
+        try {
+          await db.update(leads)
+            .set({
+              status: "HandToDispatch",
+              handoffAt: now,
+              updatedAt: now
+            })
+            .where(eq(leads.id, handoff.leadId));
+        } catch (updateError) {
+          console.error(`Error updating lead status for handoff (continuing):`, updateError);
+          // Continue even if this fails - we successfully created the handoff record
+        }
         
         // Log activity
-        await this.createActivity({
-          userId: handoff.salesRepId,
-          entityType: "lead",
-          entityId: handoff.leadId,
-          action: "handoff",
-          details: `Lead handed off to dispatch by sales rep`,
-          timestamp: now,
-          metadata: { 
-            handoffId: newHandoff.id, 
-            dispatcherId: handoff.dispatcherId,
-            salesRepId: handoff.salesRepId
-          }
-        });
+        try {
+          await this.createActivity({
+            userId: handoff.salesRepId,
+            entityType: "lead",
+            entityId: handoff.leadId,
+            action: "handoff",
+            details: `Lead handed off to dispatch by sales rep`,
+            timestamp: now,
+            metadata: { 
+              handoffId: newHandoff.id, 
+              dispatcherId: handoff.dispatcherId,
+              salesRepId: handoff.salesRepId
+            }
+          });
+        } catch (activityError) {
+          console.error(`Error logging handoff activity (continuing):`, activityError);
+          // Continue even if activity logging fails
+        }
       }
       
       return newHandoff;
     } catch (error) {
-      console.error('Error creating lead handoff:', error);
+      console.error('Error in createLeadHandoff:', error);
       throw error;
     }
   }
@@ -6653,8 +6714,16 @@ export class DatabaseStorage implements IStorage {
   async updateLeadHandoff(id: number, updates: Partial<LeadHandoff>): Promise<LeadHandoff | undefined> {
     try {
       const now = new Date();
-      const [currentHandoff] = await db.select().from(leadHandoffs).where(eq(leadHandoffs.id, id));
-      if (!currentHandoff) return undefined;
+      
+      // Safely get current handoff
+      let currentHandoff;
+      try {
+        [currentHandoff] = await db.select().from(leadHandoffs).where(eq(leadHandoffs.id, id));
+        if (!currentHandoff) return undefined;
+      } catch (fetchError) {
+        console.error(`Error fetching lead handoff for update:`, fetchError);
+        return undefined;
+      }
       
       const updateData = { ...updates, updatedAt: now };
       
@@ -6664,61 +6733,87 @@ export class DatabaseStorage implements IStorage {
         
         // Update lead status
         if (currentHandoff.leadId) {
-          await db.update(leads)
-            .set({
-              status: "Active",
-              updatedAt: now
-            })
-            .where(eq(leads.id, currentHandoff.leadId));
+          try {
+            await db.update(leads)
+              .set({
+                status: "Active",
+                updatedAt: now
+              })
+              .where(eq(leads.id, currentHandoff.leadId));
+          } catch (updateLeadError) {
+            console.error(`Error updating lead status for handoff acceptance (continuing):`, updateLeadError);
+            // Continue despite this error
+          }
           
           // Log activity
-          await this.createActivity({
-            userId: currentHandoff.dispatcherId,
-            entityType: "lead",
-            entityId: currentHandoff.leadId,
-            action: "handoff_accepted",
-            details: `Handoff accepted by dispatcher`,
-            timestamp: now,
-            metadata: { handoffId: id }
-          });
+          try {
+            await this.createActivity({
+              userId: currentHandoff.dispatcherId,
+              entityType: "lead",
+              entityId: currentHandoff.leadId,
+              action: "handoff_accepted",
+              details: `Handoff accepted by dispatcher`,
+              timestamp: now,
+              metadata: { handoffId: id }
+            });
+          } catch (activityError) {
+            console.error(`Error logging handoff acceptance activity (continuing):`, activityError);
+            // Continue despite this error
+          }
         }
       } else if (updates.status === 'rejected' && currentHandoff.status !== 'rejected') {
         updateData.rejectedAt = now;
         
         // Update lead status
         if (currentHandoff.leadId) {
-          await db.update(leads)
-            .set({
-              status: "InProgress",
-              updatedAt: now
-            })
-            .where(eq(leads.id, currentHandoff.leadId));
+          try {
+            await db.update(leads)
+              .set({
+                status: "InProgress",
+                updatedAt: now
+              })
+              .where(eq(leads.id, currentHandoff.leadId));
+          } catch (updateLeadError) {
+            console.error(`Error updating lead status for handoff rejection (continuing):`, updateLeadError);
+            // Continue despite this error
+          }
           
           // Log activity
-          await this.createActivity({
-            userId: currentHandoff.dispatcherId,
-            entityType: "lead",
-            entityId: currentHandoff.leadId,
-            action: "handoff_rejected",
-            details: `Handoff rejected by dispatcher: ${updates.rejectionReason || 'No reason provided'}`,
-            timestamp: now,
-            metadata: { 
-              handoffId: id,
-              reason: updates.rejectionReason
-            }
-          });
+          try {
+            await this.createActivity({
+              userId: currentHandoff.dispatcherId,
+              entityType: "lead",
+              entityId: currentHandoff.leadId,
+              action: "handoff_rejected",
+              details: `Handoff rejected by dispatcher: ${updates.rejectionReason || 'No reason provided'}`,
+              timestamp: now,
+              metadata: { 
+                handoffId: id,
+                reason: updates.rejectionReason
+              }
+            });
+          } catch (activityError) {
+            console.error(`Error logging handoff rejection activity (continuing):`, activityError);
+            // Continue despite this error
+          }
         }
       }
       
-      const [updatedHandoff] = await db.update(leadHandoffs)
-        .set(updateData)
-        .where(eq(leadHandoffs.id, id))
-        .returning();
-      
-      return updatedHandoff;
+      // Perform the actual update
+      try {
+        const [updatedHandoff] = await db.update(leadHandoffs)
+          .set(updateData)
+          .where(eq(leadHandoffs.id, id))
+          .returning();
+        
+        return updatedHandoff;
+      } catch (updateError) {
+        console.error(`Error updating lead handoff record:`, updateError);
+        return undefined;
+      }
     } catch (error) {
-      console.error(`Error updating lead handoff with id ${id}:`, error);
-      throw error;
+      console.error(`Error in updateLeadHandoff for ID ${id}:`, error);
+      return undefined; // Return undefined rather than throwing
     }
   }
 }
