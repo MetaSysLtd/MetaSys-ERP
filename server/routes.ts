@@ -3282,6 +3282,161 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
     }
   });
 
+  // Commission Policy routes
+  
+  // Get all commission policies
+  commissionRouter.get("/policy", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const policies = await storage.getCommissionPolicies();
+      res.json(policies);
+    } catch (error) {
+      console.error("Error fetching commission policies:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch commission policies",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Get a specific commission policy
+  commissionRouter.get("/policy/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      const policy = await storage.getCommissionPolicy(id);
+      
+      if (!policy) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Commission policy not found" 
+        });
+      }
+      
+      res.json(policy);
+    } catch (error) {
+      console.error("Error fetching commission policy:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch commission policy",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Create commission policy
+  commissionRouter.post("/policy", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const policyData = {
+        ...req.body,
+        orgId: req.user.orgId || 1,
+        createdBy: req.user.id,
+        updatedBy: req.user.id
+      };
+      
+      const policy = await storage.createCommissionPolicy(policyData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: "commission_policy",
+        entityId: policy.id,
+        action: "created",
+        details: `Commission policy created: ${req.body.type}`
+      });
+      
+      res.status(201).json(policy);
+    } catch (error) {
+      console.error("Error creating commission policy:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to create commission policy",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Update commission policy
+  commissionRouter.put("/policy/:id", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Make sure the policy exists
+      const existingPolicy = await storage.getCommissionPolicy(id);
+      if (!existingPolicy) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Commission policy not found" 
+        });
+      }
+      
+      const policyData = {
+        ...req.body,
+        updatedBy: req.user.id
+      };
+      
+      const policy = await storage.updateCommissionPolicy(id, policyData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user.id,
+        entityType: "commission_policy",
+        entityId: id,
+        action: "updated",
+        details: `Commission policy updated: ${existingPolicy.type}`
+      });
+      
+      res.json(policy);
+    } catch (error) {
+      console.error("Error updating commission policy:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to update commission policy",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Archive commission policy
+  commissionRouter.patch("/policy/:id/archive", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Make sure the policy exists
+      const existingPolicy = await storage.getCommissionPolicy(id);
+      if (!existingPolicy) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Commission policy not found" 
+        });
+      }
+      
+      // Archive the policy
+      const archivedPolicy = await storage.archiveCommissionPolicy(id, req.user?.id || 0);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: "commission_policy",
+        entityId: id,
+        action: "archived",
+        details: `Commission policy archived: ${existingPolicy.type}`
+      });
+      
+      res.json({ 
+        status: "success", 
+        message: "Commission policy archived successfully",
+        policy: archivedPolicy
+      });
+    } catch (error) {
+      console.error("Error archiving commission policy:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to archive commission policy",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
   commissionRouter.post("/", createAuthMiddleware(3), async (req, res, next) => {
     try {
       const commissionData = insertCommissionSchema.parse(req.body);
