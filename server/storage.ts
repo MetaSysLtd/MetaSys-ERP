@@ -5,7 +5,7 @@ import {
   dispatchReports, performanceTargets, hiringCandidates, candidateDocuments, hiringTemplates, 
   probationSchedules, probationEvaluations, exitRequests, companyDocuments, notifications, 
   dashboardWidgets, bugs, bugUrgencyEnum, userSettings, organizationSettings, permissionTemplates, 
-  featureFlags, userLocations, formTemplates, formSubmissions, leadHandoffs,
+  featureFlags, userLocations, formTemplates, formSubmissions, leadHandoffs, accounts, surveys,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
@@ -42,7 +42,9 @@ import {
   type UserLocation, type InsertUserLocation,
   type FormTemplate, type InsertFormTemplate,
   type FormSubmission, type InsertFormSubmission,
-  type LeadHandoff, type InsertLeadHandoff
+  type LeadHandoff, type InsertLeadHandoff,
+  type Account, type InsertAccount,
+  type Survey, type InsertSurvey
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -94,6 +96,25 @@ export interface IStorage {
   getFeatureFlagsByOrg(orgId: number): Promise<FeatureFlag[]>;
   createFeatureFlag(flag: InsertFeatureFlag): Promise<FeatureFlag>;
   updateFeatureFlag(id: number, updates: Partial<FeatureFlag>): Promise<FeatureFlag | undefined>;
+  
+  // Account operations (CRM Deep-Carve)
+  getAccount(id: number): Promise<Account | undefined>;
+  getAccounts(): Promise<Account[]>;
+  getAccountsByOrganization(orgId: number): Promise<Account[]>;
+  getAccountsByAssignee(userId: number): Promise<Account[]>;
+  createAccount(account: InsertAccount): Promise<Account>;
+  updateAccount(id: number, updates: Partial<Account>): Promise<Account | undefined>;
+  deleteAccount(id: number): Promise<boolean>;
+  
+  // Survey operations (CRM Deep-Carve)
+  getSurvey(id: number): Promise<Survey | undefined>;
+  getSurveyByToken(token: string): Promise<Survey | undefined>;
+  getSurveys(): Promise<Survey[]>;
+  getSurveysByLead(leadId: number): Promise<Survey[]>;
+  getSurveysByStatus(status: string): Promise<Survey[]>;
+  createSurvey(survey: InsertSurvey): Promise<Survey>;
+  updateSurvey(id: number, updates: Partial<Survey>): Promise<Survey | undefined>;
+  deleteSurvey(id: number): Promise<boolean>;
   
   // User Location operations
   getUserLocation(id: number): Promise<UserLocation | undefined>;
