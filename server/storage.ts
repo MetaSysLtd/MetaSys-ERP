@@ -467,6 +467,11 @@ export class MemStorage implements IStorage {
   private featureFlags: Map<number, FeatureFlag>;
   private userLocations: Map<number, UserLocation>;
   
+  // CRM enhancements
+  private formTemplates: Map<number, FormTemplate>;
+  private formSubmissions: Map<number, FormSubmission>;
+  private leadHandoffs: Map<number, LeadHandoff>;
+  
   private userIdCounter: number;
   private roleIdCounter: number;
   private leadIdCounter: number;
@@ -508,6 +513,11 @@ export class MemStorage implements IStorage {
   private permissionTemplateIdCounter: number;
   private featureFlagIdCounter: number;
   private userLocationIdCounter: number;
+  
+  // CRM enhancement counters
+  private formTemplateIdCounter: number;
+  private formSubmissionIdCounter: number;
+  private leadHandoffIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
@@ -558,6 +568,11 @@ export class MemStorage implements IStorage {
     this.featureFlags = new Map();
     this.userLocations = new Map();
     
+    // Initialize CRM enhancement maps
+    this.formTemplates = new Map();
+    this.formSubmissions = new Map();
+    this.leadHandoffs = new Map();
+    
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
     this.leadIdCounter = 1;
@@ -599,6 +614,11 @@ export class MemStorage implements IStorage {
     this.permissionTemplateIdCounter = 1;
     this.featureFlagIdCounter = 1;
     this.userLocationIdCounter = 1;
+    
+    // Initialize CRM enhancement counters
+    this.formTemplateIdCounter = 1;
+    this.formSubmissionIdCounter = 1;
+    this.leadHandoffIdCounter = 1;
     
     // Initialize with default roles
     this.initializeRoles();
