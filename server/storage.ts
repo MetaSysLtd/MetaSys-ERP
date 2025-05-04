@@ -2828,6 +2828,16 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  async getLoad(id: number): Promise<Load | undefined> {
+    try {
+      const [load] = await db.select().from(loads).where(eq(loads.id, id));
+      return load;
+    } catch (error) {
+      console.error('Error in getLoad:', error);
+      throw error;
+    }
+  }
+
   async getLoadsByLead(leadId: number): Promise<Load[]> {
     try {
       return await db.select().from(loads).where(eq(loads.leadId, leadId));
