@@ -79,20 +79,118 @@ export default function DispatchLoadsPage() {
     }
   }, [error, toast]);
   
-  // Export loads to CSV
-  const exportLoadsToCSV = () => {
-    if (!filteredLoads || filteredLoads.length === 0) {
-      toast({
-        title: "No Data to Export",
-        description: "There are no loads matching your current filters to export.",
-        variant: "destructive",
-      });
-      return;
+  // Export functions are defined below with the enhanced dynamic options
+  
+  // Define PDF template styles
+  const pdfTemplates = {
+    standard: {
+      name: "Standard",
+      style: `
+        body { font-family: Arial, sans-serif; color: #333; margin: 0; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #025E73; padding-bottom: 10px; }
+        .logo { font-size: 24px; font-weight: bold; color: #025E73; }
+        .title { font-size: 22px; font-weight: bold; text-align: center; margin: 20px 0; color: #025E73; }
+        .date { text-align: right; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #f1f5f9; text-align: left; padding: 10px; border-bottom: 2px solid #025E73; font-weight: bold; }
+        td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .status-pending { background-color: #fff7ed; color: #c2410c; }
+        .status-assigned { background-color: #eff6ff; color: #1d4ed8; }
+        .status-in-transit { background-color: #f5f3ff; color: #6d28d9; }
+        .status-delivered { background-color: #ecfdf5; color: #047857; }
+        .status-cancelled { background-color: #fef2f2; color: #b91c1c; }
+        .status-issue { background-color: #fef2f2; color: #b91c1c; }
+      `
+    },
+    professional: {
+      name: "Professional",
+      style: `
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #2d3748; margin: 0; padding: 30px; background-color: #f7fafc; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .logo { font-size: 28px; font-weight: 600; color: #025E73; letter-spacing: -0.5px; }
+        .title { font-size: 26px; font-weight: 600; text-align: center; margin: 30px 0; color: #025E73; letter-spacing: -0.5px; position: relative; }
+        .title:after { content: ''; position: absolute; width: 60px; height: 3px; background: #025E73; bottom: -10px; left: 50%; transform: translateX(-50%); }
+        .date { text-align: right; font-size: 14px; color: #718096; }
+        .meta-info { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .meta-info div { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex: 1; margin: 0 10px; }
+        .meta-info div:first-child { margin-left: 0; }
+        .meta-info div:last-child { margin-right: 0; }
+        .meta-info h3 { margin: 0 0 5px 0; font-size: 14px; color: #718096; font-weight: normal; }
+        .meta-info p { margin: 0; font-size: 18px; font-weight: 600; color: #2d3748; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 25px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th { background-color: #025E73; color: white; text-align: left; padding: 15px; font-weight: 500; }
+        td { padding: 13px 15px; border-bottom: 1px solid #e2e8f0; }
+        tr:last-child td { border-bottom: none; }
+        .footer { margin-top: 40px; text-align: center; font-size: 13px; color: #718096; }
+        .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-block; }
+        .status-pending { background-color: #feecdc; color: #9a3412; }
+        .status-assigned { background-color: #dbeafe; color: #1e40af; }
+        .status-in-transit { background-color: #ede9fe; color: #5b21b6; }
+        .status-delivered { background-color: #d1fae5; color: #065f46; }
+        .status-cancelled { background-color: #fee2e2; color: #991b1b; }
+        .status-issue { background-color: #fee2e2; color: #991b1b; }
+      `
+    },
+    executive: {
+      name: "Executive",
+      style: `
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a202c; margin: 0; padding: 40px; }
+        .header { position: relative; padding-bottom: 15px; margin-bottom: 30px; }
+        .header:after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #025E73 0%, #412754 100%); }
+        .logo { font-size: 32px; font-weight: 700; background: linear-gradient(90deg, #025E73 0%, #412754 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .title { font-size: 24px; font-weight: 700; text-align: center; margin: 30px 0; color: #1a202c; }
+        .date { text-align: right; font-size: 14px; color: #718096; margin-top: -50px; }
+        .summary { background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 30px; display: flex; justify-content: space-around; }
+        .summary-item { text-align: center; }
+        .summary-item h3 { margin: 0 0 5px 0; font-size: 14px; color: #718096; font-weight: 500; }
+        .summary-item p { margin: 0; font-size: 22px; font-weight: 700; color: #025E73; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; }
+        th { text-align: left; padding: 15px; font-weight: 600; color: #4a5568; border-bottom: 2px solid #e2e8f0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 15px; border-bottom: 1px solid #edf2f7; }
+        tr:hover td { background-color: #f9fafb; }
+        .footer { margin-top: 40px; text-align: center; font-size: 13px; color: #718096; }
+        .status-badge { padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .status-pending { background-color: #fff1db; color: #b45309; }
+        .status-assigned { background-color: #e0f2fe; color: #0369a1; }
+        .status-in-transit { background-color: #f3e8ff; color: #6b21a8; }
+        .status-delivered { background-color: #dcfce7; color: #15803d; }
+        .status-cancelled { background-color: #fee2e2; color: #b91c1c; }
+        .status-issue { background-color: #fee2e2; color: #b91c1c; }
+      `
     }
+  };
 
-    try {
-      // Define the CSV header
-      const headers = [
+  // CSV Export options
+  const csvExportOptions = {
+    basic: {
+      name: "Basic",
+      headers: [
+        'Load #',
+        'Origin',
+        'Destination',
+        'Client',
+        'Pickup Date',
+        'Delivery Date',
+        'Status',
+        'Rate'
+      ],
+      getData: (load: any) => [
+        load.loadNumber || '',
+        load.origin || '',
+        load.destination || '',
+        load.client?.name || '',
+        formatDate(load.pickupDate) || '',
+        formatDate(load.deliveryDate) || '',
+        formatStatus(load.status).label || '',
+        `$${load.rate?.toFixed(2) || '0.00'}`
+      ]
+    },
+    detailed: {
+      name: "Detailed",
+      headers: [
         'Load #',
         'Origin',
         'Destination',
@@ -106,10 +204,8 @@ export default function DispatchLoadsPage() {
         'Miles',
         'Weight',
         'Notes'
-      ];
-
-      // Convert data to CSV rows
-      const rows = filteredLoads.map(load => [
+      ],
+      getData: (load: any) => [
         load.loadNumber || '',
         load.origin || '',
         load.destination || '',
@@ -123,12 +219,35 @@ export default function DispatchLoadsPage() {
         load.miles?.toString() || '',
         load.weight || '',
         load.notes || ''
-      ]);
+      ]
+    }
+  };
+
+  // Export loads to CSV
+  const exportLoadsToCSV = (option = 'detailed') => {
+    if (!filteredLoads || filteredLoads.length === 0) {
+      toast({
+        title: "No Data to Export",
+        description: "There are no loads matching your current filters to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Get the selected CSV option
+      const csvOption = csvExportOptions[option as keyof typeof csvExportOptions] || csvExportOptions.detailed;
+      
+      // Define the CSV header
+      const headers = csvOption.headers;
+
+      // Convert data to CSV rows
+      const rows = filteredLoads.map(load => csvOption.getData(load));
 
       // Combine header and rows
       const csvContent = [
         headers.join(','),
-        ...rows.map(row => row.map(cell => `"${cell.toString().replace(/"/g, '""')}"`).join(','))
+        ...rows.map(row => row.map(cell => `"${cell?.toString().replace(/"/g, '""')}"`).join(','))
       ].join('\n');
 
       // Create a blob and download link
@@ -144,7 +263,7 @@ export default function DispatchLoadsPage() {
 
       toast({
         title: "Export Successful",
-        description: "Your loads have been exported to CSV",
+        description: `Your loads have been exported to CSV (${csvOption.name})`,
         variant: "default",
       });
     } catch (error) {
@@ -158,7 +277,7 @@ export default function DispatchLoadsPage() {
   };
   
   // Export loads to PDF
-  const exportLoadsToPDF = () => {
+  const exportLoadsToPDF = (template = 'standard') => {
     if (!filteredLoads || filteredLoads.length === 0) {
       toast({
         title: "No Data to Export",
@@ -174,81 +293,145 @@ export default function DispatchLoadsPage() {
         description: "Your PDF is being prepared for download",
       });
       
+      // Get the selected template
+      const selectedTemplate = pdfTemplates[template as keyof typeof pdfTemplates] || pdfTemplates.standard;
+      
       // Create HTML content for PDF
       const companyLogo = "MetaSys ERP";
       const today = new Date().toLocaleDateString();
+      const reportTitle = viewTab !== 'all' 
+        ? `${viewTab.charAt(0).toUpperCase() + viewTab.slice(1)} Loads Report` 
+        : 'Dispatch Loads Report';
       
-      // Create PDF template
-      const pdfContent = `
+      // Create summary data for Executive template
+      const summaryData = {
+        totalLoads: filteredLoads.length,
+        totalValue: filteredLoads.reduce((sum, load) => sum + (load.rate || 0), 0),
+        avgRate: filteredLoads.length 
+          ? (filteredLoads.reduce((sum, load) => sum + (load.rate || 0), 0) / filteredLoads.length).toFixed(2)
+          : '0.00',
+        upcomingLoads: filteredLoads.filter(load => 
+          new Date(load.pickupDate) > new Date() && 
+          load.status && ["pending", "assigned"].includes(load.status)).length
+      };
+      
+      // Create PDF template based on the selected style
+      let pdfContent = `
         <html>
           <head>
             <style>
-              body { font-family: Arial, sans-serif; color: #333; margin: 0; padding: 20px; }
-              .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #025E73; padding-bottom: 10px; }
-              .logo { font-size: 24px; font-weight: bold; color: #025E73; }
-              .title { font-size: 22px; font-weight: bold; text-align: center; margin: 20px 0; color: #025E73; }
-              .date { text-align: right; }
-              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-              th { background-color: #f1f5f9; text-align: left; padding: 10px; border-bottom: 2px solid #025E73; font-weight: bold; }
-              td { padding: 10px; border-bottom: 1px solid #e5e7eb; }
-              tr:nth-child(even) { background-color: #f8fafc; }
-              .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 10px; }
-              .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
-              .status-pending { background-color: #fff7ed; color: #c2410c; }
-              .status-assigned { background-color: #eff6ff; color: #1d4ed8; }
-              .status-in-transit { background-color: #f5f3ff; color: #6d28d9; }
-              .status-delivered { background-color: #ecfdf5; color: #047857; }
-              .status-cancelled { background-color: #fef2f2; color: #b91c1c; }
-              .status-issue { background-color: #fef2f2; color: #b91c1c; }
+              ${selectedTemplate.style}
             </style>
           </head>
           <body>
-            <div class="header">
-              <div class="logo">${companyLogo}</div>
-              <div class="date">Generated: ${today}</div>
-            </div>
-            
-            <div class="title">Dispatch Loads Report</div>
-            
-            <table>
-              <thead>
-                <tr>
-                  <th>Load #</th>
-                  <th>Origin</th>
-                  <th>Destination</th>
-                  <th>Client</th>
-                  <th>Pickup</th>
-                  <th>Delivery</th>
-                  <th>Status</th>
-                  <th>Rate</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${filteredLoads.map(load => {
-                  const status = formatStatus(load.status);
-                  const statusClass = `status-${load.status.replace('_', '-')}`;
-                  return `
-                    <tr>
-                      <td>${load.loadNumber || ''}</td>
-                      <td>${load.origin || ''}</td>
-                      <td>${load.destination || ''}</td>
-                      <td>${load.client?.name || ''}</td>
-                      <td>${formatDate(load.pickupDate) || ''}</td>
-                      <td>${formatDate(load.deliveryDate) || ''}</td>
-                      <td><span class="status-badge ${statusClass}">${status.label}</span></td>
-                      <td>$${load.rate?.toFixed(2) || '0.00'}</td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-            
-            <div class="footer">
-              <p>MetaSys ERP - Dispatch Management System | This report contains ${filteredLoads.length} loads</p>
-            </div>
-          </body>
-        </html>
       `;
+      
+      // Add header based on template
+      if (template === 'executive') {
+        pdfContent += `
+          <div class="header">
+            <div class="logo">${companyLogo}</div>
+            <div class="date">Generated: ${today}</div>
+          </div>
+          
+          <div class="title">${reportTitle}</div>
+          
+          <div class="summary">
+            <div class="summary-item">
+              <h3>TOTAL LOADS</h3>
+              <p>${summaryData.totalLoads}</p>
+            </div>
+            <div class="summary-item">
+              <h3>TOTAL VALUE</h3>
+              <p>$${summaryData.totalValue.toLocaleString()}</p>
+            </div>
+            <div class="summary-item">
+              <h3>AVG RATE</h3>
+              <p>$${summaryData.avgRate}</p>
+            </div>
+            <div class="summary-item">
+              <h3>UPCOMING</h3>
+              <p>${summaryData.upcomingLoads}</p>
+            </div>
+          </div>
+        `;
+      } else if (template === 'professional') {
+        pdfContent += `
+          <div class="header">
+            <div class="logo">${companyLogo}</div>
+            <div class="date">Generated: ${today}</div>
+          </div>
+          
+          <div class="title">${reportTitle}</div>
+          
+          <div class="meta-info">
+            <div>
+              <h3>Total Loads</h3>
+              <p>${summaryData.totalLoads}</p>
+            </div>
+            <div>
+              <h3>Total Value</h3>
+              <p>$${summaryData.totalValue.toLocaleString()}</p>
+            </div>
+            <div>
+              <h3>Status</h3>
+              <p>${viewTab !== 'all' ? viewTab.replace('_', ' ').toUpperCase() : 'ALL'}</p>
+            </div>
+          </div>
+        `;
+      } else {
+        // Standard template
+        pdfContent += `
+          <div class="header">
+            <div class="logo">${companyLogo}</div>
+            <div class="date">Generated: ${today}</div>
+          </div>
+          
+          <div class="title">${reportTitle}</div>
+        `;
+      }
+      
+      // Add the table with load data
+      pdfContent += `
+        <table>
+          <thead>
+            <tr>
+              <th>Load #</th>
+              <th>Origin</th>
+              <th>Destination</th>
+              <th>Client</th>
+              <th>Pickup</th>
+              <th>Delivery</th>
+              <th>Status</th>
+              <th>Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredLoads.map(load => {
+              const status = formatStatus(load.status);
+              const statusClass = `status-${load.status.replace('_', '-')}`;
+              return `
+                <tr>
+                  <td>${load.loadNumber || ''}</td>
+                  <td>${load.origin || ''}</td>
+                  <td>${load.destination || ''}</td>
+                  <td>${load.client?.name || ''}</td>
+                  <td>${formatDate(load.pickupDate) || ''}</td>
+                  <td>${formatDate(load.deliveryDate) || ''}</td>
+                  <td><span class="status-badge ${statusClass}">${status.label}</span></td>
+                  <td>$${load.rate?.toFixed(2) || '0.00'}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+        
+        <div class="footer">
+          <p>MetaSys ERP - Dispatch Management System | This report contains ${filteredLoads.length} loads</p>
+        </div>
+      </body>
+    </html>
+  `;
       
       // Convert HTML to PDF
       const blob = new Blob([pdfContent], { type: 'text/html' });
@@ -279,7 +462,7 @@ export default function DispatchLoadsPage() {
           
           toast({
             title: "Export Successful",
-            description: "Your loads have been exported to PDF",
+            description: `Your loads have been exported to PDF (${selectedTemplate.name})`,
             variant: "default",
           });
         }, 500);
