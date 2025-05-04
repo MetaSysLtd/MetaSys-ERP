@@ -9,9 +9,12 @@ export const clockEventTypeEnum = pgEnum('clock_event_type', ['IN', 'OUT']);
 export const bugUrgencyEnum = pgEnum('bug_urgency', ['Low', 'Medium', 'High']);
 
 // CRM Lead enums
-export const leadSourceEnum = pgEnum('lead_source', ['SQL', 'MQL']);
+export const leadSourceEnum = pgEnum('lead_source', ['SQL', 'MQL', 'Website', 'Referral', 'Cold Call', 'Event', 'Partner', 'Other']);
 export const leadStatusEnum = pgEnum('lead_status', ['New', 'InProgress', 'FollowUp', 'HandToDispatch', 'Active', 'Lost']);
 export const callOutcomeEnum = pgEnum('call_outcome', ['Answered', 'Voicemail', 'No Answer', 'Wrong Number', 'Not Interested', 'Interested', 'Follow Up', 'Booked']);
+export const leadScoreEnum = pgEnum('lead_score', ['Low', 'Medium', 'High', 'Very High']);
+export const leadValidationStatusEnum = pgEnum('lead_validation_status', ['Valid', 'Invalid', 'Pending']);
+export const formStatusEnum = pgEnum('form_status', ['Sent', 'Viewed', 'Completed', 'Expired']);
 
 // HR Hiring & Onboarding enums
 export const hiringCandidateStatusEnum = pgEnum('hiring_candidate_status', ['applied', 'screening', 'interviewed', 'offered', 'onboarded']);
@@ -408,9 +411,36 @@ export const leads = pgTable("leads", {
   // Enhanced lead source tracking
   source: leadSourceEnum("source").notNull().default("SQL"),
   
+  // Lead qualification and scoring
+  qualificationScore: leadScoreEnum("qualification_score").default("Medium"),
+  validationStatus: leadValidationStatusEnum("validation_status").default("Pending"),
+  
+  // Fields for tracking sales activity
+  lastContactedAt: timestamp("last_contacted_at"),
+  callAttempts: integer("call_attempts").default(0),
+  formsSent: integer("forms_sent").default(0),
+  formsCompleted: integer("forms_completed").default(0),
+  
+  // Status change history tracking
+  inProgressAt: timestamp("in_progress_at"),
+  handToDispatchAt: timestamp("hand_to_dispatch_at"),
+  activatedAt: timestamp("activated_at"),
+  
+  // Dispatch handoff tracking
+  dispatchRejectionCount: integer("dispatch_rejection_count").default(0),
+  dispatchRejectionReason: text("dispatch_rejection_reason"),
+  dispatchHandoverNotes: text("dispatch_handover_notes"),
+  
+  // Standard fields
   assignedTo: integer("assigned_to").notNull(),
   orgId: integer("org_id").references(() => organizations.id),
   notes: text("notes"),
+  
+  // JSON field for storing custom fields and arbitrary data
+  customFields: jsonb("custom_fields"),
+  
+  // Tags for better categorization 
+  tags: text("tags").array(),
   
   // Timestamps for better lead tracking
   firstContactAt: timestamp("first_contact_at"),
@@ -424,6 +454,8 @@ export const leads = pgTable("leads", {
     statusIdx: index("leads_status_idx").on(table.status),
     ownerIdx: index("leads_owner_idx").on(table.assignedTo),
     createdAtIdx: index("leads_created_at_idx").on(table.createdAt),
+    scoreIdx: index("leads_score_idx").on(table.qualificationScore),
+    lastContactedIdx: index("leads_last_contacted_idx").on(table.lastContactedAt),
     // Combined index for frequently filtered queries
     orgStatusOwnerIdx: index("leads_org_status_owner_idx").on(table.orgId, table.status, table.assignedTo)
   };
@@ -466,6 +498,52 @@ export const callLogs = pgTable("call_logs", {
   };
 });
 
+// Form templates for sending to leads
+export const formTemplates = pgTable("form_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // "onboarding", "credit", "service", "rate_agreement", etc.
+  content: text("content").notNull(), // JSON or HTML form content
+  orgId: integer("org_id").references(() => organizations.id),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    orgIdIdx: index("form_templates_org_id_idx").on(table.orgId),
+    categoryIdx: index("form_templates_category_idx").on(table.category),
+    activeIdx: index("form_templates_active_idx").on(table.isActive),
+  };
+});
+
+// Form submissions tracking
+export const formSubmissions = pgTable("form_submissions", {
+  id: serial("id").primaryKey(),
+  formTemplateId: integer("form_template_id").notNull().references(() => formTemplates.id),
+  leadId: integer("lead_id").notNull().references(() => leads.id),
+  sentBy: integer("sent_by").notNull().references(() => users.id),
+  deliveryMethod: text("delivery_method").notNull(), // "email", "text", "portal", etc.
+  status: formStatusEnum("status").notNull().default("Sent"),
+  sentAt: timestamp("sent_at").notNull().defaultNow(),
+  viewedAt: timestamp("viewed_at"),
+  completedAt: timestamp("completed_at"),
+  expiresAt: timestamp("expires_at"),
+  customMessage: text("custom_message"),
+  responseData: jsonb("response_data"), // JSON response data
+  followUpScheduled: boolean("follow_up_scheduled").notNull().default(false),
+  followUpDate: timestamp("follow_up_date"),
+}, (table) => {
+  return {
+    templateIdIdx: index("form_submissions_template_id_idx").on(table.formTemplateId),
+    leadIdIdx: index("form_submissions_lead_id_idx").on(table.leadId),
+    statusIdx: index("form_submissions_status_idx").on(table.status),
+    sentAtIdx: index("form_submissions_sent_at_idx").on(table.sentAt),
+    followUpIdx: index("form_submissions_follow_up_idx").on(table.followUpScheduled, table.followUpDate),
+  };
+});
+
 // Follow-up scheduler for leads
 export const leadFollowUps = pgTable("lead_follow_ups", {
   id: serial("id").primaryKey(),
@@ -504,6 +582,33 @@ export const customerFeedback = pgTable("customer_feedback", {
     leadIdIdx: index("customer_feedback_lead_id_idx").on(table.leadId),
     ratingIdx: index("customer_feedback_rating_idx").on(table.rating),
     surveyDateIdx: index("customer_feedback_survey_date_idx").on(table.surveyDate),
+  };
+});
+
+// Lead to Dispatch Handoff
+export const leadHandoffs = pgTable("lead_handoffs", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull().references(() => leads.id),
+  salesRepId: integer("sales_rep_id").notNull().references(() => users.id),
+  dispatcherId: integer("dispatcher_id").references(() => users.id),
+  handoffDate: timestamp("handoff_date").notNull().defaultNow(),
+  status: text("status").notNull(), // "pending", "accepted", "rejected", "returned"
+  rejectionReason: text("rejection_reason"),
+  qualityRating: integer("quality_rating"), // 1-5 scale
+  feedbackNotes: text("feedback_notes"),
+  responseDate: timestamp("response_date"),
+  autoRejected: boolean("auto_rejected").default(false),
+  callsVerified: boolean("calls_verified").default(false),
+  requiredFormsFilled: boolean("required_forms_filled").default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    leadIdIdx: index("lead_handoffs_lead_id_idx").on(table.leadId),
+    salesRepIdx: index("lead_handoffs_sales_rep_idx").on(table.salesRepId),
+    dispatcherIdx: index("lead_handoffs_dispatcher_idx").on(table.dispatcherId),
+    statusIdx: index("lead_handoffs_status_idx").on(table.status),
+    handoffDateIdx: index("lead_handoffs_handoff_date_idx").on(table.handoffDate),
   };
 });
 
