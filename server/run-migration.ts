@@ -32,8 +32,9 @@ async function runMigrations() {
   console.log('Starting database migrations...');
   
   try {
-    // Run specific migration
+    // Run specific migrations
     await runMigration('add_qualification_fields.sql');
+    await runMigration('fix_column_names.sql');
     
     console.log('✅ All migrations completed successfully!');
   } catch (error) {
