@@ -2678,6 +2678,35 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   // Create a new load
   dispatchLoadRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
+      // Ensure user has appropriate role (dispatch or admin only)
+      const userRole = req.userRole;
+      if (!userRole || (userRole.department !== 'dispatch' && userRole.department !== 'admin')) {
+        return res.status(403).json({
+          status: "error",
+          message: "Permission denied: Only dispatch team members or admins can create loads"
+        });
+      }
+      
+      // Verify the lead exists and is in correct status
+      const leadId = req.body.leadId;
+      if (leadId) {
+        const lead = await storage.getLead(leadId);
+        if (!lead) {
+          return res.status(404).json({
+            status: "error",
+            message: "The specified carrier/lead was not found"
+          });
+        }
+        
+        // Check if lead is in appropriate status
+        if (lead.status !== 'Active' && lead.status !== 'HandToDispatch') {
+          return res.status(400).json({
+            status: "error",
+            message: "Carrier must be in Active or HandToDispatch status before creating a load"
+          });
+        }
+      }
+      
       const loadData = {
         ...req.body,
         createdBy: req.user?.id || 0,
@@ -2685,6 +2714,36 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       };
       
       const newLoad = await storage.createLoad(loadData);
+      
+      // If this is from a lead, update the lead status to Active if needed
+      if (leadId) {
+        const lead = await storage.getLead(leadId);
+        if (lead && lead.status === 'HandToDispatch') {
+          await storage.updateLead(leadId, {
+            status: 'Active',
+            activatedAt: new Date()
+          });
+          
+          // Log this activity
+          await storage.createActivity({
+            userId: req.user?.id || 0,
+            entityType: 'lead',
+            entityId: leadId,
+            action: 'status_change',
+            details: 'Lead status changed to Active after load creation'
+          });
+        }
+      }
+      
+      // Log activity for the load creation
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: 'load',
+        entityId: newLoad.id,
+        action: 'created',
+        details: `Load created for ${req.body.origin || 'unknown origin'} to ${req.body.destination || 'unknown destination'}`
+      });
+      
       res.status(201).json(newLoad);
     } catch (error) {
       console.error("Error creating load:", error);

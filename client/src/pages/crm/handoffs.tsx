@@ -88,6 +88,10 @@ const leadHandoffSchema = z.object({
   pricingVerified: z.boolean().default(false),
   customerVerified: z.boolean().default(false),
   requiredFormsFilled: z.boolean().default(false),
+  // Adding fields for agent attribution
+  agentType: z.enum(['starter', 'closer', 'full']).default('full'),
+  agentAttribution: z.number().optional(),
+  truckType: z.string().optional(),
 });
 
 type LeadHandoffFormValues = z.infer<typeof leadHandoffSchema>;
@@ -424,6 +428,41 @@ export default function LeadHandoffsPage() {
                     </FormItem>
                   )}
                 />
+                
+                {/* Truck Type field */}
+                <FormField
+                  control={newForm.control}
+                  name="truckType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Truck Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select truck type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="dry_van">Dry Van</SelectItem>
+                          <SelectItem value="reefer">Reefer</SelectItem>
+                          <SelectItem value="flatbed">Flatbed</SelectItem>
+                          <SelectItem value="step_deck">Step Deck</SelectItem>
+                          <SelectItem value="lowboy">Lowboy</SelectItem>
+                          <SelectItem value="specialized">Specialized</SelectItem>
+                          <SelectItem value="tanker">Tanker</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Specify the type of truck required for this load
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="pt-4 border-t">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-medium">Validation Points</h3>
@@ -461,6 +500,74 @@ export default function LeadHandoffsPage() {
                     </div>
                   ))}
                 </div>
+                {/* Agent Attribution section */}
+                <div className="space-y-4 rounded-md border p-4 mt-4">
+                  <h3 className="text-lg font-medium">Agent Attribution</h3>
+                  <FormField
+                    control={newForm.control}
+                    name="agentType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Agent Role</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select agent role" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="full">Full (100%)</SelectItem>
+                            <SelectItem value="starter">Starter</SelectItem>
+                            <SelectItem value="closer">Closer</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Role determines commission splits according to policy
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {(newForm.watch('agentType') === 'starter' || newForm.watch('agentType') === 'closer') && (
+                    <FormField
+                      control={newForm.control}
+                      name="agentAttribution"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Attribution Agent</FormLabel>
+                          <Select
+                            onValueChange={(value) => field.onChange(parseInt(value))}
+                            defaultValue={field.value?.toString() || ''}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select attribution agent" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {users?.filter((user: any) => user.department === 'sales').map((user: any) => (
+                                <SelectItem key={user.id} value={user.id.toString()}>
+                                  {user.firstName} {user.lastName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            {newForm.watch('agentType') === 'starter' 
+                              ? 'Select the closer who will handle this lead' 
+                              : 'Select the starter who originated this lead'}
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+                
                 <div className="pt-4 border-t">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-medium">Required Documents</h3>
@@ -588,6 +695,16 @@ export default function LeadHandoffsPage() {
                     </FormItem>
                   )}
                 />
+                {/* 3-call minimum warning message */}
+                <Alert className="bg-amber-50 text-amber-800 border-amber-200 mt-4">
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                  <AlertTitle>Call Verification</AlertTitle>
+                  <AlertDescription>
+                    A minimum of 3 calls must be logged with this lead before handoff. This will be 
+                    automatically verified during submission.
+                  </AlertDescription>
+                </Alert>
+                
                 <DialogFooter>
                   <Button
                     type="button"
