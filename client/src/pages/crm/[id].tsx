@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDate, formatPhone, getStatusColor } from "@/lib/utils";
+import Timeline from "@/components/crm/Timeline";
 
 import {
   Card,
@@ -59,6 +60,7 @@ import {
   ArrowRightCircle,
   Check,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -100,6 +102,12 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
   // Fetch activities for this lead
   const { data: activities } = useQuery({
     queryKey: [`/api/activities/entity/lead/${id}`],
+    enabled: !!id,
+  });
+  
+  // Fetch lead timeline activities
+  const { data: timelineActivities, isLoading: timelineLoading } = useQuery({
+    queryKey: [`/api/leads/${id}/timeline`],
     enabled: !!id,
   });
   
@@ -274,6 +282,7 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
       setStatusDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: [`/api/leads/${id}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/activities/entity/lead/${id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/leads/${id}/timeline`] });
       queryClient.invalidateQueries({ queryKey: [`/api/dispatch-clients`] });
     },
     onError: (error: any) => {
@@ -309,6 +318,7 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
       setRemarkDialogOpen(false);
       setRemark("");
       queryClient.invalidateQueries({ queryKey: [`/api/activities/entity/lead/${id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/leads/${id}/timeline`] });
     },
     onError: (error: any) => {
       toast({
@@ -1061,7 +1071,7 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
           <TabsContent value="activity">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Activity Log</CardTitle>
+                <CardTitle>Activity Timeline</CardTitle>
                 <Button 
                   size="sm" 
                   className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white"
@@ -1071,7 +1081,11 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                 </Button>
               </CardHeader>
               <CardContent>
-                {!activities || activities.length === 0 ? (
+                {timelineLoading ? (
+                  <div className="flex justify-center items-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : !timelineActivities || timelineActivities.length === 0 ? (
                   <div className="text-center py-8">
                     <Activity className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-2 text-sm font-medium text-gray-900">No activity found</h3>
@@ -1080,39 +1094,11 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {activities.map((activity: any) => (
-                      <div key={activity.id} className="flex py-3 border-b border-gray-200 last:border-0">
-                        <div className="mr-4 flex-shrink-0">
-                          <div className={`flex h-8 w-8 items-center justify-center rounded-full 
-                            ${activity.action === 'created' ? 'bg-blue-100' : 
-                              activity.action === 'status_changed' ? 'bg-green-100' : 
-                              activity.action === 'remark_added' ? 'bg-yellow-100' :  
-                              activity.action === 'call_logged' ? 'bg-indigo-100' : 
-                              'bg-primary-100'}`}>
-                            {activity.action === 'created' && <Clipboard className="h-4 w-4 text-blue-600" />}
-                            {activity.action === 'status_changed' && <ArrowRightCircle className="h-4 w-4 text-green-600" />}
-                            {activity.action === 'remark_added' && <MessageSquare className="h-4 w-4 text-yellow-600" />}
-                            {activity.action === 'call_logged' && <Phone className="h-4 w-4 text-indigo-600" />}
-                            {!['created', 'status_changed', 'remark_added', 'call_logged'].includes(activity.action) && 
-                              <Activity className="h-4 w-4 text-primary-600" />}
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{activity.details}</p>
-                          <div className="mt-1 flex space-x-2 text-xs text-gray-500">
-                            <p>{formatDate(activity.timestamp)}</p>
-                            {activity.user && <p>by {activity.user.name || 'Unknown'}</p>}
-                          </div>
-                          {activity.notes && (
-                            <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">
-                              {activity.notes}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <Timeline 
+                    activities={timelineActivities} 
+                    className="max-h-[600px] overflow-y-auto pr-2"
+                    showUserDetails={true}
+                  />
                 )}
               </CardContent>
             </Card>
@@ -1330,6 +1316,7 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                   
                   queryClient.invalidateQueries({ queryKey: [`/api/leads/${id}`] });
                   queryClient.invalidateQueries({ queryKey: [`/api/activities/entity/lead/${id}`] });
+                  queryClient.invalidateQueries({ queryKey: [`/api/leads/${id}/timeline`] });
                   setQualificationDialogOpen(false);
                 } catch (error: any) {
                   toast({
