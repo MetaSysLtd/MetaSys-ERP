@@ -5,8 +5,15 @@ import { fromZodError } from 'zod-validation-error';
 import { 
   insertFormTemplateSchema, 
   insertFormSubmissionSchema, 
-  insertLeadHandoffSchema 
+  insertLeadHandoffSchema,
+  insertAccountSchema,
+  insertSurveySchema,
+  insertActivitySchema,
+  activities
 } from '@shared/schema';
+import crypto from 'crypto';
+import { db } from '../db';
+import { eq, and, desc } from 'drizzle-orm';
 import { createAuthMiddleware } from '../auth-middleware';
 
 const router = express.Router();
@@ -297,6 +304,345 @@ router.put('/lead-handoffs/:id', authMiddleware, async (req, res) => {
     res.json(updatedHandoff);
   } catch (error) {
     handleZodError(error, res);
+  }
+});
+
+// Accounts (CRM Deep-Carve) endpoints
+router.get('/accounts', authMiddleware, async (req, res) => {
+  try {
+    const accounts = await storage.getAccounts();
+    res.json(accounts);
+  } catch (error) {
+    console.error('Error fetching accounts:', error);
+    res.status(500).json({ error: 'Failed to fetch accounts' });
+  }
+});
+
+router.get('/accounts/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid account ID' });
+    }
+    
+    const account = await storage.getAccount(id);
+    if (!account) {
+      return res.status(404).json({ error: 'Account not found' });
+    }
+    
+    res.json(account);
+  } catch (error) {
+    console.error(`Error fetching account ${req.params.id}:`, error);
+    res.status(500).json({ error: 'Failed to fetch account' });
+  }
+});
+
+router.post('/accounts', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const data = insertAccountSchema.parse({
+      ...req.body,
+      createdBy: userId,
+      // If no assignedTo is provided, assign to the creator
+      assignedTo: req.body.assignedTo || userId,
+      // If no orgId is provided, use the user's orgId
+      orgId: req.body.orgId || req.user?.orgId || 1
+    });
+    
+    const account = await storage.createAccount(data);
+    
+    // Log this activity
+    await storage.createActivity({
+      userId,
+      entityType: 'account',
+      entityId: account.id,
+      action: 'created',
+      details: `Created new account: ${account.name}`
+    });
+    
+    res.status(201).json(account);
+  } catch (error) {
+    handleZodError(error, res);
+  }
+});
+
+router.put('/accounts/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid account ID' });
+    }
+    
+    const account = await storage.getAccount(id);
+    if (!account) {
+      return res.status(404).json({ error: 'Account not found' });
+    }
+    
+    const updates = {
+      ...req.body,
+      updatedAt: new Date()
+    };
+    
+    const updatedAccount = await storage.updateAccount(id, updates);
+    
+    // Log this activity
+    await storage.createActivity({
+      userId: req.session.userId,
+      entityType: 'account',
+      entityId: account.id,
+      action: 'updated',
+      details: `Updated account: ${account.name}`
+    });
+    
+    res.json(updatedAccount);
+  } catch (error) {
+    handleZodError(error, res);
+  }
+});
+
+router.delete('/accounts/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid account ID' });
+    }
+    
+    const account = await storage.getAccount(id);
+    if (!account) {
+      return res.status(404).json({ error: 'Account not found' });
+    }
+    
+    const success = await storage.deleteAccount(id);
+    if (success) {
+      res.status(204).end();
+    } else {
+      res.status(500).json({ error: 'Failed to delete account' });
+    }
+  } catch (error) {
+    console.error(`Error deleting account ${req.params.id}:`, error);
+    res.status(500).json({ error: 'Failed to delete account' });
+  }
+});
+
+// Surveys (CRM Deep-Carve) endpoints
+router.get('/surveys', authMiddleware, async (req, res) => {
+  try {
+    const surveys = await storage.getSurveys();
+    res.json(surveys);
+  } catch (error) {
+    console.error('Error fetching surveys:', error);
+    res.status(500).json({ error: 'Failed to fetch surveys' });
+  }
+});
+
+router.get('/surveys/lead/:leadId', authMiddleware, async (req, res) => {
+  try {
+    const leadId = parseInt(req.params.leadId);
+    if (isNaN(leadId)) {
+      return res.status(400).json({ error: 'Invalid lead ID' });
+    }
+    
+    const surveys = await storage.getSurveysByLead(leadId);
+    res.json(surveys);
+  } catch (error) {
+    console.error(`Error fetching surveys for lead ${req.params.leadId}:`, error);
+    res.status(500).json({ error: 'Failed to fetch surveys' });
+  }
+});
+
+router.get('/surveys/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid survey ID' });
+    }
+    
+    const survey = await storage.getSurvey(id);
+    if (!survey) {
+      return res.status(404).json({ error: 'Survey not found' });
+    }
+    
+    res.json(survey);
+  } catch (error) {
+    console.error(`Error fetching survey ${req.params.id}:`, error);
+    res.status(500).json({ error: 'Failed to fetch survey' });
+  }
+});
+
+router.post('/surveys', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    
+    // Generate a unique token for public access
+    const token = crypto.randomUUID().replace(/-/g, '');
+    
+    const data = insertSurveySchema.parse({
+      ...req.body,
+      token,
+      status: 'pending'
+    });
+    
+    const survey = await storage.createSurvey(data);
+    
+    // Log this activity
+    await storage.createActivity({
+      userId,
+      entityType: 'lead',
+      entityId: survey.leadId,
+      action: 'survey',
+      details: `Created a survey for Lead #${survey.leadId}`
+    });
+    
+    res.status(201).json(survey);
+  } catch (error) {
+    handleZodError(error, res);
+  }
+});
+
+router.put('/surveys/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid survey ID' });
+    }
+    
+    const survey = await storage.getSurvey(id);
+    if (!survey) {
+      return res.status(404).json({ error: 'Survey not found' });
+    }
+    
+    const updates = req.body;
+    
+    // If status is changing to "sent", set the sentAt timestamp
+    if (updates.status === 'sent' && survey.status !== 'sent') {
+      updates.sentAt = new Date();
+    }
+    
+    // If status is changing to "completed", set the completedAt timestamp
+    if (updates.status === 'completed' && survey.status !== 'completed') {
+      updates.completedAt = new Date();
+    }
+    
+    const updatedSurvey = await storage.updateSurvey(id, updates);
+    res.json(updatedSurvey);
+  } catch (error) {
+    handleZodError(error, res);
+  }
+});
+
+router.delete('/surveys/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid survey ID' });
+    }
+    
+    const survey = await storage.getSurvey(id);
+    if (!survey) {
+      return res.status(404).json({ error: 'Survey not found' });
+    }
+    
+    const success = await storage.deleteSurvey(id);
+    if (success) {
+      res.status(204).end();
+    } else {
+      res.status(500).json({ error: 'Failed to delete survey' });
+    }
+  } catch (error) {
+    console.error(`Error deleting survey ${req.params.id}:`, error);
+    res.status(500).json({ error: 'Failed to delete survey' });
+  }
+});
+
+// Activities (CRM Deep-Carve) endpoints
+router.get('/activities', authMiddleware, async (req, res) => {
+  try {
+    const activities = await db.select().from(activities).orderBy(desc(activities.timestamp));
+    res.json(activities);
+  } catch (error) {
+    console.error('Error fetching activities:', error);
+    res.status(500).json({ error: 'Failed to fetch activities' });
+  }
+});
+
+router.get('/activities/entity/:entityType/:entityId', authMiddleware, async (req, res) => {
+  try {
+    const { entityType, entityId } = req.params;
+    const entityIdNumber = parseInt(entityId);
+    
+    if (isNaN(entityIdNumber)) {
+      return res.status(400).json({ error: 'Invalid entity ID' });
+    }
+    
+    const activityList = await db
+      .select()
+      .from(activities)
+      .where(
+        and(
+          eq(activities.entityType, entityType),
+          eq(activities.entityId, entityIdNumber)
+        )
+      )
+      .orderBy(desc(activities.timestamp));
+      
+    res.json(activityList);
+  } catch (error) {
+    console.error(`Error fetching activities for ${req.params.entityType} ${req.params.entityId}:`, error);
+    res.status(500).json({ error: 'Failed to fetch activities' });
+  }
+});
+
+router.post('/activities', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    
+    const data = insertActivitySchema.parse({
+      ...req.body,
+      userId
+    });
+    
+    // If this is a reminder, ensure reminder date is in the future
+    if (data.action === 'reminder' && !data.reminderDate) {
+      return res.status(400).json({ 
+        error: 'Validation Error',
+        details: 'Reminder date is required for reminder activities'
+      });
+    }
+    
+    const [activity] = await db.insert(activities).values(data).returning();
+    res.status(201).json(activity);
+  } catch (error) {
+    handleZodError(error, res);
+  }
+});
+
+router.patch('/activities/:id/complete-reminder', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid activity ID' });
+    }
+    
+    const [activity] = await db.select().from(activities).where(eq(activities.id, id));
+    
+    if (!activity) {
+      return res.status(404).json({ error: 'Activity not found' });
+    }
+    
+    if (activity.action !== 'reminder') {
+      return res.status(400).json({ error: 'This activity is not a reminder' });
+    }
+    
+    const [updatedActivity] = await db
+      .update(activities)
+      .set({ reminderCompleted: true })
+      .where(eq(activities.id, id))
+      .returning();
+      
+    res.json(updatedActivity);
+  } catch (error) {
+    console.error(`Error completing reminder ${req.params.id}:`, error);
+    res.status(500).json({ error: 'Failed to complete reminder' });
   }
 });
 
