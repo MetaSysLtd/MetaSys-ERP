@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAnimationContext } from "@/contexts/AnimationContext";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -7,19 +7,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, Check } from "lucide-react";
 
 export function AnimationSettings() {
   const { 
     animationsEnabled, 
     toggleAnimations, 
+    reducedMotion,
+    toggleReducedMotion,
     transitionSpeed, 
     setTransitionSpeed,
     pageTransition,
-    setPageTransition
+    setPageTransition,
+    isSaving
   } = useAnimationContext();
   
   const [selectedDemo, setSelectedDemo] = useState<"page" | "component">("page");
   const [demoActive, setDemoActive] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success">("idle");
   
   // Function to show animation demo
   const triggerDemo = () => {
@@ -27,16 +32,59 @@ export function AnimationSettings() {
     setTimeout(() => setDemoActive(false), 1500);
   };
 
+  // Set save status based on isSaving property from context
+  // This will automatically show the saving indicator whenever settings are changed
+  const updateSaveStatus = () => {
+    if (isSaving) {
+      setSaveStatus("saving");
+    } else {
+      setSaveStatus("success");
+      const timeout = setTimeout(() => setSaveStatus("idle"), 1500);
+      return () => clearTimeout(timeout);
+    }
+  };
+
+  // Effect to update save status when isSaving changes
+  useEffect(() => {
+    updateSaveStatus();
+  }, [isSaving]);
+
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Animation Settings</span>
-          <Switch 
-            checked={animationsEnabled} 
-            onCheckedChange={toggleAnimations}
-            aria-label="Toggle animations"
-          />
+          <div className="flex items-center gap-2">
+            <AnimatePresence mode="wait">
+              {saveStatus === "saving" && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="text-primary flex items-center"
+                >
+                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                  <span className="text-xs">Saving...</span>
+                </motion.div>
+              )}
+              {saveStatus === "success" && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="text-green-600 dark:text-green-500 flex items-center"
+                >
+                  <Check className="h-4 w-4 mr-1" />
+                  <span className="text-xs">Saved</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <Switch 
+              checked={animationsEnabled} 
+              onCheckedChange={toggleAnimations}
+              aria-label="Toggle animations"
+            />
+          </div>
         </CardTitle>
         <CardDescription>
           Customize animation behaviors across the MetaSys ERP platform
@@ -47,9 +95,23 @@ export function AnimationSettings() {
         {animationsEnabled ? (
           <>
             <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label className="text-base">Reduced Motion</Label>
+                <Switch 
+                  checked={reducedMotion}
+                  onCheckedChange={toggleReducedMotion}
+                  aria-label="Toggle reduced motion"
+                />
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-left">
+                Reduces animation intensity for accessibility. This setting will also respect your system preferences.
+              </p>
+            </div>
+            
+            <div className="space-y-2">
               <Label className="text-base">Transition Speed</Label>
               <RadioGroup 
-                defaultValue={transitionSpeed} 
+                value={transitionSpeed} 
                 onValueChange={(val) => setTransitionSpeed(val as "fast" | "normal" | "slow")}
                 className="flex flex-col space-y-1"
               >
@@ -71,7 +133,7 @@ export function AnimationSettings() {
             <div className="space-y-2">
               <Label className="text-base">Page Transition Effect</Label>
               <RadioGroup 
-                defaultValue={pageTransition} 
+                value={pageTransition} 
                 onValueChange={(val) => setPageTransition(val as "fade" | "slide" | "zoom" | "gradient")}
                 className="flex flex-col space-y-1"
               >

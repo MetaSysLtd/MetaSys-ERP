@@ -1,8 +1,9 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useDispatch, useSelector } from 'react-redux';
-import { saveAnimationSettings } from '@/store/uiPreferencesSlice';
+import { saveAnimationSettings, updatePreferences } from '@/store/uiPreferencesSlice';
 import { RootState } from '@/store/store';
+import { useToast } from '@/hooks/use-toast';
 
 type TransitionSpeed = 'fast' | 'normal' | 'slow';
 type AnimationDurationType = 'standard' | 'complex' | 'subtle';
@@ -12,6 +13,7 @@ interface AnimationContextType {
   animationsEnabled: boolean;
   toggleAnimations: () => void;
   reducedMotion: boolean;
+  toggleReducedMotion: () => void;
   transitionSpeed: TransitionSpeed;
   setTransitionSpeed: (speed: TransitionSpeed) => void;
   getDuration: (type: AnimationDurationType | number) => number;
@@ -19,12 +21,14 @@ interface AnimationContextType {
   setPageTransition: (type: TransitionType) => void;
   currentPath: string;
   previousPath: string | null;
+  isSaving: boolean;
 }
 
 const defaultContext: AnimationContextType = {
   animationsEnabled: true,
   toggleAnimations: () => {},
   reducedMotion: false,
+  toggleReducedMotion: () => {},
   transitionSpeed: 'normal',
   setTransitionSpeed: () => {},
   getDuration: (type: AnimationDurationType | number) => typeof type === 'number' ? type : 0.3,
@@ -32,6 +36,7 @@ const defaultContext: AnimationContextType = {
   setPageTransition: () => {},
   currentPath: '/',
   previousPath: null,
+  isSaving: false
 };
 
 export const AnimationContext = createContext<AnimationContextType>(defaultContext);
@@ -40,10 +45,12 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
   // Connect to Redux store
   const dispatch = useDispatch();
   const uiPreferences = useSelector((state: RootState) => state.uiPreferences);
+  const { toast } = useToast();
   
-  // Local state for path tracking - we don't persist these in Redux
+  // Local state for path tracking and save status
   const [currentPath, setCurrentPath] = useState('/');
   const [previousPath, setPreviousPath] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [location] = useLocation();
 
   // States from Redux
@@ -64,6 +71,24 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
     setPageTransition(uiPreferences.pageTransition as TransitionType);
   }, [uiPreferences]);
   
+  // Save animation settings to database and sync with Redux
+  const saveSettings = async (settings: any) => {
+    setIsSaving(true);
+    try {
+      // Update Redux state and persist to server
+      await dispatch(updatePreferences(settings));
+    } catch (error) {
+      console.error('Failed to save animation settings:', error);
+      toast({
+        title: "Failed to save settings",
+        description: "Your animation preferences couldn't be saved. They will be restored on your next login.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
   // Check for reduced motion preference from system
   useEffect(() => {
     try {
@@ -72,12 +97,12 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
       
       // If system preference is different from stored preference, update store
       if (systemReducedMotion !== reducedMotion) {
-        dispatch(saveAnimationSettings({ reducedMotion: systemReducedMotion }));
+        saveSettings({ reducedMotion: systemReducedMotion });
       }
       
       // Listen for changes
       const handleChange = (e: MediaQueryListEvent) => {
-        dispatch(saveAnimationSettings({ reducedMotion: e.matches }));
+        saveSettings({ reducedMotion: e.matches });
       };
       
       mediaQuery.addEventListener('change', handleChange);
@@ -101,17 +126,23 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
   const toggleAnimations = () => {
     const newValue = !animationsEnabled;
     setAnimationsEnabled(newValue);
-    dispatch(saveAnimationSettings({ animationsEnabled: newValue }));
+    saveSettings({ animationsEnabled: newValue });
+  };
+  
+  const toggleReducedMotion = () => {
+    const newValue = !reducedMotion;
+    setReducedMotion(newValue);
+    saveSettings({ reducedMotion: newValue });
   };
   
   const handleSetTransitionSpeed = (speed: TransitionSpeed) => {
     setTransitionSpeed(speed);
-    dispatch(saveAnimationSettings({ transitionSpeed: speed }));
+    saveSettings({ transitionSpeed: speed });
   };
   
   const handleSetPageTransition = (type: TransitionType) => {
     setPageTransition(type);
-    dispatch(saveAnimationSettings({ pageTransition: type }));
+    saveSettings({ pageTransition: type });
   };
   
   // Utility function to adjust animation duration based on user preferences and type
@@ -141,6 +172,7 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
         animationsEnabled,
         toggleAnimations,
         reducedMotion,
+        toggleReducedMotion,
         transitionSpeed,
         setTransitionSpeed: handleSetTransitionSpeed,
         getDuration,
@@ -148,6 +180,7 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
         setPageTransition: handleSetPageTransition,
         currentPath,
         previousPath,
+        isSaving
       }}
     >
       {children}
