@@ -33,8 +33,8 @@ async function runMigrations() {
   
   try {
     // Run specific migrations
-    await runMigration('fix_all_leads_columns.sql');
-    await runMigration('create_form_and_handoff_tables.sql');
+    await runMigration('add_missing_columns.sql');
+    await runMigration('fix_lead_columns.sql');
     
     console.log('✅ All migrations completed successfully!');
   } catch (error) {
