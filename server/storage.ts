@@ -6313,6 +6313,377 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+  
+  // CRM Form Template operations implementation
+  async getFormTemplates(): Promise<FormTemplate[]> {
+    try {
+      return await db.select().from(formTemplates);
+    } catch (error) {
+      console.error('Error getting form templates:', error);
+      throw error;
+    }
+  }
+
+  async getFormTemplate(id: number): Promise<FormTemplate | undefined> {
+    try {
+      const [template] = await db.select().from(formTemplates).where(eq(formTemplates.id, id));
+      return template;
+    } catch (error) {
+      console.error(`Error getting form template with id ${id}:`, error);
+      throw error;
+    }
+  }
+
+  async getFormTemplatesByLeadType(leadType: string): Promise<FormTemplate[]> {
+    try {
+      return await db.select().from(formTemplates).where(eq(formTemplates.leadType, leadType));
+    } catch (error) {
+      console.error(`Error getting form templates for lead type ${leadType}:`, error);
+      throw error;
+    }
+  }
+
+  async createFormTemplate(template: InsertFormTemplate): Promise<FormTemplate> {
+    try {
+      const now = new Date();
+      const [newTemplate] = await db.insert(formTemplates).values({
+        ...template,
+        createdAt: now,
+        updatedAt: now
+      }).returning();
+      
+      // Log activity
+      await this.createActivity({
+        userId: template.createdBy,
+        entityType: "form_template",
+        entityId: newTemplate.id,
+        action: "create",
+        details: `Form template created: ${template.name}`,
+        timestamp: now
+      });
+      
+      return newTemplate;
+    } catch (error) {
+      console.error('Error creating form template:', error);
+      throw error;
+    }
+  }
+
+  async updateFormTemplate(id: number, updates: Partial<FormTemplate>): Promise<FormTemplate | undefined> {
+    try {
+      const now = new Date();
+      const [updatedTemplate] = await db.update(formTemplates)
+        .set({
+          ...updates,
+          updatedAt: now
+        })
+        .where(eq(formTemplates.id, id))
+        .returning();
+      
+      if (!updatedTemplate) return undefined;
+      
+      // Log activity
+      if (updates.updatedBy) {
+        await this.createActivity({
+          userId: updates.updatedBy,
+          entityType: "form_template",
+          entityId: id,
+          action: "update",
+          details: `Form template updated: ${updatedTemplate.name}`,
+          timestamp: now
+        });
+      }
+      
+      return updatedTemplate;
+    } catch (error) {
+      console.error(`Error updating form template with id ${id}:`, error);
+      throw error;
+    }
+  }
+
+  async deleteFormTemplate(id: number): Promise<boolean> {
+    try {
+      await db.delete(formTemplates).where(eq(formTemplates.id, id));
+      return true;
+    } catch (error) {
+      console.error(`Error deleting form template with id ${id}:`, error);
+      throw error;
+    }
+  }
+
+  // CRM Form Submission operations implementation
+  async getFormSubmissions(leadId: number): Promise<FormSubmission[]> {
+    try {
+      return await db.select().from(formSubmissions).where(eq(formSubmissions.leadId, leadId));
+    } catch (error) {
+      console.error(`Error getting form submissions for lead ${leadId}:`, error);
+      throw error;
+    }
+  }
+
+  async getFormSubmission(id: number): Promise<FormSubmission | undefined> {
+    try {
+      const [submission] = await db.select().from(formSubmissions).where(eq(formSubmissions.id, id));
+      return submission;
+    } catch (error) {
+      console.error(`Error getting form submission with id ${id}:`, error);
+      throw error;
+    }
+  }
+
+  async createFormSubmission(submission: InsertFormSubmission): Promise<FormSubmission> {
+    try {
+      const now = new Date();
+      const [newSubmission] = await db.insert(formSubmissions).values({
+        ...submission,
+        createdAt: now,
+        updatedAt: now,
+        status: submission.status || 'pending',
+        completedAt: null
+      }).returning();
+      
+      // Log activity
+      await this.createActivity({
+        userId: submission.createdBy,
+        entityType: "form_submission",
+        entityId: newSubmission.id,
+        action: "create",
+        details: `Form submitted for lead #${submission.leadId}`,
+        timestamp: now,
+        metadata: {
+          leadId: submission.leadId,
+          templateId: submission.templateId
+        }
+      });
+      
+      return newSubmission;
+    } catch (error) {
+      console.error('Error creating form submission:', error);
+      throw error;
+    }
+  }
+
+  async updateFormSubmission(id: number, updates: Partial<FormSubmission>): Promise<FormSubmission | undefined> {
+    try {
+      const now = new Date();
+      const updateData = { ...updates, updatedAt: now };
+      
+      // Check if status is changing to 'completed'
+      const [currentSubmission] = await db.select().from(formSubmissions).where(eq(formSubmissions.id, id));
+      if (!currentSubmission) return undefined;
+      
+      if (updates.status === 'completed' && currentSubmission.status !== 'completed') {
+        updateData.completedAt = now;
+      }
+      
+      const [updatedSubmission] = await db.update(formSubmissions)
+        .set(updateData)
+        .where(eq(formSubmissions.id, id))
+        .returning();
+      
+      if (!updatedSubmission) return undefined;
+      
+      // If status is changing to 'completed', process additional updates
+      if (updates.status === 'completed' && currentSubmission.status !== 'completed') {
+        // Log completion activity
+        await this.createActivity({
+          userId: updates.updatedBy || currentSubmission.createdBy,
+          entityType: "form_submission",
+          entityId: id,
+          action: "complete",
+          details: `Form completed for lead #${currentSubmission.leadId}`,
+          timestamp: now,
+          metadata: {
+            leadId: currentSubmission.leadId,
+            templateId: currentSubmission.templateId
+          }
+        });
+        
+        // Update lead qualification progress if applicable
+        if (currentSubmission.leadId) {
+          // Count how many forms are completed for this lead
+          const { count } = await db.select({ count: count() }).from(formSubmissions)
+            .where(and(
+              eq(formSubmissions.leadId, currentSubmission.leadId),
+              eq(formSubmissions.status, 'completed')
+            ));
+          
+          // Update lead with form completion count
+          await db.update(leads)
+            .set({
+              formsCompleted: Number(count),
+              updatedAt: now
+            })
+            .where(eq(leads.id, currentSubmission.leadId));
+          
+          // If all required forms are completed, update qualification status
+          if (Number(count) >= 2) { // Assuming 2 or more forms indicate qualification
+            await db.update(leads)
+              .set({
+                qualificationStatus: 'qualified',
+                updatedAt: now
+              })
+              .where(eq(leads.id, currentSubmission.leadId));
+            
+            // Log qualification activity
+            await this.createActivity({
+              userId: updates.updatedBy || currentSubmission.createdBy,
+              entityType: "lead",
+              entityId: currentSubmission.leadId,
+              action: "qualify",
+              details: `Lead qualified via form completion`,
+              timestamp: now
+            });
+          }
+        }
+      }
+      
+      return updatedSubmission;
+    } catch (error) {
+      console.error(`Error updating form submission with id ${id}:`, error);
+      throw error;
+    }
+  }
+
+  // CRM Lead Handoff operations implementation
+  async getLeadHandoffs(leadId: number): Promise<LeadHandoff[]> {
+    try {
+      return await db.select().from(leadHandoffs).where(eq(leadHandoffs.leadId, leadId));
+    } catch (error) {
+      console.error(`Error getting lead handoffs for lead ${leadId}:`, error);
+      throw error;
+    }
+  }
+
+  async getLeadHandoff(id: number): Promise<LeadHandoff | undefined> {
+    try {
+      const [handoff] = await db.select().from(leadHandoffs).where(eq(leadHandoffs.id, id));
+      return handoff;
+    } catch (error) {
+      console.error(`Error getting lead handoff with id ${id}:`, error);
+      throw error;
+    }
+  }
+
+  async createLeadHandoff(handoff: InsertLeadHandoff): Promise<LeadHandoff> {
+    try {
+      const now = new Date();
+      const [newHandoff] = await db.insert(leadHandoffs).values({
+        ...handoff,
+        createdAt: now,
+        updatedAt: now,
+        status: handoff.status || 'pending',
+        handoffNotes: handoff.handoffNotes || null,
+        validationChecklist: handoff.validationChecklist || null,
+        acceptedAt: null,
+        rejectedAt: null,
+        rejectionReason: null
+      }).returning();
+      
+      // Update the lead status
+      if (handoff.leadId) {
+        await db.update(leads)
+          .set({
+            status: "HandToDispatch",
+            handoffAt: now,
+            updatedAt: now
+          })
+          .where(eq(leads.id, handoff.leadId));
+        
+        // Log activity
+        await this.createActivity({
+          userId: handoff.salesRepId,
+          entityType: "lead",
+          entityId: handoff.leadId,
+          action: "handoff",
+          details: `Lead handed off to dispatch by sales rep`,
+          timestamp: now,
+          metadata: { 
+            handoffId: newHandoff.id, 
+            dispatcherId: handoff.dispatcherId,
+            salesRepId: handoff.salesRepId
+          }
+        });
+      }
+      
+      return newHandoff;
+    } catch (error) {
+      console.error('Error creating lead handoff:', error);
+      throw error;
+    }
+  }
+
+  async updateLeadHandoff(id: number, updates: Partial<LeadHandoff>): Promise<LeadHandoff | undefined> {
+    try {
+      const now = new Date();
+      const [currentHandoff] = await db.select().from(leadHandoffs).where(eq(leadHandoffs.id, id));
+      if (!currentHandoff) return undefined;
+      
+      const updateData = { ...updates, updatedAt: now };
+      
+      // Process status changes
+      if (updates.status === 'accepted' && currentHandoff.status !== 'accepted') {
+        updateData.acceptedAt = now;
+        
+        // Update lead status
+        if (currentHandoff.leadId) {
+          await db.update(leads)
+            .set({
+              status: "Active",
+              updatedAt: now
+            })
+            .where(eq(leads.id, currentHandoff.leadId));
+          
+          // Log activity
+          await this.createActivity({
+            userId: currentHandoff.dispatcherId,
+            entityType: "lead",
+            entityId: currentHandoff.leadId,
+            action: "handoff_accepted",
+            details: `Handoff accepted by dispatcher`,
+            timestamp: now,
+            metadata: { handoffId: id }
+          });
+        }
+      } else if (updates.status === 'rejected' && currentHandoff.status !== 'rejected') {
+        updateData.rejectedAt = now;
+        
+        // Update lead status
+        if (currentHandoff.leadId) {
+          await db.update(leads)
+            .set({
+              status: "InProgress",
+              updatedAt: now
+            })
+            .where(eq(leads.id, currentHandoff.leadId));
+          
+          // Log activity
+          await this.createActivity({
+            userId: currentHandoff.dispatcherId,
+            entityType: "lead",
+            entityId: currentHandoff.leadId,
+            action: "handoff_rejected",
+            details: `Handoff rejected by dispatcher: ${updates.rejectionReason || 'No reason provided'}`,
+            timestamp: now,
+            metadata: { 
+              handoffId: id,
+              reason: updates.rejectionReason
+            }
+          });
+        }
+      }
+      
+      const [updatedHandoff] = await db.update(leadHandoffs)
+        .set(updateData)
+        .where(eq(leadHandoffs.id, id))
+        .returning();
+      
+      return updatedHandoff;
+    } catch (error) {
+      console.error(`Error updating lead handoff with id ${id}:`, error);
+      throw error;
+    }
+  }
 }
 
 // Use database storage instead of memory storage
