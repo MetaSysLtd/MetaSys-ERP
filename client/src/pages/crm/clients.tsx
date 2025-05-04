@@ -121,7 +121,7 @@ export default function ClientsPage() {
             <h1 className="text-2xl font-semibold text-gray-900">
               CRM Clients
             </h1>
-            {canCreateClient && (
+            {canCreateClient === true && (
               <Button onClick={() => setLocation("/crm/leads")}>
                 <Plus className="h-4 w-4 mr-1" />
                 Add New Lead
@@ -162,7 +162,7 @@ export default function ClientsPage() {
             </MotionWrapper>
             <MotionWrapper animation="fade-left" delay={0.3}>
               <div className="flex flex-wrap space-x-2">
-                {canCreateClient && (
+                {canCreateClient === true && (
                   <Button
                     onClick={() => setLocation("/crm/leads")}
                     size="sm"

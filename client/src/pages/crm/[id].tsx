@@ -89,6 +89,8 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [callDialogOpen, setCallDialogOpen] = useState(false);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [qualificationDialogOpen, setQualificationDialogOpen] = useState(false);
+  const [selectedQualificationScore, setSelectedQualificationScore] = useState<string>("");
   
   // Fetch lead details
   const { data: lead, isLoading, error } = useQuery({
@@ -146,6 +148,57 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
     };
     
     return statusMap[status] || status;
+  };
+  
+  // Get qualification score badge class
+  const getQualificationScoreBadgeClass = (score: string) => {
+    const scoreClasses = {
+      "High": "bg-green-100 text-green-800 border-green-300",
+      "Medium": "bg-yellow-100 text-yellow-800 border-yellow-300",
+      "Low": "bg-red-100 text-red-800 border-red-300"
+    };
+    
+    return scoreClasses[score as keyof typeof scoreClasses] || "bg-gray-100 text-gray-800 border-gray-300";
+  };
+  
+  // Get form status badge variant
+  const getFormStatusBadgeVariant = (status: string) => {
+    const statusVariants = {
+      "Sent": "outline",
+      "Viewed": "secondary",
+      "Completed": "default",
+      "Expired": "destructive"
+    };
+    
+    return statusVariants[status as keyof typeof statusVariants] || "outline";
+  };
+  
+  // Get call outcome badge variant
+  const getCallOutcomeBadgeVariant = (outcome: string) => {
+    const outcomeVariants = {
+      "Successful": "default",
+      "Callback": "secondary",
+      "Unavailable": "outline",
+      "Voicemail": "outline",
+      "Wrong Number": "destructive"
+    };
+    
+    return outcomeVariants[outcome as keyof typeof outcomeVariants] || "outline";
+  };
+  
+  // Format call duration
+  const formatCallDuration = (duration: number): string => {
+    if (!duration) return "0:00";
+    
+    const minutes = Math.floor(duration / 60);
+    const seconds = duration % 60;
+    
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+  
+  // Format call outcome
+  const formatCallOutcome = (outcome: string): string => {
+    return outcome || "Unknown";
   };
   
   // Create Dispatch Client when lead is set to Active
@@ -1199,6 +1252,97 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Qualification Dialog */}
+      <Dialog open={qualificationDialogOpen} onOpenChange={setQualificationDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update Qualification Score</DialogTitle>
+            <DialogDescription>
+              Set the qualification score for this lead based on your assessment.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="qualification-score">Qualification Score</Label>
+              <Select
+                value={selectedQualificationScore}
+                onValueChange={setSelectedQualificationScore}
+              >
+                <SelectTrigger id="qualification-score">
+                  <SelectValue placeholder="Select a score" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground mt-1">
+                {selectedQualificationScore === "High" && "Lead shows strong potential; high budget, clear needs, decision maker, ready to proceed."}
+                {selectedQualificationScore === "Medium" && "Lead has potential but moderate barriers; budget concerns, longer timeline, or additional approvals needed."}
+                {selectedQualificationScore === "Low" && "Lead has significant barriers to conversion; limited budget, unclear timeline, or not a decision maker."}
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setQualificationDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              disabled={!selectedQualificationScore}
+              className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white"
+              onClick={async () => {
+                if (!selectedQualificationScore) return;
+                
+                try {
+                  const response = await apiRequest("PATCH", `/api/leads/${id}/qualification`, {
+                    qualificationScore: selectedQualificationScore
+                  });
+                  
+                  if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Failed to update qualification score");
+                  }
+                  
+                  // Log activity
+                  await apiRequest("POST", "/api/activities", {
+                    entityType: "lead",
+                    entityId: Number(id),
+                    action: "qualification_updated",
+                    details: `Qualification score updated to ${selectedQualificationScore}`,
+                    notes: `Lead qualification updated by ${user?.username || 'unknown user'}`
+                  });
+                  
+                  toast({
+                    title: "Qualification Updated",
+                    description: `The lead has been scored as ${selectedQualificationScore}.`
+                  });
+                  
+                  queryClient.invalidateQueries({ queryKey: [`/api/leads/${id}`] });
+                  queryClient.invalidateQueries({ queryKey: [`/api/activities/entity/lead/${id}`] });
+                  setQualificationDialogOpen(false);
+                } catch (error: any) {
+                  toast({
+                    title: "Error",
+                    description: error.message || "Failed to update qualification score.",
+                    variant: "destructive"
+                  });
+                }
+              }}
+            >
+              Update Score
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
