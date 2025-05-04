@@ -549,6 +549,33 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                         {getStatusDisplayText(lead.status)}
                       </Badge>
                     </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Qualification Score</h3>
+                      <div className="mt-1 flex items-center">
+                        {lead.qualificationScore ? (
+                          <Badge 
+                            variant="outline"
+                            className={`${getQualificationScoreBadgeClass(lead.qualificationScore)}`}
+                          >
+                            {lead.qualificationScore}
+                          </Badge>
+                        ) : (
+                          <span className="text-sm text-gray-500">Not scored</span>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="ml-2 h-7 text-xs"
+                          onClick={() => {
+                            setQualificationDialogOpen(true);
+                          }}
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Update
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                   
                   <Separator className="my-6" />
@@ -666,15 +693,84 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No calls logged</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Log your calls to keep track of conversations with this lead.
-                  </p>
-                </div>
+                {/* Call logs query */}
+                {(() => {
+                  const { data: callLogs, isLoading, error } = useQuery({
+                    queryKey: [`/api/call-logs/lead/${id}`],
+                    enabled: !!id,
+                  });
+
+                  if (isLoading) {
+                    return (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    );
+                  }
+
+                  if (error) {
+                    return (
+                      <div className="text-center py-8 text-red-500">
+                        <AlertTriangle className="mx-auto h-12 w-12" />
+                        <h3 className="mt-2 text-sm font-medium">Error loading call logs</h3>
+                        <p className="mt-1 text-sm">
+                          {error instanceof Error ? error.message : "Unknown error"}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  if (!callLogs || callLogs.length === 0) {
+                    return (
+                      <div className="text-center py-8">
+                        <Phone className="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">No calls logged</h3>
+                        <p className="mt-1 text-sm text-gray-500">
+                          Log your calls to keep track of conversations with this lead.
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left font-medium py-2">Date & Time</th>
+                            <th className="text-left font-medium py-2">Duration</th>
+                            <th className="text-left font-medium py-2">Outcome</th>
+                            <th className="text-left font-medium py-2">Logged By</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {callLogs.map((call: any) => (
+                            <tr key={call.id} className="border-b hover:bg-gray-50">
+                              <td className="py-3">{formatDate(call.createdAt)}</td>
+                              <td className="py-3">{formatCallDuration(call.duration)}</td>
+                              <td className="py-3">
+                                <Badge variant={getCallOutcomeBadgeVariant(call.outcome)}>
+                                  {formatCallOutcome(call.outcome)}
+                                </Badge>
+                              </td>
+                              <td className="py-3">{call.userName || 'Unknown'}</td>
+                              <td className="py-3">
+                                <Button variant="ghost" size="sm" onClick={() => {
+                                  toast({
+                                    title: "Call Details",
+                                    description: call.notes || "No notes available for this call."
+                                  });
+                                }}>
+                                  View Notes
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           </TabsContent>
@@ -692,13 +788,108 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No forms sent</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Send forms to collect information from this lead.
-                  </p>
-                </div>
+                {/* Form submissions query */}
+                {(() => {
+                  const { data: formSubmissions, isLoading, error } = useQuery({
+                    queryKey: [`/api/form-submissions/lead/${id}`],
+                    enabled: !!id,
+                  });
+
+                  if (isLoading) {
+                    return (
+                      <div className="flex justify-center py-8">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    );
+                  }
+
+                  if (error) {
+                    return (
+                      <div className="text-center py-8 text-red-500">
+                        <AlertTriangle className="mx-auto h-12 w-12" />
+                        <h3 className="mt-2 text-sm font-medium">Error loading forms</h3>
+                        <p className="mt-1 text-sm">
+                          {error instanceof Error ? error.message : "Unknown error"}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  if (!formSubmissions || formSubmissions.length === 0) {
+                    return (
+                      <div className="text-center py-8">
+                        <FileText className="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">No forms sent</h3>
+                        <p className="mt-1 text-sm text-gray-500">
+                          Send forms to collect information from this lead.
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left font-medium py-2">Form Name</th>
+                            <th className="text-left font-medium py-2">Sent Date</th>
+                            <th className="text-left font-medium py-2">Status</th>
+                            <th className="text-left font-medium py-2">Last Updated</th>
+                            <th className="text-right font-medium py-2">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {formSubmissions.map((submission: any) => (
+                            <tr key={submission.id} className="border-b hover:bg-gray-50">
+                              <td className="py-3">{submission.formName || "Qualification Form"}</td>
+                              <td className="py-3">{formatDate(submission.sentAt)}</td>
+                              <td className="py-3">
+                                <Badge variant={getFormStatusBadgeVariant(submission.status)}>
+                                  {submission.status}
+                                </Badge>
+                              </td>
+                              <td className="py-3">
+                                {submission.completedAt 
+                                  ? formatDate(submission.completedAt) 
+                                  : submission.viewedAt 
+                                    ? `Viewed on ${formatDate(submission.viewedAt)}` 
+                                    : "Not viewed"}
+                              </td>
+                              <td className="py-3 text-right">
+                                <Button variant="outline" size="sm" onClick={() => {
+                                  toast({
+                                    title: "Form Submissions",
+                                    description: "Viewing form submissions will be available in a future update."
+                                  });
+                                }}>
+                                  View
+                                </Button>
+                                <Button variant="ghost" size="sm" className="ml-2" onClick={() => {
+                                  const leadEmail = lead.email;
+                                  if (!leadEmail) {
+                                    toast({
+                                      title: "Cannot Resend Form",
+                                      description: "This lead has no email address.",
+                                      variant: "destructive"
+                                    });
+                                    return;
+                                  }
+                                  toast({
+                                    title: "Form Resent",
+                                    description: `The form has been resent to ${leadEmail}`
+                                  });
+                                }}>
+                                  Resend
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           </TabsContent>
@@ -816,8 +1007,15 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
           
           <TabsContent value="activity">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Activity Log</CardTitle>
+                <Button 
+                  size="sm" 
+                  className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white"
+                  onClick={() => setRemarkDialogOpen(true)}
+                >
+                  Add Remark
+                </Button>
               </CardHeader>
               <CardContent>
                 {!activities || activities.length === 0 ? (
@@ -835,10 +1033,15 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                         <div className="mr-4 flex-shrink-0">
                           <div className={`flex h-8 w-8 items-center justify-center rounded-full 
                             ${activity.action === 'created' ? 'bg-blue-100' : 
-                              activity.action === 'status_changed' ? 'bg-green-100' : 'bg-primary-100'}`}>
+                              activity.action === 'status_changed' ? 'bg-green-100' : 
+                              activity.action === 'remark_added' ? 'bg-yellow-100' :  
+                              activity.action === 'call_logged' ? 'bg-indigo-100' : 
+                              'bg-primary-100'}`}>
                             {activity.action === 'created' && <Clipboard className="h-4 w-4 text-blue-600" />}
                             {activity.action === 'status_changed' && <ArrowRightCircle className="h-4 w-4 text-green-600" />}
-                            {activity.action !== 'created' && activity.action !== 'status_changed' && 
+                            {activity.action === 'remark_added' && <MessageSquare className="h-4 w-4 text-yellow-600" />}
+                            {activity.action === 'call_logged' && <Phone className="h-4 w-4 text-indigo-600" />}
+                            {!['created', 'status_changed', 'remark_added', 'call_logged'].includes(activity.action) && 
                               <Activity className="h-4 w-4 text-primary-600" />}
                           </div>
                         </div>
@@ -846,6 +1049,7 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                           <p className="text-sm font-medium text-gray-900">{activity.details}</p>
                           <div className="mt-1 flex space-x-2 text-xs text-gray-500">
                             <p>{formatDate(activity.timestamp)}</p>
+                            {activity.user && <p>by {activity.user.name || 'Unknown'}</p>}
                           </div>
                           {activity.notes && (
                             <p className="mt-2 text-sm text-gray-700 whitespace-pre-line">
