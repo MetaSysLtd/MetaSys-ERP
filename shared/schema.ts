@@ -900,6 +900,11 @@ export const uiPreferences = pgTable("ui_preferences", {
   theme: text("theme").notNull().default("light"), // light, dark, system
   homeDashboard: text("home_dashboard"), // default landing page
   notificationPreferences: jsonb("notification_preferences").default({}),
+  // Animation preferences
+  animationsEnabled: boolean("animations_enabled").notNull().default(true),
+  transitionSpeed: text("transition_speed").notNull().default("normal"), // fast, normal, slow
+  pageTransition: text("page_transition").notNull().default("gradient"), // fade, slide, zoom, gradient
+  reducedMotion: boolean("reduced_motion").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 }, (table) => {

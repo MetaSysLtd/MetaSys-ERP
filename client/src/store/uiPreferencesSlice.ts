@@ -6,12 +6,22 @@ interface UiPreferences {
   sidebarPinned: boolean;
   sidebarCollapsed: boolean;
   expandedDropdown: string | null;
+  // Animation preferences
+  animationsEnabled: boolean;
+  transitionSpeed: 'fast' | 'normal' | 'slow';
+  pageTransition: 'fade' | 'slide' | 'zoom' | 'gradient';
+  reducedMotion: boolean;
 }
 
 const initialState: UiPreferences = {
   sidebarPinned: true,
   sidebarCollapsed: false,
-  expandedDropdown: null
+  expandedDropdown: null,
+  // Animation defaults
+  animationsEnabled: true,
+  transitionSpeed: 'normal',
+  pageTransition: 'gradient',
+  reducedMotion: false
 };
 
 /**
@@ -37,6 +47,19 @@ const uiPreferencesSlice = createSlice({
       if (action.payload.expandedDropdown !== undefined) {
         state.expandedDropdown = action.payload.expandedDropdown;
       }
+      // Animation preferences
+      if (action.payload.animationsEnabled !== undefined) {
+        state.animationsEnabled = action.payload.animationsEnabled;
+      }
+      if (action.payload.transitionSpeed !== undefined) {
+        state.transitionSpeed = action.payload.transitionSpeed;
+      }
+      if (action.payload.pageTransition !== undefined) {
+        state.pageTransition = action.payload.pageTransition;
+      }
+      if (action.payload.reducedMotion !== undefined) {
+        state.reducedMotion = action.payload.reducedMotion;
+      }
     },
     togglePinned: (state) => {
       state.sidebarPinned = !state.sidebarPinned;
@@ -52,6 +75,24 @@ const uiPreferencesSlice = createSlice({
 
 export const { setPreferences, togglePinned, toggleCollapsed, toggleDropdown } = uiPreferencesSlice.actions;
 export default uiPreferencesSlice.reducer;
+
+/**
+ * Helper function for saving animation settings
+ */
+export const saveAnimationSettings = (settings: {
+  animationsEnabled?: boolean;
+  transitionSpeed?: 'fast' | 'normal' | 'slow';
+  pageTransition?: 'fade' | 'slide' | 'zoom' | 'gradient';
+  reducedMotion?: boolean;
+}) => async (dispatch: any) => {
+  try {
+    dispatch(updatePreferences(settings));
+    return true;
+  } catch (error) {
+    console.error('Failed to save animation settings:', error);
+    return false;
+  }
+};
 
 // Thunks for asynchronous operations
 export const fetchPreferences = () => async (dispatch: any) => {
@@ -81,6 +122,19 @@ export const updatePreferences = (preferences: Partial<UiPreferences>) => async 
     }
     if (preferences.sidebarCollapsed !== undefined && preferences.sidebarCollapsed !== currentState.sidebarCollapsed) {
       updates.sidebarCollapsed = preferences.sidebarCollapsed;
+    }
+    // Animation preferences
+    if (preferences.animationsEnabled !== undefined && preferences.animationsEnabled !== currentState.animationsEnabled) {
+      updates.animationsEnabled = preferences.animationsEnabled;
+    }
+    if (preferences.transitionSpeed !== undefined && preferences.transitionSpeed !== currentState.transitionSpeed) {
+      updates.transitionSpeed = preferences.transitionSpeed;
+    }
+    if (preferences.pageTransition !== undefined && preferences.pageTransition !== currentState.pageTransition) {
+      updates.pageTransition = preferences.pageTransition;
+    }
+    if (preferences.reducedMotion !== undefined && preferences.reducedMotion !== currentState.reducedMotion) {
+      updates.reducedMotion = preferences.reducedMotion;
     }
     
     // Only make API call if there are actual changes
