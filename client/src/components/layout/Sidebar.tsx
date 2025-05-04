@@ -192,6 +192,9 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
         { name: "SQL", href: "/crm?status=qualified" },
         { name: "MQL", href: "/crm?status=nurture" },
         { name: "Clients", href: "/crm?status=active" },
+        { name: "Form Templates", href: "/crm/form-templates" },
+        { name: "Lead Handoffs", href: "/crm/handoffs" },
+        { name: "Lead Qualification", href: "/crm/qualification" },
       ],
     },
     {
