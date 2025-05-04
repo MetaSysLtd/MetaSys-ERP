@@ -193,6 +193,36 @@ router.put('/form-submissions/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// Lead endpoints
+router.get('/leads', authMiddleware, async (req, res) => {
+  try {
+    const leads = await storage.getLeads();
+    res.json(leads);
+  } catch (error) {
+    console.error('Error fetching leads:', error);
+    res.status(500).json({ error: 'Failed to fetch leads' });
+  }
+});
+
+router.get('/leads/:id', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid lead ID' });
+    }
+    
+    const lead = await storage.getLead(id);
+    if (!lead) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    res.json(lead);
+  } catch (error) {
+    console.error(`Error fetching lead ${req.params.id}:`, error);
+    res.status(500).json({ error: 'Failed to fetch lead' });
+  }
+});
+
 // Lead Handoff endpoints
 router.get('/lead-handoffs/lead/:leadId', authMiddleware, async (req, res) => {
   try {
