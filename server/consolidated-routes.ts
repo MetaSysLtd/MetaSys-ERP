@@ -148,13 +148,478 @@ const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
 let io: SocketIOServer;
 
 async function calculateSalesCommission(userId: number, month: string, calculatedBy: number): Promise<any> {
-  // Implementation details removed for brevity
-  return { userId, month, deals: [], total: 0, stats: {} };
+  try {
+    // Extract year and month from the month string (format: YYYY-MM)
+    const [year, monthNum] = month.split('-').map(Number);
+    
+    if (!year || !monthNum) {
+      throw new Error('Invalid month format. Expected YYYY-MM');
+    }
+    
+    // Check if a commission run already exists for this user and month
+    const existingRuns = await storage.getCommissionRunsByMonth(month);
+    const existingRun = existingRuns.find(run => run.userId === userId);
+    
+    if (existingRun) {
+      // Return the existing calculation
+      const user = await storage.getUser(userId);
+      
+      // Get active leads for this user
+      const userLeads = await storage.getLeadsByUser(userId);
+      const activeLeads = userLeads.filter(lead => lead.status === 'Active');
+      
+      // Get lead sales roles for this user (starter vs closer)
+      const leadSalesRoles = await storage.getLeadSalesUsersByUser(userId);
+      
+      // Get invoices for the leads
+      const leadIds = userLeads.map(lead => lead.id);
+      const invoices = await storage.getInvoicesByLeads(leadIds);
+      
+      // Filter invoices for the current month
+      const monthStart = new Date(year, monthNum - 1, 1);
+      const monthEnd = new Date(year, monthNum, 0, 23, 59, 59);
+      
+      const monthlyInvoices = invoices.filter(invoice => 
+        invoice.createdAt >= monthStart && 
+        invoice.createdAt <= monthEnd
+      );
+      
+      // Construct the detailed response
+      return {
+        userId,
+        username: user?.username,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        month,
+        total: existingRun.totalCommission,
+        baseCommission: existingRun.baseCommission,
+        adjustedCommission: existingRun.adjustedCommission,
+        repOfMonthBonus: existingRun.repOfMonthBonus,
+        activeTrucksBonus: existingRun.activeTrucksBonus,
+        teamLeadBonus: existingRun.teamLeadBonus,
+        calculationDetails: existingRun.calculationDetails,
+        deals: monthlyInvoices.map(invoice => {
+          const lead = userLeads.find(l => l.id === invoice.leadId);
+          const salesRole = leadSalesRoles.find(r => r.leadId === invoice.leadId);
+          
+          return {
+            invoiceId: invoice.id,
+            leadId: invoice.leadId,
+            leadName: lead?.contactName || 'Unknown',
+            amount: invoice.totalAmount,
+            date: invoice.createdAt,
+            role: salesRole?.role || 'direct',
+            status: invoice.status
+          };
+        }),
+        stats: {
+          totalDeals: monthlyInvoices.length,
+          activeLeads: activeLeads.length,
+          avgCommission: monthlyInvoices.length > 0 
+            ? existingRun.totalCommission / monthlyInvoices.length 
+            : 0
+        }
+      };
+    }
+    
+    // Need to calculate a new commission
+    // 1. Get the active commission policy
+    const salesPolicies = await storage.getCommissionPoliciesByType('sales');
+    const activePolicy = salesPolicies.find(policy => policy.isActive);
+    
+    if (!activePolicy) {
+      throw new Error('No active sales commission policy found');
+    }
+    
+    // 2. Get user info
+    const user = await storage.getUser(userId);
+    if (!user) {
+      throw new Error(`User not found: ${userId}`);
+    }
+    
+    // 3. Get user's active leads
+    const userLeads = await storage.getLeadsByUser(userId);
+    const activeLeads = userLeads.filter(lead => lead.status === 'Active');
+    
+    // 4. Get lead sales roles for this user (starter vs closer)
+    const leadSalesRoles = await storage.getLeadSalesUsersByUser(userId);
+    
+    // 5. Get invoices for the leads
+    const leadIds = userLeads.map(lead => lead.id);
+    const invoices = await storage.getInvoicesByLeads(leadIds);
+    
+    // 6. Filter invoices for the current month
+    const monthStart = new Date(year, monthNum - 1, 1);
+    const monthEnd = new Date(year, monthNum, 0, 23, 59, 59);
+    
+    const monthlyInvoices = invoices.filter(invoice => 
+      invoice.createdAt >= monthStart && 
+      invoice.createdAt <= monthEnd
+    );
+    
+    // 7. Calculate the base commission from the active lead table tiers
+    const activeLeadTable = activePolicy.activeLeadTable as Array<{activeleads: number, amount: number}>;
+    let baseCommission = 0;
+    
+    // Sort tiers by activeLeads descending to find the correct tier
+    const sortedTiers = [...activeLeadTable].sort((a, b) => b.activeleads - a.activeleads);
+    
+    for (const tier of sortedTiers) {
+      if (activeLeads.length >= tier.activeleads) {
+        baseCommission = tier.amount;
+        break;
+      }
+    }
+    
+    // 8. Calculate adjusted commission based on lead roles
+    let adjustedCommission = baseCommission;
+    
+    // Process each lead's commission adjustment based on role
+    const leadAdjustments: Record<number, {factor: number, reason: string}> = {};
+    
+    // Group leads by role
+    const directLeads = leadSalesRoles.filter(r => r.role !== 'starter' && r.role !== 'closer');
+    const starterLeads = leadSalesRoles.filter(r => r.role === 'starter');
+    const closerLeads = leadSalesRoles.filter(r => r.role === 'closer');
+    const inboundLeads: number[] = []; // In a real implementation, this would be identified from lead source
+    
+    // Apply role-based adjustments
+    for (const lead of directLeads) {
+      leadAdjustments[lead.leadId] = { factor: 1, reason: 'Direct lead' };
+    }
+    
+    for (const lead of starterLeads) {
+      leadAdjustments[lead.leadId] = { 
+        factor: activePolicy.starterSplit, 
+        reason: `Starter (${activePolicy.starterSplit * 100}%)` 
+      };
+    }
+    
+    for (const lead of closerLeads) {
+      leadAdjustments[lead.leadId] = { 
+        factor: activePolicy.closerSplit, 
+        reason: `Closer (${activePolicy.closerSplit * 100}%)` 
+      };
+    }
+    
+    for (const leadId of inboundLeads) {
+      if (leadAdjustments[leadId]) {
+        leadAdjustments[leadId] = {
+          factor: leadAdjustments[leadId].factor * activePolicy.inboundFactor,
+          reason: `${leadAdjustments[leadId].reason} & Inbound (${activePolicy.inboundFactor * 100}%)`
+        };
+      } else {
+        leadAdjustments[leadId] = {
+          factor: activePolicy.inboundFactor,
+          reason: `Inbound (${activePolicy.inboundFactor * 100}%)`
+        };
+      }
+    }
+    
+    // 9. Apply penalty for low or no active leads
+    let penaltyApplied = false;
+    if (activeLeads.length === 0) {
+      adjustedCommission *= activePolicy.penaltyFactor;
+      penaltyApplied = true;
+    }
+    
+    // 10. Calculate bonuses
+    // This is simplified - in a real implementation you would check if user is rep of month, etc.
+    const repOfMonthBonus = 0; // Example value
+    const activeTrucksBonus = 0; // Example value
+    
+    // Calculate team lead bonus if applicable
+    const isTeamLead = user.isTeamLead || false; // This would be part of the user schema
+    const teamLeadBonus = isTeamLead ? activePolicy.teamLeadBonusAmount : 0;
+    
+    // 11. Calculate total commission
+    const totalCommission = adjustedCommission + repOfMonthBonus + activeTrucksBonus + teamLeadBonus;
+    
+    // 12. Create calculation details for transparency
+    const calculationDetails = {
+      baseCommissionDetails: {
+        activeLeadsCount: activeLeads.length,
+        applicableTier: sortedTiers.find(tier => activeLeads.length >= tier.activeleads) || { activeleads: 0, amount: 0 },
+        baseAmount: baseCommission
+      },
+      adjustments: leadAdjustments,
+      penalties: penaltyApplied ? {
+        reason: 'No active leads',
+        factor: activePolicy.penaltyFactor,
+        originalAmount: baseCommission,
+        reducedAmount: adjustedCommission
+      } : null,
+      bonuses: {
+        repOfMonth: repOfMonthBonus,
+        activeTrucks: activeTrucksBonus, 
+        teamLead: teamLeadBonus
+      }
+    };
+    
+    // 13. Create a commission run record
+    const commissonRun = await storage.createCommissionRun({
+      orgId: user.orgId || 1,
+      userId: userId,
+      year: year,
+      month: monthNum,
+      policyId: activePolicy.id,
+      activeLeadCount: activeLeads.length,
+      baseCommission: baseCommission,
+      adjustedCommission: adjustedCommission,
+      repOfMonthBonus: repOfMonthBonus,
+      activeTrucksBonus: activeTrucksBonus,
+      teamLeadBonus: teamLeadBonus,
+      totalCommission: totalCommission,
+      penaltyApplied: penaltyApplied,
+      calculationDetails: calculationDetails,
+      calculatedBy: calculatedBy,
+      notes: `Calculated on ${new Date().toISOString()}`
+    });
+    
+    // 14. Return the commission details with deals
+    return {
+      userId,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      month,
+      total: totalCommission,
+      baseCommission: baseCommission,
+      adjustedCommission: adjustedCommission,
+      repOfMonthBonus: repOfMonthBonus,
+      activeTrucksBonus: activeTrucksBonus,
+      teamLeadBonus: teamLeadBonus,
+      calculationDetails: calculationDetails,
+      deals: monthlyInvoices.map(invoice => {
+        const lead = userLeads.find(l => l.id === invoice.leadId);
+        const salesRole = leadSalesRoles.find(r => r.leadId === invoice.leadId);
+        
+        return {
+          invoiceId: invoice.id,
+          leadId: invoice.leadId,
+          leadName: lead?.contactName || 'Unknown',
+          amount: invoice.totalAmount,
+          date: invoice.createdAt,
+          role: salesRole?.role || 'direct',
+          status: invoice.status
+        };
+      }),
+      stats: {
+        totalDeals: monthlyInvoices.length,
+        activeLeads: activeLeads.length,
+        avgCommission: monthlyInvoices.length > 0 
+          ? totalCommission / monthlyInvoices.length 
+          : 0
+      }
+    };
+  } catch (error) {
+    console.error('Error calculating sales commission:', error);
+    // Return a basic structure with error details
+    return { 
+      userId, 
+      month, 
+      total: 0, 
+      deals: [], 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stats: {} 
+    };
+  }
 }
 
 async function calculateDispatchCommission(userId: number, month: string, calculatedBy: number): Promise<any> {
-  // Implementation details removed for brevity
-  return { userId, month, deals: [], total: 0, stats: {} };
+  try {
+    // Extract year and month from the month string (format: YYYY-MM)
+    const [year, monthNum] = month.split('-').map(Number);
+    
+    if (!year || !monthNum) {
+      throw new Error('Invalid month format. Expected YYYY-MM');
+    }
+    
+    // Check if a commission run already exists for this user and month
+    const existingRuns = await storage.getCommissionRunsByMonth(month);
+    const existingRun = existingRuns.find(run => run.userId === userId);
+    
+    if (existingRun) {
+      // Return the existing calculation
+      const user = await storage.getUser(userId);
+      
+      // Get invoices processed by this dispatcher for the month
+      const invoices = await storage.getInvoicesByDispatcher(userId);
+      
+      // Filter invoices for the current month
+      const monthStart = new Date(year, monthNum - 1, 1);
+      const monthEnd = new Date(year, monthNum, 0, 23, 59, 59);
+      
+      const monthlyInvoices = invoices.filter(invoice => 
+        invoice.createdAt >= monthStart && 
+        invoice.createdAt <= monthEnd
+      );
+      
+      // Construct the detailed response
+      return {
+        userId,
+        username: user?.username,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        month,
+        total: existingRun.totalCommission,
+        baseCommission: existingRun.baseCommission,
+        adjustedCommission: existingRun.adjustedCommission,
+        repOfMonthBonus: existingRun.repOfMonthBonus,
+        activeTrucksBonus: existingRun.activeTrucksBonus,
+        teamLeadBonus: existingRun.teamLeadBonus,
+        calculationDetails: existingRun.calculationDetails,
+        deals: monthlyInvoices.map(invoice => {
+          return {
+            invoiceId: invoice.id,
+            leadId: invoice.leadId,
+            amount: invoice.totalAmount,
+            date: invoice.createdAt,
+            status: invoice.status
+          };
+        }),
+        stats: {
+          totalDeals: monthlyInvoices.length,
+          totalInvoiced: monthlyInvoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0),
+          avgCommission: monthlyInvoices.length > 0 
+            ? existingRun.totalCommission / monthlyInvoices.length 
+            : 0
+        }
+      };
+    }
+    
+    // Need to calculate a new commission
+    // 1. Get the active commission policy
+    const dispatchPolicies = await storage.getCommissionPoliciesByType('dispatch');
+    const activePolicy = dispatchPolicies.find(policy => policy.isActive);
+    
+    if (!activePolicy) {
+      throw new Error('No active dispatch commission policy found');
+    }
+    
+    // 2. Get user info
+    const user = await storage.getUser(userId);
+    if (!user) {
+      throw new Error(`User not found: ${userId}`);
+    }
+    
+    // 3. Get invoices processed by this dispatcher for the month
+    const invoices = await storage.getInvoicesByDispatcher(userId);
+    
+    // 4. Filter invoices for the current month
+    const monthStart = new Date(year, monthNum - 1, 1);
+    const monthEnd = new Date(year, monthNum, 0, 23, 59, 59);
+    
+    const monthlyInvoices = invoices.filter(invoice => 
+      invoice.createdAt >= monthStart && 
+      invoice.createdAt <= monthEnd
+    );
+    
+    // 5. Get the total amount of invoices for the month
+    const totalInvoiced = monthlyInvoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+    
+    // 6. Calculate the base commission (simplified example)
+    // In a real implementation, you would use a more complex formula based on the policy
+    const baseCommission = totalInvoiced * 0.01; // 1% of total invoiced amount
+    
+    // 7. Get active trucks count (simplified example)
+    const activeTrucksCount = 5; // Example value
+    
+    // 8. Calculate bonuses
+    // This is simplified - in a real implementation, you would check if user is rep of month, etc.
+    const repOfMonthBonus = 0; // Example value
+    
+    // Calculate active trucks bonus
+    const activeTrucksBonus = activeTrucksCount * 10; // $10 per active truck
+    
+    // Calculate team lead bonus if applicable
+    const isTeamLead = user.isTeamLead || false; // This would be part of the user schema
+    const teamLeadBonus = isTeamLead ? activePolicy.teamLeadBonusAmount : 0;
+    
+    // 9. Calculate total commission
+    const totalCommission = baseCommission + repOfMonthBonus + activeTrucksBonus + teamLeadBonus;
+    
+    // 10. Create calculation details for transparency
+    const calculationDetails = {
+      baseCommissionDetails: {
+        totalInvoiced: totalInvoiced,
+        commissionRate: "1%",
+        baseAmount: baseCommission
+      },
+      bonuses: {
+        repOfMonth: repOfMonthBonus,
+        activeTrucks: {
+          count: activeTrucksCount,
+          rate: "$10 per truck",
+          amount: activeTrucksBonus
+        },
+        teamLead: teamLeadBonus
+      }
+    };
+    
+    // 11. Create a commission run record
+    const commissonRun = await storage.createCommissionRun({
+      orgId: user.orgId || 1,
+      userId: userId,
+      year: year,
+      month: monthNum,
+      policyId: activePolicy.id,
+      activeLeadCount: 0, // Not applicable for dispatch
+      baseCommission: baseCommission,
+      adjustedCommission: baseCommission, // No adjustment for dispatch
+      repOfMonthBonus: repOfMonthBonus,
+      activeTrucksBonus: activeTrucksBonus,
+      teamLeadBonus: teamLeadBonus,
+      totalCommission: totalCommission,
+      penaltyApplied: false,
+      calculationDetails: calculationDetails,
+      calculatedBy: calculatedBy,
+      notes: `Calculated on ${new Date().toISOString()}`
+    });
+    
+    // 12. Return the commission details with deals
+    return {
+      userId,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      month,
+      total: totalCommission,
+      baseCommission: baseCommission,
+      adjustedCommission: baseCommission,
+      repOfMonthBonus: repOfMonthBonus,
+      activeTrucksBonus: activeTrucksBonus,
+      teamLeadBonus: teamLeadBonus,
+      calculationDetails: calculationDetails,
+      deals: monthlyInvoices.map(invoice => {
+        return {
+          invoiceId: invoice.id,
+          leadId: invoice.leadId,
+          amount: invoice.totalAmount,
+          date: invoice.createdAt,
+          status: invoice.status
+        };
+      }),
+      stats: {
+        totalDeals: monthlyInvoices.length,
+        totalInvoiced: totalInvoiced,
+        avgCommission: monthlyInvoices.length > 0 
+          ? totalCommission / monthlyInvoices.length 
+          : 0
+      }
+    };
+  } catch (error) {
+    console.error('Error calculating dispatch commission:', error);
+    // Return a basic structure with error details
+    return { 
+      userId, 
+      month, 
+      total: 0, 
+      deals: [], 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stats: {} 
+    };
+  }
 }
 
 // Register all API routes

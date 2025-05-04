@@ -3056,6 +3056,16 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(invoices).where(eq(invoices.leadId, leadId));
   }
 
+  async getInvoicesByDispatcher(dispatcherId: number): Promise<Invoice[]> {
+    // Query invoices where the dispatcher created the invoice
+    return db.select().from(invoices).where(eq(invoices.createdBy, dispatcherId));
+  }
+  
+  async getInvoicesByLeads(leadIds: number[]): Promise<Invoice[]> {
+    if (leadIds.length === 0) return [];
+    return db.select().from(invoices).where(inArray(invoices.leadId, leadIds));
+  }
+
   async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
     const now = new Date();
     const [invoice] = await db.insert(invoices).values({
@@ -3357,6 +3367,133 @@ export class DatabaseStorage implements IStorage {
       .where(eq(commissionRules.id, id))
       .returning();
     return updatedRule;
+  }
+  
+  // Commission Policy operations
+  async getCommissionPolicy(id: number): Promise<CommissionPolicy | undefined> {
+    const [policy] = await db.select().from(commissionPolicies).where(eq(commissionPolicies.id, id));
+    return policy;
+  }
+  
+  async getCommissionPoliciesByType(type: string): Promise<CommissionPolicy[]> {
+    return db.select().from(commissionPolicies).where(eq(commissionPolicies.type, type));
+  }
+  
+  async getCommissionPoliciesByOrg(orgId: number): Promise<CommissionPolicy[]> {
+    return db.select().from(commissionPolicies).where(eq(commissionPolicies.orgId, orgId));
+  }
+  
+  async createCommissionPolicy(policy: InsertCommissionPolicy): Promise<CommissionPolicy> {
+    const now = new Date();
+    const [commissionPolicy] = await db.insert(commissionPolicies).values({
+      ...policy,
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    return commissionPolicy;
+  }
+  
+  async updateCommissionPolicy(id: number, updates: Partial<CommissionPolicy>): Promise<CommissionPolicy | undefined> {
+    const [updatedPolicy] = await db
+      .update(commissionPolicies)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(commissionPolicies.id, id))
+      .returning();
+    return updatedPolicy;
+  }
+  
+  // Commission Run operations
+  async getCommissionRun(id: number): Promise<CommissionRun | undefined> {
+    const [run] = await db.select().from(commissionRuns).where(eq(commissionRuns.id, id));
+    return run;
+  }
+  
+  async getCommissionRunsByMonth(month: string): Promise<CommissionRun[]> {
+    const [year, monthNum] = month.split('-').map(Number);
+    if (!year || !monthNum) {
+      throw new Error('Invalid month format. Expected YYYY-MM');
+    }
+    return db.select().from(commissionRuns)
+      .where(
+        and(
+          eq(commissionRuns.year, year),
+          eq(commissionRuns.month, monthNum)
+        )
+      );
+  }
+  
+  async getCommissionRunsByUser(userId: number): Promise<CommissionRun[]> {
+    return db.select().from(commissionRuns).where(eq(commissionRuns.userId, userId));
+  }
+  
+  async getCommissionRunsByOrg(orgId: number): Promise<CommissionRun[]> {
+    return db.select().from(commissionRuns).where(eq(commissionRuns.orgId, orgId));
+  }
+  
+  async createCommissionRun(run: InsertCommissionRun): Promise<CommissionRun> {
+    const now = new Date();
+    const [commissionRun] = await db.insert(commissionRuns).values({
+      ...run,
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    return commissionRun;
+  }
+  
+  async updateCommissionRun(id: number, updates: Partial<CommissionRun>): Promise<CommissionRun | undefined> {
+    const [updatedRun] = await db
+      .update(commissionRuns)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(commissionRuns.id, id))
+      .returning();
+    return updatedRun;
+  }
+  
+  // Lead Sales User operations
+  async getLeadSalesUser(id: number): Promise<LeadSalesUser | undefined> {
+    const [leadSalesUser] = await db.select().from(leadSalesUsers).where(eq(leadSalesUsers.id, id));
+    return leadSalesUser;
+  }
+  
+  async getLeadSalesUsersByLead(leadId: number): Promise<LeadSalesUser[]> {
+    return db.select().from(leadSalesUsers).where(eq(leadSalesUsers.leadId, leadId));
+  }
+  
+  async getLeadSalesUsersByUser(userId: number): Promise<LeadSalesUser[]> {
+    return db.select().from(leadSalesUsers).where(eq(leadSalesUsers.userId, userId));
+  }
+  
+  async createLeadSalesUser(data: InsertLeadSalesUser): Promise<LeadSalesUser> {
+    const now = new Date();
+    const [leadSalesUser] = await db.insert(leadSalesUsers).values({
+      ...data,
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    return leadSalesUser;
+  }
+  
+  async updateLeadSalesUser(id: number, updates: Partial<LeadSalesUser>): Promise<LeadSalesUser | undefined> {
+    const [updatedLeadSalesUser] = await db
+      .update(leadSalesUsers)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(leadSalesUsers.id, id))
+      .returning();
+    return updatedLeadSalesUser;
+  }
+  
+  // User related operations needed for the commission system
+  async getLeadsByUser(userId: number): Promise<Lead[]> {
+    return db.select().from(leads).where(eq(leads.createdBy, userId));
   }
   
   // Monthly Commission operations
