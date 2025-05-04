@@ -397,6 +397,7 @@ export const leads = pgTable("leads", {
   companyName: text("company_name").notNull(),
   mcNumber: text("mc_number").notNull(),
   dotNumber: text("dot_number"),
+  mcAge: integer("mc_age").default(0), // Age of MC in months
   equipmentType: text("equipment_type").notNull(),
   truckCategory: text("truck_category"),
   factoringStatus: text("factoring_status").notNull(),
@@ -408,8 +409,9 @@ export const leads = pgTable("leads", {
   // Enhanced status values as per requirements
   status: leadStatusEnum("status").notNull().default("New"),
   
-  // Enhanced lead source tracking
+  // Enhanced lead source tracking with SQL/MQL distinction
   source: leadSourceEnum("source").notNull().default("SQL"),
+  sourceDetails: text("source_details"), // For additional source information (e.g. specific form, campaign)
   
   // Lead qualification and scoring
   qualificationScore: leadScoreEnum("qualification_score").default("Medium"),
@@ -427,9 +429,14 @@ export const leads = pgTable("leads", {
   activatedAt: timestamp("activated_at"),
   
   // Dispatch handoff tracking
+  dispatchHandoffDate: timestamp("dispatch_handoff_date"),
+  dispatchHandoffBy: integer("dispatch_handoff_by").references(() => users.id),
   dispatchRejectionCount: integer("dispatch_rejection_count").default(0),
   dispatchRejectionReason: text("dispatch_rejection_reason"),
   dispatchHandoverNotes: text("dispatch_handover_notes"),
+  
+  // Follow-up scheduling
+  followUpDate: timestamp("follow_up_date"),
   
   // Standard fields
   assignedTo: integer("assigned_to").notNull(),
@@ -438,6 +445,9 @@ export const leads = pgTable("leads", {
   
   // JSON field for storing custom fields and arbitrary data
   customFields: jsonb("custom_fields"),
+  
+  // Activity timeline (new)
+  activityTimeline: jsonb("activity_timeline").default([]), // Array of activity objects
   
   // Tags for better categorization 
   tags: text("tags").array(),
@@ -456,6 +466,8 @@ export const leads = pgTable("leads", {
     createdAtIdx: index("leads_created_at_idx").on(table.createdAt),
     scoreIdx: index("leads_score_idx").on(table.qualificationScore),
     lastContactedIdx: index("leads_last_contacted_idx").on(table.lastContactedAt),
+    sourceIdx: index("leads_source_idx").on(table.source),
+    mcNumberIdx: index("leads_mc_number_idx").on(table.mcNumber),
     // Combined index for frequently filtered queries
     orgStatusOwnerIdx: index("leads_org_status_owner_idx").on(table.orgId, table.status, table.assignedTo)
   };
