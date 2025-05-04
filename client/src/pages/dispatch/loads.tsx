@@ -79,6 +79,84 @@ export default function DispatchLoadsPage() {
     }
   }, [error, toast]);
   
+  // Export loads to CSV
+  const exportLoadsToCSV = () => {
+    if (!filteredLoads || filteredLoads.length === 0) {
+      toast({
+        title: "No Data to Export",
+        description: "There are no loads matching your current filters to export.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Define the CSV header
+      const headers = [
+        'Load #',
+        'Origin',
+        'Destination',
+        'Client',
+        'Pickup Date',
+        'Delivery Date',
+        'Status',
+        'Rate',
+        'Driver',
+        'Equipment',
+        'Miles',
+        'Weight',
+        'Notes'
+      ];
+
+      // Convert data to CSV rows
+      const rows = filteredLoads.map(load => [
+        load.loadNumber || '',
+        load.origin || '',
+        load.destination || '',
+        load.client?.name || '',
+        formatDate(load.pickupDate) || '',
+        formatDate(load.deliveryDate) || '',
+        formatStatus(load.status).label || '',
+        `$${load.rate?.toFixed(2) || '0.00'}`,
+        load.driver || '',
+        load.equipment || '',
+        load.miles?.toString() || '',
+        load.weight || '',
+        load.notes || ''
+      ]);
+
+      // Combine header and rows
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell.toString().replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      // Create a blob and download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `loads-export-${new Date().toISOString().slice(0, 10)}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Export Successful",
+        description: "Your loads have been exported to CSV",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting your data.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Filter loads based on status and search query
   useEffect(() => {
     if (!loads) return;
@@ -330,13 +408,7 @@ export default function DispatchLoadsPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    // Export functionality would go here
-                    toast({
-                      title: "Export Started",
-                      description: "Your export is being prepared",
-                    });
-                  }}
+                  onClick={exportLoadsToCSV}
                 >
                   <FileSpreadsheet className="h-4 w-4 mr-2" />
                   Export
