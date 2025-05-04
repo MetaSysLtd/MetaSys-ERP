@@ -80,6 +80,9 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [remarkDialogOpen, setRemarkDialogOpen] = useState(false);
   const [remark, setRemark] = useState("");
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [callDialogOpen, setCallDialogOpen] = useState(false);
+  const [formDialogOpen, setFormDialogOpen] = useState(false);
   
   // Fetch lead details
   const { data: lead, isLoading, error } = useQuery({
@@ -494,8 +497,12 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
         <Tabs defaultValue="details">
           <TabsList className="mb-6">
             <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="loads">Loads</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="calls">Calls</TabsTrigger>
+            <TabsTrigger value="loads">Loads</TabsTrigger>
+            <TabsTrigger value="forms">Forms</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
           
           <TabsContent value="details">
@@ -616,10 +623,108 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
             </div>
           </TabsContent>
           
-          <TabsContent value="loads">
+          <TabsContent value="tasks">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Tasks</CardTitle>
+                <Button 
+                  size="sm" 
+                  className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white"
+                  onClick={() => setTaskDialogOpen(true)}
+                >
+                  Create Task
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Clipboard className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks yet</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Create tasks to track your follow-ups with this lead.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="calls">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Call History</CardTitle>
+                <Button 
+                  size="sm" 
+                  className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white"
+                  onClick={() => setCallDialogOpen(true)}
+                >
+                  Log Call
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No calls logged</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Log your calls to keep track of conversations with this lead.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="forms">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Forms & Documents</CardTitle>
+                <Button 
+                  size="sm" 
+                  className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white"
+                  onClick={() => setFormDialogOpen(true)}
+                >
+                  Send Form
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <FileText className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No forms sent</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Send forms to collect information from this lead.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="history">
             <Card>
               <CardHeader>
+                <CardTitle>Change History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">Change history</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Track all modifications to this lead over time.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="loads">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Loads</CardTitle>
+                {lead.status === "Active" && role?.department === "dispatch" && (
+                  <Button size="sm" className="bg-gradient-to-r from-[#025E73] to-[#011F26] hover:opacity-90 text-white">
+                    Create Load
+                  </Button>
+                )}
               </CardHeader>
               <CardContent>
                 {!loads || loads.length === 0 ? (
@@ -631,11 +736,6 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                         ? "There are no loads associated with this lead yet."
                         : "This lead needs to be activated before loads can be created."}
                     </p>
-                    {lead.status === "Active" && role?.department === "dispatch" && (
-                      <Button className="mt-4">
-                        Create Load
-                      </Button>
-                    )}
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
