@@ -83,12 +83,12 @@ export default function LeadsPage() {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (lead) =>
-          lead.companyName.toLowerCase().includes(query) ||
-          lead.contactName.toLowerCase().includes(query) ||
-          lead.phoneNumber.includes(query) ||
-          (lead.email && lead.email.toLowerCase().includes(query)) ||
-          (lead.mcNumber && lead.mcNumber.toLowerCase().includes(query)) ||
-          (lead.dotNumber && lead.dotNumber.toLowerCase().includes(query))
+          (lead.companyName ? lead.companyName.toLowerCase().includes(query) : false) ||
+          (lead.contactName ? lead.contactName.toLowerCase().includes(query) : false) ||
+          (lead.phoneNumber ? lead.phoneNumber.includes(query) : false) ||
+          (lead.email ? lead.email.toLowerCase().includes(query) : false) ||
+          (lead.mcNumber ? lead.mcNumber.toLowerCase().includes(query) : false) ||
+          (lead.dotNumber ? lead.dotNumber.toLowerCase().includes(query) : false)
       );
     }
     
@@ -97,9 +97,9 @@ export default function LeadsPage() {
   
   // Determine user permissions
   const canCreateLead = 
-    role.department === "admin" || 
-    role.department === "sales" ||
-    (role.permissions && role.permissions.canCreateLeads);
+    role?.department === "admin" || 
+    role?.department === "sales" ||
+    (role?.permissions && Array.isArray(role.permissions) ? role.permissions.includes("canCreateLeads") : false);
 
   // Format status for display
   const formatStatus = (status: string) => {
@@ -307,7 +307,7 @@ export default function LeadsPage() {
                         </TableCell>
                         <TableCell>
                           <span className="capitalize">
-                            {lead.equipmentType.replace("-", " ")}
+                            {lead.equipmentType ? lead.equipmentType.replace("-", " ") : "N/A"}
                           </span>
                         </TableCell>
                         <TableCell>
