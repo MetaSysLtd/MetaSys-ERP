@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useSearch } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useSocket } from "@/hooks/use-socket";
+
+// UI Components
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MotionWrapper } from "@/components/ui/motion-wrapper";
@@ -28,7 +32,36 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { DatePicker } from "@/components/ui/date-picker";
-import { apiRequest } from "@/lib/queryClient";
+
+// Form components
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormDescription,
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+// Create form schema based on the backend requirements
+const loadFormSchema = z.object({
+  leadId: z.coerce.number().min(1, { message: "Client is required" }),
+  origin: z.string().min(2, { message: "Origin is required" }),
+  destination: z.string().min(2, { message: "Destination is required" }),
+  pickupDate: z.string().min(1, { message: "Pickup date is required" }),
+  deliveryDate: z.string().min(1, { message: "Delivery date is required" }),
+  freightAmount: z.coerce.number().min(1, { message: "Freight amount is required" }),
+  serviceCharge: z.coerce.number().min(0, { message: "Service charge must be a valid number" }),
+  notes: z.string().optional(),
+  status: z.string().default("booked"),
+  assignedTo: z.number().optional(),
+});
+
+type LoadFormValues = z.infer<typeof loadFormSchema>;
 
 export default function NewLoadPage() {
   const { toast } = useToast();
@@ -36,46 +69,71 @@ export default function NewLoadPage() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const search = useSearch();
+  const socket = useSocket();
+  const [isCalculating, setIsCalculating] = useState(false);
+  
+  // Parse clientId from URL if present
   const searchParams = new URLSearchParams(search);
   const initialClientId = searchParams.get("clientId");
   
-  // Form state
-  const [formData, setFormData] = useState({
-    clientId: initialClientId || "",
-    origin: "",
-    destination: "",
-    pickupDate: "",
-    deliveryDate: "",
-    rate: "",
-    loadType: "standard",
-    equipmentType: "",
-    weight: "",
-    notes: ""
+  // Initialize form
+  const form = useForm<LoadFormValues>({
+    resolver: zodResolver(loadFormSchema),
+    defaultValues: {
+      leadId: initialClientId ? parseInt(initialClientId, 10) : 0,
+      origin: "",
+      destination: "",
+      pickupDate: new Date().toISOString().split("T")[0],
+      deliveryDate: new Date(Date.now() + 3 * 86400000).toISOString().split("T")[0],
+      freightAmount: 0,
+      serviceCharge: 0,
+      notes: "",
+      status: "booked",
+    },
   });
   
-  // Get clients from the API - in reality this would fetch from dispatch/clients
-  // but for now we'll use the leads endpoint and filter active leads
-  const { data: allLeads, isLoading: isLoadingClients } = useQuery({
-    queryKey: ["/api/leads"],
+  // Get active clients (dispatch clients with leads)
+  const { data: clients, isLoading: isLoadingClients } = useQuery({
+    queryKey: ["/api/dispatch/clients"],
   });
   
-  // Filter to only active leads (considered as clients)
-  const activeClients = Array.isArray(allLeads) ? allLeads.filter((lead: any) => lead.status === "Active") : [];
+  // Get active leads (alternative way to select clients)
+  const { data: leads, isLoading: isLoadingLeads } = useQuery({
+    queryKey: ["/api/leads", { status: "active" }],
+  });
   
   // Create load mutation
   const createLoadMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const res = await apiRequest("POST", "/api/dispatch/loads", data);
-      return await res.json();
+    mutationFn: async (values: LoadFormValues) => {
+      // Make sure we have the current user's ID to assign the load
+      if (!values.assignedTo && user?.id) {
+        values.assignedTo = user.id;
+      }
+      
+      return apiRequest("POST", "/api/dispatch/loads", values);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/dispatch/loads"] });
-      toast({
-        title: "Success",
-        description: "Load created successfully",
-        variant: "default",
+    onSuccess: (response) => {
+      response.json().then(data => {
+        // Send socket notification about the new load
+        if (socket && data.id) {
+          socket.emit("load_event", {
+            type: "load_created",
+            loadId: data.id,
+            message: `New load created from ${form.getValues("origin")} to ${form.getValues("destination")}`
+          });
+        }
+        
+        queryClient.invalidateQueries({ queryKey: ["/api/dispatch/loads"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/dispatch/clients"] });
+        
+        toast({
+          title: "Success",
+          description: "Load created successfully",
+          variant: "default",
+        });
+        
+        setLocation("/dispatch/loads");
       });
-      setLocation("/dispatch/loads");
     },
     onError: (error: any) => {
       toast({
@@ -85,60 +143,6 @@ export default function NewLoadPage() {
       });
     }
   });
-  
-  // Handle form input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-  
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate form data
-    if (!formData.clientId) {
-      toast({
-        title: "Validation Error",
-        description: "Please select a client",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!formData.origin || !formData.destination) {
-      toast({
-        title: "Validation Error",
-        description: "Origin and destination are required",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!formData.pickupDate) {
-      toast({
-        title: "Validation Error",
-        description: "Pickup date is required",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!formData.rate) {
-      toast({
-        title: "Validation Error",
-        description: "Rate is required",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Submit the form data
-    createLoadMutation.mutate(formData);
-  };
   
   // Loading state
   if (isLoadingClients) {
