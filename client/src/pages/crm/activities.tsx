@@ -1,42 +1,21 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import {
   ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
+  useReactTable,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  Activity,
-  AlertCircle,
-  ArrowUpDown,
-  Calendar,
-  CalendarCheck,
-  CalendarClock,
-  CalendarDays,
-  CalendarPlus,
-  Check,
-  Clock,
-  ListTodo,
-  Mail,
-  MessageSquare,
-  MoreHorizontal,
-  Phone,
-  Plus,
-  Search,
-  Timer,
-  UserRound,
-  X,
-} from "lucide-react";
-import PageLayout from "@/components/layout/PageLayout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+  SortingState,
+  ColumnFiltersState,
+  getFilteredRowModel,
+} from '@tanstack/react-table';
+
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -44,7 +23,38 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import PageLayout from '@/components/layout/PageLayout';
+import { queryClient, apiRequest } from '@/lib/queryClient';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { 
+  ArrowDown, 
+  ArrowUp, 
+  ArrowUpDown, 
+  MoreHorizontal, 
+  Search, 
+  User, 
+  Calendar, 
+  Clock,
+  Phone,
+  Mail,
+  MessageSquare,
+  FileText,
+  AlertCircle,
+  Coffee,
+  CalendarCheck,
+  Building
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,674 +62,753 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Activity as ActivityType, Account, Lead } from "@shared/schema";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { format } from "date-fns";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Helper to get activity icon
-const getActivityIcon = (action: string) => {
-  switch (action) {
-    case "call":
-      return <Phone className="h-4 w-4" />;
-    case "email":
-      return <Mail className="h-4 w-4" />;
-    case "note":
-      return <MessageSquare className="h-4 w-4" />;
-    case "reminder":
-      return <CalendarClock className="h-4 w-4" />;
-    case "meeting":
-      return <CalendarDays className="h-4 w-4" />;
-    case "task":
-      return <ListTodo className="h-4 w-4" />;
-    case "created":
-      return <Plus className="h-4 w-4" />;
-    case "updated":
-      return <Activity className="h-4 w-4" />;
-    case "status_changed":
-      return <AlertCircle className="h-4 w-4" />;
-    default:
-      return <Activity className="h-4 w-4" />;
-  }
-};
-
-// Types for our page
-interface ExpandedActivity extends ActivityType {
+// Types and interfaces
+interface ExpandedActivity {
+  id: number;
+  timestamp: string;
+  userId: number;
+  entityId: number;
+  entityType: 'lead' | 'account' | 'opportunity' | 'task';
+  action: 'call' | 'email' | 'note' | 'meeting' | 'task' | 'reminder';
+  details: string;
+  duration?: number;
+  reminderDate?: string;
+  reminderCompleted?: boolean;
   entityName?: string;
   userName?: string;
 }
 
-type ActivityAction = "call" | "email" | "note" | "meeting" | "task" | "reminder";
+interface User {
+  id: number;
+  firstName: string;
+  lastName: string;
+}
+
+interface Lead {
+  id: number;
+  contactName: string;
+}
+
+interface Account {
+  id: number;
+  name: string;
+}
+
+// Define action types with icons
+type ActivityAction = 'call' | 'email' | 'note' | 'meeting' | 'task' | 'reminder';
+
+const actionIcons: Record<ActivityAction, React.ReactNode> = {
+  call: <Phone className="h-4 w-4" />,
+  email: <Mail className="h-4 w-4" />,
+  note: <FileText className="h-4 w-4" />,
+  meeting: <Calendar className="h-4 w-4" />,
+  task: <AlertCircle className="h-4 w-4" />,
+  reminder: <Clock className="h-4 w-4" />,
+};
+
+const actionColors: Record<ActivityAction, string> = {
+  call: 'text-blue-500',
+  email: 'text-purple-500',
+  note: 'text-gray-500',
+  meeting: 'text-green-500',
+  task: 'text-yellow-500',
+  reminder: 'text-red-500',
+};
+
+// Define the form schema for activity creation/editing
+const activityFormSchema = z.object({
+  action: z.enum(['call', 'email', 'note', 'meeting', 'task', 'reminder'], {
+    required_error: 'Please select an action type',
+  }),
+  entityType: z.enum(['lead', 'account', 'opportunity', 'task'], {
+    required_error: 'Please select an entity type',
+  }),
+  entityId: z.number({
+    required_error: 'Please select an entity',
+  }),
+  details: z.string().min(1, { message: 'Details are required' }),
+  duration: z.number().optional(),
+  reminderDate: z.date().optional().nullable(),
+});
+
+type ActivityFormValues = z.infer<typeof activityFormSchema>;
 
 export default function ActivitiesPage() {
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [activeTab, setActiveTab] = useState<ActivityAction>("call");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [remindAt, setRemindAt] = useState<Date | undefined>(new Date());
-
-  // Query activities data
-  const { data: activities = [], isLoading } = useQuery<ExpandedActivity[]>({
-    queryKey: ["/api/activities"],
-    queryFn: async () => {
-      const response = await fetch("/api/activities");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<ExpandedActivity | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('all');
+  
+  // Query to fetch all activities
+  const { data: activities, isLoading: isLoadingActivities, isError: isActivitiesError } = useQuery({
+    queryKey: ['/api/crm/activities'],
+    retry: 1,
+  });
+  
+  // Query to fetch users for lookup
+  const { data: users, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ['/api/auth/users'],
+    retry: 1,
+  });
+  
+  // Query to fetch leads for the dropdown
+  const { data: leads, isLoading: isLoadingLeads } = useQuery({
+    queryKey: ['/api/crm/leads'],
+    retry: 1,
+  });
+  
+  // Query to fetch accounts for the dropdown
+  const { data: accounts, isLoading: isLoadingAccounts } = useQuery({
+    queryKey: ['/api/crm/accounts'],
+    retry: 1,
+  });
+  
+  // Mutation for creating a new activity
+  const createActivityMutation = useMutation({
+    mutationFn: async (data: ActivityFormValues) => {
+      const response = await apiRequest('POST', '/api/crm/activities', data);
       if (!response.ok) {
-        throw new Error("Failed to fetch activities");
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create activity');
       }
       return response.json();
     },
+    onSuccess: () => {
+      toast({
+        title: 'Activity Recorded',
+        description: 'Your activity has been successfully recorded.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/crm/activities'] });
+      setIsCreateDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to Record Activity',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
   });
-
-  // Query leads and accounts (for activity creation)
-  const { data: leads = [] } = useQuery<Lead[]>({
-    queryKey: ["/api/leads"],
-    queryFn: async () => {
-      const response = await fetch("/api/leads");
+  
+  // Mutation for completing a reminder
+  const completeReminderMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('PATCH', `/api/crm/activities/${id}/complete-reminder`, {});
       if (!response.ok) {
-        throw new Error("Failed to fetch leads");
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to complete reminder');
       }
       return response.json();
     },
-  });
-
-  const { data: accounts = [] } = useQuery<Account[]>({
-    queryKey: ["/api/accounts"],
-    queryFn: async () => {
-      const response = await fetch("/api/accounts");
-      if (!response.ok) {
-        throw new Error("Failed to fetch accounts");
-      }
-      return response.json();
+    onSuccess: () => {
+      toast({
+        title: 'Reminder Completed',
+        description: 'The reminder has been marked as completed.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/crm/activities'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to Complete Reminder',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
-
-  // Define columns for the activities table
-  const columns: ColumnDef<ExpandedActivity>[] = [
-    {
-      accessorKey: "action",
-      header: "Type",
-      cell: ({ row }) => {
-        const action = row.getValue("action") as string;
-        return (
-          <div className="flex items-center gap-2">
-            {getActivityIcon(action)}
-            <span className="capitalize">{action.replace("_", " ")}</span>
+  
+  // Setup form with React Hook Form
+  const form = useForm<ActivityFormValues>({
+    resolver: zodResolver(activityFormSchema),
+    defaultValues: {
+      action: 'note',
+      entityType: 'lead',
+      entityId: undefined,
+      details: '',
+      duration: 0,
+      reminderDate: null,
+    },
+  });
+  
+  // Function to handle form submission
+  const onSubmit = (data: ActivityFormValues) => {
+    createActivityMutation.mutate(data);
+  };
+  
+  // Helper functions to get user and entity names
+  const getUserName = (userId: number): string => {
+    if (!users) return 'Unknown User';
+    const user = users.find((u: User) => u.id === userId);
+    return user ? `${user.firstName} ${user.lastName}` : 'Unknown User';
+  };
+  
+  const getEntityName = (entityId: number, entityType: string): string => {
+    if (entityType === 'lead') {
+      if (!leads) return `Lead #${entityId}`;
+      const lead = leads.find((l: Lead) => l.id === entityId);
+      return lead ? lead.contactName : `Lead #${entityId}`;
+    } else if (entityType === 'account') {
+      if (!accounts) return `Account #${entityId}`;
+      const account = accounts.find((a: Account) => a.id === entityId);
+      return account ? account.name : `Account #${entityId}`;
+    } else {
+      return `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} #${entityId}`;
+    }
+  };
+  
+  // Process activities data to include user and entity names
+  const processedActivities = useMemo(() => {
+    if (!activities) return [];
+    
+    return activities.map((activity: ExpandedActivity) => ({
+      ...activity,
+      userName: getUserName(activity.userId),
+      entityName: getEntityName(activity.entityId, activity.entityType),
+    }));
+  }, [activities, users, leads, accounts]);
+  
+  // Filter activities based on active tab
+  const filteredActivities = useMemo(() => {
+    if (activeTab === 'all') return processedActivities;
+    return processedActivities.filter(activity => activity.action === activeTab);
+  }, [processedActivities, activeTab]);
+  
+  // Define the columns for the activities table
+  const columns = useMemo<ColumnDef<ExpandedActivity>[]>(
+    () => [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'action',
+        header: 'Type',
+        cell: ({ row }) => {
+          const action = row.getValue('action') as ActivityAction;
+          const icon = actionIcons[action];
+          const colorClass = actionColors[action];
+          
+          return (
+            <div className="flex items-center">
+              <div className={`mr-2 ${colorClass}`}>{icon}</div>
+              <div className="capitalize">{action}</div>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'entityName',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Related To
+            {column.getIsSorted() === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        ),
+        cell: ({ row }) => {
+          const entityType = row.original.entityType;
+          const icon = entityType === 'lead' ? (
+            <User className="h-4 w-4 mr-2 text-muted-foreground" />
+          ) : entityType === 'account' ? (
+            <Building className="h-4 w-4 mr-2 text-muted-foreground" />
+          ) : (
+            <div className="w-4 h-4 mr-2" />
+          );
+          
+          return (
+            <div className="flex items-center">
+              {icon}
+              <div className="font-medium">{row.getValue('entityName')}</div>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'details',
+        header: 'Details',
+        cell: ({ row }) => (
+          <div className="max-w-xs truncate">{row.getValue('details')}</div>
+        ),
+      },
+      {
+        accessorKey: 'userName',
+        header: 'Created By',
+        cell: ({ row }) => (
+          <div className="flex items-center">
+            <User className="h-4 w-4 mr-2 text-muted-foreground" />
+            <div>{row.getValue('userName')}</div>
           </div>
-        );
+        ),
       },
-    },
-    {
-      accessorKey: "details",
-      header: "Details",
-      cell: ({ row }) => {
-        const details = row.getValue("details") as string;
-        return details || "—";
-      },
-    },
-    {
-      accessorKey: "entityType",
-      header: "Related To",
-      cell: ({ row }) => {
-        const entityType = row.getValue("entityType") as string;
-        const entityName = row.original.entityName || `${entityType} #${row.original.entityId}`;
-        
-        return (
-          <div className="flex items-center gap-2">
-            {entityType === "lead" && <UserRound className="h-4 w-4 text-blue-500" />}
-            {entityType === "account" && <Activity className="h-4 w-4 text-purple-500" />}
-            <span>{entityName}</span>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "timestamp",
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      {
+        accessorKey: 'timestamp',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Date
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        );
+            {column.getIsSorted() === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        ),
+        cell: ({ row }) => {
+          const timestamp = new Date(row.getValue('timestamp'));
+          return (
+            <div className="flex items-center">
+              <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+              <div>{timestamp.toLocaleDateString()} {timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            </div>
+          );
+        },
       },
-      cell: ({ row }) => {
-        const timestamp = row.getValue("timestamp") as string;
-        return format(new Date(timestamp), "MMM d, yyyy h:mm a");
-      },
-    },
-    {
-      accessorKey: "userId",
-      header: "Created By",
-      cell: ({ row }) => {
-        // In real implementation, we would show the actual user name
-        const userName = row.original.userName || `User #${row.getValue("userId")}`;
-        return userName;
-      },
-    },
-    {
-      accessorKey: "reminderDate",
-      header: "Reminder",
-      cell: ({ row }) => {
-        const reminderDate = row.original.reminderDate as string | null;
-        const completed = row.original.reminderCompleted;
-        
-        if (!reminderDate) return "—";
-        
-        return (
-          <div className="flex items-center gap-2">
-            <CalendarClock className="h-4 w-4 text-amber-500" />
-            <span>
-              {format(new Date(reminderDate), "MMM d, yyyy h:mm a")}
-              {completed && (
-                <Badge variant="outline" className="ml-2 bg-green-50">
-                  <Check className="h-3 w-3 mr-1" /> Completed
-                </Badge>
-              )}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const activity = row.original;
-        const isReminder = activity.action === "reminder";
-        const reminderCompleted = activity.reminderCompleted;
-        
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              
-              {isReminder && !reminderCompleted && (
-                <DropdownMenuItem>
-                  <Check className="mr-2 h-4 w-4" />
-                  Mark as Complete
+      {
+        id: 'actions',
+        cell: ({ row }) => {
+          const activity = row.original;
+          
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => {
+                  const entityUrl = 
+                    activity.entityType === 'lead' 
+                      ? `/crm/leads/${activity.entityId}` 
+                      : activity.entityType === 'account'
+                      ? `/crm/accounts/${activity.entityId}`
+                      : `/${activity.entityType}s/${activity.entityId}`;
+                  
+                  setLocation(entityUrl);
+                }}>
+                  View Related {activity.entityType.charAt(0).toUpperCase() + activity.entityType.slice(1)}
                 </DropdownMenuItem>
-              )}
-              
-              <DropdownMenuItem>
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Add Comment
-              </DropdownMenuItem>
-              
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem className="text-red-600">
-                <X className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
+                <DropdownMenuSeparator />
+                {activity.action === 'reminder' && !activity.reminderCompleted && (
+                  <DropdownMenuItem onClick={() => completeReminderMutation.mutate(activity.id)}>
+                    <CalendarCheck className="h-4 w-4 mr-2" />
+                    Mark Reminder Complete
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => {
+                  const details = `Re: ${activity.details}`;
+                  form.reset({
+                    action: 'note',
+                    entityType: activity.entityType,
+                    entityId: activity.entityId,
+                    details: details,
+                    duration: 0,
+                    reminderDate: null,
+                  });
+                  setIsCreateDialogOpen(true);
+                }}>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Add Follow-up Note
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
       },
-    },
-  ];
-
-  // Filter activities based on active tab
-  const filteredActivities = activities.filter(activity => {
-    if (activeTab === "call") return activity.action === "call";
-    if (activeTab === "email") return activity.action === "email";
-    if (activeTab === "note") return activity.action === "note";
-    if (activeTab === "meeting") return activity.action === "meeting";
-    if (activeTab === "task") return activity.action === "task";
-    if (activeTab === "reminder") return activity.action === "reminder";
-    return true;
-  });
-
-  // Table instance
+    ],
+    [completeReminderMutation, setLocation]
+  );
+  
+  // Initialize the table
   const table = useReactTable({
     data: filteredActivities,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     state: {
       sorting,
       columnFilters,
-      columnVisibility,
-      globalFilter: searchQuery,
     },
   });
-
-  // Handle form submission for new activity
-  const handleCreateActivity = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    
-    const entityType = formData.get("entityType") as string;
-    const entityId = Number(formData.get("entityId"));
-    const details = formData.get("details") as string;
-    const isReminder = formData.get("isReminder") === "on";
-    
-    // Sample API call (would be implemented in a real app)
-    toast({
-      title: "Activity Logged",
-      description: `${activeTab} activity logged for ${entityType} #${entityId}`,
-    });
-    
-    setDialogOpen(false);
-    
-    // In a real implementation, you would do:
-    // const response = await fetch("/api/activities", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({
-    //     entityType,
-    //     entityId,
-    //     action: activeTab,
-    //     details,
-    //     reminderDate: isReminder ? remindAt?.toISOString() : null,
-    //   }),
-    // });
-    // if (response.ok) {
-    //   queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
-    //   setDialogOpen(false);
-    // }
+  
+  // Handle new activity creation dialog
+  const handleCreateActivity = () => {
+    form.reset();
+    setIsCreateDialogOpen(true);
   };
-
-  // Get the activity form title based on active tab
-  const getActivityFormTitle = () => {
-    switch (activeTab) {
-      case "call": return "Log a Call";
-      case "email": return "Log an Email";
-      case "note": return "Add a Note";
-      case "meeting": return "Schedule a Meeting";
-      case "task": return "Create a Task";
-      case "reminder": return "Set a Reminder";
-      default: return "Log Activity";
-    }
-  };
-
-  // Get activity form description
-  const getActivityFormDescription = () => {
-    switch (activeTab) {
-      case "call": return "Record details about a call with a lead or client";
-      case "email": return "Record details about an email sent to a lead or client";
-      case "note": return "Add notes about a lead or client";
-      case "meeting": return "Schedule a meeting with a lead or client";
-      case "task": return "Create a task related to a lead or client";
-      case "reminder": return "Set a reminder for a specific date and time";
-      default: return "Record an activity";
-    }
-  };
-
-  return (
-    <PageLayout pageTitle="Activities">
-      <div className="flex justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Activities</h1>
-          <p className="text-muted-foreground mt-1">
-            Track all interactions with leads and clients
-          </p>
-        </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-1">
-              <Plus className="h-4 w-4" />
-              Log Activity
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{getActivityFormTitle()}</DialogTitle>
-              <DialogDescription>
-                {getActivityFormDescription()}
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreateActivity}>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="entityType">Related To Type</Label>
-                    <Select name="entityType" required defaultValue="lead">
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select entity type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="lead">Lead</SelectItem>
-                        <SelectItem value="account">Account</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="entityId">Entity</Label>
-                    <Select name="entityId" required>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select entity" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <ScrollArea className="h-[200px]">
-                          <SelectItem value="" disabled>
-                            Select a {formData?.get("entityType") || "lead/account"}
-                          </SelectItem>
-                          {formData?.get("entityType") === "account" ? (
-                            accounts.map((account) => (
-                              <SelectItem key={account.id} value={account.id.toString()}>
-                                {account.name}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            leads.map((lead) => (
-                              <SelectItem key={lead.id} value={lead.id.toString()}>
-                                {lead.companyName || `${lead.firstName} ${lead.lastName}`}
-                              </SelectItem>
-                            ))
-                          )}
-                        </ScrollArea>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                {(activeTab === "meeting" || activeTab === "task") && (
-                  <div>
-                    <Label>Date</Label>
-                    <div className="flex gap-2 mt-1">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "justify-start text-left font-normal w-full",
-                              !date && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarDays className="mr-2 h-4 w-4" />
-                            {date ? format(date, "PPP") : "Select date"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <CalendarComponent
-                            mode="single"
-                            selected={date}
-                            onSelect={setDate}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <Label htmlFor="details">
-                    {activeTab === "call" && "Call Notes"}
-                    {activeTab === "email" && "Email Summary"}
-                    {activeTab === "note" && "Notes"}
-                    {activeTab === "meeting" && "Meeting Details"}
-                    {activeTab === "task" && "Task Description"}
-                    {activeTab === "reminder" && "Reminder Details"}
-                  </Label>
-                  <Textarea
-                    id="details"
-                    name="details"
-                    required
-                    placeholder={`Enter ${activeTab} details...`}
-                    className="mt-1"
-                    rows={4}
-                  />
-                </div>
-
-                {activeTab !== "reminder" && (
-                  <div className="flex items-center space-x-2 mt-2">
-                    <input
-                      type="checkbox"
-                      id="isReminder"
-                      name="isReminder"
-                      className="rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <Label htmlFor="isReminder" className="text-sm font-normal">
-                      Set a reminder for this {activeTab}
-                    </Label>
-                  </div>
-                )}
-
-                {(activeTab === "reminder" || formData?.get("isReminder") === "on") && (
-                  <div>
-                    <Label>Remind me on</Label>
-                    <div className="flex gap-2 mt-1">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "justify-start text-left font-normal w-full",
-                              !remindAt && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarClock className="mr-2 h-4 w-4" />
-                            {remindAt ? format(remindAt, "PPP 'at' p") : "Select date & time"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <CalendarComponent
-                            mode="single"
-                            selected={remindAt}
-                            onSelect={setRemindAt}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                )}
+  
+  // Render loading state
+  if (isLoadingActivities || isLoadingUsers || isLoadingLeads || isLoadingAccounts) {
+    return (
+      <PageLayout title="Activities" description="Track all interactions with clients">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <Skeleton className="h-10 w-[250px]" />
+            <Skeleton className="h-10 w-[100px]" />
+          </div>
+          <div className="border rounded-md">
+            <div className="h-12 px-4 border-b flex items-center">
+              <Skeleton className="h-4 w-full" />
+            </div>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-16 px-4 flex items-center">
+                <Skeleton className="h-4 w-full" />
               </div>
-              <DialogFooter>
-                <Button type="submit">
-                  {activeTab === "call" && "Log Call"}
-                  {activeTab === "email" && "Log Email"}
-                  {activeTab === "note" && "Save Note"}
-                  {activeTab === "meeting" && "Schedule Meeting"}
-                  {activeTab === "task" && "Create Task"}
-                  {activeTab === "reminder" && "Set Reminder"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <Tabs defaultValue="call" className="mb-6" onValueChange={(value) => setActiveTab(value as ActivityAction)}>
-        <TabsList className="grid grid-cols-6 w-full md:w-[600px]">
+            ))}
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+  
+  // Render error state
+  if (isActivitiesError) {
+    return (
+      <PageLayout title="Activities" description="Track all interactions with clients">
+        <div className="flex flex-col items-center justify-center h-full p-4">
+          <div className="text-destructive text-xl font-semibold mb-2">Error Loading Activities</div>
+          <p className="text-muted-foreground mb-4">
+            There was a problem loading your activities. Please try again later.
+          </p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/crm/activities'] })}>
+            Retry
+          </Button>
+        </div>
+      </PageLayout>
+    );
+  }
+  
+  return (
+    <PageLayout
+      title="Activities"
+      description="Track all client interactions and follow-ups"
+      actionLabel="Log Activity"
+      onAction={handleCreateActivity}
+    >
+      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
+        <TabsList className="mb-4">
+          <TabsTrigger value="all" className="flex items-center gap-1">
+            All Activities
+          </TabsTrigger>
           <TabsTrigger value="call" className="flex items-center gap-1">
-            <Phone className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Calls</span>
+            <Phone className="h-4 w-4" />
+            Calls
           </TabsTrigger>
           <TabsTrigger value="email" className="flex items-center gap-1">
-            <Mail className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Emails</span>
-          </TabsTrigger>
-          <TabsTrigger value="note" className="flex items-center gap-1">
-            <MessageSquare className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Notes</span>
+            <Mail className="h-4 w-4" />
+            Emails
           </TabsTrigger>
           <TabsTrigger value="meeting" className="flex items-center gap-1">
-            <CalendarDays className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Meetings</span>
+            <Calendar className="h-4 w-4" />
+            Meetings
           </TabsTrigger>
           <TabsTrigger value="task" className="flex items-center gap-1">
-            <ListTodo className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Tasks</span>
+            <AlertCircle className="h-4 w-4" />
+            Tasks
           </TabsTrigger>
           <TabsTrigger value="reminder" className="flex items-center gap-1">
-            <CalendarClock className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Reminders</span>
+            <Clock className="h-4 w-4" />
+            Reminders
           </TabsTrigger>
         </TabsList>
       </Tabs>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-center">
-            <CardTitle>
-              <div className="flex items-center gap-2">
-                {getActivityIcon(activeTab)}
-                <span className="capitalize">{activeTab}s</span>
-              </div>
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Search activities..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-sm"
-                prefix={<Search className="h-4 w-4 text-muted-foreground" />}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setDialogOpen(true);
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                <span className="capitalize">Log {activeTab}</span>
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center py-10">
-              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-            </div>
-          ) : filteredActivities.length === 0 ? (
-            <div className="text-center py-10">
-              {getActivityIcon(activeTab)}
-              <h3 className="mt-4 text-lg font-semibold">
-                No {activeTab}s found
-              </h3>
-              <p className="mt-2 text-muted-foreground">
-                Get started by logging a new {activeTab}
-              </p>
-              <Button 
-                variant="outline" 
-                onClick={() => setDialogOpen(true)} 
-                className="mt-4"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                <span className="capitalize">Log {activeTab}</span>
-              </Button>
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
+      
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center w-full max-w-sm">
+          <Input
+            placeholder="Filter activities..."
+            value={(table.getColumn('details')?.getFilterValue() as string) ?? ''}
+            onChange={(event) => table.getColumn('details')?.setFilterValue(event.target.value)}
+            className="max-w-sm"
+          />
+          <Search className="h-4 w-4 absolute ml-3 text-muted-foreground" />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+      
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
                   ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && "selected"}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No activities found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Log New Activity</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="action"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Activity Type*</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
                       >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
-                        No results found.
-                      </TableCell>
-                    </TableRow>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an activity type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="call">Phone Call</SelectItem>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="note">Note</SelectItem>
+                          <SelectItem value="meeting">Meeting</SelectItem>
+                          <SelectItem value="task">Task</SelectItem>
+                          <SelectItem value="reminder">Reminder</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-        <CardFooter className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {table.getRowModel().rows.length} of {filteredActivities.length} {activeTab}s
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="entityType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Related To Type*</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select related entity type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="lead">Lead</SelectItem>
+                          <SelectItem value="account">Account</SelectItem>
+                          <SelectItem value="opportunity">Opportunity</SelectItem>
+                          <SelectItem value="task">Task</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="entityId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {form.watch("entityType") === 'lead' 
+                          ? 'Related Lead*' 
+                          : form.watch("entityType") === 'account'
+                          ? 'Related Account*'
+                          : `Related ${form.watch("entityType")}*`}
+                      </FormLabel>
+                      <Select 
+                        onValueChange={(value) => field.onChange(parseInt(value))} 
+                        defaultValue={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={`Select a ${form.watch("entityType")}`} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {form.watch("entityType") === 'lead' && leads?.map((lead: Lead) => (
+                            <SelectItem key={lead.id} value={lead.id.toString()}>
+                              {lead.contactName}
+                            </SelectItem>
+                          ))}
+                          {form.watch("entityType") === 'account' && accounts?.map((account: Account) => (
+                            <SelectItem key={account.id} value={account.id.toString()}>
+                              {account.name}
+                            </SelectItem>
+                          ))}
+                          {form.watch("entityType") !== 'lead' && form.watch("entityType") !== 'account' && (
+                            <SelectItem value="1">Sample {form.watch("entityType")} #1</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {form.watch("action") === 'call' && (
+                  <FormField
+                    control={form.control}
+                    name="duration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Call Duration (minutes)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Duration in minutes" 
+                            {...field}
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                
+                {form.watch("action") === 'reminder' && (
+                  <FormField
+                    control={form.control}
+                    name="reminderDate"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Reminder Date</FormLabel>
+                        <DatePicker 
+                          date={field.value ? new Date(field.value) : undefined} 
+                          setDate={field.onChange}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="details"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Details*</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Enter activity details here..."
+                        className="min-h-[120px]" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateDialogOpen(false);
+                    form.reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  Log Activity
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </PageLayout>
   );
 }

@@ -1,33 +1,21 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import {
   ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
+  useReactTable,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  Building2,
-  Check,
-  Link,
-  MoreHorizontal,
-  Package,
-  Plus,
-  Search,
-  UserPlus,
-  Users,
-  X,
-} from "lucide-react";
-import PageLayout from "@/components/layout/PageLayout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+  SortingState,
+  ColumnFiltersState,
+  getFilteredRowModel,
+} from '@tanstack/react-table';
+
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -35,7 +23,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import PageLayout from '@/components/layout/PageLayout.tsx';
+import { queryClient, apiRequest } from '@/lib/queryClient';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { ArrowDown, ArrowUp, ArrowUpDown, MoreHorizontal, Search, Building, UserRound, Phone, Mail } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,428 +42,548 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Account } from "@shared/schema";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
+} from '@/components/ui/dropdown-menu';
+
+// Define the Account interface to match the backend schema
+interface Account {
+  id: number;
+  name: string;
+  industry: string;
+  website: string | null;
+  phone: string | null;
+  email: string | null;
+  status: 'active' | 'inactive' | 'lead' | 'prospect' | 'customer';
+  type: 'client' | 'vendor' | 'partner' | 'other';
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  zipCode: string | null;
+  country: string | null;
+  totalRevenue: number | null;
+  employeeCount: number | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: number;
+  assignedTo: number;
+  orgId: number;
+  primaryContactName: string | null;
+  primaryContactTitle: string | null;
+  primaryContactPhone: string | null;
+  primaryContactEmail: string | null;
+}
+
+// Define the form schema for account creation/editing
+const accountFormSchema = z.object({
+  name: z.string().min(1, { message: 'Account name is required' }),
+  industry: z.string().min(1, { message: 'Industry is required' }),
+  website: z.string().url({ message: 'Must be a valid URL' }).nullish(),
+  phone: z.string().nullish(),
+  email: z.string().email({ message: 'Must be a valid email' }).nullish(),
+  status: z.enum(['active', 'inactive', 'lead', 'prospect', 'customer']),
+  type: z.enum(['client', 'vendor', 'partner', 'other']),
+  addressLine1: z.string().nullish(),
+  addressLine2: z.string().nullish(),
+  city: z.string().nullish(),
+  state: z.string().nullish(),
+  zipCode: z.string().nullish(),
+  country: z.string().nullish(),
+  totalRevenue: z.number().nullish(),
+  employeeCount: z.number().int().positive().nullish(),
+  notes: z.string().nullish(),
+  primaryContactName: z.string().nullish(),
+  primaryContactTitle: z.string().nullish(),
+  primaryContactPhone: z.string().nullish(),
+  primaryContactEmail: z.string().email({ message: 'Must be a valid email' }).nullish(),
+});
+
+type AccountFormValues = z.infer<typeof accountFormSchema>;
 
 export default function AccountsPage() {
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [activeTab, setActiveTab] = useState("all");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
 
-  // Query accounts data
-  const { data: accounts = [], isLoading } = useQuery<Account[]>({
-    queryKey: ["/api/accounts"],
-    queryFn: async () => {
-      const response = await fetch("/api/accounts");
+  // Query to fetch all accounts
+  const { data: accounts, isLoading, isError } = useQuery({
+    queryKey: ['/api/crm/accounts'],
+    retry: 1,
+  });
+
+  // Mutation for creating a new account
+  const createAccountMutation = useMutation({
+    mutationFn: async (data: AccountFormValues) => {
+      const response = await apiRequest('POST', '/api/crm/accounts', data);
       if (!response.ok) {
-        throw new Error("Failed to fetch accounts");
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create account');
       }
       return response.json();
     },
+    onSuccess: () => {
+      toast({
+        title: 'Account Created',
+        description: 'The account has been successfully created.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/crm/accounts'] });
+      setIsCreateDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to Create Account',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
   });
 
-  // Define columns for the accounts table
-  const columns: ColumnDef<Account>[] = [
-    {
-      accessorKey: "name",
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Account Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        );
-      },
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Building2 className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium">{row.getValue("name")}</span>
-        </div>
-      ),
+  // Mutation for updating an account
+  const updateAccountMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<AccountFormValues> }) => {
+      const response = await apiRequest('PUT', `/api/crm/accounts/${id}`, data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update account');
+      }
+      return response.json();
     },
-    {
-      accessorKey: "industry",
-      header: "Industry",
-      cell: ({ row }) => {
-        const industry = row.getValue("industry") as string;
-        return industry || "—";
-      },
+    onSuccess: () => {
+      toast({
+        title: 'Account Updated',
+        description: 'The account has been successfully updated.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/crm/accounts'] });
+      setIsCreateDialogOpen(false);
+      setSelectedAccount(null);
+      form.reset();
     },
-    {
-      accessorKey: "website",
-      header: "Website",
-      cell: ({ row }) => {
-        const website = row.getValue("website") as string;
-        return website ? (
-          <a
-            href={website.startsWith("http") ? website : `https://${website}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center text-blue-600 hover:underline"
-          >
-            <span className="truncate max-w-[180px]">{website}</span>
-            <Link className="h-3 w-3 ml-1" />
-          </a>
-        ) : (
-          "—"
-        );
-      },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to Update Account',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
-    {
-      accessorKey: "city",
-      header: "Location",
-      cell: ({ row }) => {
-        const city = row.getValue("city") as string;
-        const state = row.original.state;
-        return city ? (state ? `${city}, ${state}` : city) : "—";
-      },
-    },
-    {
-      accessorKey: "assignedTo",
-      header: "Account Owner",
-      cell: ({ row }) => {
-        // In real implementation, we would fetch and display the user's name
-        return row.original.assignedTo ? 
-          `User #${row.original.assignedTo}` : 
-          "Unassigned";
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const account = row.original;
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem>
-                <Package className="mr-2 h-4 w-4" />
-                View account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Assign owner
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Edit account</DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">
-                Delete account
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
-  ];
+  });
 
-  // Create table instance
+  // Setup form with React Hook Form
+  const form = useForm<AccountFormValues>({
+    resolver: zodResolver(accountFormSchema),
+    defaultValues: {
+      name: '',
+      industry: '',
+      website: '',
+      phone: '',
+      email: '',
+      status: 'prospect',
+      type: 'client',
+      addressLine1: '',
+      addressLine2: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: '',
+      notes: '',
+      primaryContactName: '',
+      primaryContactTitle: '',
+      primaryContactPhone: '',
+      primaryContactEmail: '',
+    },
+  });
+
+  // When an account is selected for editing, populate the form
+  useEffect(() => {
+    if (selectedAccount) {
+      form.reset({
+        name: selectedAccount.name,
+        industry: selectedAccount.industry,
+        website: selectedAccount.website || '',
+        phone: selectedAccount.phone || '',
+        email: selectedAccount.email || '',
+        status: selectedAccount.status,
+        type: selectedAccount.type,
+        addressLine1: selectedAccount.addressLine1 || '',
+        addressLine2: selectedAccount.addressLine2 || '',
+        city: selectedAccount.city || '',
+        state: selectedAccount.state || '',
+        zipCode: selectedAccount.zipCode || '',
+        country: selectedAccount.country || '',
+        notes: selectedAccount.notes || '',
+        primaryContactName: selectedAccount.primaryContactName || '',
+        primaryContactTitle: selectedAccount.primaryContactTitle || '',
+        primaryContactPhone: selectedAccount.primaryContactPhone || '',
+        primaryContactEmail: selectedAccount.primaryContactEmail || '',
+      });
+      setIsCreateDialogOpen(true);
+    }
+  }, [selectedAccount, form]);
+
+  // Function to handle form submission
+  const onSubmit = (data: AccountFormValues) => {
+    if (selectedAccount) {
+      updateAccountMutation.mutate({ id: selectedAccount.id, data });
+    } else {
+      createAccountMutation.mutate(data);
+    }
+  };
+
+  // Define the columns for the accounts table
+  const columns = useMemo<ColumnDef<Account>[]>(
+    () => [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'name',
+        header: ({ column }) => (
+          <div className="flex items-center">
+            Building
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            >
+              Name
+              {column.getIsSorted() === 'asc' ? (
+                <ArrowUp className="ml-2 h-4 w-4" />
+              ) : column.getIsSorted() === 'desc' ? (
+                <ArrowDown className="ml-2 h-4 w-4" />
+              ) : (
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center">
+            <Building className="h-4 w-4 mr-2 text-muted-foreground" />
+            <div className="font-medium">{row.getValue('name')}</div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'industry',
+        header: 'Industry',
+        cell: ({ row }) => <div>{row.getValue('industry')}</div>,
+      },
+      {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: ({ row }) => {
+          const status = row.getValue('status') as string;
+          let colorClass = 'bg-gray-500';
+          
+          switch (status) {
+            case 'active':
+              colorClass = 'bg-green-500';
+              break;
+            case 'lead':
+              colorClass = 'bg-yellow-500';
+              break;
+            case 'prospect':
+              colorClass = 'bg-blue-500';
+              break;
+            case 'customer':
+              colorClass = 'bg-purple-500';
+              break;
+            case 'inactive':
+              colorClass = 'bg-red-500';
+              break;
+          }
+          
+          return (
+            <Badge variant="outline" className="capitalize">
+              <div className={`h-2 w-2 rounded-full ${colorClass} mr-2`} />
+              {status}
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: 'primaryContactName',
+        header: 'Primary Contact',
+        cell: ({ row }) => (
+          <div className="flex items-center">
+            <UserRound className="h-4 w-4 mr-2 text-muted-foreground" />
+            <div>{row.getValue('primaryContactName') || 'N/A'}</div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'phone',
+        header: 'Phone',
+        cell: ({ row }) => (
+          <div className="flex items-center">
+            <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+            <div>{row.getValue('phone') || 'N/A'}</div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'email',
+        header: 'Email',
+        cell: ({ row }) => (
+          <div className="flex items-center">
+            <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+            <div>{row.getValue('email') || 'N/A'}</div>
+          </div>
+        ),
+      },
+      {
+        id: 'actions',
+        cell: ({ row }) => {
+          const account = row.original;
+          
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setLocation(`/crm/accounts/${account.id}`)}>
+                  View Details
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSelectedAccount(account)}>
+                  Edit Account
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Add Activity</DropdownMenuItem>
+                <DropdownMenuItem>Add Opportunity</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
+    ],
+    []
+  );
+
+  // Initialize the table
   const table = useReactTable({
-    data: accounts,
+    data: accounts || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     state: {
       sorting,
       columnFilters,
-      columnVisibility,
-      globalFilter: searchQuery,
     },
   });
 
-  // Handle form submission for new account
-  const handleCreateAccount = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const accountData = {
-      name: formData.get("name") as string,
-      industry: formData.get("industry") as string,
-      website: formData.get("website") as string,
-      address: formData.get("address") as string,
-      city: formData.get("city") as string,
-      state: formData.get("state") as string,
-      zipCode: formData.get("zipCode") as string,
-      country: formData.get("country") as string || "USA",
-      phone: formData.get("phone") as string,
-      email: formData.get("email") as string,
-      notes: formData.get("notes") as string,
-    };
-
-    // Sample API call (would be implemented in a real app)
-    toast({
-      title: "Account Created",
-      description: `Created new account: ${accountData.name}`,
-    });
-    
-    setDialogOpen(false);
-    
-    // In a real implementation, you would do:
-    // const response = await fetch("/api/accounts", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify(accountData),
-    // });
-    // if (response.ok) {
-    //   queryClient.invalidateQueries({ queryKey: ["/api/accounts"] });
-    //   setDialogOpen(false);
-    // }
+  // Handle new account creation dialog
+  const handleCreateAccount = () => {
+    setSelectedAccount(null);
+    form.reset();
+    setIsCreateDialogOpen(true);
   };
 
-  return (
-    <PageLayout pageTitle="Accounts">
-      <div className="flex justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Accounts</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage all company accounts and their details
-          </p>
-        </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-1">
-              <Plus className="h-4 w-4" />
-              New Account
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create New Account</DialogTitle>
-              <DialogDescription>
-                Add a new company to your CRM database
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreateAccount}>
-              <div className="grid grid-cols-2 gap-4 py-4">
-                <div className="col-span-2">
-                  <Label htmlFor="name" className="text-right">
-                    Company Name
-                  </Label>
-                  <Input id="name" name="name" required className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="industry" className="text-right">
-                    Industry
-                  </Label>
-                  <Input id="industry" name="industry" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="website" className="text-right">
-                    Website
-                  </Label>
-                  <Input id="website" name="website" className="mt-1" />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="address" className="text-right">
-                    Address
-                  </Label>
-                  <Input id="address" name="address" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="city" className="text-right">
-                    City
-                  </Label>
-                  <Input id="city" name="city" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="state" className="text-right">
-                    State
-                  </Label>
-                  <Input id="state" name="state" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="zipCode" className="text-right">
-                    Zip Code
-                  </Label>
-                  <Input id="zipCode" name="zipCode" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="country" className="text-right">
-                    Country
-                  </Label>
-                  <Input id="country" name="country" defaultValue="USA" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="phone" className="text-right">
-                    Phone
-                  </Label>
-                  <Input id="phone" name="phone" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="email" className="text-right">
-                    Email
-                  </Label>
-                  <Input id="email" name="email" type="email" className="mt-1" />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="notes" className="text-right">
-                    Notes
-                  </Label>
-                  <Input id="notes" name="notes" className="mt-1" />
-                </div>
+  // Render account loading state
+  if (isLoading) {
+    return (
+      <PageLayout title="Accounts" description="Manage your client and vendor accounts">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <Skeleton className="h-10 w-[250px]" />
+            <Skeleton className="h-10 w-[100px]" />
+          </div>
+          <div className="border rounded-md">
+            <div className="h-12 px-4 border-b flex items-center">
+              <Skeleton className="h-4 w-full" />
+            </div>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-16 px-4 flex items-center">
+                <Skeleton className="h-4 w-full" />
               </div>
-              <DialogFooter>
-                <Button type="submit">Create Account</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+            ))}
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // Render error state
+  if (isError) {
+    return (
+      <PageLayout title="Accounts" description="Manage your client and vendor accounts">
+        <div className="flex flex-col items-center justify-center h-full p-4">
+          <div className="text-destructive text-xl font-semibold mb-2">Error Loading Accounts</div>
+          <p className="text-muted-foreground mb-4">
+            There was a problem loading your accounts. Please try again later.
+          </p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/crm/accounts'] })}>
+            Retry
+          </Button>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  return (
+    <PageLayout
+      title="Accounts"
+      description="Manage your client and vendor accounts"
+      actionLabel="Add Account"
+      onAction={handleCreateAccount}
+    >
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center w-full max-w-sm">
+          <Input
+            placeholder="Filter accounts..."
+            value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+            onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
+            className="max-w-sm"
+          />
+          <Search className="h-4 w-4 absolute ml-3 text-muted-foreground" />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
       </div>
 
-      <Tabs defaultValue="all" className="mb-6" onValueChange={setActiveTab}>
-        <TabsList className="grid w-[400px] grid-cols-3">
-          <TabsTrigger value="all">All Accounts</TabsTrigger>
-          <TabsTrigger value="my">My Accounts</TabsTrigger>
-          <TabsTrigger value="recent">Recently Viewed</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-center">
-            <CardTitle>
-              {activeTab === "all" && "All Accounts"}
-              {activeTab === "my" && "My Accounts"}
-              {activeTab === "recent" && "Recently Viewed Accounts"}
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Search accounts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-sm"
-                prefix={<Search className="h-4 w-4 text-muted-foreground" />}
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center py-10">
-              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-            </div>
-          ) : accounts.length === 0 ? (
-            <div className="text-center py-10">
-              <Building2 className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
-              <h3 className="mt-4 text-lg font-semibold">No accounts found</h3>
-              <p className="mt-2 text-muted-foreground">
-                Get started by creating a new account
-              </p>
-              <Button 
-                variant="outline" 
-                onClick={() => setDialogOpen(true)} 
-                className="mt-4"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Account
-              </Button>
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
                   ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && "selected"}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
-                        No results found.
-                      </TableCell>
-                    </TableRow>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No accounts found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{selectedAccount ? 'Edit Account' : 'Create Account'}</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Account Name*</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter account name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-        <CardFooter className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {table.getRowModel().rows.length} of {accounts.length} accounts
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
+                />
+                <FormField
+                  control={form.control}
+                  name="industry"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Industry*</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter industry" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Additional form fields would go here */}
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateDialogOpen(false);
+                    setSelectedAccount(null);
+                    form.reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {selectedAccount ? 'Update Account' : 'Create Account'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </PageLayout>
   );
 }

@@ -18,6 +18,9 @@ import ContactDetails from "@/pages/crm/[id]";
 import CRMLeadsPage from "@/pages/crm/leads";
 import CRMClientsPage from "@/pages/crm/clients";
 import CRMCommissionsPage from "@/pages/crm/commissions";
+import CRMAccountsPage from "@/pages/crm/accounts";
+import CRMSurveysPage from "@/pages/crm/surveys";
+import CRMActivitiesPage from "@/pages/crm/activities";
 import DispatchPage from "@/pages/dispatch";
 import DispatchClientsPage from "@/pages/dispatch/clients";
 import DispatchLoadsPage from "@/pages/dispatch/loads";
@@ -132,6 +135,30 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={CRMCommissionsPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/crm/accounts">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={CRMAccountsPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/crm/surveys">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={CRMSurveysPage} />
+          </AppLayout>
+        )}
+      </Route>
+      
+      <Route path="/crm/activities">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={CRMActivitiesPage} />
           </AppLayout>
         )}
       </Route>

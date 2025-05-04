@@ -1,35 +1,21 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import {
   ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
+  useReactTable,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  BarChart3,
-  Check,
-  ClipboardList,
-  ExternalLink,
-  Eye,
-  MessageSquare,
-  MoreHorizontal,
-  Plus,
-  Search,
-  Send,
-  Star,
-  X,
-} from "lucide-react";
-import PageLayout from "@/components/layout/PageLayout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+  SortingState,
+  ColumnFiltersState,
+  getFilteredRowModel,
+} from '@tanstack/react-table';
+
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -37,7 +23,34 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import PageLayout from '@/components/layout/PageLayout';
+import { queryClient, apiRequest } from '@/lib/queryClient';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { 
+  ArrowDown, 
+  ArrowUp, 
+  ArrowUpDown, 
+  MoreHorizontal, 
+  Search, 
+  ClipboardList, 
+  Copy, 
+  ExternalLink,
+  User,
+  Calendar,
+  Star,
+  Send,
+  CheckCircle2
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,604 +58,709 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Survey, Lead } from "@shared/schema";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+} from '@/components/ui/dropdown-menu';
+
+// Define the Survey interface to match the backend schema
+interface Survey {
+  id: number;
+  title: string;
+  type: 'nps' | 'satisfaction' | 'feedback' | 'custom';
+  status: 'pending' | 'sent' | 'completed' | 'expired';
+  questions: any;
+  responses: any;
+  leadId: number;
+  accountId: number | null;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+  sentAt: string | null;
+  completedAt: string | null;
+  token: string;
+  leadName?: string;
+  accountName?: string;
+  score?: number;
+}
+
+// Define the Lead type (simplified for this component)
+interface Lead {
+  id: number;
+  contactName: string;
+  phoneNumber: string;
+  email: string | null;
+}
+
+// Define the Account type (simplified for this component)
+interface Account {
+  id: number;
+  name: string;
+}
+
+// Define the form schema for survey creation/editing
+const surveyFormSchema = z.object({
+  title: z.string().min(1, { message: 'Survey title is required' }),
+  type: z.enum(['nps', 'satisfaction', 'feedback', 'custom'], {
+    required_error: 'Please select a survey type',
+  }),
+  leadId: z.number({
+    required_error: 'Please select a lead',
+  }),
+  accountId: z.number().nullable().optional(),
+  questions: z.any(), // Simplified for now
+});
+
+type SurveyFormValues = z.infer<typeof surveyFormSchema>;
 
 export default function SurveysPage() {
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [activeTab, setActiveTab] = useState("pending");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Query surveys data
-  const { data: surveys = [], isLoading } = useQuery<Survey[]>({
-    queryKey: ["/api/surveys"],
-    queryFn: async () => {
-      const response = await fetch("/api/surveys");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
+  
+  // Query to fetch all surveys
+  const { data: surveys, isLoading: isLoadingSurveys, isError: isSurveysError } = useQuery({
+    queryKey: ['/api/crm/surveys'],
+    retry: 1,
+  });
+  
+  // Query to fetch leads for the dropdown
+  const { data: leads, isLoading: isLoadingLeads } = useQuery({
+    queryKey: ['/api/crm/leads'],
+    retry: 1,
+  });
+  
+  // Query to fetch accounts for the dropdown
+  const { data: accounts, isLoading: isLoadingAccounts } = useQuery({
+    queryKey: ['/api/crm/accounts'],
+    retry: 1,
+  });
+  
+  // Mutation for creating a new survey
+  const createSurveyMutation = useMutation({
+    mutationFn: async (data: SurveyFormValues) => {
+      // Prepare default questions based on survey type
+      let questions = data.questions;
+      if (!questions || Object.keys(questions).length === 0) {
+        if (data.type === 'nps') {
+          questions = {
+            npsQuestion: 'How likely are you to recommend our services to a friend or colleague?',
+            feedback: 'What\'s the reason for your score?'
+          };
+        } else if (data.type === 'satisfaction') {
+          questions = {
+            overall: 'How satisfied are you with our services?',
+            feedback: 'What could we improve?'
+          };
+        } else if (data.type === 'feedback') {
+          questions = {
+            feedback: 'Please share your feedback about our services:',
+            improvements: 'What could we do better?'
+          };
+        }
+      }
+      
+      const surveyData = {
+        ...data,
+        questions,
+        responses: {},
+        status: 'pending'
+      };
+      
+      const response = await apiRequest('POST', '/api/crm/surveys', surveyData);
       if (!response.ok) {
-        throw new Error("Failed to fetch surveys");
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create survey');
       }
       return response.json();
     },
+    onSuccess: () => {
+      toast({
+        title: 'Survey Created',
+        description: 'The survey has been successfully created and is ready to send.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/crm/surveys'] });
+      setIsCreateDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to Create Survey',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
   });
-
-  // Query leads (for selecting in the create survey form)
-  const { data: leads = [] } = useQuery<Lead[]>({
-    queryKey: ["/api/leads"],
-    queryFn: async () => {
-      const response = await fetch("/api/leads");
+  
+  // Mutation for updating a survey
+  const updateSurveyMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<SurveyFormValues> }) => {
+      const response = await apiRequest('PUT', `/api/crm/surveys/${id}`, data);
       if (!response.ok) {
-        throw new Error("Failed to fetch leads");
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update survey');
       }
       return response.json();
     },
+    onSuccess: () => {
+      toast({
+        title: 'Survey Updated',
+        description: 'The survey has been successfully updated.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/crm/surveys'] });
+      setIsCreateDialogOpen(false);
+      setSelectedSurvey(null);
+      form.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to Update Survey',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
   });
-
-  // Define the status badge component
-  const SurveyStatusBadge = ({ status }: { status: string }) => {
-    let variant: "default" | "secondary" | "destructive" | "outline" = "default";
-    let statusText = status.charAt(0).toUpperCase() + status.slice(1);
-    
-    switch (status) {
-      case "pending":
-        variant = "outline";
-        break;
-      case "sent":
-        variant = "secondary";
-        break;
-      case "completed":
-        variant = "default";
-        break;
-      default:
-        variant = "outline";
+  
+  // Mutation for sending a survey
+  const sendSurveyMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('PUT', `/api/crm/surveys/${id}`, { status: 'sent' });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send survey');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Survey Sent',
+        description: 'The survey has been sent to the recipient.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/crm/surveys'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to Send Survey',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Setup form with React Hook Form
+  const form = useForm<SurveyFormValues>({
+    resolver: zodResolver(surveyFormSchema),
+    defaultValues: {
+      title: '',
+      type: 'nps',
+      leadId: undefined,
+      accountId: null,
+      questions: {},
+    },
+  });
+  
+  // When a survey is selected for editing, populate the form
+  useEffect(() => {
+    if (selectedSurvey) {
+      form.reset({
+        title: selectedSurvey.title,
+        type: selectedSurvey.type,
+        leadId: selectedSurvey.leadId,
+        accountId: selectedSurvey.accountId,
+        questions: selectedSurvey.questions,
+      });
+      setIsCreateDialogOpen(true);
     }
-    
-    return <Badge variant={variant}>{statusText}</Badge>;
+  }, [selectedSurvey, form]);
+  
+  // Function to handle form submission
+  const onSubmit = (data: SurveyFormValues) => {
+    if (selectedSurvey) {
+      updateSurveyMutation.mutate({ id: selectedSurvey.id, data });
+    } else {
+      createSurveyMutation.mutate(data);
+    }
   };
-
-  // Define columns for the surveys table
-  const columns: ColumnDef<Survey>[] = [
-    {
-      accessorKey: "token",
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+  
+  // Function to get lead info for display (could be optimized)
+  const getLeadInfo = (leadId: number) => {
+    if (!leads) return { contactName: 'Unknown' };
+    return leads.find((lead: Lead) => lead.id === leadId) || { contactName: 'Unknown' };
+  };
+  
+  // Function to get account info for display (could be optimized)
+  const getAccountInfo = (accountId: number | null) => {
+    if (!accountId || !accounts) return { name: 'N/A' };
+    return accounts.find((account: Account) => account.id === accountId) || { name: 'N/A' };
+  };
+  
+  // Define the columns for the surveys table
+  const columns = useMemo<ColumnDef<Survey>[]>(
+    () => [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: 'title',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            Survey ID
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        );
-      },
-      cell: ({ row }) => {
-        const token = row.getValue("token") as string;
-        return <span className="font-mono text-xs">{token.slice(0, 10)}...</span>;
-      },
-    },
-    {
-      accessorKey: "leadId",
-      header: "Client",
-      cell: ({ row }) => {
-        // In a real implementation, we'd fetch the lead/client name
-        return `Lead #${row.getValue("leadId")}`;
-      },
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => {
-        return <SurveyStatusBadge status={row.getValue("status") as string} />;
-      },
-    },
-    {
-      accessorKey: "score",
-      header: "Score",
-      cell: ({ row }) => {
-        const score = row.getValue("score") as number | null;
-        if (score === null) return "—";
-        
-        // NPS categorization
-        let scoreClass = "";
-        if (score >= 9) scoreClass = "text-green-600 font-medium";
-        else if (score >= 7) scoreClass = "text-amber-600 font-medium";
-        else scoreClass = "text-red-600 font-medium";
-        
-        return (
+            Title
+            {column.getIsSorted() === 'asc' ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === 'desc' ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        ),
+        cell: ({ row }) => (
           <div className="flex items-center">
-            <span className={scoreClass}>{score}/10</span>
-            {score >= 9 && <Star className="h-4 w-4 ml-1 text-yellow-500 fill-yellow-500" />}
+            <ClipboardList className="h-4 w-4 mr-2 text-muted-foreground" />
+            <div className="font-medium">{row.getValue('title')}</div>
           </div>
-        );
+        ),
       },
-    },
-    {
-      accessorKey: "sentAt",
-      header: "Sent Date",
-      cell: ({ row }) => {
-        const sentAt = row.getValue("sentAt") as string | null;
-        if (!sentAt) return "Not sent";
-        return new Date(sentAt).toLocaleDateString();
+      {
+        accessorKey: 'type',
+        header: 'Type',
+        cell: ({ row }) => {
+          const type = row.getValue('type') as string;
+          return (
+            <div className="capitalize">{type}</div>
+          );
+        },
       },
-    },
-    {
-      accessorKey: "completedAt",
-      header: "Completion Date",
-      cell: ({ row }) => {
-        const completedAt = row.getValue("completedAt") as string | null;
-        if (!completedAt) return "—";
-        return new Date(completedAt).toLocaleDateString();
+      {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: ({ row }) => {
+          const status = row.getValue('status') as string;
+          let variant: 'default' | 'outline' | 'secondary' | 'destructive' = 'outline';
+          let icon = null;
+          
+          switch (status) {
+            case 'pending':
+              variant = 'outline';
+              break;
+            case 'sent':
+              variant = 'secondary';
+              icon = <Send className="h-3 w-3 mr-1" />;
+              break;
+            case 'completed':
+              variant = 'default';
+              icon = <CheckCircle2 className="h-3 w-3 mr-1" />;
+              break;
+            case 'expired':
+              variant = 'destructive';
+              break;
+          }
+          
+          return (
+            <Badge variant={variant} className="capitalize">
+              {icon}
+              {status}
+            </Badge>
+          );
+        },
       },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const survey = row.original;
-        const isSent = survey.status === "sent";
-        const isCompleted = survey.status === "completed";
-        
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              
-              {isCompleted && (
-                <DropdownMenuItem>
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Response
+      {
+        accessorKey: 'leadId',
+        header: 'Recipient',
+        cell: ({ row }) => {
+          const leadId = row.getValue('leadId') as number;
+          const lead = getLeadInfo(leadId);
+          return (
+            <div className="flex items-center">
+              <User className="h-4 w-4 mr-2 text-muted-foreground" />
+              <div>{lead.contactName}</div>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'accountId',
+        header: 'Account',
+        cell: ({ row }) => {
+          const accountId = row.getValue('accountId') as number | null;
+          const account = getAccountInfo(accountId);
+          return <div>{account.name}</div>;
+        },
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Created',
+        cell: ({ row }) => {
+          const date = new Date(row.getValue('createdAt'));
+          return (
+            <div className="flex items-center">
+              <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+              <div>{date.toLocaleDateString()}</div>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: 'score',
+        header: 'Score',
+        cell: ({ row }) => {
+          const score = row.getValue('score') as number | undefined;
+          if (score === undefined) return <div>Not rated</div>;
+          
+          return (
+            <div className="flex items-center">
+              <Star className="h-4 w-4 mr-1 text-yellow-500" />
+              <div>{score}/10</div>
+            </div>
+          );
+        },
+      },
+      {
+        id: 'actions',
+        cell: ({ row }) => {
+          const survey = row.original;
+          const surveyUrl = `${window.location.origin}/surveys/${survey.token}`;
+          
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setLocation(`/crm/surveys/${survey.id}`)}>
+                  View Details
                 </DropdownMenuItem>
-              )}
-              
-              {!isCompleted && (
-                <DropdownMenuItem>
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  View Survey
+                <DropdownMenuItem onClick={() => setSelectedSurvey(survey)}>
+                  Edit Survey
                 </DropdownMenuItem>
-              )}
-              
-              {!isSent && !isCompleted && (
-                <DropdownMenuItem>
-                  <Send className="mr-2 h-4 w-4" />
-                  Send Survey
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    navigator.clipboard.writeText(surveyUrl);
+                    toast({
+                      title: 'Link Copied',
+                      description: 'Survey link copied to clipboard',
+                    });
+                  }}
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy Link
                 </DropdownMenuItem>
-              )}
-              
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem>
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Add Comment
-              </DropdownMenuItem>
-              
-              <DropdownMenuItem className="text-red-600">
-                <X className="mr-2 h-4 w-4" />
-                Delete Survey
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
+                <DropdownMenuItem onClick={() => window.open(surveyUrl, '_blank')}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Open Survey
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {survey.status === 'pending' && (
+                  <DropdownMenuItem onClick={() => sendSurveyMutation.mutate(survey.id)}>
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Survey
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
       },
-    },
-  ];
-
-  // Filter surveys based on active tab
-  const filteredSurveys = surveys.filter(survey => {
-    if (activeTab === "all") return true;
-    return survey.status === activeTab;
-  });
-
-  // Create table instance
+    ],
+    [leads, accounts, sendSurveyMutation, setLocation]
+  );
+  
+  // Initialize the table
   const table = useReactTable({
-    data: filteredSurveys,
+    data: surveys || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     state: {
       sorting,
       columnFilters,
-      columnVisibility,
-      globalFilter: searchQuery,
     },
   });
-
-  // Handle form submission for new survey
-  const handleCreateSurvey = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const surveyData = {
-      leadId: Number(formData.get("leadId")),
-      instructions: formData.get("instructions") as string,
-    };
-
-    // Sample API call (would be implemented in a real app)
-    toast({
-      title: "Survey Created",
-      description: `Created new survey for Lead #${surveyData.leadId}`,
-    });
-    
-    setDialogOpen(false);
-    
-    // In a real implementation, you would do:
-    // const response = await fetch("/api/surveys", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify(surveyData),
-    // });
-    // if (response.ok) {
-    //   queryClient.invalidateQueries({ queryKey: ["/api/surveys"] });
-    //   setDialogOpen(false);
-    // }
+  
+  // Handle new survey creation dialog
+  const handleCreateSurvey = () => {
+    setSelectedSurvey(null);
+    form.reset();
+    setIsCreateDialogOpen(true);
   };
-
-  return (
-    <PageLayout pageTitle="Surveys">
-      <div className="flex justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Client Surveys</h1>
-          <p className="text-muted-foreground mt-1">
-            Collect feedback and measure client satisfaction with NPS surveys
-          </p>
-        </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-1">
-              <Plus className="h-4 w-4" />
-              New Survey
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Survey</DialogTitle>
-              <DialogDescription>
-                Create a satisfaction survey to send to a client
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreateSurvey}>
-              <div className="grid gap-4 py-4">
-                <div>
-                  <Label htmlFor="leadId" className="text-right">
-                    Client
-                  </Label>
-                  <Select name="leadId" required>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select a client" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {leads.map((lead) => (
-                        <SelectItem key={lead.id} value={lead.id.toString()}>
-                          {lead.companyName || lead.firstName + " " + lead.lastName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="instructions" className="text-right">
-                    Custom Instructions (Optional)
-                  </Label>
-                  <Textarea
-                    id="instructions"
-                    name="instructions"
-                    placeholder="Add custom instructions for this survey"
-                    className="mt-1"
-                  />
-                </div>
+  
+  // Render loading state
+  if (isLoadingSurveys || isLoadingLeads || isLoadingAccounts) {
+    return (
+      <PageLayout title="Surveys" description="Manage client satisfaction surveys and feedback">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <Skeleton className="h-10 w-[250px]" />
+            <Skeleton className="h-10 w-[100px]" />
+          </div>
+          <div className="border rounded-md">
+            <div className="h-12 px-4 border-b flex items-center">
+              <Skeleton className="h-4 w-full" />
+            </div>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-16 px-4 flex items-center">
+                <Skeleton className="h-4 w-full" />
               </div>
+            ))}
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+  
+  // Render error state
+  if (isSurveysError) {
+    return (
+      <PageLayout title="Surveys" description="Manage client satisfaction surveys and feedback">
+        <div className="flex flex-col items-center justify-center h-full p-4">
+          <div className="text-destructive text-xl font-semibold mb-2">Error Loading Surveys</div>
+          <p className="text-muted-foreground mb-4">
+            There was a problem loading your surveys. Please try again later.
+          </p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/crm/surveys'] })}>
+            Retry
+          </Button>
+        </div>
+      </PageLayout>
+    );
+  }
+  
+  return (
+    <PageLayout
+      title="Surveys & Feedback"
+      description="Manage client satisfaction surveys and collect feedback"
+      actionLabel="Create Survey"
+      onAction={handleCreateSurvey}
+    >
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center w-full max-w-sm">
+          <Input
+            placeholder="Filter surveys..."
+            value={(table.getColumn('title')?.getFilterValue() as string) ?? ''}
+            onChange={(event) => table.getColumn('title')?.setFilterValue(event.target.value)}
+            className="max-w-sm"
+          />
+          <Search className="h-4 w-4 absolute ml-3 text-muted-foreground" />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+      
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No surveys found.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{selectedSurvey ? 'Edit Survey' : 'Create Survey'}</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Survey Title*</FormLabel>
+                      <FormControl>
+                        <Input placeholder="E.g., Customer Satisfaction Survey" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Survey Type*</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a survey type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="nps">NPS (Net Promoter Score)</SelectItem>
+                          <SelectItem value="satisfaction">Satisfaction</SelectItem>
+                          <SelectItem value="feedback">General Feedback</SelectItem>
+                          <SelectItem value="custom">Custom Survey</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="leadId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Recipient Lead*</FormLabel>
+                      <Select 
+                        onValueChange={(value) => field.onChange(parseInt(value))} 
+                        defaultValue={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a lead" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {leads?.map((lead: Lead) => (
+                            <SelectItem key={lead.id} value={lead.id.toString()}>
+                              {lead.contactName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="accountId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Related Account</FormLabel>
+                      <Select 
+                        onValueChange={(value) => field.onChange(value ? parseInt(value) : null)} 
+                        defaultValue={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an account (optional)" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">None</SelectItem>
+                          {accounts?.map((account: Account) => (
+                            <SelectItem key={account.id} value={account.id.toString()}>
+                              {account.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
               <DialogFooter>
-                <Button type="submit">Create Survey</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateDialogOpen(false);
+                    setSelectedSurvey(null);
+                    form.reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {selectedSurvey ? 'Update Survey' : 'Create Survey'}
+                </Button>
               </DialogFooter>
             </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <Card className="col-span-1">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Surveys</span>
-                <span className="font-medium">{surveys.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Pending</span>
-                <span className="font-medium">
-                  {surveys.filter(s => s.status === "pending").length}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Sent</span>
-                <span className="font-medium">
-                  {surveys.filter(s => s.status === "sent").length}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Completed</span>
-                <span className="font-medium">
-                  {surveys.filter(s => s.status === "completed").length}
-                </span>
-              </div>
-              <Separator className="my-2" />
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Avg. Score</span>
-                <span className="font-medium">
-                  {surveys.some(s => s.score !== null)
-                    ? (
-                        surveys
-                          .filter(s => s.score !== null)
-                          .reduce((acc, curr) => acc + (curr.score || 0), 0) /
-                        surveys.filter(s => s.score !== null).length
-                      ).toFixed(1)
-                    : "—"}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-3">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">NPS Summary</CardTitle>
-            <CardDescription>
-              Net Promoter Score breakdown based on completed surveys
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="bg-red-100 text-red-800 font-medium px-3 py-1 rounded-md text-sm">
-                  Detractors (0-6)
-                </div>
-                <span className="font-medium">
-                  {surveys.filter(s => s.score !== null && s.score <= 6).length}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-amber-100 text-amber-800 font-medium px-3 py-1 rounded-md text-sm">
-                  Passives (7-8)
-                </div>
-                <span className="font-medium">
-                  {surveys.filter(s => s.score !== null && s.score >= 7 && s.score <= 8).length}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-green-100 text-green-800 font-medium px-3 py-1 rounded-md text-sm">
-                  Promoters (9-10)
-                </div>
-                <span className="font-medium">
-                  {surveys.filter(s => s.score !== null && s.score >= 9).length}
-                </span>
-              </div>
-            </div>
-            
-            <div className="relative h-7 bg-gray-100 rounded-full overflow-hidden">
-              <div className="absolute inset-0 flex">
-                {/* Detractors */}
-                <div
-                  className="h-full bg-red-500"
-                  style={{
-                    width: `${(surveys.filter(s => s.score !== null && s.score <= 6).length / (surveys.filter(s => s.score !== null).length || 1)) * 100}%`,
-                  }}
-                ></div>
-                {/* Passives */}
-                <div
-                  className="h-full bg-amber-500"
-                  style={{
-                    width: `${(surveys.filter(s => s.score !== null && s.score >= 7 && s.score <= 8).length / (surveys.filter(s => s.score !== null).length || 1)) * 100}%`,
-                  }}
-                ></div>
-                {/* Promoters */}
-                <div
-                  className="h-full bg-green-500"
-                  style={{
-                    width: `${(surveys.filter(s => s.score !== null && s.score >= 9).length / (surveys.filter(s => s.score !== null).length || 1)) * 100}%`,
-                  }}
-                ></div>
-              </div>
-            </div>
-            
-            <div className="mt-4 text-sm text-center text-muted-foreground">
-              NPS Score: {' '}
-              <span className="font-medium">
-                {surveys.some(s => s.score !== null)
-                  ? (
-                      ((surveys.filter(s => s.score !== null && s.score >= 9).length / (surveys.filter(s => s.score !== null).length || 1)) -
-                      (surveys.filter(s => s.score !== null && s.score <= 6).length / (surveys.filter(s => s.score !== null).length || 1))) * 100
-                    ).toFixed(0)
-                  : "—"}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="pending" className="mb-6" onValueChange={setActiveTab}>
-        <TabsList className="grid w-[500px] grid-cols-4">
-          <TabsTrigger value="pending">
-            Pending
-            <Badge variant="outline" className="ml-2">
-              {surveys.filter(s => s.status === "pending").length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="sent">
-            Sent
-            <Badge variant="outline" className="ml-2">
-              {surveys.filter(s => s.status === "sent").length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="completed">
-            Completed
-            <Badge variant="outline" className="ml-2">
-              {surveys.filter(s => s.status === "completed").length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="all">All Surveys</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-center">
-            <CardTitle>
-              {activeTab === "pending" && "Pending Surveys"}
-              {activeTab === "sent" && "Sent Surveys"}
-              {activeTab === "completed" && "Completed Surveys"}
-              {activeTab === "all" && "All Surveys"}
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Search surveys..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-sm"
-                prefix={<Search className="h-4 w-4 text-muted-foreground" />}
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center py-10">
-              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
-            </div>
-          ) : filteredSurveys.length === 0 ? (
-            <div className="text-center py-10">
-              <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
-              <h3 className="mt-4 text-lg font-semibold">
-                {activeTab === "all"
-                  ? "No surveys found"
-                  : `No ${activeTab} surveys found`}
-              </h3>
-              <p className="mt-2 text-muted-foreground">
-                {activeTab === "pending" && "Create a new survey to get started"}
-                {activeTab === "sent" && "Send out your pending surveys to clients"}
-                {activeTab === "completed" && "Wait for clients to complete their surveys"}
-                {activeTab === "all" && "Get started by creating a new survey"}
-              </p>
-              <Button 
-                variant="outline" 
-                onClick={() => setDialogOpen(true)} 
-                className="mt-4"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Survey
-              </Button>
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && "selected"}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
-                        No results found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-        <CardFooter className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {table.getRowModel().rows.length} of {filteredSurveys.length} surveys
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </PageLayout>
   );
 }
