@@ -16,7 +16,8 @@ import {
   HelpCircle,
   Moon,
   Sun,
-  Building
+  Building,
+  Sparkles
 } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -33,6 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import { NotificationDropdown } from "@/components/notification/NotificationDropdown";
 import { MessageDropdown } from "@/components/message/MessageDropdown";
 import { OrganizationSwitcher } from "@/components/OrganizationSwitcher";
+import { AnimationSettings } from "@/components/ui/animation-settings";
 
 interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
