@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import {useEffect} from "react"; // Added import for useEffect
 
 interface Props {
   children: ReactNode;
@@ -73,7 +74,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render(): ReactNode {
     const { moduleName } = this.props;
-    
+
     if (this.state.hasError) {
       // Custom fallback UI
       if (this.props.fallback) {
@@ -105,3 +106,52 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+// Added error logging to the server.  Assumes apiClient is defined elsewhere.
+const useErrorLogging = (error: Error | null, errorInfo: ErrorInfo | null) => {
+  useEffect(() => {
+    if (error) {
+      // Replace with your actual API client
+      const apiClient = {post: async (url: string, body: any) => {
+        // Replace with your actual API call logic
+        console.log('Sending error to server:', url, body);
+        // Example fetch implementation:
+        // await fetch(url, { method: 'POST', body: JSON.stringify(body) });
+      }};
+      apiClient.post('/api/errors/client', {
+        type: 'REACT_ERROR_BOUNDARY',
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo?.componentStack,
+        url: window.location.href
+      }).catch(console.error);
+    }
+  }, [error, errorInfo]);
+};
+
+export const ErrorBoundaryWithLogging = (props: Props) => {
+  const [error, setError] = React.useState<Error | null>(null);
+  const [errorInfo, setErrorInfo] = React.useState<ErrorInfo | null>(null);
+
+  React.useEffect(() => {
+    useErrorLogging(error, errorInfo)
+  }, [error, errorInfo]);
+
+  const resetErrorBoundary = () => {
+    setError(null);
+    setErrorInfo(null);
+  };
+
+  const handleError = (error: Error, errorInfo: ErrorInfo) => {
+    setError(error);
+    setErrorInfo(errorInfo);
+  };
+
+  return (
+    <ErrorBoundary
+      {...props}
+      fallback={ <div>An error occurred. Please try again later.</div> }
+      onError={handleError}
+    />
+  );
+};

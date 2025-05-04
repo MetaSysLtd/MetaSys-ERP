@@ -21,15 +21,26 @@ export default function AdminDashboard() {
   const [, navigate] = useLocation();
   const [dateRange, setDateRange] = useState({ from: new Date(), to: new Date() });
   const [activeTab, setActiveTab] = useState('overview');
-  
+
   // Fetch admin dashboard data
   const { data: adminData, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/admin', dateRange],
-    queryFn: () => fetch('/api/admin').then(res => res.json()),
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/admin');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (err) {
+        console.error('Admin dashboard fetch error:', err);
+        throw new Error('Failed to load admin dashboard data.');
+      }
+    },
     // Don't refetch on window focus for admin data
     refetchOnWindowFocus: false,
   });
-  
+
   // Mock data for scheduled tasks
   const scheduledTasks = [
     {
@@ -90,7 +101,7 @@ export default function AdminDashboard() {
       type: 'notification' as const
     }
   ];
-  
+
   // Mock data for users
   const users = [
     {
@@ -134,14 +145,14 @@ export default function AdminDashboard() {
       status: 'active' as const
     }
   ];
-  
+
   // Handle actions
   const handleRefreshSystemHealth = () => {
     toast({
       title: "Refreshing system health data",
       description: "Fetching latest metrics from system...",
     });
-    
+
     // Simulate refetch
     setTimeout(() => {
       refetch();
@@ -151,25 +162,25 @@ export default function AdminDashboard() {
       });
     }, 1500);
   };
-  
+
   const handleTaskAction = (action: string, taskId: string) => {
     const taskName = scheduledTasks.find(t => t.id === taskId)?.name || 'Unknown task';
-    
+
     toast({
       title: `Task ${action}`,
       description: `${action} task: ${taskName}`,
     });
   };
-  
+
   const handleUserAction = (action: string, userId: number) => {
     const userName = users.find(u => u.id === userId)?.name || 'Unknown user';
-    
+
     toast({
       title: `User ${action}`,
       description: `${action} user: ${userName}`,
     });
   };
-  
+
   // Check if user has admin permissions
   if (role && role.level < 5) {
     return (
@@ -195,7 +206,7 @@ export default function AdminDashboard() {
       </div>
     );
   }
-  
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 flex items-center justify-center min-h-[80vh]">
@@ -248,7 +259,7 @@ export default function AdminDashboard() {
           />
         </div>
       </div>
-      
+
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-6 gap-2">
           <TabsTrigger value="overview" className="flex items-center gap-2">
@@ -281,7 +292,7 @@ export default function AdminDashboard() {
             <SystemHealth 
               onRefresh={handleRefreshSystemHealth}
             />
-            
+
             <Card className="shadow-md hover:shadow-lg transition-all">
               <CardHeader>
                 <CardTitle className="text-xl font-bold">Security Overview</CardTitle>
@@ -299,7 +310,7 @@ export default function AdminDashboard() {
                     </div>
                     <Button variant="outline" size="sm">View Details</Button>
                   </div>
-                  
+
                   <div>
                     <h3 className="text-sm font-medium mb-3">Recent Security Events</h3>
                     <div className="space-y-2 text-sm">
@@ -324,7 +335,7 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
-          
+
           <ScheduledTasks 
             tasks={scheduledTasks}
             onStartTask={(id) => handleTaskAction('started', id)}
@@ -333,7 +344,7 @@ export default function AdminDashboard() {
             onViewTaskDetails={(id) => handleTaskAction('viewed', id)}
           />
         </TabsContent>
-        
+
         <TabsContent value="users" className="space-y-6">
           <UserManagement 
             users={users}
@@ -344,11 +355,11 @@ export default function AdminDashboard() {
             onResetPassword={(id) => handleUserAction('reset password for', id)}
           />
         </TabsContent>
-        
+
         <TabsContent value="organization" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <OrganizationModules />
-            
+
             <OrgHierarchy 
               onAddNode={(id, type) => {
                 toast({
@@ -365,7 +376,7 @@ export default function AdminDashboard() {
             />
           </div>
         </TabsContent>
-        
+
         <TabsContent value="commissions" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Create a dynamically-generated set of commission widgets for all departments */}
@@ -377,14 +388,14 @@ export default function AdminDashboard() {
                 className="col-span-1" 
               />
             ))}
-            
+
             <TopCommissionEarners 
               limit={5} 
               type="all" 
               className="col-span-1 md:col-span-2 lg:col-span-3" 
             />
           </div>
-          
+
           <Card className="shadow-md">
             <CardHeader>
               <CardTitle className="text-xl font-bold">Commission Rules Management</CardTitle>
@@ -411,7 +422,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="tasks" className="space-y-6">
           <Card className="shadow-md">
             <CardHeader>
