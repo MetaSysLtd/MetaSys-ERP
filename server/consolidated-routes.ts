@@ -1859,14 +1859,8 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   apiRouter.use("/ui-prefs", prefsRouter);
 
   // Get current user's UI preferences
-  prefsRouter.get("/me", async (req, res, next) => {
+  prefsRouter.get("/me", createAuthMiddleware(1), async (req, res, next) => {
     try {
-      if (!req.session || !req.session.userId) {
-        return res.status(401).json({ 
-          error: "Unauthorized: Please log in to access this resource",
-          missing: ["session"] 
-        });
-      }
 
       const prefs = await storage.getUserPreferences(req.session.userId);
       if (!prefs) {
@@ -1887,14 +1881,8 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   });
 
   // Update current user's UI preferences
-  prefsRouter.post("/me", async (req, res, next) => {
+  prefsRouter.post("/me", createAuthMiddleware(1), async (req, res, next) => {
     try {
-      if (!req.session || !req.session.userId) {
-        return res.status(401).json({ 
-          error: "Unauthorized: Please log in to access this resource",
-          missing: ["session"] 
-        });
-      }
 
       // Get existing prefs or create new ones
       let prefs = await storage.getUserPreferences(req.session.userId);
@@ -1923,14 +1911,8 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   notificationsRouter.use(notificationRealTimeMiddleware);
 
   // Get all notifications for current user
-  notificationsRouter.get("/", async (req, res, next) => {
+  notificationsRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
-      if (!req.session || !req.session.userId) {
-        return res.status(401).json({ 
-          error: "Unauthorized: Please log in to access this resource",
-          missing: ["session"] 
-        });
-      }
 
       const notifications = await storage.getUserNotifications(req.session.userId);
       res.json(notifications);
@@ -1940,14 +1922,8 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   });
 
   // Get lead notifications
-  notificationsRouter.get("/leads", async (req, res, next) => {
+  notificationsRouter.get("/leads", createAuthMiddleware(1), async (req, res, next) => {
     try {
-      if (!req.session || !req.session.userId) {
-        return res.status(401).json({ 
-          error: "Unauthorized: Please log in to access this resource",
-          missing: ["session"] 
-        });
-      }
 
       const notifications = await storage.getUserNotificationsByType(
         req.session.userId, 
@@ -1986,14 +1962,8 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   });
 
   // Mark notification as read
-  notificationsRouter.patch("/:id/read", async (req, res, next) => {
+  notificationsRouter.patch("/:id/read", createAuthMiddleware(1), async (req, res, next) => {
     try {
-      if (!req.session || !req.session.userId) {
-        return res.status(401).json({ 
-          error: "Unauthorized: Please log in to access this resource",
-          missing: ["session"] 
-        });
-      }
 
       const notificationId = Number(req.params.id);
       const notification = await storage.getNotification(notificationId);
@@ -2023,14 +1993,8 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   apiRouter.use("/messages", messagesRouter);
 
   // Get all conversations for the current user
-  messagesRouter.get("/conversations", async (req, res, next) => {
+  messagesRouter.get("/conversations", createAuthMiddleware(1), async (req, res, next) => {
     try {
-      if (!req.session || !req.session.userId) {
-        return res.status(401).json({ 
-          error: "Unauthorized: Please log in to access this resource",
-          missing: ["session"] 
-        });
-      }
 
       // For now, just return some mock data
       res.json([
