@@ -1812,6 +1812,96 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     }
   });
   
+  // DELETE a commission policy
+  commissionsRouter.delete("/policy/:id", createAuthMiddleware(5), async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      
+      // Make sure the policy exists
+      const existingPolicy = await storage.getCommissionPolicy(id);
+      if (!existingPolicy) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Commission policy not found" 
+        });
+      }
+      
+      // Don't allow deletion of active policies
+      if (existingPolicy.isActive) {
+        return res.status(400).json({ 
+          status: "error", 
+          message: "Cannot delete an active policy. Deactivate it first." 
+        });
+      }
+      
+      // Delete the policy
+      await storage.deleteCommissionPolicy(id);
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: "commission_policy",
+        entityId: id,
+        action: "deleted",
+        details: `Commission policy deleted: ${existingPolicy.type}`
+      });
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting commission policy:", error);
+      next(error);
+    }
+  });
+  
+  // PATCH activate a commission policy
+  commissionsRouter.patch("/policy/:id/activate", createAuthMiddleware(5), express.json(), async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      const { type } = req.body;
+      
+      // Make sure the policy exists
+      const existingPolicy = await storage.getCommissionPolicy(id);
+      if (!existingPolicy) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Commission policy not found" 
+        });
+      }
+      
+      // Validate that the type matches the policy
+      if (existingPolicy.type !== type) {
+        return res.status(400).json({ 
+          status: "error", 
+          message: "Policy type mismatch" 
+        });
+      }
+      
+      // Deactivate all other policies of the same type
+      await storage.deactivateCommissionPoliciesByType(type, req.user?.orgId || 1);
+      
+      // Activate this policy
+      const updatedPolicy = await storage.updateCommissionPolicy(id, {
+        isActive: true,
+        updatedBy: req.user?.id,
+        updatedAt: new Date()
+      });
+      
+      // Log activity
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: "commission_policy",
+        entityId: id,
+        action: "activated",
+        details: `Commission policy activated: ${existingPolicy.type}`
+      });
+      
+      res.json(updatedPolicy);
+    } catch (error) {
+      console.error("Error activating commission policy:", error);
+      next(error);
+    }
+  });
+
   // Commission Run routes
   // GET commission runs
   commissionsRouter.get("/run", createAuthMiddleware(3), async (req, res, next) => {
