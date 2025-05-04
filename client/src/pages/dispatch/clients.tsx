@@ -145,14 +145,17 @@ export default function DispatchClientsPage() {
     },
   });
   
+  // Extract clients data from response and ensure it's an array
+  const clientsData = clients?.data ? Array.isArray(clients.data) ? clients.data : [] : [];
+  
   // Group clients by status
   const clientsByStatus = {
-    all: clients || [],
-    active: (clients || []).filter((client: any) => client.status === "active"),
-    pending_onboard: (clients || []).filter(
+    all: clientsData,
+    active: clientsData.filter((client: any) => client.status === "active"),
+    pending_onboard: clientsData.filter(
       (client: any) => client.status === "pending_onboard"
     ),
-    lost: (clients || []).filter((client: any) => client.status === "lost"),
+    lost: clientsData.filter((client: any) => client.status === "lost"),
   };
   
   // Handle client status update
