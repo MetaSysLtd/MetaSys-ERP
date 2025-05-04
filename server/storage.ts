@@ -47,6 +47,7 @@ import connectPg from "connect-pg-simple";
 import { eq, and, desc, inArray, gte, lte, lt, sql, count } from "drizzle-orm";
 import createMemoryStore from "memorystore";
 import { db, pgPool, pool } from './db';
+import { getAllLeads, getLeadById, getLeadsByStatus as getLeadsByStatusApi, getLeadsByAssignee as getLeadsByAssigneeApi } from './leadsApi';
 
 // Interface for storage operations
 export interface IStorage {
@@ -2840,20 +2841,52 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLead(id: number): Promise<Lead | undefined> {
-    const [lead] = await db.select().from(leads).where(eq(leads.id, id));
-    return lead;
+    try {
+      // Use the more robust implementation from leadsApi
+      const lead = await getLeadById(id);
+      return lead;
+    } catch (error) {
+      console.error("Error in getLead:", error);
+      // Fallback to basic query
+      const [lead] = await db.select().from(leads).where(eq(leads.id, id));
+      return lead;
+    }
   }
 
   async getLeads(): Promise<Lead[]> {
-    return db.select().from(leads);
+    try {
+      // Use the more robust implementation to handle missing columns
+      const leadsData = await getAllLeads();
+      return leadsData;
+    } catch (error) {
+      console.error("Error in getLeads:", error);
+      // Fallback to basic query as last resort
+      return db.select().from(leads);
+    }
   }
 
   async getLeadsByStatus(status: string): Promise<Lead[]> {
-    return db.select().from(leads).where(eq(leads.status, status));
+    try {
+      // Use the more robust implementation to handle missing columns
+      const leadsData = await getLeadsByStatusApi(status);
+      return leadsData;
+    } catch (error) {
+      console.error("Error in getLeadsByStatus:", error);
+      // Fallback to basic query as last resort
+      return db.select().from(leads).where(eq(leads.status, status));
+    }
   }
 
   async getLeadsByAssignee(userId: number): Promise<Lead[]> {
-    return db.select().from(leads).where(eq(leads.assignedTo, userId));
+    try {
+      // Use the more robust implementation to handle missing columns
+      const leadsData = await getLeadsByAssigneeApi(userId);
+      return leadsData;
+    } catch (error) {
+      console.error("Error in getLeadsByAssignee:", error);
+      // Fallback to basic query as last resort
+      return db.select().from(leads).where(eq(leads.assignedTo, userId));
+    }
   }
 
   async createLead(insertLead: InsertLead): Promise<Lead> {
