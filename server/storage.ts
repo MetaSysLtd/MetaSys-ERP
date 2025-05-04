@@ -223,28 +223,36 @@ export interface IStorage {
   getCommission(id: number): Promise<Commission | undefined>;
   getCommissions(): Promise<Commission[]>;
   getCommissionsByUser(userId: number): Promise<Commission[]>;
-  getCommissionsByInvoice(invoiceId: number): Promise<Commission[]>;
-  createCommission(commission: InsertCommission): Promise<Commission>;
-  updateCommission(id: number, commission: Partial<Commission>): Promise<Commission | undefined>;
   
   // Commission Policy operations
   getCommissionPolicy(id: number): Promise<CommissionPolicy | undefined>;
   getCommissionPoliciesByType(type: string): Promise<CommissionPolicy[]>;
   getCommissionPoliciesByOrg(orgId: number): Promise<CommissionPolicy[]>;
   createCommissionPolicy(policy: InsertCommissionPolicy): Promise<CommissionPolicy>;
-  updateCommissionPolicy(id: number, policy: Partial<CommissionPolicy>): Promise<CommissionPolicy | undefined>;
+  updateCommissionPolicy(id: number, updates: Partial<CommissionPolicy>): Promise<CommissionPolicy | undefined>;
   
   // Commission Run operations
   getCommissionRun(id: number): Promise<CommissionRun | undefined>;
   getCommissionRunsByMonth(month: string): Promise<CommissionRun[]>;
+  getCommissionRunsByUser(userId: number): Promise<CommissionRun[]>;
   getCommissionRunsByOrg(orgId: number): Promise<CommissionRun[]>;
   createCommissionRun(run: InsertCommissionRun): Promise<CommissionRun>;
+  updateCommissionRun(id: number, updates: Partial<CommissionRun>): Promise<CommissionRun | undefined>;
   
   // Lead Sales User operations
   getLeadSalesUser(id: number): Promise<LeadSalesUser | undefined>;
   getLeadSalesUsersByLead(leadId: number): Promise<LeadSalesUser[]>;
   getLeadSalesUsersByUser(userId: number): Promise<LeadSalesUser[]>;
-  createLeadSalesUser(leadSalesUser: InsertLeadSalesUser): Promise<LeadSalesUser>;
+  createLeadSalesUser(data: InsertLeadSalesUser): Promise<LeadSalesUser>;
+  updateLeadSalesUser(id: number, updates: Partial<LeadSalesUser>): Promise<LeadSalesUser | undefined>;
+  
+  // Additional methods for commission calculations
+  getLeadsByUser(userId: number): Promise<Lead[]>;
+  getInvoicesByDispatcher(dispatcherId: number): Promise<Invoice[]>;
+  getInvoicesByLeads(leadIds: number[]): Promise<Invoice[]>;
+  getCommissionsByInvoice(invoiceId: number): Promise<Commission[]>;
+  createCommission(commission: InsertCommission): Promise<Commission>;
+  updateCommission(id: number, commission: Partial<Commission>): Promise<Commission | undefined>;
   
   // Commission Monthly operations
   getCommissionMonthly(id: number): Promise<CommissionMonthly | undefined>;
