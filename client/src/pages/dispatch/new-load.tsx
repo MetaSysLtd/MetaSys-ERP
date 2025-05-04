@@ -215,7 +215,7 @@ export default function NewLoadPage() {
   return (
     <div className="container mx-auto">
       {/* Page header */}
-      <MotionWrapper animation="fade-down" delay={0.1}>
+      <MotionWrapper animation="slideDown" delay={0.1}>
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div className="flex items-center">
@@ -237,7 +237,7 @@ export default function NewLoadPage() {
       </MotionWrapper>
       
       {/* Form */}
-      <MotionWrapper animation="fade-up" delay={0.2}>
+      <MotionWrapper animation="slideUp" delay={0.2}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Main form column */}

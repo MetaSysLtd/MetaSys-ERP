@@ -685,7 +685,7 @@ export default function DispatchLoadsPage() {
       </MotionWrapper>
       
       {/* Search and filter controls */}
-      <MotionWrapper animation="fade-up" delay={0.3}>
+      <MotionWrapper animation="slideUp" delay={0.3}>
         <Card className="mb-6">
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row gap-4">
@@ -831,7 +831,7 @@ export default function DispatchLoadsPage() {
       </MotionWrapper>
       
       {/* Loads table */}
-      <MotionWrapper animation="fade-up" delay={0.4}>
+      <MotionWrapper animation="slideUp" delay={0.4}>
         <Card className="shadow overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
