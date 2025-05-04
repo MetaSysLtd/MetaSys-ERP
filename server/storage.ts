@@ -48,6 +48,10 @@ import { eq, and, desc, inArray, gte, lte, lt, sql, count } from "drizzle-orm";
 import createMemoryStore from "memorystore";
 import { db, pgPool, pool } from './db';
 import { getAllLeads, getLeadById, getLeadsByStatus as getLeadsByStatusApi, getLeadsByAssignee as getLeadsByAssigneeApi } from './leadsApi';
+import { 
+  getAllFormTemplates, getFormTemplateById, getFormTemplatesByLeadType,
+  getAllFormSubmissions, getFormSubmissionsByLeadId, getFormSubmissionById
+} from './formApi';
 
 // Interface for storage operations
 export interface IStorage {

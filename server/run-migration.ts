@@ -35,6 +35,7 @@ async function runMigrations() {
     // Run specific migrations
     await runMigration('add_missing_columns.sql');
     await runMigration('fix_lead_columns.sql');
+    await runMigration('fix_form_templates.sql');
     
     console.log('✅ All migrations completed successfully!');
   } catch (error) {
