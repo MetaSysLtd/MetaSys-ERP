@@ -34,7 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import { NotificationDropdown } from "@/components/notification/NotificationDropdown";
 import { MessageDropdown } from "@/components/message/MessageDropdown";
 import { OrganizationSwitcher } from "@/components/OrganizationSwitcher";
-import { AnimationSettings } from "@/components/ui/animation-settings";
+import { AnimationSettingsCompact } from "@/components/ui/animation-settings-compact";
 
 interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
@@ -168,6 +168,13 @@ export function Header({ setSidebarOpen }: HeaderProps) {
                       <Moon className="mr-2 h-4 w-4" />
                     )}
                     <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    <span>Animation Settings</span>
+                    <div className="ml-auto">
+                      <AnimationSettingsCompact />
+                    </div>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 

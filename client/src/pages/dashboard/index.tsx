@@ -66,39 +66,40 @@ export default function Dashboard() {
 
   return (
     <ErrorBoundary moduleName="dashboard">
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
           <MotionWrapper animation="fade-right" delay={0.1}>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
           </MotionWrapper>
   
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-            <MotionWrapper animation="fade-left" delay={0.2}>
+          <div className="flex flex-wrap items-start gap-2 sm:gap-3">
+            <MotionWrapper animation="fade-left" delay={0.2} className="w-full sm:w-auto">
               <DateRangePicker
                 from={dateRange.from}
                 to={dateRange.to}
                 onSelect={setDateRange}
+                className="w-full sm:w-auto"
               />
             </MotionWrapper>
-            <MotionWrapper animation="fade-left" delay={0.25}>
-              <Select value={department} onValueChange={setDepartment}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select Department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  <SelectItem value="sales">Sales</SelectItem>
-                  <SelectItem value="dispatch">Dispatch</SelectItem>
-                  <SelectItem value="hr">HR</SelectItem>
-                  <SelectItem value="finance">Finance</SelectItem>
-                  <SelectItem value="marketing">Marketing</SelectItem>
-                  <SelectItem value="accounting">Accounting</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </MotionWrapper>
-            <div className="flex items-center gap-2">
-              <MotionWrapper animation="fade-left" delay={0.35}>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <MotionWrapper animation="fade-left" delay={0.25} className="w-full xs:w-auto">
+                <Select value={department} onValueChange={setDepartment}>
+                  <SelectTrigger className="w-full xs:w-[180px]">
+                    <SelectValue placeholder="Select Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    <SelectItem value="sales">Sales</SelectItem>
+                    <SelectItem value="dispatch">Dispatch</SelectItem>
+                    <SelectItem value="hr">HR</SelectItem>
+                    <SelectItem value="finance">Finance</SelectItem>
+                    <SelectItem value="marketing">Marketing</SelectItem>
+                    <SelectItem value="accounting">Accounting</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </MotionWrapper>
+              <MotionWrapper animation="fade-left" delay={0.35} className="w-auto">
                 <DashboardWidgetManager />
               </MotionWrapper>
             </div>
@@ -119,7 +120,7 @@ export default function Dashboard() {
             <RevenueCard data={dashboardQuery.data?.revenueData} />
           </MotionWrapper>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <MotionWrapper animation="fade-right" delay={0.5}>
               <OnboardingRatio data={dashboardQuery.data?.onboardingMetrics} />
             </MotionWrapper>
@@ -128,8 +129,8 @@ export default function Dashboard() {
             </MotionWrapper>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <MotionWrapper animation="fade-up" delay={0.6} className="lg:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <MotionWrapper animation="fade-up" delay={0.6} className="md:col-span-2">
               <TeamPerformance 
                 title="Sales Team Performance" 
                 type="sales" 
@@ -147,7 +148,11 @@ export default function Dashboard() {
                 </MotionWrapper>
               </>
             )}
-            <MotionWrapper animation="fade-up" delay={0.7} className={role?.department === "dispatch" || role?.department === "admin" ? "lg:col-span-2" : "lg:col-span-1"}>
+            <MotionWrapper 
+              animation="fade-up" 
+              delay={0.7} 
+              className={role?.department === "dispatch" || role?.department === "admin" ? "md:col-span-2" : "md:col-span-1"}
+            >
               <TeamPerformance 
                 title="Dispatch Team Performance" 
                 type="dispatch" 
@@ -158,13 +163,13 @@ export default function Dashboard() {
           </div>
 
           <MotionList animation="fade-up" delay={0.8}>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <ActivityFeed activities={dashboardQuery.data?.activities?.slice(0, 10)} />
               <RecentLeads leads={dashboardQuery.data?.leads} />
             </div>
           </MotionList>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <MotionWrapper animation="fade-in" delay={0.9}>
               <CommissionBreakdown 
                 isAdmin={role && role.level ? role.level >= 4 : false}
@@ -178,7 +183,7 @@ export default function Dashboard() {
             </MotionWrapper>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <MotionWrapper animation="fade-in" delay={1.0}>
               <DispatchPerformance 
                 data={[
