@@ -640,7 +640,7 @@ export default function DispatchLoadsPage() {
   return (
     <div className="container mx-auto">
       {/* Page header */}
-      <MotionWrapper animation="fade-down" delay={0.1}>
+      <MotionWrapper animation="fade" delay={0.1}>
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
             <div>
@@ -665,7 +665,7 @@ export default function DispatchLoadsPage() {
       </MotionWrapper>
       
       {/* Tabs for different views */}
-      <MotionWrapper animation="fade-up" delay={0.2}>
+      <MotionWrapper animation="slideUp" delay={0.2}>
         <Tabs defaultValue="all" value={viewTab} onValueChange={setViewTab} className="mb-6">
           <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2">
             <TabsTrigger value="all">All Loads</TabsTrigger>
@@ -735,7 +735,7 @@ export default function DispatchLoadsPage() {
                 {displayLoads.length} {displayLoads.length === 1 ? 'load' : 'loads'} found
               </div>
               <div className="flex items-center gap-2">
-                <div className="dropdown">
+                <div className="relative">
                   <Button
                     variant="outline"
                     size="sm"
@@ -750,27 +750,76 @@ export default function DispatchLoadsPage() {
                     <FileSpreadsheet className="h-4 w-4 mr-2" />
                     Export
                   </Button>
-                  <div id="exportDropdown" className="hidden absolute z-10 mt-1 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <div id="exportDropdown" className="hidden absolute right-0 z-10 mt-1 w-64 rounded-md shadow-lg bg-white divide-y divide-gray-100 ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div className="p-2 text-sm text-gray-700 font-medium">CSV Export</div>
                     <div className="py-1">
                       <button
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => {
                           document.getElementById('exportDropdown')?.classList.add('hidden');
-                          exportLoadsToCSV();
+                          exportLoadsToCSV('basic');
                         }}
                       >
-                        <FileSpreadsheet className="h-4 w-4 inline-block mr-2" />
-                        Export as CSV
+                        <FileSpreadsheet className="h-4 w-4 mr-2 text-blue-600" />
+                        <div>
+                          <div className="font-medium">Basic CSV</div>
+                          <div className="text-xs text-gray-500">Essential load data</div>
+                        </div>
                       </button>
                       <button
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => {
                           document.getElementById('exportDropdown')?.classList.add('hidden');
-                          exportLoadsToPDF();
+                          exportLoadsToCSV('detailed');
                         }}
                       >
-                        <FileText className="h-4 w-4 inline-block mr-2" />
-                        Export as PDF
+                        <FileSpreadsheet className="h-4 w-4 mr-2 text-indigo-600" />
+                        <div>
+                          <div className="font-medium">Detailed CSV</div>
+                          <div className="text-xs text-gray-500">All load fields and details</div>
+                        </div>
+                      </button>
+                    </div>
+                    <div className="p-2 text-sm text-gray-700 font-medium">PDF Export</div>
+                    <div className="py-1">
+                      <button
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => {
+                          document.getElementById('exportDropdown')?.classList.add('hidden');
+                          exportLoadsToPDF('standard');
+                        }}
+                      >
+                        <FileText className="h-4 w-4 mr-2 text-cyan-600" />
+                        <div>
+                          <div className="font-medium">Standard PDF</div>
+                          <div className="text-xs text-gray-500">Simple, clean format</div>
+                        </div>
+                      </button>
+                      <button
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => {
+                          document.getElementById('exportDropdown')?.classList.add('hidden');
+                          exportLoadsToPDF('professional');
+                        }}
+                      >
+                        <FileText className="h-4 w-4 mr-2 text-teal-600" />
+                        <div>
+                          <div className="font-medium">Professional PDF</div>
+                          <div className="text-xs text-gray-500">Modern design with metrics</div>
+                        </div>
+                      </button>
+                      <button
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => {
+                          document.getElementById('exportDropdown')?.classList.add('hidden');
+                          exportLoadsToPDF('executive');
+                        }}
+                      >
+                        <FileText className="h-4 w-4 mr-2 text-purple-600" />
+                        <div>
+                          <div className="font-medium">Executive PDF</div>
+                          <div className="text-xs text-gray-500">Premium report with summary</div>
+                        </div>
                       </button>
                     </div>
                   </div>
