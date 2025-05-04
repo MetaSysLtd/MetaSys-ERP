@@ -94,6 +94,26 @@ export interface IStorage {
   getUserLocationsByTimeRange(userId: number, startTime: Date, endTime: Date): Promise<UserLocation[]>;
   createUserLocation(location: InsertUserLocation): Promise<UserLocation>;
   
+  // CRM Form template operations
+  getFormTemplates(): Promise<FormTemplate[]>;
+  getFormTemplate(id: number): Promise<FormTemplate | undefined>;
+  getFormTemplatesByLeadType(leadType: string): Promise<FormTemplate[]>;
+  createFormTemplate(template: InsertFormTemplate): Promise<FormTemplate>;
+  updateFormTemplate(id: number, updates: Partial<FormTemplate>): Promise<FormTemplate | undefined>;
+  deleteFormTemplate(id: number): Promise<boolean>;
+  
+  // CRM Form submission operations
+  getFormSubmissions(leadId: number): Promise<FormSubmission[]>;
+  getFormSubmission(id: number): Promise<FormSubmission | undefined>;
+  createFormSubmission(submission: InsertFormSubmission): Promise<FormSubmission>;
+  updateFormSubmission(id: number, updates: Partial<FormSubmission>): Promise<FormSubmission | undefined>;
+  
+  // CRM Lead handoff operations
+  getLeadHandoffs(leadId: number): Promise<LeadHandoff[]>;
+  getLeadHandoff(id: number): Promise<LeadHandoff | undefined>;
+  createLeadHandoff(handoff: InsertLeadHandoff): Promise<LeadHandoff>;
+  updateLeadHandoff(id: number, updates: Partial<LeadHandoff>): Promise<LeadHandoff | undefined>;
+  
   // User & Role operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
