@@ -5,6 +5,7 @@ import {
   hiringCandidates, candidateDocuments, hiringTemplates, probationSchedules, probationEvaluations, 
   exitRequests, companyDocuments, notifications, dashboardWidgets, bugs, bugUrgencyEnum,
   userSettings, organizationSettings, permissionTemplates, featureFlags, userLocations,
+  formTemplates, formSubmissions, leadHandoffs,
   type User, type InsertUser, type Role, type InsertRole,
   type Lead, type InsertLead, type Load, type InsertLoad,
   type Invoice, type InsertInvoice, type InvoiceItem, type InsertInvoiceItem,
@@ -21,7 +22,8 @@ import {
   type DispatchReport, type InsertDispatchReport,
   type PerformanceTarget, type InsertPerformanceTarget,
   type DashboardWidget, type InsertDashboardWidget,
-  type LeadRemark,
+  type LeadRemark, type CallLog, type InsertCallLog, type LeadFollowUp, type InsertLeadFollowUp,
+  type CustomerFeedback, type InsertCustomerFeedback,
   type HiringCandidate, type InsertHiringCandidate,
   type CandidateDocument, type InsertCandidateDocument,
   type HiringTemplate, type InsertHiringTemplate,
@@ -35,7 +37,10 @@ import {
   type OrganizationSettings, type InsertOrganizationSettings,
   type PermissionTemplate, type InsertPermissionTemplate,
   type FeatureFlag, type InsertFeatureFlag,
-  type UserLocation, type InsertUserLocation
+  type UserLocation, type InsertUserLocation,
+  type FormTemplate, type InsertFormTemplate,
+  type FormSubmission, type InsertFormSubmission,
+  type LeadHandoff, type InsertLeadHandoff
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -219,6 +224,32 @@ export interface IStorage {
   getCommissionMonthlyByUserAndMonth(userId: number, month: string): Promise<CommissionMonthly | undefined>;
   createCommissionMonthly(commission: InsertCommissionMonthly): Promise<CommissionMonthly>;
   updateCommissionMonthly(id: number, commission: Partial<CommissionMonthly>): Promise<CommissionMonthly | undefined>;
+  
+  // Form Template operations
+  getFormTemplate(id: number): Promise<FormTemplate | undefined>;
+  getFormTemplates(): Promise<FormTemplate[]>;
+  getFormTemplatesByCategory(category: string): Promise<FormTemplate[]>;
+  getFormTemplatesByOrg(orgId: number): Promise<FormTemplate[]>;
+  createFormTemplate(template: InsertFormTemplate): Promise<FormTemplate>;
+  updateFormTemplate(id: number, template: Partial<FormTemplate>): Promise<FormTemplate | undefined>;
+  
+  // Form Submission operations
+  getFormSubmission(id: number): Promise<FormSubmission | undefined>;
+  getFormSubmissions(): Promise<FormSubmission[]>;
+  getFormSubmissionsByLead(leadId: number): Promise<FormSubmission[]>;
+  getFormSubmissionsByTemplate(templateId: number): Promise<FormSubmission[]>;
+  getFormSubmissionsByStatus(status: string): Promise<FormSubmission[]>;
+  createFormSubmission(submission: InsertFormSubmission): Promise<FormSubmission>;
+  updateFormSubmission(id: number, submission: Partial<FormSubmission>): Promise<FormSubmission | undefined>;
+  
+  // Lead Handoff operations
+  getLeadHandoff(id: number): Promise<LeadHandoff | undefined>;
+  getLeadHandoffsByLead(leadId: number): Promise<LeadHandoff[]>;
+  getLeadHandoffsBySalesRep(salesRepId: number): Promise<LeadHandoff[]>;
+  getLeadHandoffsByDispatcher(dispatcherId: number): Promise<LeadHandoff[]>;
+  getLeadHandoffsByStatus(status: string): Promise<LeadHandoff[]>;
+  createLeadHandoff(handoff: InsertLeadHandoff): Promise<LeadHandoff>;
+  updateLeadHandoff(id: number, handoff: Partial<LeadHandoff>): Promise<LeadHandoff | undefined>;
   
   // Dispatch Client operations
   getDispatchClient(id: number): Promise<DispatchClient | undefined>;

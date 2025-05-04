@@ -1140,6 +1140,13 @@ export const insertDispatchReportSchema = createInsertSchema(dispatchReports).om
 export const insertPerformanceTargetSchema = createInsertSchema(performanceTargets).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertBugSchema = createInsertSchema(bugs).omit({ id: true, createdAt: true, updatedAt: true, fixedAt: true, closedAt: true });
 
+// Form templates and submissions
+export const insertFormTemplateSchema = createInsertSchema(formTemplates).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertFormSubmissionSchema = createInsertSchema(formSubmissions).omit({ id: true });
+
+// Lead handoffs
+export const insertLeadHandoffSchema = createInsertSchema(leadHandoffs).omit({ id: true, createdAt: true, updatedAt: true });
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -1258,3 +1265,14 @@ export type InsertFeatureFlag = z.infer<typeof insertFeatureFlagSchema>;
 
 export type UserLocation = typeof userLocations.$inferSelect;
 export type InsertUserLocation = z.infer<typeof insertUserLocationSchema>;
+
+// Form templates and submissions types
+export type FormTemplate = typeof formTemplates.$inferSelect;
+export type InsertFormTemplate = z.infer<typeof insertFormTemplateSchema>;
+
+export type FormSubmission = typeof formSubmissions.$inferSelect; 
+export type InsertFormSubmission = z.infer<typeof insertFormSubmissionSchema>;
+
+// Lead handoff types
+export type LeadHandoff = typeof leadHandoffs.$inferSelect;
+export type InsertLeadHandoff = z.infer<typeof insertLeadHandoffSchema>;
