@@ -597,6 +597,25 @@ export const customerFeedback = pgTable("customer_feedback", {
   };
 });
 
+// Surveys (CRM Deep-Carve)
+export const surveys = pgTable("surveys", {
+  id: serial("id").primaryKey(),
+  leadId: integer("lead_id").notNull().references(() => leads.id),
+  token: text("token").notNull(), // Unique token for secure public access
+  score: integer("score"), // 1-5 NPS score
+  comment: text("comment"),
+  status: text("status").notNull().default("pending"), // pending, sent, completed
+  sentAt: timestamp("sent_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    leadIdIdx: index("surveys_lead_id_idx").on(table.leadId),
+    tokenIdx: index("surveys_token_idx").on(table.token),
+    statusIdx: index("surveys_status_idx").on(table.status),
+  };
+});
+
 // Lead to Dispatch Handoff
 export const leadHandoffs = pgTable("lead_handoffs", {
   id: serial("id").primaryKey(),
@@ -704,14 +723,45 @@ export const commissions = pgTable("commissions", {
 });
 
 // Activity logging
+// Accounts - Companies/Clients (CRM Deep-Carve)
+export const accounts = pgTable("accounts", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  industry: text("industry"),
+  website: text("website"),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  country: text("country").default("USA"),
+  phone: text("phone"),
+  email: text("email"),
+  notes: text("notes"),
+  tags: text("tags").array(),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    nameIdx: index("accounts_name_idx").on(table.name),
+    orgIdIdx: index("accounts_org_id_idx").on(table.orgId),
+    assignedToIdx: index("accounts_assigned_to_idx").on(table.assignedTo),
+  };
+});
+
 export const activities = pgTable("activities", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  entityType: text("entity_type").notNull(), // "lead", "load", "invoice", etc.
+  entityType: text("entity_type").notNull(), // "lead", "load", "invoice", "account", etc.
   entityId: integer("entity_id").notNull(),
-  action: text("action").notNull(), // "created", "updated", "status_changed", etc.
+  action: text("action").notNull(), // "created", "updated", "status_changed", "call", "email", "note", "reminder", "survey", etc.
   details: text("details"),
+  reminderDate: timestamp("reminder_date"), // For when this is a reminder activity
+  reminderCompleted: boolean("reminder_completed"), // Whether the reminder has been completed
   timestamp: timestamp("timestamp").notNull().defaultNow(),
+  metadata: jsonb("metadata").default({}), // Additional structured data
 });
 
 // Tasks module
@@ -1058,8 +1108,10 @@ export const insertDispatchClientSchema = createInsertSchema(dispatch_clients).o
 export const insertLoadSchema = createInsertSchema(loads).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertInvoiceItemSchema = createInsertSchema(invoiceItems).omit({ id: true, createdAt: true });
-export const insertCommissionSchema = createInsertSchema(commissions).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertAccountSchema = createInsertSchema(accounts).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertSurveySchema = createInsertSchema(surveys).omit({ id: true, createdAt: true, sentAt: true, completedAt: true });
 export const insertActivitySchema = createInsertSchema(activities).omit({ id: true, timestamp: true });
+export const insertCommissionSchema = createInsertSchema(commissions).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertTaskSchema = createInsertSchema(tasks).omit({ id: true, createdAt: true, updatedAt: true, completedAt: true });
 export const insertCommentSchema = createInsertSchema(comments).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertTimeClockEntrySchema = createInsertSchema(timeClockEntries).omit({ id: true, createdAt: true, updatedAt: true });
@@ -1284,6 +1336,12 @@ export type InsertCommission = z.infer<typeof insertCommissionSchema>;
 
 export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
+
+export type Account = typeof accounts.$inferSelect;
+export type InsertAccount = z.infer<typeof insertAccountSchema>;
+
+export type Survey = typeof surveys.$inferSelect;
+export type InsertSurvey = z.infer<typeof insertSurveySchema>;
 
 export type Task = typeof tasks.$inferSelect;
 export type InsertTask = z.infer<typeof insertTaskSchema>;

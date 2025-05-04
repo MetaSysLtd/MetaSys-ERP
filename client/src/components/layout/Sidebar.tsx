@@ -188,13 +188,11 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
       href: "/crm",
       icon: Users,
       subItems: [
-        { name: "All Leads", href: "/crm" },
-        { name: "SQL", href: "/crm?status=qualified" },
-        { name: "MQL", href: "/crm?status=nurture" },
-        { name: "Clients", href: "/crm?status=active" },
-        { name: "Form Templates", href: "/crm/form-templates" },
-        { name: "Lead Handoffs", href: "/crm/handoffs" },
-        { name: "Lead Qualification", href: "/crm/qualification" },
+        { name: "Leads", href: "/crm" },
+        { name: "Accounts", href: "/crm/accounts" },
+        { name: "Activities", href: "/crm/activities" },
+        { name: "Surveys", href: "/crm/surveys" },
+        { name: "Commissions", href: "/crm/commissions" },
       ],
     },
     {
