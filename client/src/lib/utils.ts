@@ -15,12 +15,24 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-export function formatDate(date: Date | string): string {
-  return format(new Date(date), 'MMM d, yyyy');
+export function formatDate(date: Date | string | null | undefined): string {
+  if (!date) return 'N/A';
+  try {
+    return format(new Date(date), 'MMM d, yyyy');
+  } catch (error) {
+    console.error('Invalid date format:', error, date);
+    return 'Invalid date';
+  }
 }
 
-export function formatDateTime(date: Date | string): string {
-  return format(new Date(date), 'MMM d, yyyy h:mm a');
+export function formatDateTime(date: Date | string | null | undefined): string {
+  if (!date) return 'N/A';
+  try {
+    return format(new Date(date), 'MMM d, yyyy h:mm a');
+  } catch (error) {
+    console.error('Invalid date format:', error, date);
+    return 'Invalid date';
+  }
 }
 
 export function formatPhone(phone: string): string {
