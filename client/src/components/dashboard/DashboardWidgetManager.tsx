@@ -96,11 +96,25 @@ export function DashboardWidgetManager() {
   // Add widget mutation
   const addWidgetMutation = useMutation({
     mutationFn: async (newWidget: Omit<Widget, 'id'>) => {
-      const res = await apiRequest('POST', '/api/dashboard/widgets', newWidget);
-      if (!res.ok) {
-        throw new Error('Failed to add widget');
+      try {
+        const res = await fetch('/api/dashboard/widgets', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newWidget),
+        });
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Failed to add widget: ${errorText}`);
+        }
+        
+        return res.json();
+      } catch (error) {
+        console.error('Widget addition error:', error);
+        throw error;
       }
-      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/widgets'] });
@@ -122,11 +136,25 @@ export function DashboardWidgetManager() {
   // Update widget mutation
   const updateWidgetMutation = useMutation({
     mutationFn: async (widget: Widget) => {
-      const res = await apiRequest('PATCH', `/api/dashboard/widgets/${widget.id}`, widget);
-      if (!res.ok) {
-        throw new Error('Failed to update widget');
+      try {
+        const res = await fetch(`/api/dashboard/widgets/${widget.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(widget),
+        });
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Failed to update widget: ${errorText}`);
+        }
+        
+        return res.json();
+      } catch (error) {
+        console.error('Widget update error:', error);
+        throw error;
       }
-      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/widgets'] });
@@ -148,11 +176,21 @@ export function DashboardWidgetManager() {
   // Delete widget mutation
   const deleteWidgetMutation = useMutation({
     mutationFn: async (widgetId: number) => {
-      const res = await apiRequest('DELETE', `/api/dashboard/widgets/${widgetId}`);
-      if (!res.ok) {
-        throw new Error('Failed to delete widget');
+      try {
+        const res = await fetch(`/api/dashboard/widgets/${widgetId}`, {
+          method: 'DELETE',
+        });
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Failed to delete widget: ${errorText}`);
+        }
+        
+        return res.json();
+      } catch (error) {
+        console.error('Widget deletion error:', error);
+        throw error;
       }
-      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/widgets'] });
@@ -173,11 +211,25 @@ export function DashboardWidgetManager() {
   // Reorder widgets mutation
   const reorderWidgetsMutation = useMutation({
     mutationFn: async (updatedWidgets: Widget[]) => {
-      const res = await apiRequest('POST', '/api/dashboard/widgets/reorder', { widgets: updatedWidgets });
-      if (!res.ok) {
-        throw new Error('Failed to reorder widgets');
+      try {
+        const res = await fetch('/api/dashboard/widgets/reorder', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ widgets: updatedWidgets }),
+        });
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Failed to reorder widgets: ${errorText}`);
+        }
+        
+        return res.json();
+      } catch (error) {
+        console.error('Widget reordering error:', error);
+        throw error;
       }
-      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/widgets'] });
