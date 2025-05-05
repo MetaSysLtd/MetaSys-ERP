@@ -157,10 +157,14 @@ app.use((req, res, next) => {
   // It is the only port that is not firewalled.
   const port = process.env.PORT || 5000;
   const server = httpServer.listen(port, "0.0.0.0", () => {
-    log(`Server running at http://0.0.0.0:${port}`);
-    log(`API endpoint at http://0.0.0.0:${port}/api`);
-    log(`Health check at http://0.0.0.0:${port}/health`);
+    console.log(`Server running at http://0.0.0.0:${port}`);
+    console.log(`API endpoint at http://0.0.0.0:${port}/api`);
+    console.log(`Health check at http://0.0.0.0:${port}/health`);
   });
+
+  // Set up server timeout handlers
+  server.keepAliveTimeout = 65000;
+  server.headersTimeout = 66000;
 
   // Proper error handling for server
   server.on('error', (error: NodeJS.ErrnoException) => {
