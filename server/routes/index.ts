@@ -7,6 +7,8 @@ import portalRouter from './client-portal';
 import dashboardRouter from './dashboard';
 import bugsRouter from './bugs';
 import crmRouter from './crm';
+import activitiesRouter from './activities';
+import leadsRouter from './leads';
 
 export { default as timeTrackingRouter } from './time-tracking';
 export { default as hrRouter } from './hr';
@@ -16,6 +18,8 @@ export { default as portalRouter } from './client-portal';
 export { default as dashboardRouter } from './dashboard';
 export { default as bugsRouter } from './bugs';
 export { default as crmRouter } from './crm';
+export { default as activitiesRouter } from './activities';
+export { default as leadsRouter } from './leads';
 
 export function registerModuleRoutes(apiRouter: express.Router): void {
   // Time Tracking Module
@@ -42,8 +46,8 @@ export function registerModuleRoutes(apiRouter: express.Router): void {
   // CRM Module
   apiRouter.use('/crm', crmRouter);
   
-  // Direct access to CRM resources for CRM deep-carve
-  apiRouter.use('/activities', crmRouter);
-  apiRouter.use('/leads', crmRouter);
+  // Direct access to CRM resources for CRM deep-carve implementation
+  apiRouter.use('/activities', activitiesRouter);
+  apiRouter.use('/leads', leadsRouter);
   apiRouter.use('/accounts', crmRouter);
 }
