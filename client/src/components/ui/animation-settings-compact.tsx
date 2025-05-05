@@ -13,7 +13,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { AnimationSettings } from "./animation-settings";
-import Link from 'next/link'; // Import Link component
+import { Link } from "wouter"; // Import Link component from wouter
 
 export function AnimationSettingsCompact() {
   const { 
@@ -71,7 +71,7 @@ export function AnimationSettingsCompact() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Link href="/settings">
+          <Link to="/settings">
             <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
               <Settings2 className="h-4 w-4" />
               <span className="sr-only">Animation Settings</span>
