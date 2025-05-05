@@ -4,6 +4,7 @@ import { db } from "../db";
 import { activities, insertActivitySchema } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { createAuthMiddleware } from "../auth-middleware";
+import { notifyDataChange } from "../socket";
 
 const activitiesRouter = Router();
 const authMiddleware = createAuthMiddleware();
