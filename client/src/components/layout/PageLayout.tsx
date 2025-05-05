@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ interface PageLayoutProps {
   rightContent?: React.ReactNode;
 }
 
-export default function PageLayout({
+export function PageLayout({
   title,
   description,
   children,
