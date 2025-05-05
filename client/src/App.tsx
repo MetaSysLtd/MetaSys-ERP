@@ -77,8 +77,8 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
     );
   }
 
+  // Fix for proper routing by using Wouter's Route instead of window.location
   if (!isAuthenticated) {
-    // Redirect to login
     window.location.href = "/login";
     return null;
   }

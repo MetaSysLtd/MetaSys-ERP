@@ -240,36 +240,86 @@ export function DashboardWidgetManager() {
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
     
-    const items = Array.from(widgets as Widget[]);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    
-    // Update positions
-    const updatedItems = items.map((item: Widget, index: number) => ({
-      ...item,
-      position: index,
-    }));
-    
-    reorderWidgetsMutation.mutate(updatedItems);
+    try {
+      // Ensure widgets is an array and has items before proceeding
+      if (!Array.isArray(widgets) || widgets.length === 0) {
+        console.error('Cannot reorder: widgets is not a valid array or is empty');
+        toast({
+          title: 'Cannot reorder widgets',
+          description: 'Widget data is not available. Please refresh the page.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      const items = Array.from(widgets as Widget[]);
+      const [reorderedItem] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, reorderedItem);
+      
+      // Update positions
+      const updatedItems = items.map((item: Widget, index: number) => ({
+        ...item,
+        position: index,
+      }));
+      
+      reorderWidgetsMutation.mutate(updatedItems);
+    } catch (error) {
+      console.error('Error in drag and drop operation:', error);
+      toast({
+        title: 'Error reordering widgets',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Handle adding a new widget
   const handleAddWidget = (widgetKey: string) => {
-    const widgetDef = availableWidgets.find(w => w.key === widgetKey);
-    if (!widgetDef) return;
-    
-    addWidgetMutation.mutate({
-      widgetType: widgetDef.type,
-      widgetKey: widgetDef.key,
-      title: widgetDef.title,
-      position: widgets.length,
-      width: 'half',
-      height: 'normal',
-      isVisible: true,
-      config: {},
-      userId: extendedUser?.id || 0,
-      orgId: extendedUser?.orgId || 1,
-    });
+    try {
+      // Validate widget key exists in available widgets
+      const widgetDef = availableWidgets.find(w => w.key === widgetKey);
+      if (!widgetDef) {
+        console.error('Widget definition not found for key:', widgetKey);
+        toast({
+          title: 'Widget not found',
+          description: 'The selected widget type is not available.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Validate user information is available
+      if (!extendedUser?.id) {
+        console.error('Cannot add widget: User ID not found');
+        toast({
+          title: 'Authentication error',
+          description: 'User information is not available. Please refresh the page or log in again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Add the widget
+      addWidgetMutation.mutate({
+        widgetType: widgetDef.type,
+        widgetKey: widgetDef.key,
+        title: widgetDef.title,
+        position: Array.isArray(widgets) ? widgets.length : 0,
+        width: 'half',
+        height: 'normal',
+        isVisible: true,
+        config: {},
+        userId: extendedUser.id,
+        orgId: extendedUser.orgId || 1,
+      });
+    } catch (error) {
+      console.error('Error adding widget:', error);
+      toast({
+        title: 'Error adding widget',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -339,70 +389,75 @@ export function DashboardWidgetManager() {
             {/* Widget list with drag and drop - improved for mobile scrolling */}
             <div className="border rounded-md p-4 overflow-hidden">
               <h3 className="font-medium mb-3">Current Widgets</h3>
-              <DragDropContext onDragEnd={handleDragEnd}>
-                <Droppable droppableId="widgets">
-                  {(provided) => (
-                    <div
-                      {...provided.droppableProps}
-                      ref={provided.innerRef}
-                      className="space-y-2 max-h-[40vh] overflow-y-auto pr-1"
-                    >
-                      {widgets.map((widget: Widget, index: number) => (
-                        <Draggable
-                          key={widget.id.toString()}
-                          draggableId={widget.id.toString()}
-                          index={index}
-                        >
-                          {(provided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className="flex flex-wrap sm:flex-nowrap items-center justify-between p-2 bg-card border rounded-md"
-                            >
-                              <div className="flex items-center gap-2 min-w-0 flex-1">
-                                <div {...provided.dragHandleProps} className="cursor-move flex-shrink-0">
-                                  <GripVertical className="h-4 w-4 text-muted-foreground" />
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                  <div className="h-8 w-8 border-4 border-[#025E73] border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-sm text-muted-foreground">Loading your dashboard widgets...</p>
+                </div>
+              ) : Array.isArray(widgets) && widgets.length > 0 ? (
+                <DragDropContext onDragEnd={handleDragEnd}>
+                  <Droppable droppableId="widgets">
+                    {(provided) => (
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="space-y-2 max-h-[40vh] overflow-y-auto pr-1"
+                      >
+                        {widgets.map((widget: Widget, index: number) => (
+                          <Draggable
+                            key={widget.id.toString()}
+                            draggableId={widget.id.toString()}
+                            index={index}
+                          >
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className="flex flex-wrap sm:flex-nowrap items-center justify-between p-2 bg-card border rounded-md"
+                              >
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  <div {...provided.dragHandleProps} className="cursor-move flex-shrink-0">
+                                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                  <span className={`${widget.isVisible ? '' : 'text-muted-foreground line-through'} truncate`}>
+                                    {widget.title}
+                                  </span>
                                 </div>
-                                <span className={`${widget.isVisible ? '' : 'text-muted-foreground line-through'} truncate`}>
-                                  {widget.title}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto justify-end">
-                                <div className="flex items-center">
-                                  <span className="text-xs text-muted-foreground mr-2 hidden sm:inline">Visible</span>
-                                  <Switch
-                                    checked={widget.isVisible}
-                                    onCheckedChange={() => handleToggleVisibility(widget)}
-                                  />
+                                <div className="flex items-center gap-2 mt-2 sm:mt-0 w-full sm:w-auto justify-end">
+                                  <div className="flex items-center">
+                                    <span className="text-xs text-muted-foreground mr-2 hidden sm:inline">Visible</span>
+                                    <Switch
+                                      checked={widget.isVisible}
+                                      onCheckedChange={() => handleToggleVisibility(widget)}
+                                    />
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setEditWidget(widget)}
+                                    aria-label="Edit Widget"
+                                  >
+                                    <Settings className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => deleteWidgetMutation.mutate(widget.id)}
+                                    aria-label="Delete Widget"
+                                  >
+                                    <X className="h-4 w-4 text-destructive" />
+                                  </Button>
                                 </div>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setEditWidget(widget)}
-                                  aria-label="Edit Widget"
-                                >
-                                  <Settings className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => deleteWidgetMutation.mutate(widget.id)}
-                                  aria-label="Delete Widget"
-                                >
-                                  <X className="h-4 w-4 text-destructive" />
-                                </Button>
                               </div>
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
-              
-              {widgets.length === 0 && (
+                            )}
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+              ) : (
                 <div className="text-center py-4 text-muted-foreground">
                   No widgets added. Add your first widget to customize your dashboard.
                 </div>
