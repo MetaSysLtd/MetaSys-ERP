@@ -42,6 +42,8 @@ export function registerModuleRoutes(apiRouter: express.Router): void {
   // CRM Module
   apiRouter.use('/crm', crmRouter);
   
-  // Direct access to activities for CRM deep-carve
+  // Direct access to CRM resources for CRM deep-carve
   apiRouter.use('/activities', crmRouter);
+  apiRouter.use('/leads', crmRouter);
+  apiRouter.use('/accounts', crmRouter);
 }
