@@ -97,7 +97,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
     queryKey: ["/api/commissions/policy", policyId],
     queryFn: async () => {
       if (!policyId) return null;
-      const res = await fetch(`/api/commissions/policy/${policyId}`);
+      const res = await apiRequest("GET", `/api/commissions/policy/${policyId}`);
       if (!res.ok) throw new Error("Failed to fetch policy");
       return res.json();
     },
