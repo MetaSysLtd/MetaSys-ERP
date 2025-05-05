@@ -3238,7 +3238,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActivities(limit?: number): Promise<Activity[]> {
-    const query = db.select()
+    const query = db.select({
+      id: activities.id,
+      userId: activities.userId,
+      entityType: activities.entityType,
+      entityId: activities.entityId,
+      action: activities.action,
+      details: activities.details,
+      timestamp: activities.timestamp,
+      metadata: activities.metadata
+      // Excluding reminderDate and reminderCompleted as they don't exist in the actual DB yet
+    })
       .from(activities)
       .orderBy(desc(activities.timestamp));
     
@@ -3250,7 +3260,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActivitiesByUser(userId: number, limit?: number): Promise<Activity[]> {
-    const query = db.select()
+    const query = db.select({
+      id: activities.id,
+      userId: activities.userId,
+      entityType: activities.entityType,
+      entityId: activities.entityId,
+      action: activities.action,
+      details: activities.details,
+      timestamp: activities.timestamp,
+      metadata: activities.metadata
+      // Excluding reminderDate and reminderCompleted as they don't exist in the actual DB yet
+    })
       .from(activities)
       .where(eq(activities.userId, userId))
       .orderBy(desc(activities.timestamp));
@@ -3263,7 +3283,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActivitiesByEntity(entityType: string, entityId: number, limit?: number): Promise<Activity[]> {
-    const query = db.select()
+    const query = db.select({
+      id: activities.id,
+      userId: activities.userId,
+      entityType: activities.entityType,
+      entityId: activities.entityId,
+      action: activities.action,
+      details: activities.details,
+      timestamp: activities.timestamp,
+      metadata: activities.metadata
+      // Excluding reminderDate and reminderCompleted as they don't exist in the actual DB yet
+    })
       .from(activities)
       .where(
         and(
@@ -3281,7 +3311,17 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getActivitiesByEntityType(entityType: string, since?: Date, limit?: number): Promise<Activity[]> {
-    let query = db.select()
+    let query = db.select({
+      id: activities.id,
+      userId: activities.userId,
+      entityType: activities.entityType,
+      entityId: activities.entityId,
+      action: activities.action,
+      details: activities.details,
+      timestamp: activities.timestamp,
+      metadata: activities.metadata
+      // Excluding reminderDate and reminderCompleted as they don't exist in the actual DB yet
+    })
       .from(activities)
       .where(eq(activities.entityType, entityType))
       .orderBy(desc(activities.timestamp));
