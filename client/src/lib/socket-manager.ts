@@ -40,12 +40,10 @@ export function initializeSocket() {
   // Handle connection errors with retry
   socket.on('connect_error', (error) => {
     console.error('Socket connection error:', error);
-    if (socket && !socket.connected && reconnectAttempts < MAX_RECONNECTION_ATTEMPTS) {
-      setTimeout(() => {
-        reconnectAttempts++;
-        socket?.connect();
-      }, 2000);
-    }
+    // Attempt reconnect with exponential backoff
+    setTimeout(() => {
+      socket.connect();
+    }, Math.min(1000 * Math.pow(2, socket.io.engine.reconnectionAttempts), 10000));
   });
 
   // Handle connection status events
@@ -57,6 +55,9 @@ export function initializeSocket() {
       reconnectTimer = null;
     }
     console.log('Socket connected:', socket?.id);
+    socket.io.engine.once('upgrade', () => {
+      console.log('Socket connection upgraded to WebSocket');
+    });
   });
 
   socket.on('connecting', () => {
@@ -91,10 +92,6 @@ export function initializeSocket() {
     }
   });
 
-  socket.on('connect_error', (error) => {
-    console.error('Socket connection error:', error);
-    updateStatus('error');
-  });
 
   return socket;
 }

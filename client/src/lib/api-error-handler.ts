@@ -84,6 +84,7 @@ export function handleApiError(
   context: string,
   resourceType: string
 ): never {
+  console.error('API Error:', error);
   const err = error instanceof Error ? error : new Error(String(error));
 
   // Handle session expiration
