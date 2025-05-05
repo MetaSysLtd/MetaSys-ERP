@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAnimationContext } from "@/contexts/AnimationContext";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, Check } from "lucide-react";
+import { Sparkles, Loader2, Check, Settings2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
@@ -20,10 +20,10 @@ export function AnimationSettingsCompact() {
     toggleAnimations,
     isSaving
   } = useAnimationContext();
-  
+
   const [open, setOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "success">("idle");
-  
+
   // Update save status when isSaving changes
   useEffect(() => {
     if (isSaving) {
@@ -34,7 +34,7 @@ export function AnimationSettingsCompact() {
       return () => clearTimeout(timeout);
     }
   }, [isSaving, saveStatus]);
-  
+
   return (
     <div className="flex items-center space-x-2">
       <div className="flex items-center gap-1">
@@ -67,11 +67,11 @@ export function AnimationSettingsCompact() {
           className="data-[state=checked]:bg-primary"
         />
       </div>
-      
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
-            <Sparkles className="h-4 w-4" />
+            <Settings2 className="h-4 w-4" />
             <span className="sr-only">Animation Settings</span>
           </Button>
         </DialogTrigger>
