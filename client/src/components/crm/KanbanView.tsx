@@ -97,11 +97,21 @@ export function KanbanView({ leads, isLoading, showFilter }: KanbanViewProps) {
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedLead) => {
+      // Invalidate lead queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
+      
+      // Also invalidate activity queries to refresh the activity feed
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      
+      // Activity specific to this lead
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/activities/entity/lead", updatedLead.id] 
+      });
+      
       toast({
         title: "Lead Status Updated",
-        description: "The lead status has been successfully updated.",
+        description: `Lead status updated to ${updatedLead.status}`,
       });
     },
     onError: (error: Error) => {

@@ -147,7 +147,7 @@ export default function ActivitiesPage() {
   
   // Query to fetch all activities
   const { data: activities, isLoading: isLoadingActivities, isError: isActivitiesError } = useQuery({
-    queryKey: ['/api/crm/activities'],
+    queryKey: ['/api/activities'],
     retry: 1,
   });
   
@@ -184,7 +184,7 @@ export default function ActivitiesPage() {
         title: 'Activity Recorded',
         description: 'Your activity has been successfully recorded.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/crm/activities'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/activities'] });
       setIsCreateDialogOpen(false);
       form.reset();
     },
@@ -212,7 +212,7 @@ export default function ActivitiesPage() {
         title: 'Reminder Completed',
         description: 'The reminder has been marked as completed.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/crm/activities'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/activities'] });
     },
     onError: (error: Error) => {
       toast({
