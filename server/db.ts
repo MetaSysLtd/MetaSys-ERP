@@ -17,6 +17,18 @@ export const pgPool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
+  allowExitOnIdle: true,
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000
+});
+
+// Add health check query
+pgPool.on('connect', (client) => {
+  client.query('SELECT 1')
+    .catch(err => {
+      console.error('Error during connection health check:', err);
+      client.release(true); // Release with error
+    });
 });
 
 pgPool.on('error', (err) => {

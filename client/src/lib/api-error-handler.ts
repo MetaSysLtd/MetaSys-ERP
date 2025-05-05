@@ -39,15 +39,15 @@ export async function retryFetch(
   while (retries <= maxRetries) {
     try {
       const response = await fetch(fullUrl, fetchOptions);
-      
+
       // If the response is ok or it's not a retryable status code, return it
       if (response.ok || !retryStatusCodes.includes(response.status)) {
         return response;
       }
-      
+
       // If we got here, the status code is in our retry list
       lastError = new Error(`Received status ${response.status}`);
-      
+
     } catch (error) {
       // Network error or other fetch failure
       lastError = error instanceof Error ? error : new Error(String(error));
@@ -57,11 +57,11 @@ export async function retryFetch(
     if (retries === maxRetries) {
       break;
     }
-    
+
     // Exponential backoff with jitter
     const jitter = Math.random() * 0.2 * delay;
     await new Promise(resolve => setTimeout(resolve, delay + jitter));
-    
+
     // Increase delay for next retry, but cap at maxDelay
     delay = Math.min(delay * 1.5, maxDelay);
     retries++;
@@ -84,25 +84,33 @@ export function handleApiError(
   context: string,
   resourceType: string
 ): never {
-  // Convert to Error if it's not already
   const err = error instanceof Error ? error : new Error(String(error));
-  
+
+  // Check for network errors
+  if (err.message.includes('Failed to fetch') || err.message.includes('Network')) {
+    err.message = 'Network connection lost. Please check your internet connection.';
+  }
+
+  // Check for authentication errors
+  if (err.message.includes('401')) {
+    // Force logout on auth errors
+    window.dispatchEvent(new CustomEvent('forceLogout'));
+    err.message = 'Session expired. Please log in again.';
+  }
+
   // Format date for log
   const timestamp = new Date().toISOString();
-  
+
   // Log error with context
   console.error(`[${timestamp}] Error on ${context}`, err);
-  
+
   // Get user-friendly message
   let userMessage = err.message;
-  
+
   // Clean up common error messages
-  if (userMessage.includes('fetch') || userMessage.includes('network')) {
-    userMessage = `Unable to connect to the server. Please check your internet connection.`;
-  } else if (userMessage.includes('timeout')) {
+
+  else if (userMessage.includes('timeout')) {
     userMessage = `The server is taking too long to respond. Please try again later.`;
-  } else if (userMessage.includes('401')) {
-    userMessage = `Your session has expired. Please log in again.`;
   } else if (userMessage.includes('403')) {
     userMessage = `You don't have permission to access this ${resourceType}.`;
   } else if (userMessage.includes('404')) {
@@ -112,7 +120,7 @@ export function handleApiError(
   } else if (!userMessage || userMessage === '[object Object]') {
     userMessage = `An unexpected error occurred while accessing ${resourceType}.`;
   }
-  
+
   // Show user-friendly toast error if not suppressed
   if (!isErrorSuppressed(userMessage)) {
     showToastError({
@@ -121,7 +129,7 @@ export function handleApiError(
       severity: 'error',
     });
   }
-  
+
   // Re-throw the error to be caught by the caller if needed
   throw err;
 }

@@ -46,12 +46,12 @@ app.use(sessionHandler);
 app.use((req, res, next) => {
   // Add header to prevent HTML caching
   res.setHeader('Cache-Control', 'no-store, max-age=0');
-  
+
   // For API routes, ensure they return JSON and are not intercepted
   if (req.path.startsWith('/api')) {
     res.setHeader('Content-Type', 'application/json');
   }
-  
+
   next();
 });
 
@@ -96,32 +96,32 @@ app.use((req, res, next) => {
     console.error('Database health check failed:', err);
     console.log('Application will continue, but some features may not work correctly');
   }
-  
+
   // Create the HTTP server first - this needs to be used consistently
   const httpServer = createServer(app);
-  
+
   // Create a dedicated API router
   const apiRouter = express.Router();
-  
+
   // Apply specific middleware to API routes only
   apiRouter.use(express.json());  
   apiRouter.use(express.urlencoded({ extended: false }));
-  
+
   // Set proper headers for API responses
   apiRouter.use((req, res, next) => {
     // Log original URL for debugging
     console.log(`API request: ${req.method} ${req.url}`);
-    
+
     // IMPORTANT: Set proper content type for API responses
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Cache-Control', 'no-store, max-age=0');
-    
+
     next();
   });
-  
+
   // Mount the API router at /api
   app.use('/api', apiRouter);
-  
+
   // Setup Vite or static serving BEFORE API routes
   // This is counter-intuitive but fixes the clash between Vite's "*" handler and our API routes
   if (app.get("env") === "development") {
@@ -130,33 +130,41 @@ app.use((req, res, next) => {
   } else {
     serveStatic(app);
   }
-  
+
   // Now register API routes using our dedicated apiRouter
   // Pass the apiRouter and httpServer to registerRoutes
   await registerRoutes(apiRouter, httpServer);
-  
+
   // Initialize socket.io server using the correct HTTP server
   const { initSocketIO } = await import('./socket');
   const io = initSocketIO(httpServer);
-  
+
   // Initialize scheduler
   const { initializeScheduler } = await import('./scheduler');
   const schedulerJobs = initializeScheduler();
 
   // Import error handling middleware
   const { errorHandler, notFoundHandler } = await import('./middleware/error-handler');
-  
+
   // Route not found handler - must be after Vite/static middleware and before the errorHandler
   app.use(notFoundHandler);
-  
+
   // Global error handler - must be registered last
   app.use(errorHandler);
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = 5000;
-  httpServer.listen(port, "0.0.0.0", () => {
+  const port = process.env.PORT || 5000;
+  const server = httpServer.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
+  });
+
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    server.close(() => {
+      console.log('Server shut down gracefully');
+      process.exit(0);
+    });
   });
 })();
