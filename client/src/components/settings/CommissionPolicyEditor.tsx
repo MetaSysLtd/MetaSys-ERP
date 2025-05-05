@@ -39,15 +39,23 @@ const ActiveLeadTierSchema = z.object({
 
 // Define the commission policy form schema
 const CommissionPolicySchema = z.object({
-  type: z.string().min(1, { message: "Type is required" }),
-  activeLeadTable: z.array(ActiveLeadTierSchema).min(1, { message: "At least one tier is required" }),
-  inboundFactor: z.coerce.number().min(0).max(1, { message: "Must be between 0 and 1" }),
-  starterSplit: z.coerce.number().min(0).max(1, { message: "Must be between 0 and 1" }),
-  closerSplit: z.coerce.number().min(0).max(1, { message: "Must be between 0 and 1" }),
-  penaltyThreshold: z.coerce.number().min(0, { message: "Must be a positive number" }),
-  penaltyFactor: z.coerce.number().min(0).max(1, { message: "Must be between 0 and 1" }),
-  teamLeadBonusAmount: z.coerce.number().min(0, { message: "Must be a positive number" }),
-  isActive: z.boolean().default(true)
+  name: z.string().min(3, { message: "Name is required (min 3 characters)" }),
+  scope: z.enum(["dispatch_sales", "dispatch_agent", "saas_sales"], {
+    required_error: "Scope is required",
+    invalid_type_error: "Scope must be one of the predefined types",
+  }),
+  rules: z.object({
+    activeLeadTable: z.array(ActiveLeadTierSchema).min(1, { message: "At least one tier is required" }),
+    inboundFactor: z.coerce.number().min(0).max(1, { message: "Must be between 0 and 1" }),
+    starterSplit: z.coerce.number().min(0).max(1, { message: "Must be between 0 and 1" }),
+    closerSplit: z.coerce.number().min(0).max(1, { message: "Must be between 0 and 1" }),
+    penaltyThreshold: z.coerce.number().min(0, { message: "Must be a positive number" }),
+    penaltyFactor: z.coerce.number().min(0).max(1, { message: "Must be between 0 and 1" }),
+    teamLeadBonusAmount: z.coerce.number().min(0, { message: "Must be a positive number" }),
+  }),
+  isActive: z.boolean().default(false),
+  validFrom: z.date().nullable().optional(),
+  validTo: z.date().nullable().optional(),
 });
 
 type CommissionPolicyFormValues = z.infer<typeof CommissionPolicySchema>;
@@ -61,22 +69,27 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
   const form = useForm<CommissionPolicyFormValues>({
     resolver: zodResolver(CommissionPolicySchema),
     defaultValues: {
-      type: "sales",
-      activeLeadTable: [{ activeleads: 0, amount: 15000 }],
-      inboundFactor: 0.75,
-      starterSplit: 0.6,
-      closerSplit: 0.4,
-      penaltyThreshold: 20,
-      penaltyFactor: 0.75,
-      teamLeadBonusAmount: 1000,
-      isActive: true
+      name: "",
+      scope: "dispatch_sales",
+      rules: {
+        activeLeadTable: [{ activeleads: 0, amount: 15000 }],
+        inboundFactor: 0.75,
+        starterSplit: 0.6,
+        closerSplit: 0.4,
+        penaltyThreshold: 20,
+        penaltyFactor: 0.75,
+        teamLeadBonusAmount: 1000,
+      },
+      isActive: false,
+      validFrom: new Date(),
+      validTo: null
     }
   });
 
   // Set up field array for active lead tiers
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "activeLeadTable"
+    name: "rules.activeLeadTable"
   });
 
   // Fetch existing policy if policyId is provided
@@ -95,17 +108,22 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
   useEffect(() => {
     if (existingPolicy) {
       form.reset({
-        type: existingPolicy.type,
-        activeLeadTable: existingPolicy.activeLeadTable,
-        inboundFactor: existingPolicy.inboundFactor,
-        starterSplit: existingPolicy.starterSplit,
-        closerSplit: existingPolicy.closerSplit,
-        penaltyThreshold: existingPolicy.penaltyThreshold,
-        penaltyFactor: existingPolicy.penaltyFactor,
-        teamLeadBonusAmount: existingPolicy.teamLeadBonusAmount,
-        isActive: existingPolicy.isActive
+        name: existingPolicy.name,
+        scope: existingPolicy.scope,
+        rules: {
+          activeLeadTable: existingPolicy.rules?.activeLeadTable || [{ activeleads: 0, amount: 15000 }],
+          inboundFactor: existingPolicy.rules?.inboundFactor || 0.75,
+          starterSplit: existingPolicy.rules?.starterSplit || 0.6,
+          closerSplit: existingPolicy.rules?.closerSplit || 0.4,
+          penaltyThreshold: existingPolicy.rules?.penaltyThreshold || 20,
+          penaltyFactor: existingPolicy.rules?.penaltyFactor || 0.75,
+          teamLeadBonusAmount: existingPolicy.rules?.teamLeadBonusAmount || 1000,
+        },
+        isActive: existingPolicy.isActive || false,
+        validFrom: existingPolicy.validFrom ? new Date(existingPolicy.validFrom) : new Date(),
+        validTo: existingPolicy.validTo ? new Date(existingPolicy.validTo) : null
       });
-      setActiveTab(existingPolicy.type);
+      setActiveTab(existingPolicy.scope === "dispatch_sales" ? "sales" : "dispatch");
     }
   }, [existingPolicy, form]);
 
@@ -204,7 +222,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
 
   const onSubmit = (values: CommissionPolicyFormValues) => {
     // Ensure starter and closer splits add up to 1
-    if (Math.abs(values.starterSplit + values.closerSplit - 1) > 0.01) {
+    if (Math.abs(values.rules.starterSplit + values.rules.closerSplit - 1) > 0.01) {
       toast({
         title: "Invalid commission splits",
         description: "Starter and closer splits must add up to 100%",
@@ -296,7 +314,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
                           <div className="col-span-5">
                             <FormField
                               control={form.control}
-                              name={`activeLeadTable.${index}.activeleads`}
+                              name={`rules.activeLeadTable.${index}.activeleads`}
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
@@ -310,7 +328,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
                           <div className="col-span-5">
                             <FormField
                               control={form.control}
-                              name={`activeLeadTable.${index}.amount`}
+                              name={`rules.activeLeadTable.${index}.amount`}
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
@@ -347,7 +365,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
-                        name="starterSplit"
+                        name="rules.starterSplit"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Starter Split ({Math.round(field.value * 100)}%)</FormLabel>
@@ -360,7 +378,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
                                 onValueChange={(value) => {
                                   field.onChange(value[0] / 100);
                                   // Auto-update closer split to keep sum at 100%
-                                  form.setValue("closerSplit", 1 - (value[0] / 100));
+                                  form.setValue("rules.closerSplit", 1 - (value[0] / 100));
                                 }}
                               />
                             </FormControl>
@@ -373,7 +391,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
 
                       <FormField
                         control={form.control}
-                        name="closerSplit"
+                        name="rules.closerSplit"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Closer Split ({Math.round(field.value * 100)}%)</FormLabel>
@@ -386,7 +404,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
                                 onValueChange={(value) => {
                                   field.onChange(value[0] / 100);
                                   // Auto-update starter split to keep sum at 100%
-                                  form.setValue("starterSplit", 1 - (value[0] / 100));
+                                  form.setValue("rules.starterSplit", 1 - (value[0] / 100));
                                 }}
                               />
                             </FormControl>
@@ -407,7 +425,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
-                        name="inboundFactor"
+                        name="rules.inboundFactor"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Inbound Lead Factor ({Math.round(field.value * 100)}%)</FormLabel>
@@ -429,7 +447,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
 
                       <FormField
                         control={form.control}
-                        name="penaltyFactor"
+                        name="rules.penaltyFactor"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>No Active Leads Penalty ({Math.round(field.value * 100)}%)</FormLabel>
