@@ -76,6 +76,32 @@ activitiesRouter.post("/", authMiddleware, async (req, res) => {
     }
     
     const [activity] = await db.insert(activities).values(data).returning();
+    
+    // Notify clients about the new activity
+    notifyDataChange(
+      'activity', 
+      activity.id, 
+      'created', 
+      activity, 
+      { 
+        userId: activity.userId,
+        orgId: req.user?.orgId,
+        broadcastToOrg: true
+      }
+    );
+    
+    // Also notify for the related entity
+    notifyDataChange(
+      activity.entityType,
+      activity.entityId,
+      'updated',
+      { activity },
+      {
+        broadcastToOrg: true,
+        orgId: req.user?.orgId
+      }
+    );
+    
     res.status(201).json(activity);
   } catch (error: any) {
     console.error("Error creating activity:", error);
@@ -115,6 +141,31 @@ activitiesRouter.patch("/:id/complete", authMiddleware, async (req, res) => {
       .where(eq(activities.id, activityId))
       .returning();
     
+    // Notify clients about the updated activity
+    notifyDataChange(
+      'activity', 
+      updatedActivity.id, 
+      'updated', 
+      updatedActivity, 
+      { 
+        userId: updatedActivity.userId,
+        orgId: req.user?.orgId,
+        broadcastToOrg: true
+      }
+    );
+    
+    // Also notify for the related entity
+    notifyDataChange(
+      updatedActivity.entityType,
+      updatedActivity.entityId,
+      'updated',
+      { activity: updatedActivity },
+      {
+        broadcastToOrg: true,
+        orgId: req.user?.orgId
+      }
+    );
+    
     res.json(updatedActivity);
   } catch (error: any) {
     console.error(`Error completing activity ${req.params.id}:`, error);
@@ -141,8 +192,38 @@ activitiesRouter.delete("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Activity not found" });
     }
     
+    // Store entity information before deletion for notifications
+    const entityType = activity.entityType;
+    const entityId = activity.entityId;
+    const userId = activity.userId;
+    
     // Delete the activity
     await db.delete(activities).where(eq(activities.id, activityId));
+    
+    // Notify clients about the deleted activity
+    notifyDataChange(
+      'activity', 
+      activityId, 
+      'deleted', 
+      { id: activityId }, 
+      { 
+        userId,
+        orgId: req.user?.orgId,
+        broadcastToOrg: true
+      }
+    );
+    
+    // Also notify for the related entity
+    notifyDataChange(
+      entityType,
+      entityId,
+      'updated',
+      { activityDeleted: activityId },
+      {
+        broadcastToOrg: true,
+        orgId: req.user?.orgId
+      }
+    );
     
     res.status(204).end();
   } catch (error: any) {

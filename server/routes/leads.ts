@@ -4,6 +4,7 @@ import { db } from "../db";
 import { leads, leadHandoffs, users } from "@shared/schema";
 import { eq, and, or, desc } from "drizzle-orm";
 import { createAuthMiddleware } from "../auth-middleware";
+import { notifyDataChange } from "../socket";
 
 const leadsRouter = Router();
 const authMiddleware = createAuthMiddleware();
@@ -157,16 +158,55 @@ leadsRouter.patch("/:id/status", authMiddleware, async (req, res) => {
         createdAt: new Date(),
         updatedAt: new Date()
       });
-      
-      // Emit socket event for dispatch notification
-      if (req.app.get('io')) {
-        const io = req.app.get('io');
-        io.to('dispatch').emit('lead-handoff', {
+    }
+    
+    // Notify clients about lead update using unified socket system
+    notifyDataChange(
+      'lead',
+      leadId,
+      'updated',
+      updatedLead,
+      {
+        userId: updatedLead.assignedTo,
+        orgId: req.user?.orgId,
+        broadcastToOrg: true
+      }
+    );
+    
+    // Send specific notification for status change
+    notifyDataChange(
+      'lead-status',
+      leadId,
+      'updated',
+      {
+        leadId,
+        previousStatus: currentLead.status,
+        newStatus: status,
+        updatedBy: req.user?.id,
+        timestamp: new Date().toISOString()
+      },
+      {
+        broadcastToOrg: true,
+        orgId: req.user?.orgId
+      }
+    );
+    
+    // Special notification for HandToDispatch
+    if (status === "HandToDispatch") {
+      notifyDataChange(
+        'lead-handoff',
+        leadId,
+        'created',
+        {
           leadId,
           salesRepId: req.user?.id,
           timestamp: new Date().toISOString()
-        });
-      }
+        },
+        {
+          broadcastToOrg: true,
+          orgId: req.user?.orgId
+        }
+      );
     }
     
     return res.json(updatedLead);
@@ -237,6 +277,37 @@ leadsRouter.patch("/:id/qualification", authMiddleware, async (req, res) => {
       })
       .where(eq(leads.id, leadId))
       .returning();
+    
+    // Notify clients about lead qualification update
+    notifyDataChange(
+      'lead',
+      leadId,
+      'updated',
+      updatedLead,
+      {
+        userId: updatedLead.assignedTo,
+        orgId: req.user?.orgId,
+        broadcastToOrg: true
+      }
+    );
+    
+    // Send specific notification for qualification change
+    notifyDataChange(
+      'lead-qualification',
+      leadId,
+      'updated',
+      {
+        leadId,
+        previousScore: currentLead.qualificationScore,
+        newScore: qualificationScore,
+        updatedBy: req.user?.id,
+        timestamp: new Date().toISOString()
+      },
+      {
+        broadcastToOrg: true,
+        orgId: req.user?.orgId
+      }
+    );
     
     return res.json(updatedLead);
   } catch (error: any) {
