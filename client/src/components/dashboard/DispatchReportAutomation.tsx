@@ -243,7 +243,8 @@ export function DispatchReportAutomation() {
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium">Invoice Amount</span>
                 <span className={`text-sm font-bold ${getInvoiceColor()}`}>
-                  ${todayReport.invoiceUsd.toLocaleString()} / ${dailyTarget?.maxPct.toLocaleString() || '?'}
+                  ${typeof todayReport.invoiceUsd === 'number' ? todayReport.invoiceUsd.toLocaleString() : '0'} / 
+                  ${dailyTarget?.maxPct ? dailyTarget.maxPct.toLocaleString() : '?'}
                 </span>
               </div>
               <Progress value={getInvoiceProgress()} className="h-2" />
@@ -251,18 +252,18 @@ export function DispatchReportAutomation() {
             
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium">New Leads</span>
+                <span className="text-sm font-medium">Active Leads</span>
                 <span className="text-sm font-bold">
-                  {todayReport.newLeads}
+                  {todayReport.activeLeads || 0}
                 </span>
               </div>
             </div>
             
-            {todayReport.notes && (
+            {/* Report notes section - enable if needed
               <div className="mt-3 pt-3 border-t border-border">
-                <p className="text-sm text-muted-foreground">{todayReport.notes}</p>
+                <p className="text-sm text-muted-foreground">Report for {format(new Date(), 'MMMM d, yyyy')}</p>
               </div>
-            )}
+            */}
           </div>
         ) : (
           <div className="py-4 text-center">
