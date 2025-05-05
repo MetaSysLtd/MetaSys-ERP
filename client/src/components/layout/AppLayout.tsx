@@ -19,20 +19,20 @@ export function AppLayout({ children }: AppLayoutProps) {
     return storedPref ? JSON.parse(storedPref) : false;
   });
   const [location] = useLocation();
-  
+
   // Handle mobile sidebar closing when menu item is clicked
   const handleCloseSidebar = () => {
     setSidebarOpen(false);
   };
-  
+
   // Handle sidebar collapse toggling and store preference
   const handleSidebarCollapse = (collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
     localStorage.setItem('sidebarCollapsed', JSON.stringify(collapsed));
   };
-  
+
   return (
-    <div className="min-h-screen flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col overflow-hidden relative bg-gray-50 dark:bg-gray-900">
       {/* Mobile sidebar - with sliding animation */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -55,7 +55,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               aria-hidden="true"
               onClick={handleCloseSidebar}
             />
-            
+
             {/* Sidebar */}
             <motion.div 
               className="relative flex-1 flex flex-col max-w-xs w-full"
@@ -74,17 +74,17 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <X className="h-6 w-6 text-white" />
                 </button>
               </div>
-              
+
               <SimpleSidebar mobile={true} collapsed={false} onMenuItemClick={handleCloseSidebar} />
             </motion.div>
-            
+
             <div className="flex-shrink-0 w-14" aria-hidden="true">
               {/* Dummy element to force sidebar to shrink to fit close icon */}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Desktop sidebar - with width animation */}
       <div className="hidden md:flex md:flex-shrink-0">
         <motion.div 
@@ -103,7 +103,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           />
         </motion.div>
       </div>
-      
+
       {/* Persistent sidebar toggle button - with fade animation */}
       <AnimatePresence>
         {sidebarCollapsed && (
@@ -134,7 +134,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Main content - with layout shift animation */}
       <motion.div 
         className="flex flex-col w-0 flex-1 overflow-hidden"
@@ -142,7 +142,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <Header setSidebarOpen={setSidebarOpen} />
-        
+
         <main className="flex-1 relative overflow-y-auto focus:outline-none bg-white dark:bg-gray-900">
           <div className="px-4 py-6">
             <NotificationContainer />

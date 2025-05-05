@@ -19,9 +19,44 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-@media (min-width: 1024px) and (max-width: 1366px) {
+/* Screen size-based font scaling */
+@media (min-width: 1024px) and (max-width: 1280px) { /* 13-inch */
   html {
     font-size: 14px;
+    zoom: var(--scale-factor, 1);
+  }
+}
+
+@media (min-width: 1281px) and (max-width: 1440px) { /* 15-inch */
+  html {
+    font-size: 15px;
+    zoom: var(--scale-factor, 1);
+  }
+}
+
+@media (min-width: 1441px) and (max-width: 1920px) { /* 17-inch */
+  html {
+    font-size: 16px;
+    zoom: var(--scale-factor, 1);
+  }
+}
+
+/* Scaling factors */
+@media screen and (resolution: 1dppx) {
+  :root {
+    --scale-factor: 1;
+  }
+}
+
+@media screen and (resolution: 1.25dppx) {
+  :root {
+    --scale-factor: 0.8;
+  }
+}
+
+@media screen and (resolution: 1.5dppx) {
+  :root {
+    --scale-factor: 0.67;
   }
 }
 
@@ -142,11 +177,17 @@ body {
   --border-light: var(--c-border);
 
   &.dark {
-    --c-bg-primary: #111827;
-    --c-bg-secondary: #1E293B;
-    --c-bg-tertiary: #0F172A;
-    --c-bg-card: #1E293B;
-    --c-text-main: #F1F5F9;
+    --c-bg-primary: #0A0F1A;
+    --c-bg-secondary: #1A2234;
+    --c-bg-tertiary: #0D1526;
+    --c-bg-card: #1A2234;
+    --c-text-main: #FFFFFF;
+    --c-text-secondary: #E2E8F0;
+    --c-text-muted: #CBD5E1;
+    --c-border: #2D3748;
+    --c-brand-teal: #06B6D4;
+    --c-brand-yellow: #F59E0B;
+    --c-brand-plum: #7C3AED;
     --c-text-secondary: #CBD5E1;
     --c-text-muted: #94A3B8;
     --c-text-light: #64748B;
