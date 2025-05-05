@@ -159,13 +159,13 @@ export default function ActivitiesPage() {
   
   // Query to fetch leads for the dropdown
   const { data: leads, isLoading: isLoadingLeads } = useQuery({
-    queryKey: ['/api/crm/leads'],
+    queryKey: ['/api/leads'],
     retry: 1,
   });
   
   // Query to fetch accounts for the dropdown
   const { data: accounts, isLoading: isLoadingAccounts } = useQuery({
-    queryKey: ['/api/crm/accounts'],
+    queryKey: ['/api/accounts'],
     retry: 1,
   });
   
