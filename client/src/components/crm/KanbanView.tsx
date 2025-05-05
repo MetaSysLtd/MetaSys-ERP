@@ -66,8 +66,9 @@ const MotionWrapper = ({ children, animation, delay = 0 }: {
 
 interface KanbanViewProps {
   leads: any[];
-  isLoading: boolean;
+  isLoading?: boolean;
   showFilter: string | null;
+  setLocation?: (path: string) => void;
 }
 
 export function KanbanView({ leads, isLoading, showFilter }: KanbanViewProps) {

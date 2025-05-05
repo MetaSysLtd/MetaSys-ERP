@@ -76,9 +76,9 @@ export default function CRMPage() {
     
     // Filter by pipeline tab first
     if (activeTab === "sql") {
-      filtered = filtered.filter(lead => lead.source === "SQL" || lead.status === "qualified");
+      filtered = filtered.filter(lead => (lead.source === "SQL" || lead.status === "qualified"));
     } else if (activeTab === "mql") {
-      filtered = filtered.filter(lead => lead.source === "MQL" || lead.status === "nurture");
+      filtered = filtered.filter(lead => (lead.source === "MQL" || lead.status === "nurture"));
     }
     
     // Then apply status filter
@@ -90,28 +90,49 @@ export default function CRMPage() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (lead) =>
-          (lead.companyName?.toLowerCase().includes(query) || '') ||
-          (lead.mcNumber?.toLowerCase().includes(query) || '') ||
-          (lead.email?.toLowerCase().includes(query) || '') ||
-          (lead.phoneNumber?.includes(query) || '') ||
-          (lead.contactName?.toLowerCase().includes(query) || '')
+        (lead) => {
+          const companyName = lead.companyName || '';
+          const mcNumber = lead.mcNumber || '';
+          const email = lead.email || '';
+          const phoneNumber = lead.phoneNumber || '';
+          const contactName = lead.contactName || '';
+          
+          return (
+            companyName.toLowerCase().includes(query) ||
+            mcNumber.toLowerCase().includes(query) ||
+            email.toLowerCase().includes(query) ||
+            phoneNumber.includes(query) ||
+            contactName.toLowerCase().includes(query)
+          );
+        }
       );
     }
     
     // Sort the leads
     if (sortOption === "recent") {
-      filtered.sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+      filtered.sort((a, b) => {
+        const aDate = new Date(a.updatedAt || a.createdAt).getTime();
+        const bDate = new Date(b.updatedAt || b.createdAt).getTime();
+        return bDate - aDate;
+      });
     } else if (sortOption === "oldest") {
-      filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      filtered.sort((a, b) => {
+        const aDate = new Date(a.createdAt).getTime();
+        const bDate = new Date(b.createdAt).getTime();
+        return aDate - bDate;
+      });
     } else if (sortOption === "company") {
-      filtered.sort((a, b) => a.companyName.localeCompare(b.companyName));
+      filtered.sort((a, b) => (a.companyName || '').localeCompare(b.companyName || ''));
     } else if (sortOption === "score") {
-      filtered.sort((a, b) => (b.score || 0) - (a.score || 0));
+      filtered.sort((a, b) => {
+        const aScore = a.score ? (typeof a.score === 'number' ? a.score : 0) : 0;
+        const bScore = b.score ? (typeof b.score === 'number' ? b.score : 0) : 0;
+        return bScore - aScore;
+      });
     }
     
     // Enrich leads with activity counts if activities are available
-    if (activities) {
+    if (activities && Array.isArray(activities)) {
       filtered = filtered.map(lead => {
         const leadActivities = activities.filter(
           (activity: any) => activity.entityType === 'lead' && activity.entityId === lead.id
@@ -336,21 +357,33 @@ export default function CRMPage() {
               <div className="flex items-center text-sm">
                 <Clock className="h-4 w-4 text-blue-500 mr-1.5" />
                 <span>
-                  <span className="font-medium">{filteredLeads.filter(lead => lead.pendingReminders > 0).length}</span> with reminders
+                  <span className="font-medium">
+                    {filteredLeads.filter(lead => 
+                      lead.pendingReminders && lead.pendingReminders > 0
+                    ).length}
+                  </span> with reminders
                 </span>
               </div>
               
               <div className="flex items-center text-sm">
                 <Star className="h-4 w-4 text-yellow-500 mr-1.5" />
                 <span>
-                  <span className="font-medium">{filteredLeads.filter(lead => lead.score === 'High' || lead.score === 'Very High').length}</span> high-scoring
+                  <span className="font-medium">
+                    {filteredLeads.filter(lead => 
+                      (lead.score === 'High' || lead.score === 'Very High')
+                    ).length}
+                  </span> high-scoring
                 </span>
               </div>
               
               <div className="flex items-center text-sm">
                 <Tag className="h-4 w-4 text-green-500 mr-1.5" />
                 <span>
-                  <span className="font-medium">{filteredLeads.filter(lead => lead.status === 'Active').length}</span> active clients
+                  <span className="font-medium">
+                    {filteredLeads.filter(lead => 
+                      lead.status === 'Active'
+                    ).length}
+                  </span> active clients
                 </span>
               </div>
             </div>
@@ -423,12 +456,18 @@ export default function CRMPage() {
                     ) : (
                       filteredLeads.map((lead) => {
                         const statusStyle = getStatusColor(lead.status);
-                        const scoreColor = {
+                        
+                        // Define score color options
+                        const scoreColorMap = {
                           'Low': 'bg-gray-100 text-gray-800 border-gray-200',
                           'Medium': 'bg-blue-100 text-blue-800 border-blue-200',
                           'High': 'bg-yellow-100 text-yellow-800 border-yellow-200',
                           'Very High': 'bg-green-100 text-green-800 border-green-200',
-                        }[lead.score || 'Low'];
+                        };
+                        
+                        // Safely get the score color
+                        const scoreKey = (lead.score && typeof lead.score === 'string') ? lead.score : 'Low';
+                        const scoreColor = scoreColorMap[scoreKey as keyof typeof scoreColorMap] || scoreColorMap.Low;
                         
                         return (
                           <TableRow key={lead.id} className="hover:bg-gray-50">
