@@ -167,4 +167,32 @@ router.post('/widgets/reorder', authMiddleware, async (req, res) => {
   }
 });
 
+// Add widget routes
+router.post('/widgets', authMiddleware, async (req, res) => {
+  try {
+    const widget = await storage.createDashboardWidget(req.body);
+    res.json(widget);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create widget' });
+  }
+});
+
+router.get('/widgets', authMiddleware, async (req, res) => {
+  try {
+    const widgets = await storage.getDashboardWidgets(req.user.id);
+    res.json(widgets);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch widgets' });
+  }
+});
+
+router.delete('/widgets/:id', authMiddleware, async (req, res) => {
+  try {
+    await storage.deleteDashboardWidget(parseInt(req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete widget' });
+  }
+});
+
 export default router;

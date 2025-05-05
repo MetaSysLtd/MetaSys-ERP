@@ -17,7 +17,8 @@ import {
   Moon,
   Sun,
   Building,
-  Sparkles
+  Sparkles,
+  ChevronRight
 } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -122,7 +123,7 @@ export function Header({ setSidebarOpen }: HeaderProps) {
 
           {/* Messages Dropdown */}
           <MessageDropdown />
-          
+
           {/* Notifications Dropdown */}
           <NotificationDropdown />
 
@@ -172,19 +173,17 @@ export function Header({ setSidebarOpen }: HeaderProps) {
                   <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                     <Sparkles className="mr-2 h-4 w-4" />
                     <span>Animation Settings</span>
-                    <div className="ml-auto">
-                      <AnimationSettingsCompact />
-                    </div>
+                    <ChevronRight className="ml-2 h-4 w-4" />
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
-                
+
                 {/* Organization section - visible only on mobile/smaller screens */}
                 <DropdownMenuSeparator className="lg:hidden" />
                 <DropdownMenuLabel className="lg:hidden">Organization</DropdownMenuLabel>
                 <div className="lg:hidden px-2 py-2">
                   <OrganizationSwitcher />
                 </div>
-                
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
