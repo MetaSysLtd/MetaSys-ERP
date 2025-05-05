@@ -13,6 +13,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { AnimationSettings } from "./animation-settings";
+import Link from 'next/link'; // Import Link component
 
 export function AnimationSettingsCompact() {
   const { 
@@ -70,10 +71,12 @@ export function AnimationSettingsCompact() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
-            <Settings2 className="h-4 w-4" />
-            <span className="sr-only">Animation Settings</span>
-          </Button>
+          <Link href="/settings">
+            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
+              <Settings2 className="h-4 w-4" />
+              <span className="sr-only">Animation Settings</span>
+            </Button>
+          </Link>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
