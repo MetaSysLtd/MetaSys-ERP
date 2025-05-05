@@ -124,8 +124,11 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
 
   // CRM Sub-items
   const crmSubItems = [
+    { name: "Dashboard", href: "/crm" },
     { name: "Leads", href: "/crm/leads" },
+    { name: "Accounts", href: "/crm/accounts" },
     { name: "Clients", href: "/crm/clients" },
+    { name: "Activities", href: "/crm/activities" },
     { name: "Commissions", href: "/crm/commissions" }
   ];
 
