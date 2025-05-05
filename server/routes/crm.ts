@@ -230,6 +230,62 @@ router.get('/leads/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// Update lead status (for Kanban drag-and-drop)
+router.patch('/leads/:id/status', authMiddleware, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid lead ID' });
+    }
+    
+    const { status } = req.body;
+    if (!status) {
+      return res.status(400).json({ error: 'Status is required' });
+    }
+    
+    // Validate the status value is one of the allowed statuses
+    const validStatuses = ['New', 'InProgress', 'FollowUp', 'HandToDispatch', 'Active', 'Lost'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ 
+        error: 'Invalid status value',
+        message: `Status must be one of: ${validStatuses.join(', ')}`
+      });
+    }
+    
+    // Get the lead to make sure it exists
+    const lead = await storage.getLead(id);
+    if (!lead) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    // Update the lead status
+    const updatedLead = await storage.updateLead(id, { 
+      status,
+      updatedBy: req.session.userId,
+      updatedAt: new Date()
+    });
+    
+    // Log this activity
+    const userId = req.session.userId;
+    await storage.createActivity({
+      userId,
+      entityType: 'lead',
+      entityId: id,
+      action: 'note',
+      details: `Status changed from "${lead.status}" to "${status}"`,
+      timestamp: new Date()
+    });
+    
+    res.json(updatedLead);
+  } catch (error) {
+    console.error(`Error updating lead status for lead ${req.params.id}:`, error);
+    res.status(500).json({ 
+      error: 'Failed to update lead status',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Lead Handoff endpoints
 router.get('/lead-handoffs/lead/:leadId', authMiddleware, async (req, res) => {
   try {

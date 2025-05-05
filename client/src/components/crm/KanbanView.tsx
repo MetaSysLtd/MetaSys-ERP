@@ -86,7 +86,7 @@ export function KanbanView({ leads, isLoading, showFilter }: KanbanViewProps) {
   // Mutation for updating lead status
   const updateLeadStatusMutation = useMutation({
     mutationFn: async ({ leadId, newStatus }: { leadId: number, newStatus: string }) => {
-      const response = await apiRequest("PATCH", `/api/crm/leads/${leadId}/status`, {
+      const response = await apiRequest("PATCH", `/api/leads/${leadId}/status`, {
         status: newStatus
       });
       
