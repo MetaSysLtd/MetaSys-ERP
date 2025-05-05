@@ -732,9 +732,9 @@ router.patch('/activities/:id/complete-reminder', authMiddleware, async (req, re
     }
     
     const [updatedActivity] = await db
-      .update(activities)
+      .update(schemaActivities)
       .set({ reminderCompleted: true })
-      .where(eq(activities.id, id))
+      .where(eq(schemaActivities.id, id))
       .returning();
       
     res.json(updatedActivity);

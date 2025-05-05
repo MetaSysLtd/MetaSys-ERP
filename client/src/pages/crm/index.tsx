@@ -53,8 +53,14 @@ export default function CRMPage() {
 
   // Get activities from the API to enrich the leads with recent activities
   const { data: activities } = useQuery({
-    queryKey: ["/api/crm/activities"],
+    queryKey: ["/api/activities"],
     enabled: !!leads,
+    // Handle potential 404 errors as the endpoint is still being implemented
+    retry: (failureCount, error: any) => {
+      // Don't retry on 404s
+      if (error?.response?.status === 404) return false;
+      return failureCount < 3;
+    },
   });
   
   useEffect(() => {
