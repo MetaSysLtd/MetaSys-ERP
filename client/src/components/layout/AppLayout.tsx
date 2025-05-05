@@ -32,7 +32,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   };
   
   return (
-    <div className="h-screen flex overflow-hidden bg-gray-50">
+    <div className="min-h-screen flex flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Mobile sidebar - with sliding animation */}
       <AnimatePresence>
         {sidebarOpen && (
