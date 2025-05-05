@@ -9,7 +9,7 @@ import {
   insertAccountSchema,
   insertSurveySchema,
   insertActivitySchema,
-  activities
+  activities as schemaActivities
 } from '@shared/schema';
 import crypto from 'crypto';
 import { db } from '../db';
@@ -266,12 +266,14 @@ router.patch('/leads/:id/status', authMiddleware, async (req, res) => {
     });
     
     // Log this activity
-    const userId = req.session.userId;
-    await storage.createActivity({
+    const userId = req.session.userId || 1; // Default to admin if not authenticated
+    
+    // Insert directly into activities table using db
+    await db.insert(schemaActivities).values({
       userId,
       entityType: 'lead',
       entityId: id,
-      action: 'note',
+      action: 'status_changed',
       details: `Status changed from "${lead.status}" to "${status}"`,
       timestamp: new Date()
     });
@@ -653,7 +655,7 @@ router.delete('/surveys/:id', authMiddleware, async (req, res) => {
 // Activities (CRM Deep-Carve) endpoints
 router.get('/activities', authMiddleware, async (req, res) => {
   try {
-    const activities = await db.select().from(activities).orderBy(desc(activities.timestamp));
+    const activities = await db.select().from(schemaActivities).orderBy(desc(schemaActivities.timestamp));
     res.json(activities);
   } catch (error) {
     console.error('Error fetching activities:', error);
@@ -672,14 +674,14 @@ router.get('/activities/entity/:entityType/:entityId', authMiddleware, async (re
     
     const activityList = await db
       .select()
-      .from(activities)
+      .from(schemaActivities)
       .where(
         and(
-          eq(activities.entityType, entityType),
-          eq(activities.entityId, entityIdNumber)
+          eq(schemaActivities.entityType, entityType),
+          eq(schemaActivities.entityId, entityIdNumber)
         )
       )
-      .orderBy(desc(activities.timestamp));
+      .orderBy(desc(schemaActivities.timestamp));
       
     res.json(activityList);
   } catch (error) {
@@ -705,7 +707,7 @@ router.post('/activities', authMiddleware, async (req, res) => {
       });
     }
     
-    const [activity] = await db.insert(activities).values(data).returning();
+    const [activity] = await db.insert(schemaActivities).values(data).returning();
     res.status(201).json(activity);
   } catch (error) {
     handleZodError(error, res);
@@ -719,7 +721,7 @@ router.patch('/activities/:id/complete-reminder', authMiddleware, async (req, re
       return res.status(400).json({ error: 'Invalid activity ID' });
     }
     
-    const [activity] = await db.select().from(activities).where(eq(activities.id, id));
+    const [activity] = await db.select().from(schemaActivities).where(eq(schemaActivities.id, id));
     
     if (!activity) {
       return res.status(404).json({ error: 'Activity not found' });
