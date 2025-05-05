@@ -69,48 +69,43 @@ export function DashboardWidgetManager() {
   // Query to get user's dashboard widgets
   const { data: widgets = [], isLoading } = useQuery({
     queryKey: ['/api/dashboard/widgets'],
-    queryFn: async () => {
-      try {
-        const res = await fetch('/api/dashboard/widgets');
-        if (!res.ok) {
-          throw new Error('Failed to load dashboard widgets');
-        }
-        return res.json();
-      } catch (error) {
-        console.error('Error fetching dashboard widgets:', error);
-        return [];
-      }
-    },
+    staleTime: 60000, // 1 minute
+    retry: 2,
+    refetchOnWindowFocus: false,
   });
 
   // Use memoized list of available widgets instead of state + useEffect
   const availableList = useMemo(() => {
-    if (!Array.isArray(widgets)) return availableWidgets;
+    // Guard against non-array data or undefined
+    if (!widgets || !Array.isArray(widgets)) {
+      return availableWidgets;
+    }
     
-    if (widgets.length === 0) return availableWidgets;
+    if (widgets.length === 0) {
+      return availableWidgets;
+    }
     
-    const userWidgetKeys = widgets.map((w: Widget) => w.widgetKey);
-    return availableWidgets.filter(w => !userWidgetKeys.includes(w.key));
+    try {
+      const userWidgetKeys = widgets.map((w: Widget) => w.widgetKey);
+      return availableWidgets.filter(w => !userWidgetKeys.includes(w.key));
+    } catch (error) {
+      console.error('Error processing widget data:', error);
+      return availableWidgets;
+    }
   }, [widgets]);
 
   // Add widget mutation
   const addWidgetMutation = useMutation({
     mutationFn: async (newWidget: Omit<Widget, 'id'>) => {
       try {
-        const res = await fetch('/api/dashboard/widgets', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(newWidget),
-        });
+        const res = await apiRequest('POST', '/api/dashboard/widgets', newWidget);
         
         if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(`Failed to add widget: ${errorText}`);
+          const errorData = await res.text();
+          throw new Error(`Failed to add widget: ${errorData}`);
         }
         
-        return res.json();
+        return await res.json();
       } catch (error) {
         console.error('Widget addition error:', error);
         throw error;
@@ -137,20 +132,14 @@ export function DashboardWidgetManager() {
   const updateWidgetMutation = useMutation({
     mutationFn: async (widget: Widget) => {
       try {
-        const res = await fetch(`/api/dashboard/widgets/${widget.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(widget),
-        });
+        const res = await apiRequest('PATCH', `/api/dashboard/widgets/${widget.id}`, widget);
         
         if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(`Failed to update widget: ${errorText}`);
+          const errorData = await res.text();
+          throw new Error(`Failed to update widget: ${errorData}`);
         }
         
-        return res.json();
+        return await res.json();
       } catch (error) {
         console.error('Widget update error:', error);
         throw error;
@@ -177,16 +166,14 @@ export function DashboardWidgetManager() {
   const deleteWidgetMutation = useMutation({
     mutationFn: async (widgetId: number) => {
       try {
-        const res = await fetch(`/api/dashboard/widgets/${widgetId}`, {
-          method: 'DELETE',
-        });
+        const res = await apiRequest('DELETE', `/api/dashboard/widgets/${widgetId}`);
         
         if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(`Failed to delete widget: ${errorText}`);
+          const errorData = await res.text();
+          throw new Error(`Failed to delete widget: ${errorData}`);
         }
         
-        return res.json();
+        return await res.json();
       } catch (error) {
         console.error('Widget deletion error:', error);
         throw error;
@@ -212,20 +199,14 @@ export function DashboardWidgetManager() {
   const reorderWidgetsMutation = useMutation({
     mutationFn: async (updatedWidgets: Widget[]) => {
       try {
-        const res = await fetch('/api/dashboard/widgets/reorder', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ widgets: updatedWidgets }),
-        });
+        const res = await apiRequest('POST', '/api/dashboard/widgets/reorder', { widgets: updatedWidgets });
         
         if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(`Failed to reorder widgets: ${errorText}`);
+          const errorData = await res.text();
+          throw new Error(`Failed to reorder widgets: ${errorData}`);
         }
         
-        return res.json();
+        return await res.json();
       } catch (error) {
         console.error('Widget reordering error:', error);
         throw error;
