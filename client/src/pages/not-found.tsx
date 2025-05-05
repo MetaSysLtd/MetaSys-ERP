@@ -1,18 +1,28 @@
-import { Link } from "wouter";
+
 import { PageLayout } from "@/components/layout/PageLayout";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export default function NotFound() {
+  const navigate = useNavigate();
+
   return (
-    <PageLayout title="404 - Page Not Found">
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl mb-8">Page not found</p>
-        <Link href="/">
-          <a className="text-primary hover:underline">
+    <div className="min-h-screen w-full flex items-center justify-center bg-background">
+      <div className="text-center space-y-6 px-4">
+        <h1 className="text-6xl font-bold text-primary">404</h1>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold text-foreground">Page not found</h2>
+          <p className="text-muted-foreground">The page you're looking for doesn't exist or has been moved.</p>
+        </div>
+        <div className="flex gap-4 justify-center">
+          <Button onClick={() => navigate(-1)} variant="outline">
+            Go Back
+          </Button>
+          <Button onClick={() => navigate('/')} variant="default">
             Return to Dashboard
-          </a>
-        </Link>
+          </Button>
+        </div>
       </div>
-    </PageLayout>
+    </div>
   );
 }
