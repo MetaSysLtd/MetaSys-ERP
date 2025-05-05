@@ -72,8 +72,8 @@ export default function Dashboard() {
             <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
           </MotionWrapper>
   
-          <div className="flex flex-wrap items-start gap-2 sm:gap-3">
-            <MotionWrapper animation="fade-left" delay={0.2} className="w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <MotionWrapper animation="fade-left" delay={0.2}>
               <DateRangePicker
                 from={dateRange.from}
                 to={dateRange.to}
@@ -81,28 +81,26 @@ export default function Dashboard() {
                 className="w-full sm:w-auto"
               />
             </MotionWrapper>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              <MotionWrapper animation="fade-left" delay={0.25} className="w-full xs:w-auto">
-                <Select value={department} onValueChange={setDepartment}>
-                  <SelectTrigger className="w-full xs:w-[180px]">
-                    <SelectValue placeholder="Select Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Departments</SelectItem>
-                    <SelectItem value="sales">Sales</SelectItem>
-                    <SelectItem value="dispatch">Dispatch</SelectItem>
-                    <SelectItem value="hr">HR</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="marketing">Marketing</SelectItem>
-                    <SelectItem value="accounting">Accounting</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </MotionWrapper>
-              <MotionWrapper animation="fade-left" delay={0.35} className="w-auto">
-                <DashboardWidgetManager />
-              </MotionWrapper>
-            </div>
+            <MotionWrapper animation="fade-left" delay={0.25}>
+              <Select value={department} onValueChange={setDepartment}>
+                <SelectTrigger className="w-full xs:w-[180px]">
+                  <SelectValue placeholder="Select Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem value="sales">Sales</SelectItem>
+                  <SelectItem value="dispatch">Dispatch</SelectItem>
+                  <SelectItem value="hr">HR</SelectItem>
+                  <SelectItem value="finance">Finance</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="accounting">Accounting</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </MotionWrapper>
+            <MotionWrapper animation="fade-left" delay={0.35}>
+              <DashboardWidgetManager />
+            </MotionWrapper>
           </div>
         </div>
   
