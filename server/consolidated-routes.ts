@@ -3103,6 +3103,40 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       next(error);
     }
   });
+  
+  // Add a new dashboard widget
+  dashboardRouter.post("/widgets", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const { widgetType, position, config } = req.body;
+      
+      if (!widgetType) {
+        return res.status(400).json({ error: "Widget type is required" });
+      }
+      
+      // Get existing widgets to determine position if not provided
+      const existingWidgets = await storage.getDashboardWidgets(req.user.id);
+      const widgetPosition = position || existingWidgets.length + 1;
+      
+      const widget = await storage.createDashboardWidget({
+        userId: req.user.id,
+        widgetType,
+        position: widgetPosition,
+        config: config || {},
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      res.status(201).json(widget);
+    } catch (error) {
+      console.error("Error adding dashboard widget:", error);
+      next(error);
+    }
+  });
 
   // Get a specific dashboard widget
   dashboardRouter.get("/widgets/:id", createAuthMiddleware(1), async (req, res, next) => {
@@ -3130,35 +3164,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     }
   });
 
-  // Create a new dashboard widget
-  dashboardRouter.post("/widgets", createAuthMiddleware(1), express.json(), async (req, res, next) => {
-    try {
-      if (!req.user) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
-      try {
-        const widgetData = insertDashboardWidgetSchema.parse({
-          ...req.body,
-          userId: req.user.id,
-          orgId: req.user.orgId || null
-        });
-
-        const newWidget = await storage.createDashboardWidget(widgetData);
-        res.status(201).json(newWidget);
-      } catch (validationError) {
-        if (validationError instanceof ZodError) {
-          return res.status(400).json({ 
-            error: "Validation error", 
-            details: fromZodError(validationError).message 
-          });
-        }
-        throw validationError;
-      }
-    } catch (error) {
-      next(error);
-    }
-  });
+  // This route is already added above - removing duplicate
 
   // Update a dashboard widget
   dashboardRouter.patch("/widgets/:id", createAuthMiddleware(1), express.json(), async (req, res, next) => {

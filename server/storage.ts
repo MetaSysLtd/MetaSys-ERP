@@ -3245,9 +3245,8 @@ export class DatabaseStorage implements IStorage {
       entityId: activities.entityId,
       action: activities.action,
       details: activities.details,
-      timestamp: activities.timestamp,
-      metadata: activities.metadata
-      // Excluding reminderDate and reminderCompleted as they don't exist in the actual DB yet
+      timestamp: activities.timestamp
+      // Excluding metadata, reminderDate and reminderCompleted as they don't exist in the actual DB
     })
       .from(activities)
       .orderBy(desc(activities.timestamp));
@@ -3267,9 +3266,8 @@ export class DatabaseStorage implements IStorage {
       entityId: activities.entityId,
       action: activities.action,
       details: activities.details,
-      timestamp: activities.timestamp,
-      metadata: activities.metadata
-      // Excluding reminderDate and reminderCompleted as they don't exist in the actual DB yet
+      timestamp: activities.timestamp
+      // Excluding metadata, reminderDate and reminderCompleted as they don't exist in the actual DB
     })
       .from(activities)
       .where(eq(activities.userId, userId))
@@ -3290,9 +3288,8 @@ export class DatabaseStorage implements IStorage {
       entityId: activities.entityId,
       action: activities.action,
       details: activities.details,
-      timestamp: activities.timestamp,
-      metadata: activities.metadata
-      // Excluding reminderDate and reminderCompleted as they don't exist in the actual DB yet
+      timestamp: activities.timestamp
+      // Excluding metadata, reminderDate and reminderCompleted as they don't exist in the actual DB
     })
       .from(activities)
       .where(
@@ -3318,9 +3315,8 @@ export class DatabaseStorage implements IStorage {
       entityId: activities.entityId,
       action: activities.action,
       details: activities.details,
-      timestamp: activities.timestamp,
-      metadata: activities.metadata
-      // Excluding reminderDate and reminderCompleted as they don't exist in the actual DB yet
+      timestamp: activities.timestamp
+      // Excluding metadata, reminderDate and reminderCompleted as they don't exist in the actual DB
     })
       .from(activities)
       .where(eq(activities.entityType, entityType))
@@ -3338,8 +3334,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createActivity(insertActivity: InsertActivity): Promise<Activity> {
+    // Filter out any properties that don't exist in the actual database
+    const { metadata, reminderDate, reminderCompleted, ...validActivityData } = insertActivity as any;
+    
     const [activity] = await db.insert(activities).values({
-      ...insertActivity,
+      ...validActivityData,
       timestamp: new Date()
     }).returning();
     return activity;
