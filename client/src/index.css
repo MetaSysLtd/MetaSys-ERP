@@ -1,5 +1,9 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --primary: #025E73;
@@ -19,48 +23,20 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-/* Screen size-based font scaling */
+/* Screen size-based font scaling - Modified for better responsiveness */
 @media (min-width: 1024px) and (max-width: 1280px) { /* 13-inch */
   html {
     font-size: 14px;
-    zoom: var(--scale-factor, 1);
   }
 }
 
 @media (min-width: 1281px) and (max-width: 1440px) { /* 15-inch */
   html {
     font-size: 15px;
-    zoom: var(--scale-factor, 1);
   }
 }
 
 @media (min-width: 1441px) and (max-width: 1920px) { /* 17-inch */
-  html {
-    font-size: 16px;
-    zoom: var(--scale-factor, 1);
-  }
-}
-
-/* Scaling factors */
-@media screen and (resolution: 1dppx) {
-  :root {
-    --scale-factor: 1;
-  }
-}
-
-@media screen and (resolution: 1.25dppx) {
-  :root {
-    --scale-factor: 0.8;
-  }
-}
-
-@media screen and (resolution: 1.5dppx) {
-  :root {
-    --scale-factor: 0.67;
-  }
-}
-
-@media (min-width: 1367px) and (max-width: 1920px) {
   html {
     font-size: 16px;
   }
@@ -72,6 +48,7 @@ body {
   }
 }
 
+/* Responsive tables */
 @media screen and (max-width: 768px) {
   .responsive-table {
     display: block;
@@ -79,12 +56,6 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 /* Hide scrollbar but maintain functionality */
 .scrollbar-hide {
