@@ -172,7 +172,7 @@ export default function ActivitiesPage() {
   // Mutation for creating a new activity
   const createActivityMutation = useMutation({
     mutationFn: async (data: ActivityFormValues) => {
-      const response = await apiRequest('POST', '/api/crm/activities', data);
+      const response = await apiRequest('POST', '/api/activities', data);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to create activity');
@@ -200,7 +200,7 @@ export default function ActivitiesPage() {
   // Mutation for completing a reminder
   const completeReminderMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest('PATCH', `/api/crm/activities/${id}/complete-reminder`, {});
+      const response = await apiRequest('PATCH', `/api/activities/${id}/complete-reminder`, {});
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to complete reminder');
@@ -512,7 +512,7 @@ export default function ActivitiesPage() {
           <p className="text-muted-foreground mb-4">
             There was a problem loading your activities. Please try again later.
           </p>
-          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/crm/activities'] })}>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/activities'] })}>
             Retry
           </Button>
         </div>

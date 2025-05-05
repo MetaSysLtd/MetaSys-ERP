@@ -153,8 +153,30 @@ export function KanbanView({ leads, isLoading, showFilter }: KanbanViewProps) {
     
     setLocalLeads(updatedLeads);
     
+    // Also create an activity entry for this status change
+    const logActivity = async () => {
+      try {
+        // Get the previous status by finding the lead in the original leads array
+        const lead = leads.find(l => l.id === leadId);
+        const previousStatus = lead?.status || 'Unknown';
+        
+        // Create activity for this status change
+        await apiRequest('POST', '/api/activities', {
+          action: 'note',
+          entityType: 'lead',
+          entityId: leadId,
+          details: `Status changed from ${previousStatus} to ${newStatus}`,
+        });
+      } catch (error) {
+        console.error('Failed to log status change activity:', error);
+      }
+    };
+    
     // Perform the API update
     updateLeadStatusMutation.mutate({ leadId, newStatus });
+    
+    // Log the activity
+    logActivity();
   };
   
   // Calculate the column layout based on screen size and filter status
