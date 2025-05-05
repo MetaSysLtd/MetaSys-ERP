@@ -18,7 +18,7 @@ interface PageLayoutProps {
   rightContent?: React.ReactNode;
 }
 
-export function PageLayout({
+function PageLayout({
   title,
   description,
   children,
@@ -75,3 +75,6 @@ export function PageLayout({
     </div>
   );
 }
+
+export default PageLayout;
+export { PageLayout };
