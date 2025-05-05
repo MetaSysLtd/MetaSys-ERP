@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setPreferences, fetchPreferences } from './store/uiPreferencesSlice';
 import { useRealTime } from './hooks/use-real-time';
+import { useToast } from '@/hooks/use-toast';
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/login";
 import ForgotPassword from "@/pages/auth/forgot-password";
@@ -440,7 +441,22 @@ function AppContent() {
   const dispatch = useDispatch<any>();
   const { socket } = useSocket();
   const { user } = useAuth();
-  const { subscribe, isConnected } = useRealTime();
+  const { toast } = useToast();
+  const { subscribe, isConnected } = useRealTime({
+    onReconnect: (data) => {
+      console.log('Real-time connection restored:', data);
+    },
+    onError: (error) => {
+      console.error('Real-time connection error:', error);
+    },
+    handleSystemMessage: (message) => {
+      toast({
+        title: message.title || "System Message",
+        description: message.message || "A system message was received.",
+        variant: message.variant || "default",
+      });
+    }
+  });
 
   // Load UI preferences when user logs in
   useEffect(() => {
