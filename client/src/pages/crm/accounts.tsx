@@ -110,14 +110,14 @@ export default function AccountsPage() {
 
   // Query to fetch all accounts
   const { data: accounts, isLoading, isError } = useQuery({
-    queryKey: ['/api/crm/accounts'],
+    queryKey: ['/api/accounts'],
     retry: 1,
   });
 
   // Mutation for creating a new account
   const createAccountMutation = useMutation({
     mutationFn: async (data: AccountFormValues) => {
-      const response = await apiRequest('POST', '/api/crm/accounts', data);
+      const response = await apiRequest('POST', '/api/accounts', data);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to create account');
@@ -129,7 +129,7 @@ export default function AccountsPage() {
         title: 'Account Created',
         description: 'The account has been successfully created.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/crm/accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/accounts'] });
       setIsCreateDialogOpen(false);
       form.reset();
     },
@@ -145,7 +145,7 @@ export default function AccountsPage() {
   // Mutation for updating an account
   const updateAccountMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<AccountFormValues> }) => {
-      const response = await apiRequest('PUT', `/api/crm/accounts/${id}`, data);
+      const response = await apiRequest('PUT', `/api/accounts/${id}`, data);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to update account');
