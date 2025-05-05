@@ -477,7 +477,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
-                        name="penaltyThreshold"
+                        name="rules.penaltyThreshold"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Call Attempts Threshold</FormLabel>
@@ -493,7 +493,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
 
                       <FormField
                         control={form.control}
-                        name="teamLeadBonusAmount"
+                        name="rules.teamLeadBonusAmount"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Team Lead Bonus (PKR)</FormLabel>
