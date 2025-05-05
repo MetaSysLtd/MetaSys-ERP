@@ -7,6 +7,8 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useRealTime } from "@/contexts/RealTimeContext";
+import socketService, { RealTimeEvents } from "@/services/socket-service";
 import { 
   Bookmark, 
   Calendar, 
@@ -74,6 +76,7 @@ interface KanbanViewProps {
 export function KanbanView({ leads, isLoading, showFilter }: KanbanViewProps) {
   const { toast } = useToast();
   const [localLeads, setLocalLeads] = useState<any[]>([]);
+  const { subscribe, subscribeToEntity } = useRealTime();
   
   // Define the CRM statuses
   const statuses = ["New", "InProgress", "FollowUp", "HandToDispatch", "Active", "Lost"];
@@ -82,6 +85,99 @@ export function KanbanView({ leads, isLoading, showFilter }: KanbanViewProps) {
   useEffect(() => {
     setLocalLeads(leads);
   }, [leads]);
+  
+  // Subscribe to real-time lead updates
+  useEffect(() => {
+    // Subscribe to lead creation events
+    const unsubscribeLeadCreated = subscribe(RealTimeEvents.LEAD_CREATED, (data) => {
+      if (data && data.data) {
+        // If we have a new lead, add it to our local state
+        setLocalLeads(prevLeads => [...prevLeads, data.data]);
+        
+        // Show toast notification for new lead
+        toast({
+          title: "New Lead Created",
+          description: `${data.data.companyName || 'New lead'} has been added to the system`,
+          variant: "default",
+        });
+        
+        // Subscribe to this new lead's updates
+        subscribeToEntity('lead', data.data.id);
+      }
+    });
+    
+    // Subscribe to general lead events
+    const unsubscribeLeadUpdated = subscribe(RealTimeEvents.LEAD_UPDATED, (data) => {
+      if (data && data.data) {
+        // Update the local leads state when we receive a real-time update
+        setLocalLeads(prevLeads => 
+          prevLeads.map(lead => 
+            lead.id === data.data.id ? { ...lead, ...data.data } : lead
+          )
+        );
+        
+        // Show toast notification for status changes
+        if (data.data.status) {
+          toast({
+            title: "Lead Status Changed",
+            description: `Lead ${data.data.name || data.data.companyName || '#' + data.data.id} status changed to ${data.data.status}`,
+          });
+        }
+      }
+    });
+    
+    // Subscribe to lead status change events
+    const unsubscribeStatusChange = subscribe('lead-status:updated', (data) => {
+      if (data && data.data) {
+        const { leadId, newStatus } = data.data;
+        // Update the specific lead status in our local state
+        setLocalLeads(prevLeads => 
+          prevLeads.map(lead => 
+            lead.id === leadId ? { ...lead, status: newStatus } : lead
+          )
+        );
+      }
+    });
+    
+    // Subscribe to lead qualification events
+    const unsubscribeQualification = subscribe('lead-qualification:updated', (data) => {
+      if (data && data.data) {
+        const { leadId, newScore } = data.data;
+        // Update the specific lead qualification in our local state
+        setLocalLeads(prevLeads => 
+          prevLeads.map(lead => 
+            lead.id === leadId ? { ...lead, qualificationScore: newScore } : lead
+          )
+        );
+      }
+    });
+    
+    // Subscribe to each lead's individual updates
+    leads.forEach(lead => {
+      subscribeToEntity('lead', lead.id);
+    });
+    
+    return () => {
+      unsubscribeLeadCreated();
+      unsubscribeLeadUpdated();
+      unsubscribeStatusChange();
+      unsubscribeQualification();
+      
+      // Unsubscribe from individual lead updates
+      leads.forEach(lead => {
+        if (lead && lead.id) {
+          try {
+            // It's okay if this fails, it's just cleanup
+            const entityType = 'lead';
+            const entityId = lead.id;
+            socketService.unsubscribeFromEntity(entityType, entityId);
+          } catch (err) {
+            console.error('Error unsubscribing from lead:', err);
+          }
+        }
+      });
+    };
+  }, [leads, subscribe, subscribeToEntity, toast]);
   
   // Mutation for updating lead status
   const updateLeadStatusMutation = useMutation({
