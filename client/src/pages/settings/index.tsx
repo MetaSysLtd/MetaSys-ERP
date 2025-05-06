@@ -254,12 +254,12 @@ export default function SettingsPage() {
   }
   
   return (
-    <div>
+    <div className="min-h-screen flex flex-col overflow-hidden">
       {/* Page header */}
-      <div className="bg-white shadow">
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
+      <div className="bg-white shadow flex-shrink-0">
+        <div className="px-3 sm:px-6 lg:px-8 py-3 md:py-4">
           <div className="flex flex-wrap items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-2 sm:mb-0">
+            <h1 className="text-xl md:text-2xl font-semibold text-gray-900 mb-1 sm:mb-0">
               Settings
             </h1>
           </div>
@@ -267,7 +267,7 @@ export default function SettingsPage() {
       </div>
       
       {/* Page content */}
-      <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[100vw] overflow-x-hidden">
+      <div className="px-3 sm:px-6 lg:px-8 py-4 md:py-6 flex-grow overflow-y-auto overflow-x-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
           {/* Sidebar */}
           <Card className="lg:col-span-3 h-fit lg:sticky lg:top-4 w-full overflow-visible">
@@ -340,9 +340,10 @@ export default function SettingsPage() {
                     handleTabChange(value);
                     // Hide mobile menu after selection on small screens
                     const sidebar = document.getElementById('settings-sidebar');
-                    if (sidebar && window.innerWidth < 992) {
-                      sidebar.classList.add('hidden');
-                      sidebar.classList.remove('flex');
+                    const overlay = document.getElementById('mobile-menu-overlay');
+                    if (window.innerWidth < 1024) {
+                      if (sidebar) sidebar.classList.add('hidden');
+                      if (overlay) overlay.classList.add('hidden');
                     }
                   }}
                   className="flex flex-col"
@@ -473,11 +474,12 @@ export default function SettingsPage() {
           </Card>
           
           {/* Settings content */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-9 w-full">
             <Tabs 
               defaultValue={activeTab} 
               value={activeTab}
               onValueChange={handleTabChange}
+              className="w-full"
             >
               <TabsContent value="profile" className="m-0">
                 <Card>
