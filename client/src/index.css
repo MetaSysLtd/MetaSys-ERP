@@ -1,67 +1,8 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-:root {
-  --primary: #025E73;
-  --primary-dark: #011F26;
-  --secondary: #F2A71B;
-  --accent: #412754;
-}
-
-.dark {
-  --background: #1a1a1a;
-  --foreground: #ffffff;
-  --card-bg: #2a2a2a;
-  --border-color: #333333;
-}
-
-body {
-  font-family: 'Inter', sans-serif;
-}
-
-/* Screen size-based font scaling - Enhanced for Dell XPS 9310 and similar laptops */
-/* Base font size - use 16px as the standard reference */
-html {
-  font-size: 16px;
-}
-
-/* Dell XPS 9310 specific optimization (13.4-inch screen) */
-@media (min-width: 1024px) and (max-width: 1280px) {
-  html {
-    font-size: 15px; /* Slightly larger for better readability on smaller screens */
-  }
-}
-
-@media (min-width: 1281px) and (max-width: 1440px) { /* 15-inch */
-  html {
-    font-size: 15px;
-  }
-}
-
-@media (min-width: 1441px) and (max-width: 1920px) { /* 17-inch */
-  html {
-    font-size: 16px;
-  }
-}
-
-@media (min-width: 1921px) {
-  html {
-    font-size: 18px;
-  }
-}
-
-/* Responsive tables */
-@media screen and (max-width: 768px) {
-  .responsive-table {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-}
 
 /* Hide scrollbar but maintain functionality */
 .scrollbar-hide {
@@ -154,17 +95,11 @@ html {
   --border-light: var(--c-border);
 
   &.dark {
-    --c-bg-primary: #0A0F1A;
-    --c-bg-secondary: #1A2234;
-    --c-bg-tertiary: #0D1526;
-    --c-bg-card: #1A2234;
-    --c-text-main: #FFFFFF;
-    --c-text-secondary: #E2E8F0;
-    --c-text-muted: #CBD5E1;
-    --c-border: #2D3748;
-    --c-brand-teal: #06B6D4;
-    --c-brand-yellow: #F59E0B;
-    --c-brand-plum: #7C3AED;
+    --c-bg-primary: #111827;
+    --c-bg-secondary: #1E293B;
+    --c-bg-tertiary: #0F172A;
+    --c-bg-card: #1E293B;
+    --c-text-main: #F1F5F9;
     --c-text-secondary: #CBD5E1;
     --c-text-muted: #94A3B8;
     --c-text-light: #64748B;
@@ -193,54 +128,53 @@ html {
     background-image: radial-gradient(circle at 5% 5%, rgba(65, 39, 84, 0.05), transparent 70%);
   }
 
-  /* Typography scale optimized for Dell XPS 9310 and similar screens */
+  /* Typography scale as specified in design spec */
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight;
     color: var(--c-brand-navy);
   }
   
   h1 {
-    font-size: 1.75rem; /* 28px at 16px base */
-    line-height: 1.3;
+    font-size: 28px;
+    line-height: 36px;
     @apply font-semibold;
   }
   
   h2 {
-    font-size: 1.375rem; /* 22px at 16px base */
-    line-height: 1.35;
+    font-size: 22px;
+    line-height: 30px;
   }
   
   h3 {
-    font-size: 1.125rem; /* 18px at 16px base */
-    line-height: 1.4;
+    font-size: 18px;
+    line-height: 26px;
   }
   
   h4 {
-    font-size: 1rem; /* 16px at 16px base */
-    line-height: 1.5;
+    font-size: 16px;
+    line-height: 24px;
   }
   
   h5 {
-    font-size: 0.875rem; /* 14px at 16px base */
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 22px;
     @apply font-medium;
   }
   
   h6 {
-    font-size: 0.8125rem; /* 13px at 16px base */
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 20px;
   }
   
   p {
-    font-size: 0.875rem; /* 14px at 16px base */
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 22px;
     color: var(--c-text-main);
   }
   
   .text-subtle {
-    font-size: 0.8125rem; /* 13px at 16px base */
+    font-size: 13px;
     color: var(--c-text-secondary);
-    line-height: 1.5;
   }
   
   /* Smooth scrollbar for modern browsers */
@@ -280,16 +214,8 @@ html {
 
 @layer components {
   .card {
-    @apply rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-sm hover:shadow-md 
-      text-gray-900 dark:text-gray-100 transition-all duration-300;
-  }
-
-  .sidebar {
-    @apply bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800;
-  }
-
-  .header {
-    @apply bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800;
+    @apply rounded-xl border bg-white dark:bg-gray-800 dark:border-gray-700 shadow-sm hover:shadow-md 
+      transition-all duration-300;
   }
 
   .dashboard-card {
@@ -468,27 +394,27 @@ html {
     background: rgba(0, 0, 0, 0.08);
   }
   
-  /* Button sizes - optimized for Dell XPS 9310 and related screens with rem units */
+  /* Button sizes */
   .btn-xs {
     padding: 0.25rem 0.5rem;
-    font-size: 0.75rem; /* 12px at 16px base */
+    font-size: 12px;
     border-radius: calc(var(--radius-base) - 2px);
   }
   
   .btn-sm {
     padding: 0.375rem 0.75rem;
-    font-size: 0.8125rem; /* 13px at 16px base */
+    font-size: 13px;
     border-radius: calc(var(--radius-base) - 1px);
   }
   
   .btn-lg {
     padding: 0.75rem 1.5rem;
-    font-size: 1rem; /* 16px at 16px base */
+    font-size: 16px;
   }
   
   .btn-xl {
     padding: 1rem 2rem;
-    font-size: 1.125rem; /* 18px at 16px base */
+    font-size: 18px;
     border-radius: calc(var(--radius-base) + 2px);
   }
   
@@ -657,14 +583,14 @@ html {
   .dashboard-card .stat-value {
     position: relative;
     color: var(--c-brand-navy);
-    font-size: 2.25rem; /* 36px at 16px base */
+    font-size: 36px;
     font-weight: 700;
     line-height: 1.2;
   }
   
   .dashboard-card .stat-label {
     color: var(--c-text-secondary);
-    font-size: 0.8125rem; /* 13px at 16px base */
+    font-size: 13px;
     font-weight: 500;
     letter-spacing: 0.01em;
   }
@@ -673,7 +599,7 @@ html {
     position: absolute;
     bottom: 1rem;
     right: 1rem;
-    font-size: 3rem; /* 48px at 16px base */
+    font-size: 48px;
     color: rgba(2, 94, 115, 0.06);
   }
   
@@ -776,7 +702,7 @@ html {
   }
   
   .stat-label {
-    font-size: 0.8125rem; /* 13px at 16px base */
+    font-size: 13px;
     font-weight: 600;
     color: var(--c-text-secondary);
     margin-bottom: 0.5rem;
@@ -785,7 +711,7 @@ html {
   }
   
   .stat-value {
-    font-size: 1.75rem; /* 28px at 16px base */
+    font-size: 28px;
     font-weight: 700;
     color: var(--c-brand-navy);
     line-height: 1.2;
@@ -793,7 +719,7 @@ html {
   
   .stat-meta {
     margin-top: 0.75rem;
-    font-size: 0.75rem; /* 12px at 16px base */
+    font-size: 12px;
     color: var(--c-text-secondary);
     display: flex;
     align-items: center;

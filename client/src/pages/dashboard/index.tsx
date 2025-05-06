@@ -36,16 +36,6 @@ export default function Dashboard() {
   const { user, role } = useAuth();
   const [dateRange, setDateRange] = useState({ from: new Date(), to: new Date() });
   const [department, setDepartment] = useState("all");
-  const [period, setPeriod] = useState("This Month");
-
-  const periodOptions = [
-    "This Month",
-    "Last Month", 
-    "This Quarter",
-    "Last Quarter",
-    "This Year",
-    "Custom Range"
-  ];
 
   // Using proper error handling with the dashboard API
   const dashboardQuery = useQuery({

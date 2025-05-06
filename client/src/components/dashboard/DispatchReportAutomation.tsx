@@ -18,11 +18,10 @@ export function DispatchReportAutomation() {
   const [isSlackSending, setIsSlackSending] = useState(false);
   
   // Fetch today's report
-  const todayStr = format(new Date(), 'yyyy-MM-dd');
   const { data: todayReport, isLoading: reportLoading } = useQuery<DispatchReport>({
-    queryKey: ['/api/dispatch-reports', todayStr],
+    queryKey: ['/api/dispatch-reports', 'today'],
     queryFn: async () => {
-      const res = await fetch(`/api/dispatch-reports?dispatcherId=${user?.id}&date=${todayStr}`, {
+      const res = await fetch(`/api/dispatch-reports?dispatcherId=${user?.id}&date=${format(new Date(), 'yyyy-MM-dd')}`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -30,8 +29,7 @@ export function DispatchReportAutomation() {
         throw new Error(`Error fetching dispatch reports: ${res.status}`);
       }
       const reports = await res.json();
-      // If it's an array, return the first item, otherwise return the data directly
-      return Array.isArray(reports) ? reports[0] : reports;
+      return reports[0]; // Return the first report (or undefined if none exists)
     },
     enabled: !!user?.id,
     refetchInterval: 300000, // Refetch every 5 minutes
@@ -82,8 +80,7 @@ export function DispatchReportAutomation() {
         description: "Your daily dispatch report has been updated with the latest metrics.",
         variant: "default",
       });
-      // Use today's date string in the invalidation to match our query key
-      queryClient.invalidateQueries({ queryKey: ['/api/dispatch-reports', todayStr] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dispatch-reports'] });
     },
     onError: (error: Error) => {
       toast({
@@ -243,8 +240,7 @@ export function DispatchReportAutomation() {
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium">Invoice Amount</span>
                 <span className={`text-sm font-bold ${getInvoiceColor()}`}>
-                  ${typeof todayReport.invoiceUsd === 'number' ? todayReport.invoiceUsd.toLocaleString() : '0'} / 
-                  ${dailyTarget?.maxPct ? dailyTarget.maxPct.toLocaleString() : '?'}
+                  ${todayReport.invoiceUsd.toLocaleString()} / ${dailyTarget?.maxPct.toLocaleString() || '?'}
                 </span>
               </div>
               <Progress value={getInvoiceProgress()} className="h-2" />
@@ -252,18 +248,18 @@ export function DispatchReportAutomation() {
             
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium">Active Leads</span>
+                <span className="text-sm font-medium">New Leads</span>
                 <span className="text-sm font-bold">
-                  {todayReport.activeLeads || 0}
+                  {todayReport.newLeads}
                 </span>
               </div>
             </div>
             
-            {/* Report notes section - enable if needed
+            {todayReport.notes && (
               <div className="mt-3 pt-3 border-t border-border">
-                <p className="text-sm text-muted-foreground">Report for {format(new Date(), 'MMMM d, yyyy')}</p>
+                <p className="text-sm text-muted-foreground">{todayReport.notes}</p>
               </div>
-            */}
+            )}
           </div>
         ) : (
           <div className="py-4 text-center">

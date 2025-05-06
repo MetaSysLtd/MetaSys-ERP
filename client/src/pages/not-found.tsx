@@ -1,30 +1,21 @@
-
-import { PageLayout } from "@/components/layout/PageLayout";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
 
 export default function NotFound() {
-  const navigate = useNavigate();
-
   return (
-    <PageLayout title="404 - Page Not Found">
-      <div className="min-h-[60vh] w-full flex items-center justify-center">
-        <div className="text-center space-y-6 px-4">
-          <h1 className="text-6xl font-bold text-primary">404</h1>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-semibold text-foreground">Page not found</h2>
-            <p className="text-muted-foreground">The page you're looking for doesn't exist or has been moved.</p>
+    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
+      <Card className="w-full max-w-md mx-4">
+        <CardContent className="pt-6">
+          <div className="flex mb-4 gap-2">
+            <AlertCircle className="h-8 w-8 text-red-500" />
+            <h1 className="text-2xl font-bold text-gray-900">404 Page Not Found</h1>
           </div>
-          <div className="flex gap-4 justify-center">
-            <Button onClick={() => navigate(-1)} variant="outline">
-              Go Back
-            </Button>
-            <Button onClick={() => navigate('/')} variant="default">
-              Return to Dashboard
-            </Button>
-          </div>
-        </div>
-      </div>
-    </PageLayout>
+
+          <p className="mt-4 text-sm text-gray-600">
+            Did you forget to add the page to the router?
+          </p>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

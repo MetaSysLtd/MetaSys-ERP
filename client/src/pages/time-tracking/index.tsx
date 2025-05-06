@@ -5,15 +5,15 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  format,
-  parseISO,
-  isToday,
-  isYesterday,
-  isSameWeek,
+import { 
+  format, 
+  parseISO, 
+  isToday, 
+  isYesterday, 
+  isSameWeek, 
   isSameMonth,
-  subDays,
-  startOfWeek,
+  subDays, 
+  startOfWeek, 
   endOfWeek,
   startOfMonth,
   endOfMonth,
@@ -24,7 +24,7 @@ import {
   addWeeks
 } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import {
+import { 
   Calendar as CalendarIcon,
   Clock,
   UserCheck,
@@ -49,7 +49,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { PageLayout } from "@/components/layout/PageLayout";
 
 interface ClockEvent {
   id: number;
@@ -76,7 +75,7 @@ function calculateTimeSummary(events: ClockEvent[]) {
   let monthMinutes = 0;
 
   // Sort events by timestamp
-  const sortedEvents = [...events].sort((a, b) =>
+  const sortedEvents = [...events].sort((a, b) => 
     new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   );
 
@@ -84,24 +83,24 @@ function calculateTimeSummary(events: ClockEvent[]) {
   for (let i = 0; i < sortedEvents.length - 1; i++) {
     const currentEvent = sortedEvents[i];
     const nextEvent = sortedEvents[i + 1];
-
+    
     if (currentEvent.type === "IN" && nextEvent.type === "OUT") {
       const startTime = new Date(currentEvent.timestamp);
       const endTime = new Date(nextEvent.timestamp);
       const durationMinutes = differenceInMinutes(endTime, startTime);
-
+      
       if (isToday(startTime)) {
         todayMinutes += durationMinutes;
       }
-
+      
       if (isSameWeek(startTime, now)) {
         weekMinutes += durationMinutes;
       }
-
+      
       if (isSameMonth(startTime, now)) {
         monthMinutes += durationMinutes;
       }
-
+      
       // Skip the OUT event in the next iteration
       i++;
     }
@@ -112,15 +111,15 @@ function calculateTimeSummary(events: ClockEvent[]) {
   if (lastEvent && lastEvent.type === "IN") {
     const startTime = new Date(lastEvent.timestamp);
     const durationMinutes = differenceInMinutes(now, startTime);
-
+    
     if (isToday(startTime)) {
       todayMinutes += durationMinutes;
     }
-
+    
     if (isSameWeek(startTime, now)) {
       weekMinutes += durationMinutes;
     }
-
+    
     if (isSameMonth(startTime, now)) {
       monthMinutes += durationMinutes;
     }
@@ -152,7 +151,7 @@ function ClockControls() {
   const { user } = useAuth();
 
   // Get current clock status
-  const {
+  const { 
     data: statusData,
     isLoading: statusLoading,
     refetch: refetchStatus
@@ -162,7 +161,7 @@ function ClockControls() {
   });
 
   // Get today's clock events
-  const {
+  const { 
     data: todayEvents,
     isLoading: eventsLoading,
     refetch: refetchEvents
@@ -181,13 +180,13 @@ function ClockControls() {
       refetchStatus();
       refetchEvents();
       queryClient.invalidateQueries({ queryKey: ['/api/time-tracking/events'] });
-
+      
       // Show success toast
       toast({
         title: `Successfully clocked ${currentStatus === "IN" ? "out" : "in"}`,
         description: `${format(new Date(), "h:mm a")} on ${format(new Date(), "MMMM d, yyyy")}`,
       });
-
+      
       // Reset break status when clocking out
       if (currentStatus === "IN") {
         setIsOnBreak(false);
@@ -206,13 +205,13 @@ function ClockControls() {
   useEffect(() => {
     if (statusData) {
       setCurrentStatus(statusData.status);
-
+      
       // If user is clocked in, find the most recent IN event
       if (statusData.status === "IN" && todayEvents && todayEvents.length > 0) {
         const latestInEvent = [...todayEvents]
           .reverse()
           .find(event => event.type === "IN");
-
+          
         if (latestInEvent) {
           setClockedInTime(new Date(latestInEvent.timestamp));
         }
@@ -225,24 +224,24 @@ function ClockControls() {
   // Update elapsed time counter
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
-
+    
     if (currentStatus === "IN" && clockedInTime) {
       interval = setInterval(() => {
         const now = new Date();
         const diff = now.getTime() - clockedInTime.getTime();
-
+        
         // Calculate hours, minutes, seconds
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
+        
         // Format as HH:MM:SS
         setTimeElapsed(
           `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
         );
       }, 1000);
     }
-
+    
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -258,7 +257,7 @@ function ClockControls() {
 
   const toggleBreak = () => {
     setIsOnBreak(prev => !prev);
-
+    
     toast({
       title: isOnBreak ? "Break ended" : "Break started",
       description: `${format(new Date(), "h:mm a")}`,
@@ -292,14 +291,14 @@ function ClockControls() {
         {/* Clock Status Circle */}
         <motion.div
           className={`w-36 h-36 rounded-full flex items-center justify-center mb-6 border-4 ${
-            isOnBreak
-              ? "border-yellow-500 bg-yellow-100 dark:bg-yellow-900/20"
-              : currentStatus === "IN"
-                ? "border-green-500 bg-green-100 dark:bg-green-900/20"
+            isOnBreak 
+              ? "border-yellow-500 bg-yellow-100 dark:bg-yellow-900/20" 
+              : currentStatus === "IN" 
+                ? "border-green-500 bg-green-100 dark:bg-green-900/20" 
                 : "border-amber-500 bg-amber-100 dark:bg-amber-900/20"
           }`}
           initial={{ scale: 0.9 }}
-          animate={{
+          animate={{ 
             scale: currentStatus === "IN" ? [1, 1.05, 1] : 1,
             transition: {
               repeat: currentStatus === "IN" ? Infinity : 0,
@@ -326,12 +325,12 @@ function ClockControls() {
 
         {/* Clock In/Out and Break Buttons */}
         <div className="flex flex-col space-y-3 w-full max-w-xs">
-          <Button
+          <Button 
             size="lg"
             className={`${
-              currentStatus === "IN"
-                ? "bg-amber-500 hover:bg-amber-600"
-                : "bg-green-500 hover:bg-green-600"
+              currentStatus === "IN" 
+              ? "bg-amber-500 hover:bg-amber-600" 
+              : "bg-green-500 hover:bg-green-600"
             } text-white font-bold px-8 py-6 text-lg h-auto`}
             onClick={handleClockAction}
             disabled={clockMutation.isPending}
@@ -352,14 +351,14 @@ function ClockControls() {
               "Clock In"
             )}
           </Button>
-
+          
           {currentStatus === "IN" && (
-            <Button
+            <Button 
               variant="outline"
               size="lg"
               className={`border-2 ${
-                isOnBreak
-                  ? "border-yellow-500 text-yellow-700"
+                isOnBreak 
+                  ? "border-yellow-500 text-yellow-700" 
                   : "border-blue-500 text-blue-700"
               } font-medium px-8 py-4 h-auto`}
               onClick={toggleBreak}
@@ -376,7 +375,7 @@ function ClockControls() {
 
 function TimeSummary({ events }: { events: ClockEvent[] | undefined }) {
   const summary = useMemo(() => calculateTimeSummary(events || []), [events]);
-
+  
   if (!events) {
     return (
       <Card>
@@ -393,7 +392,7 @@ function TimeSummary({ events }: { events: ClockEvent[] | undefined }) {
       </Card>
     );
   }
-
+  
   return (
     <Card>
       <CardHeader>
@@ -425,9 +424,9 @@ function TimeSummary({ events }: { events: ClockEvent[] | undefined }) {
 function ClockHistory() {
   const [activeTab, setActiveTab] = useState("today");
   const { toast } = useToast();
-
+  
   // Get all clock events
-  const {
+  const { 
     data: allEvents,
     isLoading: eventsLoading,
   } = useQuery({
@@ -462,7 +461,7 @@ function ClockHistory() {
 
   // Sort each day's events
   Object.keys(groupedEvents).forEach(day => {
-    groupedEvents[day].sort((a, b) =>
+    groupedEvents[day].sort((a, b) => 
       parseISO(a.timestamp).getTime() - parseISO(b.timestamp).getTime()
     );
   });
@@ -493,7 +492,7 @@ function ClockHistory() {
             <TabsTrigger value="yesterday" className="flex-1">Yesterday</TabsTrigger>
             <TabsTrigger value="week" className="flex-1">This Week</TabsTrigger>
           </TabsList>
-
+          
           <TabsContent value={activeTab} className="mt-0">
             <ScrollArea className="h-[400px]">
               {Object.keys(groupedEvents).length === 0 ? (
@@ -517,7 +516,7 @@ function ClockHistory() {
                           const nextEvent = groupedEvents[day][index + 1];
                           const isPair = event.type === "IN" && nextEvent?.type === "OUT";
                           let duration = null;
-
+                          
                           if (isPair) {
                             const start = parseISO(event.timestamp);
                             const end = parseISO(nextEvent.timestamp);
@@ -526,12 +525,12 @@ function ClockHistory() {
                             const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
                             duration = `${hours}h ${minutes}m`;
                           }
-
+                          
                           return (
                             <div key={event.id} className="flex items-center p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
                               <div className={`h-10 w-10 rounded-full flex items-center justify-center mr-3 ${
-                                event.type === "IN"
-                                  ? "bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400"
+                                event.type === "IN" 
+                                  ? "bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400" 
                                   : "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400"
                               }`}>
                                 {event.type === "IN" ? <UserCheck size={18} /> : <Clock size={18} />}
@@ -567,27 +566,27 @@ function ClockHistory() {
 function AttendanceCalendar() {
   const [date, setDate] = useState<Date>(new Date());
   const [month, setMonth] = useState<Date>(new Date());
-
+  
   // Get all clock events
-  const {
+  const { 
     data: allEvents,
     isLoading: eventsLoading,
   } = useQuery({
     queryKey: ["/api/time-tracking/events"],
     retry: false,
   });
-
+  
   // Process events to determine attendance days
   const attendanceDays = useMemo(() => {
     if (!allEvents || allEvents.length === 0) return {};
-
+    
     const daysMap: Record<string, { hours: number, status: 'present' | 'partial' | 'absent' }> = {};
-
+    
     // Group events by day
     allEvents.forEach((event: ClockEvent) => {
       const eventDate = parseISO(event.timestamp);
       const dateKey = format(eventDate, "yyyy-MM-dd");
-
+      
       if (!daysMap[dateKey]) {
         daysMap[dateKey] = {
           hours: 0,
@@ -595,34 +594,34 @@ function AttendanceCalendar() {
         };
       }
     });
-
+    
     // Calculate hours for each day by pairing IN/OUT events
-    const sortedEvents = [...allEvents].sort((a, b) =>
+    const sortedEvents = [...allEvents].sort((a, b) => 
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
-
+    
     for (let i = 0; i < sortedEvents.length - 1; i++) {
       const currentEvent = sortedEvents[i];
       const nextEvent = sortedEvents[i + 1];
-
+      
       if (currentEvent.type === "IN" && nextEvent.type === "OUT") {
         const startTime = parseISO(currentEvent.timestamp);
         const endTime = parseISO(nextEvent.timestamp);
         const dateKey = format(startTime, "yyyy-MM-dd");
-
+        
         // Calculate hours worked
         const hoursWorked = differenceInHours(endTime, startTime);
         daysMap[dateKey].hours += hoursWorked;
-
+        
         // Skip the OUT event in the next iteration
         i++;
       }
     }
-
+    
     // Set status based on hours
     Object.keys(daysMap).forEach(dateKey => {
       const { hours } = daysMap[dateKey];
-
+      
       if (hours >= 7) {
         daysMap[dateKey].status = 'present';
       } else if (hours > 0) {
@@ -631,20 +630,20 @@ function AttendanceCalendar() {
         daysMap[dateKey].status = 'absent';
       }
     });
-
+    
     return daysMap;
   }, [allEvents]);
-
+  
   // Generate calendar day elements
   const renderCalendarContent = () => {
     if (eventsLoading) {
       return <Skeleton className="h-64 w-full" />;
     }
-
+    
     const startDate = startOfMonth(month);
     const endDate = endOfMonth(month);
     const days = eachDayOfInterval({ start: startDate, end: endDate });
-
+    
     return (
       <div className="grid grid-cols-7 gap-1">
         {/* Day headers */}
@@ -653,17 +652,17 @@ function AttendanceCalendar() {
             {day}
           </div>
         ))}
-
+        
         {/* Empty cells for days before the first day of month */}
         {Array.from({ length: startDate.getDay() }).map((_, i) => (
           <div key={`empty-start-${i}`} className="h-10 rounded-md"></div>
         ))}
-
+        
         {/* Calendar days */}
         {days.map((day) => {
           const dateKey = format(day, "yyyy-MM-dd");
           const attendance = attendanceDays[dateKey];
-
+          
           let bgColor = "";
           if (attendance) {
             if (attendance.status === 'present') {
@@ -672,13 +671,13 @@ function AttendanceCalendar() {
               bgColor = "bg-yellow-100 dark:bg-yellow-900/20";
             }
           }
-
+          
           const isToday = format(new Date(), "yyyy-MM-dd") === dateKey;
-
+          
           return (
-            <div
-              key={dateKey}
-              className={`h-10 flex items-center justify-center rounded-md text-sm
+            <div 
+              key={dateKey} 
+              className={`h-10 flex items-center justify-center rounded-md text-sm 
                 ${bgColor}
                 ${isToday ? 'border-2 border-blue-500' : ''}
               `}
@@ -694,7 +693,7 @@ function AttendanceCalendar() {
             </div>
           );
         })}
-
+        
         {/* Empty cells for days after the last day of month */}
         {Array.from({ length: 6 - endDate.getDay() }).map((_, i) => (
           <div key={`empty-end-${i}`} className="h-10 rounded-md"></div>
@@ -702,22 +701,22 @@ function AttendanceCalendar() {
       </div>
     );
   };
-
+  
   const handlePrevMonth = () => {
     setMonth(prevMonth => addMonths(prevMonth, -1));
   };
-
+  
   const handleNextMonth = () => {
     setMonth(prevMonth => addMonths(prevMonth, 1));
   };
-
+  
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Attendance Calendar</CardTitle>
         <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
+          <Button 
+            variant="outline" 
             size="icon"
             onClick={handlePrevMonth}
           >
@@ -726,8 +725,8 @@ function AttendanceCalendar() {
           <span className="text-sm font-medium">
             {format(month, "MMMM yyyy")}
           </span>
-          <Button
-            variant="outline"
+          <Button 
+            variant="outline" 
             size="icon"
             onClick={handleNextMonth}
           >
@@ -737,7 +736,7 @@ function AttendanceCalendar() {
       </CardHeader>
       <CardContent>
         {renderCalendarContent()}
-
+        
         <div className="flex items-center justify-center space-x-4 mt-4">
           <div className="flex items-center">
             <div className="w-3 h-3 rounded-full bg-green-100 dark:bg-green-900/20 mr-1"></div>
@@ -755,24 +754,24 @@ function AttendanceCalendar() {
 
 function TimeAnalytics() {
   const [period, setPeriod] = useState<"week" | "month">("week");
-
+  
   // Get all clock events
-  const {
+  const { 
     data: allEvents,
     isLoading: eventsLoading,
   } = useQuery({
     queryKey: ["/api/time-tracking/events"],
     retry: false,
   });
-
+  
   // Process events into chart data
   const chartData = useMemo(() => {
     if (!allEvents || allEvents.length === 0) return [];
-
+    
     const now = new Date();
     let startDate: Date;
     let dateFormat: string;
-
+    
     if (period === "week") {
       startDate = startOfWeek(now);
       dateFormat = "EEE";
@@ -780,50 +779,50 @@ function TimeAnalytics() {
       startDate = startOfMonth(now);
       dateFormat = "dd";
     }
-
-    const days = eachDayOfInterval({
-      start: startDate,
-      end: period === "week" ? endOfWeek(now) : endOfMonth(now)
+    
+    const days = eachDayOfInterval({ 
+      start: startDate, 
+      end: period === "week" ? endOfWeek(now) : endOfMonth(now) 
     });
-
+    
     // Create data for each day with default 0 hours
     const dayData = days.map(day => ({
       date: format(day, dateFormat),
       fullDate: format(day, "yyyy-MM-dd"),
       hours: 0
     }));
-
+    
     // Calculate hours for each day
-    const sortedEvents = [...allEvents].sort((a, b) =>
+    const sortedEvents = [...allEvents].sort((a, b) => 
       new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     );
-
+    
     for (let i = 0; i < sortedEvents.length - 1; i++) {
       const currentEvent = sortedEvents[i];
       const nextEvent = sortedEvents[i + 1];
-
+      
       if (currentEvent.type === "IN" && nextEvent.type === "OUT") {
         const startTime = parseISO(currentEvent.timestamp);
         const endTime = parseISO(nextEvent.timestamp);
         const dateKey = format(startTime, "yyyy-MM-dd");
-
+        
         // Only include events in current period
         const dayItem = dayData.find(item => item.fullDate === dateKey);
         if (dayItem) {
           // Calculate hours worked
-          const hoursWorked = differenceInHours(endTime, startTime) +
+          const hoursWorked = differenceInHours(endTime, startTime) + 
             (differenceInMinutes(endTime, startTime) % 60) / 60;
           dayItem.hours += parseFloat(hoursWorked.toFixed(1));
         }
-
+        
         // Skip the OUT event in the next iteration
         i++;
       }
     }
-
+    
     return dayData;
   }, [allEvents, period]);
-
+  
   if (eventsLoading) {
     return (
       <Card>
@@ -836,7 +835,7 @@ function TimeAnalytics() {
       </Card>
     );
   }
-
+  
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -868,8 +867,8 @@ function TimeAnalytics() {
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="date" />
-              <YAxis
-                label={{ value: 'Hours', angle: -90, position: 'insideLeft' }}
+              <YAxis 
+                label={{ value: 'Hours', angle: -90, position: 'insideLeft' }} 
                 domain={[0, 'dataMax + 2']} // Add some space at the top
               />
               <Tooltip formatter={(value) => [`${value} hours`, 'Time Worked']} />
@@ -884,7 +883,7 @@ function TimeAnalytics() {
 
 function TeamTimeTracking() {
   const { user } = useAuth();
-
+  
   // Mocked team data - In a real app, you would fetch this from your API
   const teamData = [
     { id: 1, name: "John Smith", position: "Sales Rep", activeNow: true, hoursToday: 7.5 },
@@ -892,7 +891,7 @@ function TeamTimeTracking() {
     { id: 3, name: "Michael Brown", position: "Accountant", activeNow: false, hoursToday: 4.0 },
     { id: 4, name: "Sarah Davis", position: "HR Manager", activeNow: false, hoursToday: 8.0 },
   ];
-
+  
   return (
     <Card>
       <CardHeader>
@@ -936,140 +935,144 @@ function TeamTimeTracking() {
 export default function TimeTrackingPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
-
+  
   // Get all clock events
-  const {
+  const { 
     data: allEvents,
     isLoading: eventsLoading,
   } = useQuery({
     queryKey: ["/api/time-tracking/events"],
     retry: false,
   });
-
+  
   return (
-    <PageLayout title="Time Tracking">
-      <Card className="p-6">
-        <h2 className="text-2xl font-semibold mb-4">Time Management</h2>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="w-full border-b pb-0 justify-start">
-            <TabsTrigger value="dashboard" className="flex items-center">
-              <Clock3 className="mr-2 h-4 w-4" />
-              Dashboard
-            </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center">
-              <HistoryIcon className="mr-2 h-4 w-4" />
-              History
-            </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center">
-              <CalendarViewIcon className="mr-2 h-4 w-4" />
-              Calendar
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center">
-              <BarChart4 className="mr-2 h-4 w-4" />
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger value="team" className="flex items-center">
-              <User className="mr-2 h-4 w-4" />
-              Team
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="dashboard" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="flex flex-col space-y-6">
-                <ClockControls />
-                <TimeSummary events={allEvents} />
-              </div>
-              <div className="flex flex-col space-y-6">
-                <ClockHistory />
-              </div>
+    <div className="container py-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Time Tracking</h1>
+        <p className="text-gray-500">
+          Manage your work hours and view your time records
+        </p>
+      </div>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="w-full border-b pb-0 justify-start">
+          <TabsTrigger value="dashboard" className="flex items-center">
+            <Clock3 className="mr-2 h-4 w-4" />
+            Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center">
+            <HistoryIcon className="mr-2 h-4 w-4" />
+            History
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="flex items-center">
+            <CalendarViewIcon className="mr-2 h-4 w-4" />
+            Calendar
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center">
+            <BarChart4 className="mr-2 h-4 w-4" />
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="team" className="flex items-center">
+            <User className="mr-2 h-4 w-4" />
+            Team
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="dashboard" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="flex flex-col space-y-6">
+              <ClockControls />
+              <TimeSummary events={allEvents} />
             </div>
-          </TabsContent>
-
-          <TabsContent value="history" className="space-y-6">
-            <div className="grid grid-cols-1 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Work History</CardTitle>
-                  <CardDescription>
-                    Your complete work history record
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <Select defaultValue="all">
-                          <SelectTrigger className="w-[150px]">
-                            <SelectValue placeholder="Select period" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Time</SelectItem>
-                            <SelectItem value="lastWeek">Last Week</SelectItem>
-                            <SelectItem value="lastMonth">Last Month</SelectItem>
-                            <SelectItem value="last3Months">Last 3 Months</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" size="sm" className="flex items-center">
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              Date Range
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="range"
-                              selected={{
-                                from: subDays(new Date(), 7),
-                                to: new Date(),
-                              }}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-
-                      <Button variant="outline" size="sm">
-                        <FileBarChart2 className="mr-2 h-4 w-4" />
-                        Export Report
-                      </Button>
+            <div className="flex flex-col space-y-6">
+              <ClockHistory />
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="history" className="space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Work History</CardTitle>
+                <CardDescription>
+                  Your complete work history record
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <Select defaultValue="all">
+                        <SelectTrigger className="w-[150px]">
+                          <SelectValue placeholder="Select period" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Time</SelectItem>
+                          <SelectItem value="lastWeek">Last Week</SelectItem>
+                          <SelectItem value="lastMonth">Last Month</SelectItem>
+                          <SelectItem value="last3Months">Last 3 Months</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="flex items-center">
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            Date Range
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="range"
+                            selected={{
+                              from: subDays(new Date(), 7),
+                              to: new Date(),
+                            }}
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
-
-                    <ScrollArea className="h-[500px]">
-                      {eventsLoading ? (
-                        Array(7).fill(0).map((_, i) => (
-                          <Skeleton key={i} className="h-20 w-full mb-2" />
-                        ))
-                      ) : (
-                        <ClockHistory />
-                      )}
-                    </ScrollArea>
+                    
+                    <Button variant="outline" size="sm">
+                      <FileBarChart2 className="mr-2 h-4 w-4" />
+                      Export Report
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="calendar" className="space-y-6">
-            <div className="grid grid-cols-1 gap-6">
-              <AttendanceCalendar />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 gap-6">
-              <TimeAnalytics />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="team" className="space-y-6">
-            <div className="grid grid-cols-1 gap-6">
-              <TeamTimeTracking />
-            </div>
-          </TabsContent>
-        </Tabs>
-      </Card>
-    </PageLayout>
+                  
+                  <ScrollArea className="h-[500px]">
+                    {eventsLoading ? (
+                      Array(7).fill(0).map((_, i) => (
+                        <Skeleton key={i} className="h-20 w-full mb-2" />
+                      ))
+                    ) : (
+                      <ClockHistory />
+                    )}
+                  </ScrollArea>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="calendar" className="space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            <AttendanceCalendar />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            <TimeAnalytics />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="team" className="space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            <TeamTimeTracking />
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

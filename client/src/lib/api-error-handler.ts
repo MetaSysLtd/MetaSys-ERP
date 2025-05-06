@@ -84,32 +84,19 @@ export function handleApiError(
   context: string,
   resourceType: string
 ): never {
-  console.error('API Error:', error);
   const err = error instanceof Error ? error : new Error(String(error));
-
-  // Handle session expiration
-  if (err.message.includes('401') || (err instanceof Error && (err as any).response?.status === 401)) {
-    window.location.href = '/auth/login?session=expired';
-    return;
-  }
-
-  // Handle not found
-  if (err.message.includes('404') || (err instanceof Error && (err as any).response?.status === 404)) {
-    if ((err as any).config?.url?.startsWith('/api/')) {
-      //  Replace with actual toast implementation if available.
-      console.warn("Toast message not implemented.  Consider adding a toast library.");
-      // toast({ title: 'Resource Not Found', description: 'The requested resource could not be found.', variant: 'destructive' });
-    } else {
-      window.location.href = '/not-found';
-    }
-    return;
-  }
 
   // Check for network errors
   if (err.message.includes('Failed to fetch') || err.message.includes('Network')) {
     err.message = 'Network connection lost. Please check your internet connection.';
   }
 
+  // Check for authentication errors
+  if (err.message.includes('401')) {
+    // Force logout on auth errors
+    window.dispatchEvent(new CustomEvent('forceLogout'));
+    err.message = 'Session expired. Please log in again.';
+  }
 
   // Format date for log
   const timestamp = new Date().toISOString();
@@ -122,10 +109,12 @@ export function handleApiError(
 
   // Clean up common error messages
 
-  if (userMessage.includes('timeout')) {
+  else if (userMessage.includes('timeout')) {
     userMessage = `The server is taking too long to respond. Please try again later.`;
   } else if (userMessage.includes('403')) {
     userMessage = `You don't have permission to access this ${resourceType}.`;
+  } else if (userMessage.includes('404')) {
+    userMessage = `The requested ${resourceType} could not be found.`;
   } else if (userMessage.includes('500')) {
     userMessage = `An error occurred on the server while processing your request.`;
   } else if (!userMessage || userMessage === '[object Object]') {
