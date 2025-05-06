@@ -1,13 +1,51 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { storage } from '../storage';
-// Import directly to avoid type issues
-import * as AuthMiddleware from '../middleware/auth';
+
+// Extended Express Request interface with auth properties
+interface AuthenticatedRequest extends Request {
+  isAuthenticated(): boolean;
+  user?: {
+    id: number;
+    [key: string]: any;
+  };
+  userRole?: {
+    id: number;
+    name: string;
+    level: number;
+    [key: string]: any;
+  };
+}
 
 const router = express.Router();
-const auth = AuthMiddleware.auth;
+
+// Simple middleware for checking authentication
+function checkAuth(req: Request, res: Response, next: NextFunction) {
+  const authReq = req as AuthenticatedRequest;
+  if (!authReq.isAuthenticated || !authReq.isAuthenticated()) {
+    return res.status(401).json({ error: "Unauthorized: Please log in to access this resource" });
+  }
+  next();
+}
+
+// Basic role level check (level 1 for sales reps, level 3 for managers, etc.)
+function checkLevel(level: number) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!authReq.isAuthenticated || !authReq.isAuthenticated()) {
+      return res.status(401).json({ error: "Unauthorized: Please log in to access this resource" });
+    }
+    
+    const userLevel = authReq.userRole?.level || 0;
+    if (userLevel < level) {
+      return res.status(403).json({ error: "Forbidden: You don't have required permissions" });
+    }
+    
+    next();
+  };
+}
 
 // Get commission data by month for specific user
-router.get('/monthly/user/:userId/:month?', auth(1), async (req: Request, res: Response) => {
+router.get('/monthly/user/:userId/:month?', checkAuth, async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId);
     const month = req.params.month || new Date().toISOString().slice(0, 7);
@@ -66,7 +104,7 @@ router.get('/monthly/user/:userId/:month?', auth(1), async (req: Request, res: R
 });
 
 // Get all commission data for a user (for listing available months)
-router.get('/monthly/user/:userId', auth(1), async (req: Request, res: Response) => {
+router.get('/monthly/user/:userId', checkAuth, async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId);
     
@@ -93,7 +131,7 @@ router.get('/monthly/user/:userId', auth(1), async (req: Request, res: Response)
 });
 
 // Get metrics for commission details view
-router.get('/metrics/:userId', auth(1), async (req: Request, res: Response) => {
+router.get('/metrics/:userId', checkAuth, async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId);
     const month = req.query.month as string || new Date().toISOString().slice(0, 7);
@@ -133,7 +171,7 @@ router.get('/metrics/:userId', auth(1), async (req: Request, res: Response) => {
 });
 
 // Get all sales representatives with commission data (for team view)
-router.get('/sales-reps', auth(3), async (req: Request, res: Response) => {
+router.get('/sales-reps', checkLevel(3), async (req: Request, res: Response) => {
   try {
     const month = req.query.month as string || new Date().toISOString().slice(0, 7);
     
@@ -174,7 +212,7 @@ router.get('/sales-reps', auth(3), async (req: Request, res: Response) => {
 });
 
 // Calculate commission for a user based on their activity
-router.post('/calculate/:userId', auth(3), async (req: Request, res: Response) => {
+router.post('/calculate/:userId', checkLevel(3), async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId);
     const month = req.body.month || new Date().toISOString().slice(0, 7);
@@ -186,8 +224,9 @@ router.post('/calculate/:userId', auth(3), async (req: Request, res: Response) =
     }
     
     // Check if request user has permission
-    const isAdmin = req.userRole && req.userRole.level >= 3;
-    if (!isAdmin && req.user?.id !== userId) {
+    const authReq = req as AuthenticatedRequest;
+    const isAdmin = authReq.userRole && authReq.userRole.level >= 3;
+    if (!isAdmin && authReq.user?.id !== userId) {
       return res.status(403).json({ error: "You don't have permission to calculate commissions for other users" });
     }
     
@@ -224,5 +263,7 @@ router.post('/calculate/:userId', auth(3), async (req: Request, res: Response) =
     return res.status(500).json({ error: "Failed to calculate commission" });
   }
 });
+
+export default router;
 
 export default router;
