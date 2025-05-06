@@ -3,15 +3,13 @@ import { ParamsDictionary } from 'express-serve-static-core';
 import { ParsedQs } from 'qs';
 import { storage } from '../storage';
 import { User, Role } from "@shared/schema";
+import session from 'express-session';
 
 // Extended Express Request interface with auth properties
 interface AuthenticatedRequest extends Request {
   isAuthenticated?(): boolean;
   user?: User;
   userRole?: Role;
-  session: Express.Session & {
-    userId?: number;
-  };
 }
 
 const router = express.Router();
