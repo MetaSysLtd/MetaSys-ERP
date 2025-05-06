@@ -22,11 +22,30 @@ import {
   BarChart2, 
   Users,
   AlertCircle,
-  Loader2
+  Loader2,
+  Filter,
+  ChevronDown,
+  Search
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import SalesRepLeaderboard from "@/components/crm/SalesRepLeaderboard";
+import SalesRepCommissionDetails from "@/components/crm/SalesRepCommissionDetails";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Animation variants
 const animations = {
@@ -140,6 +159,8 @@ export default function CommissionsPage() {
   const queryClient = useQueryClient();
   const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
+  const [viewMode, setViewMode] = useState<'personal' | 'team'>('personal');
+  const [selectedUserId, setSelectedUserId] = useState<number>(user?.id || 1);
   
   // Get all commission data for the user
   const { data: userCommissions, isLoading: isLoadingUserCommissions, error: userCommissionsError } = useQuery({
@@ -222,6 +243,24 @@ export default function CommissionsPage() {
     },
     enabled: !!user?.id && !!previousMonth
   });
+
+  // Query for all sales reps
+  const { data: salesReps, isLoading: isLoadingSalesReps } = useQuery({
+    queryKey: ["/api/commissions/sales-reps", selectedMonth],
+    queryFn: async () => {
+      try {
+        const response = await fetch(`/api/commissions/sales-reps?month=${selectedMonth}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch sales representatives: ${response.status}`);
+        }
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching sales representatives:', error);
+        throw error;
+      }
+    },
+    enabled: viewMode === 'team' && role && (role.level >= 3 || role.isAdmin)
+  });
   
   // Calculate growth percentage
   const calculateGrowth = (current: number, previous: number): number => {
@@ -243,16 +282,20 @@ export default function CommissionsPage() {
     return new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
   
-  // Format functions are imported from @/lib/utils
-  
   // Determine if user can export commissions
   const canExportCommissions = 
     role?.department === "admin" || 
     (role?.level ?? 0) >= 3 ||
     (role?.permissions && typeof role.permissions === 'object' && 'canExportCommissions' in role.permissions && role.permissions.canExportCommissions);
   
+  // Check if user can view team data
+  const canViewTeamData = 
+    role?.isAdmin || 
+    (role?.level ?? 0) >= 3 || 
+    (role?.permissions && typeof role.permissions === 'object' && 'canViewTeamCommissions' in role.permissions && role.permissions.canViewTeamCommissions);
+  
   // Handle loading state for all queries
-  const isLoading = isLoadingUserCommissions || isLoadingMonthly;
+  const isLoading = isLoadingUserCommissions || isLoadingMonthly || (viewMode === 'team' && isLoadingSalesReps);
   
   // Handle error state
   const error = userCommissionsError || monthlyError;
@@ -275,7 +318,7 @@ export default function CommissionsPage() {
       </div>
     );
   }
-
+  
   // Render error state with a clean fallback view
   if (isError) {
     return (
@@ -298,6 +341,9 @@ export default function CommissionsPage() {
               onClick={() => {
                 queryClient.invalidateQueries({ queryKey: ["/api/commissions/monthly/user", user?.id] });
                 queryClient.invalidateQueries({ queryKey: ["/api/commissions/monthly/user", user?.id, selectedMonth] });
+                if (viewMode === 'team') {
+                  queryClient.invalidateQueries({ queryKey: ["/api/commissions/sales-reps", selectedMonth] });
+                }
               }}
             >
               Retry
@@ -307,7 +353,7 @@ export default function CommissionsPage() {
       </div>
     );
   }
-
+  
   // If no commission data found, show empty state
   if (!userCommissions || userCommissions.length === 0) {
     return (
@@ -331,143 +377,180 @@ export default function CommissionsPage() {
       </div>
     );
   }
-
-  // Process the data for display
+  
+  // Calculate growth rates for personal view
   const currentMonthData = monthlyCommission || { total: 0, leads: 0, clients: 0, items: [] };
   const prevMonthData = prevMonthCommission || { total: 0, leads: 0, clients: 0, items: [] };
-  
-  // Calculate growth rates
   const totalGrowth = calculateGrowth(currentMonthData.total, prevMonthData.total);
-  const leadsGrowth = calculateGrowth(currentMonthData.leads, prevMonthData.leads);
-  const clientsGrowth = calculateGrowth(currentMonthData.clients, prevMonthData.clients);
-
+  
   return (
-    <div className="container mx-auto">
-      {/* Page header */}
-      <MotionWrapper animation="fade-down" delay={0.1}>
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900 mb-1">
-                CRM Commissions
-              </h1>
-              <p className="text-gray-500">
-                Track your sales performance and commission earnings
-              </p>
-            </div>
-            {canExportCommissions && (
-              <Button
-                variant="outline"
-                className="mt-4 sm:mt-0"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export Report
-              </Button>
-            )}
+    <div className="container mx-auto py-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        <h1 className="text-2xl font-semibold mb-2 md:mb-0">
+          Commission Details: {formatMonth(selectedMonth)}
+        </h1>
+        
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+          <div className="relative">
+            <Input
+              type="month"
+              value={selectedMonth}
+              max={currentMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="w-40"
+            />
+            <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-500 pointer-events-none" />
           </div>
+          
+          {/* View toggle - only show if user has permission */}
+          {canViewTeamData && (
+            <Select
+              value={viewMode}
+              onValueChange={(value) => setViewMode(value as 'personal' | 'team')}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="View Mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="personal">My Commissions</SelectItem>
+                <SelectItem value="team">Team Overview</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          {canExportCommissions && (
+            <Button variant="outline" onClick={() => {
+              toast({
+                title: "Export Initiated",
+                description: "Your commission data is being prepared for download.",
+              });
+            }}>
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          )}
         </div>
-      </MotionWrapper>
+      </div>
       
-      {/* Month selector */}
-      <MotionWrapper animation="fade-up" delay={0.2}>
-        <Card className="shadow mb-6">
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row justify-between items-center">
-              <div className="flex items-center mb-4 sm:mb-0">
-                <Calendar className="h-5 w-5 text-gray-500 mr-2" />
-                <span className="font-medium">Select Month: </span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {userCommissions.map((commission: any) => (
-                  <Button
-                    key={commission.month}
-                    variant={selectedMonth === commission.month ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedMonth(commission.month)}
+      {/* Personal view shows current user's commission data */}
+      {viewMode === 'personal' && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <MotionWrapper animation="fade-up" delay={0.1}>
+              <CommissionSummaryItem
+                title="Current Month"
+                amount={currentMonthData.total}
+                period={formatMonth(selectedMonth)}
+              />
+            </MotionWrapper>
+            
+            <MotionWrapper animation="fade-up" delay={0.2}>
+              <CommissionSummaryItem
+                title="Previous Month"
+                amount={prevMonthData.total}
+                period={formatMonth(previousMonth)}
+              />
+            </MotionWrapper>
+            
+            <MotionWrapper animation="fade-up" delay={0.3}>
+              <CommissionSummaryItem
+                title="Monthly Growth"
+                amount={Math.abs(currentMonthData.total - prevMonthData.total)}
+                growth={totalGrowth}
+                period="Month-over-Month"
+              />
+            </MotionWrapper>
+          </div>
+          
+          <MotionWrapper animation="fade-up" delay={0.4}>
+            {user && (
+              <SalesRepCommissionDetails userId={user.id} month={selectedMonth} />
+            )}
+          </MotionWrapper>
+        </>
+      )}
+      
+      {/* Team view shows leaderboard and individual details */}
+      {viewMode === 'team' && (
+        <>
+          <Tabs defaultValue="leaderboard" className="mt-6">
+            <TabsList className="mb-4">
+              <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+              <TabsTrigger value="individual">Individual Performance</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="leaderboard">
+              <MotionWrapper animation="fade-up" delay={0.1}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Users className="mr-2 h-5 w-5" />
+                      Sales Team Leaderboard
+                    </CardTitle>
+                    <CardDescription>
+                      Performance ranking for {formatMonth(selectedMonth)}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingSalesReps ? (
+                      <div className="py-10">
+                        <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary/70" />
+                      </div>
+                    ) : salesReps && salesReps.length > 0 ? (
+                      <SalesRepLeaderboard 
+                        salesReps={salesReps} 
+                        month={selectedMonth}
+                        onSelectRep={(userId) => {
+                          setSelectedUserId(userId);
+                          // Switch to individual tab
+                          const individualTab = document.querySelector('[data-value="individual"]') as HTMLElement;
+                          if (individualTab) individualTab.click();
+                        }}
+                      />
+                    ) : (
+                      <div className="py-8 text-center text-gray-500">
+                        <BarChart2 className="mx-auto h-12 w-12 text-gray-300" />
+                        <h3 className="mt-2 text-lg font-medium">No Sales Representatives</h3>
+                        <p className="mt-1 text-sm text-gray-500">
+                          No active sales representatives found.
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </MotionWrapper>
+            </TabsContent>
+            
+            <TabsContent value="individual">
+              {salesReps && salesReps.length > 0 && (
+                <div className="mb-4">
+                  <Select
+                    value={selectedUserId.toString()}
+                    onValueChange={(value) => setSelectedUserId(Number(value))}
                   >
-                    {formatMonth(commission.month)}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </MotionWrapper>
-      
-      {/* Summary cards */}
-      <MotionWrapper animation="fade-up" delay={0.3}>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
-          <CommissionSummaryItem
-            title="Total Commission"
-            amount={currentMonthData.total}
-            growth={totalGrowth}
-            period={formatMonth(selectedMonth)}
-          />
-          <CommissionSummaryItem
-            title="New Leads Converted"
-            amount={currentMonthData.leads}
-            growth={leadsGrowth}
-            period={formatMonth(selectedMonth)}
-          />
-          <CommissionSummaryItem
-            title="New Clients Onboarded"
-            amount={currentMonthData.clients}
-            growth={clientsGrowth}
-            period={formatMonth(selectedMonth)}
-          />
-        </div>
-      </MotionWrapper>
-      
-      {/* Commission details */}
-      <MotionWrapper animation="fade-up" delay={0.4}>
-        <Card className="shadow">
-          <CardHeader>
-            <CardTitle className="text-lg">Commission Details</CardTitle>
-            <CardDescription>
-              Breakdown of your commission for {formatMonth(selectedMonth)}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {currentMonthData.items && currentMonthData.items.length > 0 ? (
-                  currentMonthData.items.map((item: any) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{formatDate(item.date)}</TableCell>
-                      <TableCell className="font-medium">{item.clientName}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          item.type === 'Lead' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 
-                          'bg-green-50 text-green-700 border border-green-200'
-                        }`}>
-                          {item.type}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(item.amount)}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-6 text-gray-500">
-                      No commission entries for this month
-                    </TableCell>
-                  </TableRow>
+                    <SelectTrigger className="w-full md:w-72">
+                      <SelectValue placeholder="Select Sales Representative" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {salesReps.map(rep => (
+                        <SelectItem key={rep.userId} value={rep.userId.toString()}>
+                          {rep.firstName} {rep.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              <MotionWrapper animation="fade-up" delay={0.2}>
+                {selectedUserId && (
+                  <SalesRepCommissionDetails userId={selectedUserId} month={selectedMonth} />
                 )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </MotionWrapper>
+              </MotionWrapper>
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
     </div>
   );
 }

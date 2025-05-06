@@ -1,544 +1,510 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription,
-  CardFooter
-} from "@/components/ui/card";
-import { 
-  Avatar, 
-  AvatarFallback, 
-  AvatarImage 
-} from "@/components/ui/avatar";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Download, 
-  TrendingUp, 
-  Calendar, 
-  DollarSign, 
-  Award, 
-  AlertTriangle, 
-  BarChart2, 
-  FileText, 
-  Users, 
-  Filter 
-} from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
-import { formatCurrency, formatDate } from "@/lib/utils";
-
-// Types
-interface CommissionItem {
-  id: number;
-  date: string;
-  clientName: string;
-  type: string;
-  amount: number;
-  leadSource?: string;
-  status?: string;
-}
-
-interface CommissionMetrics {
-  targetAmount: number;
-  currentAmount: number;
-  previousAmount: number;
-  leads: number;
-  clients: number;
-  growth: number;
-  targetPercentage: number;
-  deptRank: number;
-  deptTotal: number;
-  badges: string[];
-  allTimeLeads?: number;
-  allTimeClients?: number;
-  consecutiveGrowth?: number;
-}
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Loader2, ArrowUp, ArrowDown, HelpCircle, Medal, DollarSign, Target, TrendingUp } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 interface SalesRepCommissionDetailsProps {
   userId: number;
   month: string;
 }
 
-const SalesRepCommissionDetails = ({ userId, month }: SalesRepCommissionDetailsProps) => {
-  const [activeTab, setActiveTab] = useState("overview");
-
-  // Fetch user details
-  const { data: user, isLoading: isLoadingUser } = useQuery({
-    queryKey: ["/api/users", userId],
-    queryFn: async () => {
-      const response = await fetch(`/api/users/${userId}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch user details: ${response.status}`);
-      }
-      return response.json();
-    },
-    enabled: !!userId,
+export default function SalesRepCommissionDetails({ 
+  userId, 
+  month 
+}: SalesRepCommissionDetailsProps) {
+  // Fetch commission metrics data
+  const { data: metrics, isLoading: metricsLoading, error: metricsError } = useQuery({
+    queryKey: ['/api/commissions/metrics', userId, month],
+    queryFn: () => fetch(`/api/commissions/metrics/${userId}?month=${month}`).then(res => res.json())
   });
-
-  // Fetch commission details for this user and month
-  const { data: commission, isLoading: isLoadingCommission, error } = useQuery({
-    queryKey: ["/api/commissions/monthly/user", userId, month],
-    queryFn: async () => {
-      const response = await fetch(`/api/commissions/monthly/user/${userId}/${month}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch commission details: ${response.status}`);
-      }
-      return response.json();
-    },
-    enabled: !!userId && !!month,
+  
+  // Fetch commission data for the month
+  const { data: commissionData, isLoading: commissionLoading, error: commissionError } = useQuery({
+    queryKey: ['/api/commissions/monthly/user', userId, month],
+    queryFn: () => fetch(`/api/commissions/monthly/user/${userId}/${month}`).then(res => res.json())
   });
-
-  // Fetch user metrics
-  const { data: metrics, isLoading: isLoadingMetrics } = useQuery({
-    queryKey: ["/api/commissions/metrics", userId, month],
-    queryFn: async () => {
-      const response = await fetch(`/api/commissions/metrics/${userId}?month=${month}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch commission metrics: ${response.status}`);
-      }
-      return response.json();
-    },
-    enabled: !!userId && !!month,
-  });
-
-  // Handle loading state
-  const isLoading = isLoadingUser || isLoadingCommission || isLoadingMetrics;
-
-  // Get initials for avatar fallback
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-  };
-
-  // Get badge component based on badge type
-  const getBadgeComponent = (badge: string) => {
-    switch (badge) {
-      case "top-performer":
-        return (
-          <Badge className="bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-100">
-            <Award className="h-3 w-3 mr-1" /> Top Performer
-          </Badge>
-        );
-      case "target-achieved":
-        return (
-          <Badge className="bg-green-100 text-green-800 border border-green-200 hover:bg-green-100">
-            <Award className="h-3 w-3 mr-1" /> Target Achieved
-          </Badge>
-        );
-      case "consistent-growth":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 border border-blue-200 hover:bg-blue-100">
-            <TrendingUp className="h-3 w-3 mr-1" /> Consistent Growth
-          </Badge>
-        );
-      case "at-risk":
-        return (
-          <Badge className="bg-red-100 text-red-800 border border-red-200 hover:bg-red-100">
-            <AlertTriangle className="h-3 w-3 mr-1" /> Target Missed
-          </Badge>
-        );
-      default:
-        return null;
-    }
-  };
-
-  // Render loading skeleton
-  if (isLoading) {
+  
+  // Loading state
+  if (metricsLoading || commissionLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-3/4 mb-2" />
-          <Skeleton className="h-4 w-1/2" />
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4 mb-6">
-            <Skeleton className="h-16 w-16 rounded-full" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-[200px]" />
-              <Skeleton className="h-4 w-[150px]" />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Skeleton className="h-24 w-full rounded-md" />
-            <Skeleton className="h-24 w-full rounded-md" />
-            <Skeleton className="h-24 w-full rounded-md" />
-          </div>
-          <Skeleton className="h-48 w-full rounded-md" />
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     );
   }
-
-  // Render error state
-  if (error) {
+  
+  // Error state
+  if (metricsError || commissionError) {
     return (
-      <Card className="border-red-200 bg-red-50">
-        <CardHeader>
-          <CardTitle className="text-red-700">Error Loading Commission Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-red-600">
-            {error instanceof Error ? error.message : "Failed to load commission details"}
-          </p>
-        </CardContent>
-      </Card>
+      <Alert variant="destructive" className="my-4">
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Failed to load commission data. Please try again later.
+        </AlertDescription>
+      </Alert>
     );
   }
-
-  // If user or commission data is not available
-  if (!user || !commission || !metrics) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>No Commission Data</CardTitle>
-          <CardDescription>No commission data available for this user and month.</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
+  
   // Format month for display
-  const formatMonth = (monthString: string): string => {
-    const [year, month] = monthString.split('-').map(Number);
+  const formatMonth = (monthStr: string): string => {
+    const [year, month] = monthStr.split('-').map(Number);
     return new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
-
+  
+  // Function to get the tier based on commission total
+  function getTier(total: number): string {
+    if (total >= 20000) return "Diamond";
+    if (total >= 15000) return "Platinum";
+    if (total >= 10000) return "Gold";
+    if (total >= 5000) return "Silver";
+    return "Bronze";
+  }
+  
+  // Function to get next tier threshold
+  function getNextTierThreshold(currentTier: string): number {
+    switch (currentTier) {
+      case "Diamond": return 25000; // Just for visualization
+      case "Platinum": return 20000;
+      case "Gold": return 15000;
+      case "Silver": return 10000;
+      case "Bronze": return 5000;
+      default: return 5000;
+    }
+  }
+  
+  // Function to get next tier name
+  function getNextTier(currentTier: string): string {
+    switch (currentTier) {
+      case "Diamond": return "Diamond+";
+      case "Platinum": return "Diamond";
+      case "Gold": return "Platinum";
+      case "Silver": return "Gold";
+      case "Bronze": return "Silver";
+      default: return "Bronze";
+    }
+  }
+  
+  // Calculate progress to next tier
+  const currentTier = getTier(commissionData?.total || 0);
+  const nextTierThreshold = getNextTierThreshold(currentTier);
+  const nextTier = getNextTier(currentTier);
+  const progressToNextTier = Math.min(100, Math.round((commissionData?.total / nextTierThreshold) * 100));
+  
+  // Get color for tier badge
+  const getTierColor = (tier: string): string => {
+    switch (tier) {
+      case "Diamond": return "bg-indigo-100 text-indigo-800 border-indigo-300";
+      case "Platinum": return "bg-slate-100 text-slate-800 border-slate-300";
+      case "Gold": return "bg-amber-100 text-amber-800 border-amber-300";
+      case "Silver": return "bg-gray-100 text-gray-800 border-gray-300";
+      case "Bronze": return "bg-orange-100 text-orange-800 border-orange-300";
+      default: return "";
+    }
+  };
+  
   return (
-    <div className="space-y-6">
-      {/* User header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center">
-          <Avatar className="h-16 w-16 mr-4">
-            <AvatarImage src={user.profileImageUrl || undefined} alt={`${user.firstName} ${user.lastName}`} />
-            <AvatarFallback className="text-lg">{getInitials(user.firstName, user.lastName)}</AvatarFallback>
-          </Avatar>
+    <TooltipProvider>
+      <div className="space-y-6">
+        {/* Header with performance overview */}
+        <div className="flex flex-col md:flex-row gap-4 justify-between">
           <div>
-            <h2 className="text-2xl font-bold">{user.firstName} {user.lastName}</h2>
-            <p className="text-gray-500">{user.role || 'Sales Representative'}</p>
-            <div className="flex mt-2 space-x-2">
-              {metrics.badges.map(badge => (
-                <div key={badge}>{getBadgeComponent(badge)}</div>
-              ))}
-            </div>
+            <h2 className="text-2xl font-bold tracking-tight">
+              Commission Details: {commissionData?.firstName} {commissionData?.lastName}
+            </h2>
+            <p className="text-muted-foreground">
+              Performance for {formatMonth(month)}
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className={getTierColor(currentTier)}>
+              {currentTier} Tier
+            </Badge>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-xs">
+                  Commission tiers are based on monthly performance:
+                  <br />
+                  Bronze: Up to $5,000
+                  <br />
+                  Silver: $5,000 - $10,000
+                  <br />
+                  Gold: $10,000 - $15,000
+                  <br />
+                  Platinum: $15,000 - $20,000
+                  <br />
+                  Diamond: $20,000+
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
-        <div className="mt-4 md:mt-0">
-          <Button variant="outline" size="sm" className="mr-2">
-            <Calendar className="h-4 w-4 mr-2" />
-            {formatMonth(month)}
-          </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
+        
+        {/* Main performance metrics */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Commission
+              </CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(commissionData?.total || 0)}</div>
+              <p className="text-xs text-muted-foreground">
+                Base: {formatCurrency(commissionData?.baseCommission || 0)}
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Leads Handled
+              </CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{metrics?.activeLeads || 0}</div>
+              <p className="text-xs text-muted-foreground">
+                {metrics?.performance?.leadProgress || 0}% of target
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                New Clients
+              </CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{commissionData?.clients || 0}</div>
+              <p className="text-xs text-muted-foreground">
+                From {metrics?.leadsConverted || 0} converted leads
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Call Activity
+              </CardTitle>
+              <Medal className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{metrics?.callsMade || 0}</div>
+              <p className="text-xs text-muted-foreground">
+                {metrics?.performance?.callProgress || 0}% of target
+              </p>
+            </CardContent>
+          </Card>
         </div>
-      </div>
-
-      {/* Performance metrics cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Commission Earned</p>
-                <h3 className="text-2xl font-bold text-[#025E73]">{formatCurrency(metrics.currentAmount)}</h3>
-                {metrics.growth !== undefined && (
-                  <p className={`text-xs flex items-center mt-1 ${metrics.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {metrics.growth >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingUp className="h-3 w-3 mr-1 transform rotate-180" />}
-                    {Math.abs(metrics.growth)}% vs last month
-                  </p>
-                )}
-              </div>
-              <div className="bg-blue-50 p-2 rounded-full">
-                <DollarSign className="h-6 w-6 text-blue-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Target Progress</p>
-                <h3 className="text-2xl font-bold text-[#025E73]">{metrics.targetPercentage}%</h3>
-                <p className="text-xs text-gray-500 mt-1">Target: {formatCurrency(metrics.targetAmount)}</p>
-              </div>
-              <div className="bg-green-50 p-2 rounded-full">
-                <BarChart2 className="h-6 w-6 text-green-500" />
-              </div>
-            </div>
-            <Progress 
-              value={metrics.targetPercentage} 
-              className="mt-4"
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Rank</p>
-                <h3 className="text-2xl font-bold text-[#025E73]">#{metrics.deptRank}</h3>
-                <p className="text-xs text-gray-500 mt-1">of {metrics.deptTotal} sales reps</p>
-              </div>
-              <div className="bg-amber-50 p-2 rounded-full">
-                <Award className="h-6 w-6 text-amber-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tabs for different views */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="details">Transaction Details</TabsTrigger>
-          <TabsTrigger value="stats">Performance Stats</TabsTrigger>
-        </TabsList>
         
-        <TabsContent value="overview" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Monthly Overview</CardTitle>
-              <CardDescription>
-                Summary of performance for {formatMonth(month)}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="text-sm font-semibold mb-4">Performance Metrics</h4>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-500">Leads Converted</span>
-                        <span className="font-medium">{metrics.leads}</span>
-                      </div>
-                      <Progress value={(metrics.leads / 20) * 100} />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-500">Clients Onboarded</span>
-                        <span className="font-medium">{metrics.clients}</span>
-                      </div>
-                      <Progress value={(metrics.clients / 10) * 100} />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-500">Commission Progress</span>
-                        <span className="font-medium">{metrics.targetPercentage}%</span>
-                      </div>
-                      <Progress value={metrics.targetPercentage} />
-                    </div>
-                  </div>
+        {/* Tier progress section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Tier Progress</CardTitle>
+            <CardDescription>
+              {formatCurrency(commissionData?.total || 0)} of {formatCurrency(nextTierThreshold)} to reach {nextTier} tier
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Progress
+                value={progressToNextTier}
+                className="h-2"
+                indicatorClassName={
+                  currentTier === "Diamond" 
+                    ? "bg-gradient-to-r from-indigo-500 to-violet-500" 
+                    : undefined
+                }
+              />
+              
+              <div className="grid grid-cols-2 gap-4 pt-2 text-sm">
+                <div className="flex flex-col">
+                  <span className="text-muted-foreground">Current Tier</span>
+                  <span className="font-medium">{currentTier}</span>
                 </div>
-                
-                <div>
-                  <h4 className="text-sm font-semibold mb-4">Recent Activity</h4>
-                  <div className="space-y-3">
-                    {commission.items && commission.items.length > 0 ? (
-                      commission.items.slice(0, 5).map((item: CommissionItem) => (
-                        <div key={item.id} className="border-b pb-3 last:border-b-0">
-                          <div className="flex justify-between">
-                            <div>
-                              <p className="font-medium">{item.clientName}</p>
-                              <p className="text-xs text-gray-500">{formatDate(item.date)}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-medium">{formatCurrency(item.amount)}</p>
-                              <Badge variant="outline" className="text-xs">
-                                {item.type}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 text-sm">No recent activity</p>
-                    )}
-                  </div>
+                <div className="flex flex-col items-end">
+                  <span className="text-muted-foreground">Next Tier</span>
+                  <span className="font-medium">{nextTier}</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </CardContent>
+        </Card>
         
-        <TabsContent value="details" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Commission Details</CardTitle>
-              <CardDescription>
-                Breakdown of commission transactions for {formatMonth(month)}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Source</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {commission.items && commission.items.length > 0 ? (
-                    commission.items.map((item: CommissionItem) => (
-                      <TableRow key={item.id}>
-                        <TableCell>{formatDate(item.date)}</TableCell>
-                        <TableCell className="font-medium">{item.clientName}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {item.type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{item.leadSource || 'Direct'}</TableCell>
-                        <TableCell>
-                          <Badge className={
-                            item.status === 'Paid' 
-                              ? 'bg-green-100 text-green-800 border border-green-200' 
-                              : item.status === 'Pending' 
-                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                                : 'bg-gray-100 text-gray-800 border border-gray-200'
-                          }>
-                            {item.status || 'Completed'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+        {/* Tabs section for detailed breakdown */}
+        <Tabs defaultValue="transactions" className="w-full">
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="bonuses">Bonuses & Adjustments</TabsTrigger>
+            <TabsTrigger value="targets">Performance Targets</TabsTrigger>
+          </TabsList>
+          
+          {/* Transactions Tab */}
+          <TabsContent value="transactions" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Commission Transactions</CardTitle>
+                <CardDescription>
+                  All commission-eligible transactions for {formatMonth(month)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {commissionData?.items && commissionData.items.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Source</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-4 text-gray-500">
-                        No commission entries for this month
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t pt-6">
-              <div className="text-sm">
-                <span className="font-medium">Total:</span> {commission.items?.length || 0} transactions
-              </div>
-              <Button variant="outline" size="sm">
-                <FileText className="h-4 w-4 mr-2" />
-                Export Details
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="stats" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance Statistics</CardTitle>
-              <CardDescription>
-                Detailed performance metrics and comparison
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="text-sm font-semibold mb-4">All-Time Stats</h4>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <div className="bg-blue-50 p-2 rounded-full mr-3">
-                          <Users className="h-5 w-5 text-blue-500" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Total Leads Converted</p>
-                          <p className="font-medium">{metrics.allTimeLeads || 0}</p>
-                        </div>
+                    </TableHeader>
+                    <TableBody>
+                      {commissionData.items.map((item: any) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">
+                            {new Date(item.date).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>{item.clientName}</TableCell>
+                          <TableCell>{item.type}</TableCell>
+                          <TableCell>{item.leadSource}</TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(item.amount)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                item.status === "Paid"
+                                  ? "bg-green-100 text-green-800 border-green-300"
+                                  : "bg-yellow-100 text-yellow-800 border-yellow-300"
+                              }
+                            >
+                              {item.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    No transactions recorded for this period.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Bonuses Tab */}
+          <TabsContent value="bonuses" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Bonuses & Adjustments</CardTitle>
+                <CardDescription>
+                  Additional incentives and performance bonuses
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Base and adjusted commission */}
+                  <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                    <div className="p-4 rounded-lg border bg-background">
+                      <div className="font-medium mb-1">Base Commission</div>
+                      <div className="text-2xl font-bold">
+                        {formatCurrency(commissionData?.baseCommission || 0)}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        Standard rate on eligible transactions
                       </div>
                     </div>
                     
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <div className="bg-green-50 p-2 rounded-full mr-3">
-                          <Users className="h-5 w-5 text-green-500" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Total Clients Onboarded</p>
-                          <p className="font-medium">{metrics.allTimeClients || 0}</p>
-                        </div>
+                    <div className="p-4 rounded-lg border bg-background">
+                      <div className="font-medium mb-1">Adjusted Commission</div>
+                      <div className="text-2xl font-bold">
+                        {formatCurrency(commissionData?.adjustedCommission || 0)}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        After all adjustments and bonuses
                       </div>
                     </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  {/* Bonus breakdown */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Bonus Breakdown</h3>
                     
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <div className="bg-amber-50 p-2 rounded-full mr-3">
-                          <TrendingUp className="h-5 w-5 text-amber-500" />
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Medal className="h-4 w-4 text-amber-600" />
+                          <span>Rep of Month Bonus</span>
                         </div>
-                        <div>
-                          <p className="text-sm text-gray-500">Consecutive Growth Months</p>
-                          <p className="font-medium">{metrics.consecutiveGrowth || 0}</p>
+                        <div className="font-medium">
+                          {formatCurrency(commissionData?.bonuses?.repOfMonth || 0)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 text-blue-600" />
+                          <span>Active Trucks Bonus</span>
+                        </div>
+                        <div className="font-medium">
+                          {formatCurrency(commissionData?.bonuses?.activeTrucks || 0)}
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Target className="h-4 w-4 text-green-600" />
+                          <span>Team Lead Bonus</span>
+                        </div>
+                        <div className="font-medium">
+                          {formatCurrency(commissionData?.bonuses?.teamLead || 0)}
+                        </div>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div className="flex justify-between items-center">
+                        <div className="text-lg font-bold">Total Bonuses</div>
+                        <div className="text-lg font-bold">
+                          {formatCurrency(
+                            (commissionData?.bonuses?.repOfMonth || 0) +
+                            (commissionData?.bonuses?.activeTrucks || 0) +
+                            (commissionData?.bonuses?.teamLead || 0)
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                
-                <div>
-                  <h4 className="text-sm font-semibold mb-4">Comparison vs Target</h4>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-500">Monthly Commission</span>
-                        <span className="font-medium">{formatCurrency(metrics.currentAmount)} / {formatCurrency(metrics.targetAmount)}</span>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Targets Tab */}
+          <TabsContent value="targets" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance Targets</CardTitle>
+                <CardDescription>
+                  Progress toward monthly performance goals
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Lead targets */}
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <div className="font-medium">Leads</div>
+                      <div>
+                        {metrics?.activeLeads || 0} / {metrics?.targets?.leadTarget || 0}
                       </div>
-                      <Progress value={metrics.targetPercentage} />
                     </div>
-                    
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-500">Month-over-Month Growth</span>
-                        <span className={metrics.growth >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          {metrics.growth >= 0 ? '+' : ''}{metrics.growth}%
-                        </span>
+                    <Progress value={metrics?.performance?.leadProgress || 0} className="h-2" />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {metrics?.performance?.leadProgress || 0}% of monthly target
+                    </p>
+                  </div>
+                  
+                  {/* Client targets */}
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <div className="font-medium">New Clients</div>
+                      <div>
+                        {commissionData?.clients || 0} / {metrics?.targets?.clientTarget || 0}
                       </div>
-                      <Progress 
-                        value={Math.min(Math.max(metrics.growth + 20, 0), 100)} 
-                        className={metrics.growth >= 0 ? 'bg-green-100' : 'bg-red-100'}
-                      />
                     </div>
-                    
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-500">Department Rank</span>
-                        <span className="font-medium">#{metrics.deptRank} of {metrics.deptTotal}</span>
+                    <Progress 
+                      value={
+                        metrics?.targets?.clientTarget 
+                          ? Math.min(100, Math.round(((commissionData?.clients || 0) / metrics.targets.clientTarget) * 100))
+                          : 0
+                      } 
+                      className="h-2" 
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {metrics?.targets?.clientTarget 
+                        ? Math.min(100, Math.round(((commissionData?.clients || 0) / metrics.targets.clientTarget) * 100))
+                        : 0}% of monthly target
+                    </p>
+                  </div>
+                  
+                  {/* Revenue targets */}
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <div className="font-medium">Revenue Generated</div>
+                      <div>
+                        {formatCurrency(commissionData?.total || 0)} / {formatCurrency(metrics?.targets?.revenueTarget || 0)}
                       </div>
-                      <Progress 
-                        value={Math.max(100 - ((metrics.deptRank / metrics.deptTotal) * 100), 0)} 
-                      />
                     </div>
+                    <Progress 
+                      value={
+                        metrics?.targets?.revenueTarget 
+                          ? Math.min(100, Math.round(((commissionData?.total || 0) / metrics.targets.revenueTarget) * 100))
+                          : 0
+                      } 
+                      className="h-2" 
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {metrics?.targets?.revenueTarget 
+                        ? Math.min(100, Math.round(((commissionData?.total || 0) / metrics.targets.revenueTarget) * 100))
+                        : 0}% of monthly target
+                    </p>
+                  </div>
+                  
+                  {/* Call activity targets */}
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <div className="font-medium">Call Activity</div>
+                      <div>
+                        {metrics?.callsMade || 0} / {metrics?.targets?.callTarget || 0}
+                      </div>
+                    </div>
+                    <Progress value={metrics?.performance?.callProgress || 0} className="h-2" />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {metrics?.performance?.callProgress || 0}% of monthly target
+                    </p>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+              </CardContent>
+              <CardFooter className="border-t px-6 py-4">
+                <Alert className="w-full">
+                  <HelpCircle className="h-4 w-4" />
+                  <AlertTitle>Incentive Tracking</AlertTitle>
+                  <AlertDescription>
+                    Meeting or exceeding targets directly impacts your commission tier and bonus eligibility.
+                  </AlertDescription>
+                </Alert>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </TooltipProvider>
   );
-};
-
-export default SalesRepCommissionDetails;
+}

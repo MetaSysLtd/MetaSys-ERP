@@ -1,59 +1,74 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 import { storage } from "../storage";
 
-// Middleware to check if user is authenticated
-export function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated()) {
-    return next();
+// Add type definitions for ExpressJS to recognize the user object
+declare global {
+  namespace Express {
+    interface User {
+      id: number;
+      username: string;
+      firstName: string;
+      lastName: string;
+      roleId: number;
+      [key: string]: any;
+    }
+    
+    interface Request {
+      userRole?: {
+        id: number;
+        name: string;
+        description: string | null;
+        level: number;
+        department: string;
+        permissions: any;
+        isAdmin: boolean;
+        canManageUsers: boolean;
+      };
+    }
   }
-  
-  res.status(401).json({ error: "Unauthorized: Please log in" });
 }
 
-// Create middleware for checking role level authorization
-export function createAuthMiddleware(requiredLevel: number) {
+// Middleware for checking authentication and minimum role level
+export function auth(minimumLevel: number = 1) {
   return async (req: Request, res: Response, next: NextFunction) => {
     // Check if user is authenticated
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Unauthorized: Please log in" });
+    if (!req.isAuthenticated || !req.isAuthenticated()) {
+      return res.status(401).json({ error: "Unauthorized: Please log in to access this resource" });
     }
-    
-    // Get user role
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "Unauthorized: Invalid user" });
+
+    // If no minimum level is required or user is admin, proceed
+    if (minimumLevel <= 0) {
+      return next();
     }
-    
+
+    // Check user's role if minimum level is required
     try {
-      // Get user from storage
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(401).json({ error: "Unauthorized: User not found" });
-      }
+      // Get user role
+      const role = await storage.getRole(req.user?.roleId);
       
-      // Get role
-      const role = await storage.getRole(user.roleId);
-      if (!role) {
-        return res.status(403).json({ error: "Forbidden: Role not found" });
-      }
+      // Store user role in request for later use
+      req.userRole = role;
       
-      // Check if role level is sufficient
-      if (role.level < requiredLevel) {
+      // Check if role meets minimum level requirement
+      if (!role || role.level < minimumLevel) {
         return res.status(403).json({ 
-          error: "Forbidden: Insufficient permissions",
-          required: requiredLevel,
-          current: role.level
+          error: "Forbidden: You don't have permission to access this resource",
+          requiredLevel: minimumLevel,
+          currentLevel: role?.level || 0
         });
       }
       
-      // Add role to request object for convenience
-      req.userRole = role;
+      // User has sufficient permission
+      return next();
       
-      // Proceed to the next middleware/route handler
-      next();
     } catch (error) {
       console.error("Error in auth middleware:", error);
-      res.status(500).json({ error: "Server error during authorization" });
+      return res.status(500).json({ error: "Internal server error during authentication" });
     }
   };
+}
+
+// Middleware for checking if user is an admin
+export function adminOnly(req: Request, res: Response, next: NextFunction) {
+  return auth(3)(req, res, next);
 }
