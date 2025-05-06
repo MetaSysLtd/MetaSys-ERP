@@ -25,10 +25,10 @@ export default function AdminDashboard() {
 
   // Fetch admin dashboard data
   const { data: adminData, isLoading, error, refetch } = useQuery({
-    queryKey: ['/api/admin', dateRange],
+    queryKey: ['/api/admin/dashboard', dateRange],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/admin');
+        const response = await fetch('/api/admin/dashboard');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

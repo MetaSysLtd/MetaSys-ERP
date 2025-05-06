@@ -153,7 +153,7 @@ function LoginForm() {
   // This is for redirecting to the right dashboard after login
   const getRedirectPath = () => {
     const roleId = user?.roleId || 1;
-    return roleId >= 3 ? '/admin/dashboard' : '/dashboard';
+    return roleId >= 3 ? '/admin' : '/dashboard';
   };
 
   const isLoading = isSubmitting || authLoading;

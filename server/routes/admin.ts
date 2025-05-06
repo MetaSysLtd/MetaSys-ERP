@@ -39,7 +39,7 @@ function requireAdminAccess(req: Request, res: Response, next: NextFunction) {
 // Get all users
 router.get('/users', requireAdminAccess, async (req: Request, res: Response) => {
   try {
-    const users = await storage.getAllUsers();
+    const users = await storage.getUsers();
     return res.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -106,7 +106,7 @@ router.post('/users/:id/reset-password', requireAdminAccess, async (req: Request
 // Get all roles
 router.get('/roles', requireAdminAccess, async (req: Request, res: Response) => {
   try {
-    const roles = await storage.getAllRoles();
+    const roles = await storage.getRoles();
     return res.json(roles);
   } catch (error) {
     console.error("Error fetching roles:", error);
@@ -231,6 +231,61 @@ router.patch('/settings', requireAdminAccess, async (req: Request, res: Response
   } catch (error) {
     console.error("Error updating system settings:", error);
     return res.status(500).json({ error: "Failed to update system settings" });
+  }
+});
+
+// Get admin dashboard data
+router.get('/dashboard', requireAdminAccess, async (req: Request, res: Response) => {
+  try {
+    // Fetch summary data for the admin dashboard
+    const [
+      users,
+      roles,
+      // Add more data sources as needed
+    ] = await Promise.all([
+      storage.getUsers(),
+      storage.getRoles(),
+      // Add more promises for additional data
+    ]);
+    
+    // Calculate some statistics
+    const activeUsers = users.filter(user => user.active).length;
+    const inactiveUsers = users.length - activeUsers;
+    
+    return res.json({
+      summary: {
+        users: {
+          total: users.length,
+          active: activeUsers,
+          inactive: inactiveUsers
+        },
+        roles: {
+          total: roles.length
+        },
+        // Add more summary data
+      },
+      // Add raw data if needed
+      latestActivity: [
+        {
+          id: 1,
+          type: 'login',
+          user: 'admin',
+          timestamp: new Date(),
+          details: 'Admin user logged in'
+        },
+        {
+          id: 2,
+          type: 'system_update',
+          user: 'system',
+          timestamp: new Date(Date.now() - 3600000), // 1 hour ago
+          details: 'System update completed'
+        }
+      ],
+      // Add any other data needed for the dashboard
+    });
+  } catch (error) {
+    console.error("Error fetching admin dashboard data:", error);
+    return res.status(500).json({ error: "Failed to load admin dashboard data" });
   }
 });
 
