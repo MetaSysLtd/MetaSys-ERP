@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Card,
   CardContent,
@@ -91,10 +91,15 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
   //});
 
   useEffect(() => {
+    let isMounted = true;  // Use this flag to prevent state updates after unmount
+    
     const fetchData = async () => {
+      if (!user?.id) return;
+      
       try {
-        setIsLoading(true);
-        if (!user?.id) return;
+        if (isMounted) {
+          setIsLoading(true);
+        }
         
         const response = await fetch(`/api/commissions/monthly/user/${user.id}`);
         
@@ -113,22 +118,34 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
           throw new Error('Invalid JSON in server response');
         }
         
-        setHistoricalCommissions(Array.isArray(data) ? data : []);
+        if (isMounted) {
+          setHistoricalCommissions(Array.isArray(data) ? data : []);
+        }
       } catch (error) {
         console.error('Error fetching commission data:', error);
-        toast({
-          title: 'Error loading historical data',
-          description: error instanceof Error ? error.message : 'Failed to load historical commission data',
-          variant: 'destructive'
-        });
-        setHistoricalCommissions([]);
+        
+        if (isMounted) {
+          toast({
+            title: 'Error loading historical data',
+            description: error instanceof Error ? error.message : 'Failed to load historical commission data',
+            variant: 'destructive'
+          });
+          setHistoricalCommissions([]);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
     
     fetchData();
-  }, [user, toast]);
+    
+    // Cleanup function that runs when component unmounts
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, toast]);
 
   // Process historical data for chart
   const chartData = Array.isArray(historicalCommissions) ? historicalCommissions.map(commission => ({
@@ -194,6 +211,9 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
   
   // Separate function for fetching historical data to reuse
   const fetchHistoricalData = async () => {
+    // Create a local flag to prevent state updates if component is unmounted during fetch
+    let isActive = true;
+    
     try {
       setIsLoading(true);
       if (!user?.id) return;
@@ -215,18 +235,33 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
         throw new Error('Invalid JSON in server response');
       }
       
-      setHistoricalCommissions(Array.isArray(data) ? data : []);
+      // Only update state if the component is still mounted
+      if (isActive) {
+        setHistoricalCommissions(Array.isArray(data) ? data : []);
+      }
     } catch (error) {
       console.error('Error fetching commission data:', error);
-      toast({
-        title: 'Error loading historical data',
-        description: error instanceof Error ? error.message : 'Failed to load historical commission data',
-        variant: 'destructive'
-      });
-      setHistoricalCommissions([]);
+      
+      // Only update state if the component is still mounted
+      if (isActive) {
+        toast({
+          title: 'Error loading historical data',
+          description: error instanceof Error ? error.message : 'Failed to load historical commission data',
+          variant: 'destructive'
+        });
+        setHistoricalCommissions([]);
+      }
     } finally {
-      setIsLoading(false);
+      // Only update state if the component is still mounted
+      if (isActive) {
+        setIsLoading(false);
+      }
     }
+    
+    // Return a function to cancel any pending state updates
+    return () => {
+      isActive = false;
+    };
   };
 
   // No commission data yet

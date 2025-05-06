@@ -154,8 +154,8 @@ export default function CommissionsPage() {
   // Determine if user can export commissions
   const canExportCommissions = 
     role?.department === "admin" || 
-    role?.level >= 3 ||
-    (role?.permissions && role.permissions.canExportCommissions);
+    (role?.level ?? 0) >= 3 ||
+    (role?.permissions && typeof role.permissions === 'object' && 'canExportCommissions' in role.permissions && role.permissions.canExportCommissions);
   
   // Handle loading state for all queries
   const isLoading = isLoadingUserCommissions || isLoadingMonthly;
