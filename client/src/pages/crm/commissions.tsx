@@ -4,7 +4,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MotionWrapper } from "@/components/ui/motion-wrapper";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -26,7 +25,82 @@ import {
   Loader2
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
 import { formatCurrency, formatDate } from "@/lib/utils";
+
+// Animation variants
+const animations = {
+  "fade": {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 }
+  },
+  "fade-in": {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 }
+  },
+  "fade-up": {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: 20 }
+  },
+  "fade-down": {
+    initial: { opacity: 0, y: -20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 }
+  },
+  "fade-left": {
+    initial: { opacity: 0, x: 20 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: 20 }
+  },
+  "fade-right": {
+    initial: { opacity: 0, x: -20 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: -20 }
+  },
+  "zoom": {
+    initial: { opacity: 0, scale: 0.95 },
+    animate: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 0.95 }
+  }
+};
+
+// MotionWrapper component
+interface MotionWrapperProps {
+  children: React.ReactNode;
+  animation?: keyof typeof animations;
+  delay?: number;
+  duration?: number;
+  className?: string;
+}
+
+function MotionWrapper({
+  children,
+  animation = "fade",
+  delay = 0,
+  duration = 0.3,
+  className = ""
+}: MotionWrapperProps) {
+  const animationProps = animations[animation];
+
+  return (
+    <motion.div 
+      initial={animationProps.initial}
+      animate={animationProps.animate}
+      exit={animationProps.exit}
+      transition={{ 
+        duration, 
+        delay,
+        ease: "easeOut"
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 // Commission summary item component
 const CommissionSummaryItem = ({ title, amount, growth, period }: { 
@@ -169,26 +243,7 @@ export default function CommissionsPage() {
     return new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
   
-  // Format date for display
-  const formatDate = (dateString?: string): string => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
-    });
-  };
-  
-  // Format currency values
-  const formatCurrency = (amount?: number): string => {
-    if (amount === undefined || amount === null) return '$0.00';
-    return new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  };
+  // Format functions are imported from @/lib/utils
   
   // Determine if user can export commissions
   const canExportCommissions = 
