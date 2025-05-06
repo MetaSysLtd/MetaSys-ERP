@@ -265,5 +265,3 @@ router.post('/calculate/:userId', checkLevel(3), async (req: Request, res: Respo
 });
 
 export default router;
-
-export default router;
