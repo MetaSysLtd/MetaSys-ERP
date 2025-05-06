@@ -263,7 +263,7 @@ export function DispatchReportAutomation() {
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium">Loads Booked</span>
                 <span className={`text-sm font-bold ${getLoadColor()}`}>
-                  {todayReport.loadsBooked} / {dailyTarget?.maxPct || '?'}
+                  {todayReport?.loadsBooked || 0} / {dailyTarget?.maxPct || '?'}
                 </span>
               </div>
               <Progress value={getLoadProgress()} className="h-2" />
@@ -273,7 +273,7 @@ export function DispatchReportAutomation() {
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium">Invoice Amount</span>
                 <span className={`text-sm font-bold ${getInvoiceColor()}`}>
-                  ${todayReport.invoiceUsd.toLocaleString()} / ${dailyTarget?.maxPct.toLocaleString() || '?'}
+                  ${(todayReport?.invoiceUsd || 0).toLocaleString()} / ${(dailyTarget?.maxPct || 0).toLocaleString()}
                 </span>
               </div>
               <Progress value={getInvoiceProgress()} className="h-2" />
@@ -283,12 +283,12 @@ export function DispatchReportAutomation() {
               <div className="flex justify-between mb-1">
                 <span className="text-sm font-medium">New Leads</span>
                 <span className="text-sm font-bold">
-                  {todayReport.newLeads}
+                  {todayReport?.newLeads || 0}
                 </span>
               </div>
             </div>
             
-            {todayReport.notes && (
+            {todayReport?.notes && (
               <div className="mt-3 pt-3 border-t border-border">
                 <p className="text-sm text-muted-foreground">{todayReport.notes}</p>
               </div>
