@@ -3,7 +3,10 @@ import { storage } from '../storage';
 
 // Extended Express Request interface with auth properties
 interface AuthenticatedRequest extends Request {
-  isAuthenticated(): boolean;
+  session: {
+    userId?: number;
+    destroy: (callback: (err?: any) => void) => void;
+  };
   user?: {
     id: number;
     [key: string]: any;
@@ -19,21 +22,54 @@ interface AuthenticatedRequest extends Request {
 const router = express.Router();
 
 // Admin access middleware - requires level 4 or System Admin role
-function requireAdminAccess(req: Request, res: Response, next: NextFunction) {
+async function requireAdminAccess(req: Request, res: Response, next: NextFunction) {
   const authReq = req as AuthenticatedRequest;
   
-  // Check if authenticated
-  if (!authReq.isAuthenticated || !authReq.isAuthenticated()) {
-    return res.status(401).json({ error: "Unauthorized: Please log in to access this resource" });
+  // Check if user is authenticated via session
+  if (!authReq.session || !authReq.session.userId) {
+    return res.status(401).json({ 
+      error: "Unauthorized: Please log in to access this resource",
+      missing: ["session"] 
+    });
   }
   
-  // Check if has admin role
-  const userRole = authReq.userRole;
-  if (!userRole || (userRole.level < 4 && userRole.name !== "System Admin")) {
-    return res.status(403).json({ error: "Forbidden: Admin access required" });
+  try {
+    // Fetch the user from storage
+    const user = await storage.getUser(authReq.session.userId);
+    if (!user) {
+      authReq.session.destroy(() => {});
+      return res.status(401).json({ 
+        error: "Unauthorized: User not found", 
+        missing: ["user"] 
+      });
+    }
+    
+    // Fetch the user's role
+    const userRole = await storage.getRole(user.roleId);
+    if (!userRole) {
+      return res.status(403).json({ 
+        error: "User is not assigned to any role. Contact Admin.", 
+        missing: ["role", "permissions"] 
+      });
+    }
+    
+    // Check if the user's role level is sufficient for admin access (level 4 or higher)
+    if (userRole.level < 4 && userRole.name !== "System Admin") {
+      return res.status(403).json({ 
+        error: "Forbidden: Admin access required", 
+        missing: ["permissions"],
+        details: `Required level: 4, Current level: ${userRole.level}`
+      });
+    }
+    
+    // Add user and role to the request object for use in route handlers
+    authReq.user = user;
+    authReq.userRole = userRole;
+    next();
+  } catch (error) {
+    console.error("Admin auth middleware error:", error);
+    next(error);
   }
-  
-  next();
 }
 
 // Get all users
