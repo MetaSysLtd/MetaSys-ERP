@@ -1,18 +1,16 @@
 import express, { Request, Response, NextFunction } from 'express';
+import { ParamsDictionary } from 'express-serve-static-core';
+import { ParsedQs } from 'qs';
 import { storage } from '../storage';
+import { User, Role } from "@shared/schema";
 
 // Extended Express Request interface with auth properties
 interface AuthenticatedRequest extends Request {
-  isAuthenticated(): boolean;
-  user?: {
-    id: number;
-    [key: string]: any;
-  };
-  userRole?: {
-    id: number;
-    name: string;
-    level: number;
-    [key: string]: any;
+  isAuthenticated?(): boolean;
+  user?: User;
+  userRole?: Role;
+  session: Express.Session & {
+    userId?: number;
   };
 }
 
@@ -20,27 +18,66 @@ const router = express.Router();
 
 // Simple middleware for checking authentication
 function checkAuth(req: Request, res: Response, next: NextFunction) {
-  const authReq = req as AuthenticatedRequest;
-  if (!authReq.isAuthenticated || !authReq.isAuthenticated()) {
-    return res.status(401).json({ error: "Unauthorized: Please log in to access this resource" });
+  // Check if user is authenticated via session
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ 
+      error: "Unauthorized: Please log in to access this resource",
+      missing: ["session"] 
+    });
   }
-  next();
+
+  // Add the user from session to the request
+  storage.getUser(req.session.userId)
+    .then(user => {
+      if (!user) {
+        req.session!.destroy(() => {});
+        return res.status(401).json({ 
+          error: "Unauthorized: User not found", 
+          missing: ["user"] 
+        });
+      }
+      
+      // Add user to request
+      (req as AuthenticatedRequest).user = user;
+      
+      // Get the user's role for permission checking
+      storage.getRole(user.roleId)
+        .then(role => {
+          if (role) {
+            (req as AuthenticatedRequest).userRole = role;
+          }
+          next();
+        })
+        .catch(error => {
+          console.error("Error fetching user role:", error);
+          next();
+        });
+    })
+    .catch(error => {
+      console.error("Error in checkAuth middleware:", error);
+      return res.status(500).json({ error: "Internal server error during authentication" });
+    });
 }
 
 // Basic role level check (level 1 for sales reps, level 3 for managers, etc.)
 function checkLevel(level: number) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const authReq = req as AuthenticatedRequest;
-    if (!authReq.isAuthenticated || !authReq.isAuthenticated()) {
-      return res.status(401).json({ error: "Unauthorized: Please log in to access this resource" });
-    }
-    
-    const userLevel = authReq.userRole?.level || 0;
-    if (userLevel < level) {
-      return res.status(403).json({ error: "Forbidden: You don't have required permissions" });
-    }
-    
-    next();
+    // First run the checkAuth middleware to ensure user is authenticated
+    checkAuth(req, res, (err?: any) => {
+      if (err) return next(err); // If checkAuth failed
+      
+      // Now check the role level
+      const authReq = req as AuthenticatedRequest;
+      const userLevel = authReq.userRole?.level || 0;
+      if (userLevel < level) {
+        return res.status(403).json({ 
+          error: "Forbidden: You don't have required permissions",
+          details: `Required level: ${level}, Current level: ${userLevel}`
+        });
+      }
+      
+      next();
+    });
   };
 }
 
@@ -176,7 +213,7 @@ router.get('/sales-reps', checkLevel(3), async (req: Request, res: Response) => 
     const month = req.query.month as string || new Date().toISOString().slice(0, 7);
     
     // Get all users with sales roles
-    const users = await storage.getAllUsers();
+    const users = await storage.getUsers();
     const salesReps = users.filter(user => user.roleId === 2); // Assuming roleId 2 is for sales reps
     
     // For demo purposes, create sample sales rep data
