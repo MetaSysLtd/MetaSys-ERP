@@ -14,6 +14,7 @@ import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Loader2, Settings, User, UserPlus, Shield, RefreshCw, Server, BellRing, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import AdminPageLayout from "@/components/admin/AdminPageLayout";
 
 export default function AdminDashboard() {
   const { user, role } = useAuth();
@@ -182,7 +183,7 @@ export default function AdminDashboard() {
   };
 
   // Check if user has admin permissions
-  if (role && role.level < 5) {
+  if (role && role.level < 4) {
     return (
       <div className="container mx-auto p-6">
         <Card className="border-yellow-200 bg-yellow-50">
@@ -244,12 +245,12 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <AdminPageLayout 
+      title="Admin Dashboard" 
+      subtitle="Manage system settings and monitor performance"
+      currentTab="dashboard"
+    >
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold gradient-text">Admin Dashboard</h1>
-          <p className="text-muted-foreground text-sm sm:text-base">Manage system settings and monitor performance</p>
-        </div>
         <div className="flex flex-wrap items-center gap-2 mt-4 md:mt-0 w-full md:w-auto">
           <DateRangePicker
             from={dateRange.from}
@@ -441,6 +442,6 @@ export default function AdminDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </AdminPageLayout>
   );
 }
