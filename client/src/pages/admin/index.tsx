@@ -276,29 +276,31 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-6 gap-2">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <Server className="h-4 w-4" />
-            <span className="hidden sm:inline">System Overview</span>
-            <span className="sm:hidden">Overview</span>
+        <TabsList className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 mb-6 gap-2">
+          <TabsTrigger value="overview" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+            <Server className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline text-xs md:text-sm">System Overview</span>
+            <span className="sm:hidden text-xs">Overview</span>
           </TabsTrigger>
-          <TabsTrigger value="users" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            <span className="hidden sm:inline">User Management</span>
-            <span className="sm:hidden">Users</span>
+          <TabsTrigger value="users" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+            <User className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline text-xs md:text-sm">User Management</span>
+            <span className="sm:hidden text-xs">Users</span>
           </TabsTrigger>
-          <TabsTrigger value="organization" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            <span>Organization</span>
+          <TabsTrigger value="organization" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+            <Settings className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline text-xs md:text-sm">Organization</span>
+            <span className="sm:hidden text-xs">Org</span>
           </TabsTrigger>
-          <TabsTrigger value="commissions" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            <span>Commissions</span>
+          <TabsTrigger value="commissions" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+            <DollarSign className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline text-xs md:text-sm">Commissions</span>
+            <span className="sm:hidden text-xs">Comm.</span>
           </TabsTrigger>
-          <TabsTrigger value="tasks" className="flex items-center gap-2">
-            <BellRing className="h-4 w-4" />
-            <span className="hidden sm:inline">Scheduled Tasks</span>
-            <span className="sm:hidden">Tasks</span>
+          <TabsTrigger value="tasks" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+            <BellRing className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden sm:inline text-xs md:text-sm">Scheduled Tasks</span>
+            <span className="sm:hidden text-xs">Tasks</span>
           </TabsTrigger>
         </TabsList>
 
@@ -323,7 +325,10 @@ export default function AdminDashboard() {
                         <div className="text-sm text-green-700">All systems secure</div>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">View Details</Button>
+                    <Button variant="outline" size="sm" className="text-xs px-3 py-1 h-8 md:h-9 md:text-sm md:px-4">
+                      <span className="hidden sm:inline">View Details</span>
+                      <span className="sm:hidden">View</span>
+                    </Button>
                   </div>
 
                   <div>
@@ -420,10 +425,11 @@ export default function AdminDashboard() {
               <div className="flex justify-end mb-4">
                 <Button 
                   onClick={() => navigate('/admin/commissions')}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-1 sm:gap-2 text-xs md:text-sm px-3 py-1 h-8 md:h-9 md:px-4"
                 >
-                  <Settings className="h-4 w-4" />
-                  <span>Configure Commission Rules</span>
+                  <Settings className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Configure Commission Rules</span>
+                  <span className="sm:hidden">Config Rules</span>
                 </Button>
               </div>
               <div className="text-sm text-muted-foreground">
