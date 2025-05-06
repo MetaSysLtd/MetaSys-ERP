@@ -108,8 +108,7 @@ export function handleApiError(
   let userMessage = err.message;
 
   // Clean up common error messages
-
-  else if (userMessage.includes('timeout')) {
+  if (userMessage.includes('timeout')) {
     userMessage = `The server is taking too long to respond. Please try again later.`;
   } else if (userMessage.includes('403')) {
     userMessage = `You don't have permission to access this ${resourceType}.`;

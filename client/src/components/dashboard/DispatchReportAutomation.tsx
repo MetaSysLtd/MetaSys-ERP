@@ -18,10 +18,11 @@ export function DispatchReportAutomation() {
   const [isSlackSending, setIsSlackSending] = useState(false);
   
   // Fetch today's report
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
   const { data: todayReport, isLoading: reportLoading } = useQuery<DispatchReport>({
-    queryKey: ['/api/dispatch-reports', 'today'],
+    queryKey: ['/api/dispatch-reports', todayStr],
     queryFn: async () => {
-      const res = await fetch(`/api/dispatch-reports?dispatcherId=${user?.id}&date=${format(new Date(), 'yyyy-MM-dd')}`, {
+      const res = await fetch(`/api/dispatch-reports?dispatcherId=${user?.id}&date=${todayStr}`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -29,7 +30,8 @@ export function DispatchReportAutomation() {
         throw new Error(`Error fetching dispatch reports: ${res.status}`);
       }
       const reports = await res.json();
-      return reports[0]; // Return the first report (or undefined if none exists)
+      // If it's an array, return the first item, otherwise return the data directly
+      return Array.isArray(reports) ? reports[0] : reports;
     },
     enabled: !!user?.id,
     refetchInterval: 300000, // Refetch every 5 minutes
@@ -66,7 +68,7 @@ export function DispatchReportAutomation() {
         credentials: 'include',
         body: JSON.stringify({
           dispatcherId: user?.id,
-          date: format(new Date(), 'yyyy-MM-dd'),
+          date: todayStr,
         })
       });
       if (!res.ok) {
@@ -80,7 +82,8 @@ export function DispatchReportAutomation() {
         description: "Your daily dispatch report has been updated with the latest metrics.",
         variant: "default",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/dispatch-reports'] });
+      // Use the specific query key to invalidate the right query
+      queryClient.invalidateQueries({ queryKey: ['/api/dispatch-reports', todayStr] });
     },
     onError: (error: Error) => {
       toast({
