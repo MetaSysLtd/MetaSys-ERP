@@ -4567,10 +4567,10 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   });
 
   // Admin routes
-  app.get("/api/admin", createAuthMiddleware(5), async (req, res, next) => {
+  app.get("/api/admin", createAuthMiddleware(4), async (req, res, next) => {
     try {
       // Verify user level only, not department
-      if (req.userRole?.level < 5) {
+      if (req.userRole?.level < 4) {
         return res.status(403).json({ message: "Forbidden: Admin access required" });
       }
       
@@ -4614,7 +4614,7 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
       };
       
       // Get users data
-      const users = await storage.getAllUsers();
+      const users = await storage.getUsers();
       
       // Get tasks data - simulated for now
       const tasks = [
