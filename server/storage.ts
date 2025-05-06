@@ -1909,6 +1909,109 @@ export class MemStorage implements IStorage {
     const [newRun] = await db.insert(commissionRun).values(run).returning();
     return newRun;
   }
+  
+  // Enhanced commission-related operations
+  async getUsersByRole(roleName: string): Promise<User[]> {
+    // First get the role ID
+    const [role] = await db.select().from(roles).where(eq(roles.name, roleName));
+    
+    if (!role) {
+      return [];
+    }
+    
+    // Then get users with that role
+    return db.select().from(users).where(eq(users.roleId, role.id));
+  }
+  
+  async getTransactionsByUserAndMonth(userId: number, month: string): Promise<any[]> {
+    // Simplified implementation for the prototype
+    // In a real system, this would query actual transaction records
+    
+    const commission = await this.getCommissionMonthlyByUserAndMonth(userId, month);
+    
+    if (!commission) {
+      return [];
+    }
+    
+    // Generate transaction items based on commission data
+    const transactions = [];
+    const [year, monthNum] = month.split('-').map(Number);
+    const daysInMonth = new Date(year, monthNum, 0).getDate();
+    
+    // Add lead conversions
+    const leadCount = commission.activeLeads || 0;
+    for (let i = 0; i < leadCount; i++) {
+      const day = Math.floor(Math.random() * daysInMonth) + 1;
+      const date = new Date(year, monthNum - 1, day);
+      
+      transactions.push({
+        id: i + 1,
+        date: date.toISOString(),
+        clientName: `Lead ${i + 1}`,
+        type: 'Lead',
+        amount: 200 + Math.floor(Math.random() * 300),
+        source: ['Website', 'Referral', 'Cold Call', 'Direct'][Math.floor(Math.random() * 4)],
+        status: 'Completed'
+      });
+    }
+    
+    // Add client onboardings (roughly 1/3 of leads convert to clients)
+    const clientCount = Math.floor(leadCount / 3);
+    for (let i = 0; i < clientCount; i++) {
+      const day = Math.floor(Math.random() * daysInMonth) + 1;
+      const date = new Date(year, monthNum - 1, day);
+      
+      transactions.push({
+        id: leadCount + i + 1,
+        date: date.toISOString(),
+        clientName: `Client ${i + 1}`,
+        type: 'Client',
+        amount: 500 + Math.floor(Math.random() * 1000),
+        source: 'Converted',
+        status: 'Paid'
+      });
+    }
+    
+    return transactions;
+  }
+  
+  async getLeadsByUser(userId: number): Promise<any[]> {
+    try {
+      // Use the leadSalesUsers junction table to find all leads associated with this user
+      const leadSalesUserRecords = await db.select().from(leadSalesUsers)
+        .where(eq(leadSalesUsers.userId, userId));
+      
+      // If no records found, return empty array
+      if (!leadSalesUserRecords || leadSalesUserRecords.length === 0) {
+        return [];
+      }
+      
+      // Extract lead IDs
+      const leadIds = leadSalesUserRecords.map(record => record.leadId);
+      
+      // Query the leads table for these IDs
+      const leads = await db.select().from(leadRecords)
+        .where(inArray(leadRecords.id, leadIds));
+      
+      return leads;
+    } catch (error) {
+      console.error('Error getting leads by user:', error);
+      return [];
+    }
+  }
+  
+  async getClientsByUser(userId: number): Promise<any[]> {
+    try {
+      // In the simplified model, find leads that have been converted to clients
+      const leads = await this.getLeadsByUser(userId);
+      
+      // Filter to only include converted leads
+      return leads.filter(lead => lead.status === 'Client' || lead.convertedToClient === true);
+    } catch (error) {
+      console.error('Error getting clients by user:', error);
+      return [];
+    }
+  }
 
   // Lead Sales User operations
   async getLeadSalesUser(id: number): Promise<LeadSalesUser | undefined> {
