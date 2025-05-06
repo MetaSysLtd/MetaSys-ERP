@@ -418,28 +418,37 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
             </div>
           </div>
 
-          {/* Admin section - always visible */}
-          <div className="px-4 mb-6 pt-4">
-            <h3 className="px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1">
-              Administration
-            </h3>
-            <div className="space-y-1">
-              <NavItemComponent 
-                item={{
-                  name: "Admin Dashboard",
-                  href: "/admin",
-                  icon: ShieldAlert
-                }} 
-              />
-              <NavItemComponent 
-                item={{
-                  name: "Bug Management",
-                  href: "/admin/bugs",
-                  icon: Bug
-                }} 
-              />
+          {/* Admin section - visible only to system admins */}
+          {role && (role.level >= 4 || role.name === "System Admin") && (
+            <div className="px-4 mb-6 pt-4">
+              <h3 className="px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1">
+                Administration
+              </h3>
+              <div className="space-y-1">
+                <NavItemComponent 
+                  item={{
+                    name: "Admin Dashboard",
+                    href: "/admin",
+                    icon: ShieldAlert
+                  }} 
+                />
+                <NavItemComponent 
+                  item={{
+                    name: "Admin Management",
+                    href: "/admin/management",
+                    icon: ShieldAlert
+                  }} 
+                />
+                <NavItemComponent 
+                  item={{
+                    name: "Bug Management",
+                    href: "/admin/bugs",
+                    icon: Bug
+                  }} 
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Team switcher - always visible */}
           <div className="px-4 mb-6 pt-4">

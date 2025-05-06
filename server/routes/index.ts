@@ -11,6 +11,7 @@ import activitiesRouter from './activities';
 import leadsRouter from './leads';
 import accountsRouter from './accounts';
 import commissionsRouter from './commissions';
+import adminRouter from './admin';
 
 export { default as timeTrackingRouter } from './time-tracking';
 export { default as hrRouter } from './hr';
@@ -24,6 +25,7 @@ export { default as activitiesRouter } from './activities';
 export { default as leadsRouter } from './leads';
 export { default as accountsRouter } from './accounts';
 export { default as commissionsRouter } from './commissions';
+export { default as adminRouter } from './admin';
 
 export function registerModuleRoutes(apiRouter: express.Router): void {
   // Time Tracking Module
@@ -55,4 +57,7 @@ export function registerModuleRoutes(apiRouter: express.Router): void {
   apiRouter.use('/leads', leadsRouter);
   apiRouter.use('/accounts', accountsRouter);
   apiRouter.use('/commissions', commissionsRouter);
+  
+  // Admin Management Module
+  apiRouter.use('/admin', adminRouter);
 }
