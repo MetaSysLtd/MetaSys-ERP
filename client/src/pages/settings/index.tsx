@@ -267,18 +267,18 @@ export default function SettingsPage() {
       </div>
       
       {/* Page content */}
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
+      <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[100vw] overflow-x-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
           {/* Sidebar */}
-          <Card className="lg:col-span-1 lg:sticky lg:top-4 h-fit">
-            <CardHeader className="lg:block flex items-center justify-between">
+          <Card className="lg:col-span-3 h-fit lg:sticky lg:top-4 w-full overflow-visible">
+            <CardHeader className="lg:block flex items-center justify-between pb-2">
               <div className="flex items-center space-x-4">
-                <div className="bg-primary-500 rounded-full h-12 w-12 flex items-center justify-center text-lg font-medium text-white">
+                <div className="bg-[#025E73] rounded-full h-10 w-10 flex items-center justify-center text-base font-medium text-white shrink-0">
                   {user.firstName.charAt(0)}{user.lastName.charAt(0)}
                 </div>
-                <div>
-                  <h3 className="font-medium">{user.firstName} {user.lastName}</h3>
-                  <p className={`text-sm ${getDepartmentColor(role.department)}`}>
+                <div className="overflow-hidden text-ellipsis">
+                  <h3 className="font-medium truncate">{user.firstName} {user.lastName}</h3>
+                  <p className={`text-sm truncate ${getDepartmentColor(role.department)}`}>
                     {role.name}
                   </p>
                 </div>
@@ -289,13 +289,19 @@ export default function SettingsPage() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="lg:hidden"
+                  className="lg:hidden shrink-0"
                   onClick={() => {
                     // Toggle mobile menu visibility
                     const sidebar = document.getElementById('settings-sidebar');
                     if (sidebar) {
                       sidebar.classList.toggle('hidden');
-                      sidebar.classList.toggle('flex');
+                      sidebar.classList.toggle('block');
+                      
+                      // Add fixed overlay to prevent page scrolling when menu is open
+                      const overlay = document.getElementById('mobile-menu-overlay');
+                      if (overlay) {
+                        overlay.classList.toggle('hidden');
+                      }
                     }
                   }}
                 >
@@ -305,7 +311,7 @@ export default function SettingsPage() {
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className="w-6 h-6"
+                    className="w-5 h-5"
                   >
                     <path
                       strokeLinecap="round"
@@ -316,8 +322,17 @@ export default function SettingsPage() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              <div id="settings-sidebar" className="hidden lg:block">
+            
+            {/* Mobile overlay */}
+            <div id="mobile-menu-overlay" className="fixed inset-0 bg-black/30 z-40 hidden lg:hidden" onClick={() => {
+              const sidebar = document.getElementById('settings-sidebar');
+              const overlay = document.getElementById('mobile-menu-overlay');
+              if (sidebar) sidebar.classList.add('hidden');
+              if (overlay) overlay.classList.add('hidden');
+            }}></div>
+            
+            <CardContent className="p-0 relative">
+              <div id="settings-sidebar" className="hidden lg:block lg:static fixed top-[4.5rem] left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg lg:shadow-none lg:border-t-0 max-h-[calc(100vh-4.5rem)] overflow-y-auto lg:max-h-none">
                 <Tabs 
                   defaultValue={activeTab} 
                   orientation="vertical" 
@@ -332,60 +347,123 @@ export default function SettingsPage() {
                   }}
                   className="flex flex-col"
                 >
-                  <TabsList className="flex flex-col h-auto bg-transparent justify-start border-r border-gray-200 p-0 transition-all duration-200">
+                  <TabsList className="flex flex-col h-auto w-full bg-transparent justify-start border-r border-gray-200 p-0 transition-all duration-200">
                     <TabsTrigger 
                       value="profile" 
-                      className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
+                      className="justify-start px-4 py-3 w-full font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-[#025E73] rounded-none text-sm"
+                      onClick={() => {
+                        // Close mobile menu
+                        const sidebar = document.getElementById('settings-sidebar');
+                        const overlay = document.getElementById('mobile-menu-overlay');
+                        if (window.innerWidth < 1024) {
+                          if (sidebar) sidebar.classList.add('hidden');
+                          if (overlay) overlay.classList.add('hidden');
+                        }
+                      }}
                     >
-                      <User className="h-4 w-4 mr-2" />
-                      Profile
+                      <User className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Profile</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="account" 
-                      className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
+                      className="justify-start px-4 py-3 w-full font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-[#025E73] rounded-none text-sm"
+                      onClick={() => {
+                        // Close mobile menu
+                        const sidebar = document.getElementById('settings-sidebar');
+                        const overlay = document.getElementById('mobile-menu-overlay');
+                        if (window.innerWidth < 1024) {
+                          if (sidebar) sidebar.classList.add('hidden');
+                          if (overlay) overlay.classList.add('hidden');
+                        }
+                      }}
                     >
-                      <Lock className="h-4 w-4 mr-2" />
-                      Account & Security
+                      <Lock className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Account & Security</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="notifications" 
-                      className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
+                      className="justify-start px-4 py-3 w-full font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-[#025E73] rounded-none text-sm"
+                      onClick={() => {
+                        // Close mobile menu
+                        const sidebar = document.getElementById('settings-sidebar');
+                        const overlay = document.getElementById('mobile-menu-overlay');
+                        if (window.innerWidth < 1024) {
+                          if (sidebar) sidebar.classList.add('hidden');
+                          if (overlay) overlay.classList.add('hidden');
+                        }
+                      }}
                     >
-                      <Bell className="h-4 w-4 mr-2" />
-                      Notifications
+                      <Bell className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Notifications</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="animations" 
-                      className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
+                      className="justify-start px-4 py-3 w-full font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-[#025E73] rounded-none text-sm"
+                      onClick={() => {
+                        // Close mobile menu
+                        const sidebar = document.getElementById('settings-sidebar');
+                        const overlay = document.getElementById('mobile-menu-overlay');
+                        if (window.innerWidth < 1024) {
+                          if (sidebar) sidebar.classList.add('hidden');
+                          if (overlay) overlay.classList.add('hidden');
+                        }
+                      }}
                     >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Animations
+                      <Settings className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Animations</span>
                     </TabsTrigger>
                     {role.level >= 4 && (
                       <TabsTrigger 
                         value="teams" 
-                        className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
+                        className="justify-start px-4 py-3 w-full font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-[#025E73] rounded-none text-sm"
+                        onClick={() => {
+                          // Close mobile menu
+                          const sidebar = document.getElementById('settings-sidebar');
+                          const overlay = document.getElementById('mobile-menu-overlay');
+                          if (window.innerWidth < 1024) {
+                            if (sidebar) sidebar.classList.add('hidden');
+                            if (overlay) overlay.classList.add('hidden');
+                          }
+                        }}
                       >
-                        <Users className="h-4 w-4 mr-2" />
-                        Teams
+                        <Users className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span className="truncate">Teams</span>
                       </TabsTrigger>
                     )}
                     {role.level >= 3 && (
                       <TabsTrigger 
                         value="commission-policies" 
-                        className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
+                        className="justify-start px-4 py-3 w-full font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-[#025E73] rounded-none text-sm"
+                        onClick={() => {
+                          // Close mobile menu
+                          const sidebar = document.getElementById('settings-sidebar');
+                          const overlay = document.getElementById('mobile-menu-overlay');
+                          if (window.innerWidth < 1024) {
+                            if (sidebar) sidebar.classList.add('hidden');
+                            if (overlay) overlay.classList.add('hidden');
+                          }
+                        }}
                       >
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        Commission Policies
+                        <DollarSign className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span className="truncate">Commission Policies</span>
                       </TabsTrigger>
                     )}
                     {role.level >= 5 && (
                       <TabsTrigger 
                         value="admin" 
-                        className="justify-start px-5 py-3 font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-primary-500 rounded-none"
+                        className="justify-start px-4 py-3 w-full font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-[#025E73] rounded-none text-sm"
+                        onClick={() => {
+                          // Close mobile menu
+                          const sidebar = document.getElementById('settings-sidebar');
+                          const overlay = document.getElementById('mobile-menu-overlay');
+                          if (window.innerWidth < 1024) {
+                            if (sidebar) sidebar.classList.add('hidden');
+                            if (overlay) overlay.classList.add('hidden');
+                          }
+                        }}
                       >
-                        <Shield className="h-4 w-4 mr-2" />
-                        Admin Settings
+                        <Shield className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span className="truncate">Admin Settings</span>
                       </TabsTrigger>
                     )}
                   </TabsList>
