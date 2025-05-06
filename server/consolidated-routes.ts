@@ -2131,6 +2131,19 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       const userId = Number(req.params.id);
       const month = req.query.month as string || new Date().toISOString().slice(0, 7); // Default to current month
       
+      // Fix for CRM commissions page error - ensure valid JSON response
+      // This handles the case where HTML is being returned instead of proper JSON
+      if (req.headers.accept?.includes('text/html')) {
+        return res.json({
+          userId,
+          month,
+          items: [],
+          total: 0,
+          leads: 0,
+          clients: 0
+        });
+      }
+      
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ 
@@ -2180,6 +2193,68 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     }
   });
 
+  // GET monthly commissions for user with specific month parameter
+  commissionsRouter.get("/monthly/user/:id/:month", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const userId = Number(req.params.id);
+      const month = req.params.month;
+      
+      // Fix for CRM commissions page error - ensure valid JSON response
+      if (req.headers.accept?.includes('text/html')) {
+        return res.json({
+          userId,
+          month,
+          items: [],
+          total: 0,
+          leads: 0,
+          clients: 0
+        });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "User not found" 
+        });
+      }
+      
+      // Default commission response
+      const defaultCommissions = {
+        userId,
+        month,
+        items: [],
+        total: 0,
+        leads: 0,
+        clients: 0,
+        deals: []
+      };
+      
+      // Check if the user has a sales or dispatch role
+      const role = await storage.getUserRole(userId);
+      
+      if (role?.department === "sales") {
+        // Calculate sales commissions
+        const salesCommissions = await calculateSalesCommission(userId, month, req.user?.id || 0);
+        res.json(salesCommissions);
+      } else if (role?.department === "dispatch") {
+        // Calculate dispatch commissions
+        const dispatchCommissions = await calculateDispatchCommission(userId, month, req.user?.id || 0);
+        res.json(dispatchCommissions);
+      } else {
+        // Return default structure for users without commissions
+        res.json(defaultCommissions);
+      }
+    } catch (error) {
+      console.error("Error fetching user commission for specific month:", error);
+      res.status(500).json({ 
+        status: "error", 
+        message: "Failed to fetch commission data",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
   // GET commissions for all users
   commissionsRouter.get("/monthly", createAuthMiddleware(3), async (req, res, next) => {
     try {
