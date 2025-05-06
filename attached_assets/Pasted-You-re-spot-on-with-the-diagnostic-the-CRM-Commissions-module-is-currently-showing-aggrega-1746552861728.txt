@@ -1,0 +1,88 @@
+You're spot on with the diagnostic — the **CRM > Commissions** module is currently **showing aggregate department-level data only**, not individual rep-level visibility. That contradicts the original intent to **foster individual accountability, visibility, and gamified motivation**.
+
+Here’s how we can clearly instruct Replit on **what to fix**, **what to build**, and **how to connect it across the ERP**, in your usual Product Manager → AI Engineer style:
+
+---
+
+### 🔧 What’s Missing / Not Working:
+
+1. **No breakdown by Sales Rep** – Currently only shows department totals.
+2. **No per-user filtering or leaderboard logic** – Can’t compare reps or track progress.
+3. **Disconnected from global commission data** – Doesn’t feed the Admin Dashboard or Main Commissions module.
+4. **Static values** – Even if logic is implemented, data appears zero because rules/calculations aren’t being applied based on actual leads/accounts/activities.
+
+---
+
+### ✅ What We Need Replit to Do
+
+#### 1. **Add Sales Rep Breakdown (Frontend + Logic)**
+
+* Introduce a **dropdown to filter by sales rep** (role: Sales Agent).
+* Add a **Leaderboard View**:
+
+  * Rank sales reps by total commissions (this month, last month, custom range).
+  * Show badges/indicators for Top Performer, Target Missed, Newcomer, etc.
+* Each rep’s entry should show:
+
+  * Name + Profile Picture
+  * Leads converted
+  * Clients onboarded
+  * Total commissions (breakdown below)
+  * % of target achieved (if target logic exists)
+
+#### 2. **Backend Logic for Commission Attribution**
+
+* Fetch commissions from activities assigned to the sales rep only.
+* Match commissions to CRM activity types: lead conversion, client onboarding, etc.
+* Pull calculation logic from the **Settings > Commission Policy Engine** (already built).
+* Ensure this is **dynamic**, so when policy changes, calculations reflect automatically.
+* Allow commission types: Flat, Tiered, Percentage-based, Bonus Triggered, etc.
+
+#### 3. **Sync Across Modules (No Isolated Logic)**
+
+* **Push this data to:**
+
+  * **Main Commissions Module** (finance/admin view)
+  * **Admin Dashboard Widgets** (Top 3: Total Commissions, Top Performers, At-Risk Reps)
+* Ensure date filters and employee filters work globally across all modules.
+
+#### 4. **No Manual Entry**
+
+* Everything is system-generated.
+* Admin can edit policies, but not override individual rep results.
+* Reduces bias, ensures clarity during payroll.
+
+---
+
+### 🖼 UI/UX Expectations:
+
+* **Gamified, Motivational UI**:
+
+  * Use colors and icons to show performance (green = above target, red = below).
+  * Add progress bars, charts, and badges.
+* Tabs or toggles for:
+
+  * Department View (default)
+  * My Commission (current user)
+  * Leaderboard View (all reps)
+* Exportable reports per rep and per department.
+
+---
+
+### 📤 Replit Instruction Summary
+
+You can now tell Replit the following (summarized):
+
+> “The CRM > Commissions screen currently shows overall numbers for the sales department. We need to break this down by individual Sales Agents — showing what each agent earned this month, last month, and over time — so the reps can track progress, compete, and stay motivated.
+>
+> The commission calculations must follow the rules set in the Commission Settings module (already implemented). This section must dynamically reflect those policies — no hardcoded logic.
+>
+> Add filters for month + sales agent. Include a leaderboard-style view.
+>
+> This module must feed the Admin Dashboard (3 widgets), and the Finance > Main Commissions module — everything should be connected.
+>
+> UI should include motivational progress bars, performance badges, and a clean layout. No manual entry — system logic only.”
+
+---
+
+Want me to write this in Jira ticket format or give a visual wireframe suggestion too?
