@@ -56,52 +56,52 @@ export default function AdminPageLayout({
       <Card className="mb-6 border-[#025E73]/20">
         <CardContent className="pt-6">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2">
-              <TabsTrigger value="dashboard" className="flex items-center gap-2">
-                <Server className="h-4 w-4" />
-                <span className="hidden sm:inline">Dashboard</span>
+            <TabsList className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-2">
+              <TabsTrigger value="dashboard" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+                <Server className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline text-xs md:text-sm">Dashboard</span>
               </TabsTrigger>
-              <TabsTrigger value="management" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                <span className="hidden sm:inline">Management</span>
-                <span className="sm:hidden">Manage</span>
+              <TabsTrigger value="management" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+                <Shield className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline text-xs md:text-sm">Management</span>
+                <span className="sm:hidden text-xs">Manage</span>
               </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span>Users</span>
+              <TabsTrigger value="users" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+                <Users className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs md:text-sm">Users</span>
               </TabsTrigger>
-              <TabsTrigger value="commissions" className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                <span className="hidden sm:inline">Commissions</span>
-                <span className="sm:hidden">Comm.</span>
+              <TabsTrigger value="commissions" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+                <DollarSign className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline text-xs md:text-sm">Commissions</span>
+                <span className="sm:hidden text-xs">Comm.</span>
               </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                <span>Settings</span>
+              <TabsTrigger value="settings" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+                <Settings className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs md:text-sm">Settings</span>
               </TabsTrigger>
             </TabsList>
             
-            <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2">
-              <TabsTrigger value="tasks" className="flex items-center gap-2">
-                <BellRing className="h-4 w-4" />
-                <span>Tasks</span>
+            <TabsList className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 gap-2">
+              <TabsTrigger value="tasks" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+                <BellRing className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs md:text-sm">Tasks</span>
               </TabsTrigger>
-              <TabsTrigger value="reports" className="flex items-center gap-2">
-                <LineChart className="h-4 w-4" />
-                <span>Reports</span>
+              <TabsTrigger value="reports" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+                <LineChart className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs md:text-sm">Reports</span>
               </TabsTrigger>
-              <TabsTrigger value="organizations" className="flex items-center gap-2">
-                <Building className="h-4 w-4" />
-                <span className="hidden sm:inline">Organizations</span>
-                <span className="sm:hidden">Orgs</span>
+              <TabsTrigger value="organizations" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+                <Building className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline text-xs md:text-sm">Organizations</span>
+                <span className="sm:hidden text-xs">Orgs</span>
               </TabsTrigger>
-              <TabsTrigger value="roles" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                <span>Roles</span>
+              <TabsTrigger value="roles" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+                <Shield className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs md:text-sm">Roles</span>
               </TabsTrigger>
-              <TabsTrigger value="bugs" className="flex items-center gap-2">
-                <ListChecks className="h-4 w-4" />
-                <span>Bugs</span>
+              <TabsTrigger value="bugs" className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-3">
+                <ListChecks className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs md:text-sm">Bugs</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
