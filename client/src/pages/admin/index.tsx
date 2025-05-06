@@ -28,11 +28,25 @@ export default function AdminDashboard() {
     queryKey: ['/api/admin/dashboard', dateRange],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/admin/dashboard');
+        console.log('Fetching admin dashboard data');
+        const response = await fetch('/api/admin/dashboard', {
+          credentials: 'include', // Important for auth cookies
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        console.log('Admin dashboard API response status:', response.status);
+        
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorText = await response.text();
+          console.error('Admin dashboard API error:', errorText);
+          throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
-        return await response.json();
+        
+        const responseData = await response.json();
+        console.log('Admin dashboard data received:', responseData);
+        return responseData;
       } catch (err) {
         console.error('Admin dashboard fetch error:', err);
         throw new Error('Failed to load admin dashboard data.');

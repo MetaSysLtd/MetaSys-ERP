@@ -5,6 +5,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { storage } from "./storage";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import adminRouter from './routes/admin';
 import { 
   insertUserSchema, insertRoleSchema, insertLeadSchema, 
   insertLoadSchema, insertInvoiceSchema, insertInvoiceItemSchema,
@@ -1302,6 +1303,9 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   
   // Register status routes
   apiRouter.use('/status', statusRoutes);
+  
+  // Register admin routes
+  apiRouter.use('/admin', adminRouter);
   
   // Add seed data if needed
   await addSeedDataIfNeeded();
@@ -4566,8 +4570,14 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
     }
   });
 
-  // Admin routes
-  app.get("/api/admin", createAuthMiddleware(4), async (req, res, next) => {
+  // Import Admin router
+  import adminRouter from './routes/admin';
+  
+  // Register the Admin router
+  app.use('/api/admin', adminRouter);
+  
+  // Legacy Admin route - preserved for backward compatibility
+  app.get("/api/admin-legacy", createAuthMiddleware(4), async (req, res, next) => {
     try {
       // Verify user level only, not department
       if (req.userRole?.level < 4) {
