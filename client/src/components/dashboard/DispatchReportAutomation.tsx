@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { DispatchReport, PerformanceTarget } from '@shared/schema';
+// We're defining our own DispatchReport interface to handle additional fields used in the UI
+import { PerformanceTarget } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
 import { format, isToday, parseISO } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -17,6 +18,25 @@ export function DispatchReportAutomation() {
   const { toast } = useToast();
   const [isSlackSending, setIsSlackSending] = useState(false);
   
+  // Define the DispatchReport interface to match the schema
+  interface DispatchReport {
+    id: number;
+    date: Date;
+    createdAt: Date;
+    orgId: number;
+    dispatcherId: number;
+    loadsBooked: number;
+    invoiceUsd: number;
+    activeLeads: number;
+    pendingInvoiceUsd: number;
+    highestInvoiceUsd: number;
+    paidInvoiceUsd: number;
+    status: "Pending" | "Submitted";
+    // Add these properties even though they're not in the schema since the component uses them
+    newLeads?: number;
+    notes?: string;
+  }
+
   // Fetch today's report
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const { data: todayReport, isLoading: reportLoading } = useQuery<DispatchReport>({
@@ -31,7 +51,15 @@ export function DispatchReportAutomation() {
       }
       const reports = await res.json();
       // If it's an array, return the first item, otherwise return the data directly
-      return Array.isArray(reports) ? reports[0] : reports;
+      const report = Array.isArray(reports) ? reports[0] : reports;
+      
+      // Ensure the report has the expected properties with defaults
+      if (report) {
+        report.newLeads = report.newLeads ?? 0;
+        report.notes = report.notes ?? '';
+      }
+      
+      return report;
     },
     enabled: !!user?.id,
     refetchInterval: 300000, // Refetch every 5 minutes
@@ -55,7 +83,7 @@ export function DispatchReportAutomation() {
   
   // Get the appropriate target for the user's organization
   // Use the targets data directly since it's now an object, not an array
-  const dailyTarget = targets?.dispatch?.daily;
+  const dailyTarget = targets?.dispatch?.daily || { maxPct: 100 };
   
   // Manual report generation mutation
   const generateReportMutation = useMutation({
@@ -106,7 +134,7 @@ export function DispatchReportAutomation() {
         credentials: 'include',
         body: JSON.stringify({
           dispatcherId: user?.id,
-          date: format(new Date(), 'yyyy-MM-dd'),
+          date: todayStr,
           sendToSlack: true
         })
       });
@@ -143,7 +171,7 @@ export function DispatchReportAutomation() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          date: format(new Date(), 'yyyy-MM-dd'),
+          date: todayStr,
         })
       });
       if (!res.ok) {
@@ -157,6 +185,8 @@ export function DispatchReportAutomation() {
         description: `Team summary report with ${data.reportCount} dispatchers sent to Slack.`,
         variant: "default",
       });
+      // Invalidate any relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/dispatch-reports'] });
     },
     onError: (error: Error) => {
       toast({
