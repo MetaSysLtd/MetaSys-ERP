@@ -77,7 +77,25 @@ export default function CommissionsPage() {
         if (!response.ok) {
           throw new Error(`Failed to fetch user commissions: ${response.status}`);
         }
-        return response.json();
+        const data = await response.json();
+        // Handle possible responses formats and ensure we always return an array
+        if (Array.isArray(data)) {
+          return data;
+        } else if (data && typeof data === 'object') {
+          // If it's a single object, wrap it in an array
+          // Use last 6 months as available commission months
+          const months = [];
+          const currentDate = new Date();
+          for (let i = 0; i < 6; i++) {
+            const date = new Date(currentDate);
+            date.setMonth(date.getMonth() - i);
+            months.push({
+              month: date.toISOString().slice(0, 7),
+            });
+          }
+          return months;
+        }
+        return [];
       } catch (error) {
         console.error('Error fetching commissions data:', error);
         throw error;
@@ -149,6 +167,27 @@ export default function CommissionsPage() {
   const formatMonth = (monthString: string): string => {
     const [year, month] = monthString.split('-').map(Number);
     return new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+  
+  // Format date for display
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+  
+  // Format currency values
+  const formatCurrency = (amount?: number): string => {
+    if (amount === undefined || amount === null) return '$0.00';
+    return new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: 'USD',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
   };
   
   // Determine if user can export commissions
