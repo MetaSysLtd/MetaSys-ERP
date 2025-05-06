@@ -95,18 +95,40 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
       try {
         setIsLoading(true);
         if (!user?.id) return;
+        
         const response = await fetch(`/api/commissions/monthly/user/${user.id}`);
-        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch historical commission data: ${response.status}`);
+        }
+        
+        const responseText = await response.text();
+        let data;
+        
+        try {
+          // Safely parse the JSON
+          data = JSON.parse(responseText);
+        } catch (parseError) {
+          console.error('Error parsing commission data JSON:', parseError, 'Raw response:', responseText);
+          throw new Error('Invalid JSON in server response');
+        }
+        
         setHistoricalCommissions(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching commission data:', error);
+        toast({
+          title: 'Error loading historical data',
+          description: error instanceof Error ? error.message : 'Failed to load historical commission data',
+          variant: 'destructive'
+        });
         setHistoricalCommissions([]);
       } finally {
         setIsLoading(false);
       }
     };
+    
     fetchData();
-  }, [user]);
+  }, [user, toast]);
 
   // Process historical data for chart
   const chartData = Array.isArray(historicalCommissions) ? historicalCommissions.map(commission => ({
@@ -116,6 +138,9 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
         bonus: commission.bonusAmount || 0
       })) : [];
 
+  // Get query client for cache invalidation
+  const queryClient = useQueryClient();
+
   // Handle recalculation request
   const handleRecalculate = async () => {
     try {
@@ -124,7 +149,20 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
       });
 
       if (!response.ok) {
-        throw new Error('Failed to recalculate commission');
+        const errorText = await response.text();
+        let errorMessage = 'Failed to recalculate commission';
+        
+        try {
+          // Try to parse error response as JSON
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorJson.error || errorMessage;
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError);
+          // Use the raw error text if parsing failed
+          errorMessage = errorText || errorMessage; 
+        }
+        
+        throw new Error(errorMessage);
       }
 
       toast({
@@ -132,14 +170,62 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
         description: "Commission has been recalculated successfully.",
       });
 
-      // Refresh the data
-      await fetch(`/api/commissions/monthly/user/${targetUserId}/${month}`);
+      // Invalidate queries to refresh the data
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/commissions/monthly', targetUserId, month]
+      });
+      
+      // Also invalidate the historical data
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/commissions/monthly', targetUserId]
+      });
+      
+      // Fetch data again for manual state updates
+      fetchHistoricalData();
     } catch (error) {
+      console.error('Recalculation error:', error);
       toast({
         title: "Recalculation Failed",
         description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive"
       });
+    }
+  };
+  
+  // Separate function for fetching historical data to reuse
+  const fetchHistoricalData = async () => {
+    try {
+      setIsLoading(true);
+      if (!user?.id) return;
+      
+      const response = await fetch(`/api/commissions/monthly/user/${user.id}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch historical commission data: ${response.status}`);
+      }
+      
+      const responseText = await response.text();
+      let data;
+      
+      try {
+        // Safely parse the JSON
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Error parsing commission data JSON:', parseError, 'Raw response:', responseText);
+        throw new Error('Invalid JSON in server response');
+      }
+      
+      setHistoricalCommissions(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Error fetching commission data:', error);
+      toast({
+        title: 'Error loading historical data',
+        description: error instanceof Error ? error.message : 'Failed to load historical commission data',
+        variant: 'destructive'
+      });
+      setHistoricalCommissions([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 

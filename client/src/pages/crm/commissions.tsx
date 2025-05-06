@@ -70,17 +70,65 @@ export default function CommissionsPage() {
   // Get all commission data for the user
   const { data: userCommissions, isLoading: isLoadingUserCommissions, error: userCommissionsError } = useQuery({
     queryKey: ["/api/commissions/monthly/user", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      try {
+        const response = await fetch(`/api/commissions/monthly/user/${user.id}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch user commissions: ${response.status}`);
+        }
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching commissions data:', error);
+        throw error;
+      }
+    },
+    enabled: !!user?.id
   });
   
   // Get commission data for the specific month
   const { data: monthlyCommission, isLoading: isLoadingMonthly, error: monthlyError } = useQuery({
     queryKey: ["/api/commissions/monthly/user", user?.id, selectedMonth],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      try {
+        const response = await fetch(`/api/commissions/monthly/user/${user.id}/${selectedMonth}`);
+        if (response.status === 404) {
+          return { total: 0, leads: 0, clients: 0, items: [] }; // Return empty data structure
+        }
+        if (!response.ok) {
+          throw new Error(`Failed to fetch monthly commission: ${response.status}`);
+        }
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching monthly commission data:', error);
+        throw error;
+      }
+    },
+    enabled: !!user?.id && !!selectedMonth
   });
   
   // Get commission data for the previous month (for comparison)
   const previousMonth = getPreviousMonth(selectedMonth);
   const { data: prevMonthCommission } = useQuery({
     queryKey: ["/api/commissions/monthly/user", user?.id, previousMonth],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      try {
+        const response = await fetch(`/api/commissions/monthly/user/${user.id}/${previousMonth}`);
+        if (response.status === 404) {
+          return { total: 0, leads: 0, clients: 0, items: [] }; // Return empty data structure
+        }
+        if (!response.ok) {
+          throw new Error(`Failed to fetch previous month commission: ${response.status}`);
+        }
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching previous month commission data:', error);
+        throw error;
+      }
+    },
+    enabled: !!user?.id && !!previousMonth
   });
   
   // Calculate growth percentage
