@@ -283,4 +283,88 @@ router.delete('/time-tracking/:id', async (req, res) => {
   }
 });
 
+// Get policy assignments
+router.get('/assignments', async (req, res) => {
+  try {
+    // For now, return some sample policy assignments
+    const assignments = [
+      {
+        id: 1,
+        orgId: req.user?.orgId,
+        policyId: 1,
+        policyType: 'leave',
+        assigneeType: 'Department',
+        assigneeId: 1,
+        assigneeName: 'Sales',
+        assignedBy: 1,
+        assignedAt: '2025-01-01T00:00:00Z',
+      },
+      {
+        id: 2,
+        orgId: req.user?.orgId,
+        policyId: 2,
+        policyType: 'time-tracking',
+        assigneeType: 'Team',
+        assigneeId: 3,
+        assigneeName: 'Executive Team',
+        assignedBy: 1,
+        assignedAt: '2025-01-01T00:00:00Z',
+      }
+    ];
+    
+    res.json(assignments);
+  } catch (error) {
+    console.error('Error fetching policy assignments:', error);
+    res.status(500).json({ error: 'Failed to fetch policy assignments' });
+  }
+});
+
+// Assign a policy
+router.post('/assign', async (req, res) => {
+  try {
+    const schema = z.object({
+      policyId: z.number(),
+      policyType: z.enum(['leave', 'time-tracking']),
+      assigneeType: z.enum(['Organization', 'Department', 'Team', 'Employee']),
+      assigneeId: z.number(),
+      assigneeName: z.string(),
+    });
+    
+    const validated = schema.parse(req.body);
+    
+    const newAssignment = {
+      id: 3, // In a real implementation, this would be auto-generated
+      orgId: req.user?.orgId,
+      ...validated,
+      assignedBy: req.user?.id,
+      assignedAt: new Date().toISOString(),
+    };
+    
+    // In a real implementation, you would save this to the database
+    
+    res.status(201).json(newAssignment);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: error.errors[0].message });
+    } else {
+      console.error('Error assigning policy:', error);
+      res.status(500).json({ error: 'Failed to assign policy' });
+    }
+  }
+});
+
+// Remove a policy assignment
+router.delete('/assignments/:id', async (req, res) => {
+  try {
+    const assignmentId = parseInt(req.params.id);
+    
+    // In a real implementation, you would check if the assignment exists and delete it
+    
+    res.status(204).end();
+  } catch (error) {
+    console.error('Error removing policy assignment:', error);
+    res.status(500).json({ error: 'Failed to remove policy assignment' });
+  }
+});
+
 export default router;
