@@ -145,7 +145,7 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
     { name: "Team Members", href: "/hr/team" },
     { name: "Job Postings", href: "/hr/jobs" },
     { name: "Onboarding", href: "/hr/onboarding" },
-    { name: "Time Off", href: "/hr/time-off" }
+    { name: "Policies", href: "/hr/policies" }
   ];
 
   // Navigation items definition
