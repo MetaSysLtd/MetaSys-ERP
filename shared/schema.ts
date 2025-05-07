@@ -24,6 +24,11 @@ export const probationRecommendationEnum = pgEnum('probation_recommendation', ['
 export const exitStatusEnum = pgEnum('exit_status', ['pending', 'in_progress', 'completed']);
 export const documentTypeEnum = pgEnum('document_type', ['offer_letter', 'nda', 'non_compete', 'background_check', 'cnic', 'education_certificate', 'bank_details', 'police_verification', 'experience_letter', 'probation_form']);
 
+// Leave Management enums
+export const leaveTypeEnum = pgEnum('leave_type', ['Casual', 'Medical', 'Annual']);
+export const leaveStatusEnum = pgEnum('leave_status', ['Pending', 'Approved', 'Rejected', 'Cancelled']);
+export const policyLevelEnum = pgEnum('policy_level', ['Organization', 'Department', 'Team', 'Employee']);
+
 // HR Hiring & Onboarding tables
 export const hiringCandidates = pgTable("hiring_candidates", {
   id: serial("id").primaryKey(),
@@ -177,6 +182,84 @@ export const companyDocuments = pgTable("company_documents", {
   };
 });
 
+// Enhanced Leave Management System tables (replacing existing ones)
+export const hrLeavePolicies = pgTable("hr_leave_policies", {
+  id: serial("id").primaryKey(),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  policyLevel: policyLevelEnum("policy_level").notNull(),
+  targetId: integer("target_id").notNull(), // This is either the organization, department, team, or user ID
+  casualLeaveQuota: integer("casual_leave_quota").notNull().default(8),
+  medicalLeaveQuota: integer("medical_leave_quota").notNull().default(8),
+  annualLeaveQuota: integer("annual_leave_quota").notNull().default(0),
+  carryForwardLimit: integer("carry_forward_limit").default(0),
+  resetDate: date("reset_date"), // Annual reset date, typically Jan 1
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  active: boolean("active").notNull().default(true),
+}, (table) => {
+  return {
+    orgIdIdx: index("hr_leave_policies_org_id_idx").on(table.orgId),
+    policyLevelIdx: index("hr_leave_policies_level_target_idx").on(table.policyLevel, table.targetId),
+    createdAtIdx: index("hr_leave_policies_created_at_idx").on(table.createdAt),
+  };
+});
+
+export const hrLeaveBalances = pgTable("hr_leave_balances", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  year: integer("year").notNull(),
+  casualLeaveUsed: integer("casual_leave_used").notNull().default(0),
+  casualLeaveBalance: integer("casual_leave_balance").notNull().default(8), // Default per policy
+  medicalLeaveUsed: integer("medical_leave_used").notNull().default(0),
+  medicalLeaveBalance: integer("medical_leave_balance").notNull().default(8), // Default per policy
+  annualLeaveUsed: integer("annual_leave_used").notNull().default(0),
+  annualLeaveBalance: integer("annual_leave_balance").notNull().default(0), // Default per policy
+  carryForwardUsed: integer("carry_forward_used").notNull().default(0),
+  carryForwardBalance: integer("carry_forward_balance").notNull().default(0),
+  lastUpdated: timestamp("last_updated").notNull().defaultNow(),
+  policyId: integer("policy_id").references(() => hrLeavePolicies.id),
+}, (table) => {
+  return {
+    userIdIdx: index("hr_leave_balances_user_id_idx").on(table.userId),
+    orgIdIdx: index("hr_leave_balances_org_id_idx").on(table.orgId),
+    yearIdx: index("hr_leave_balances_year_idx").on(table.year),
+    userYearIdx: index("hr_leave_balances_user_year_idx").on(table.userId, table.year),
+  };
+});
+
+export const hrLeaveRequests = pgTable("hr_leave_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  orgId: integer("org_id").notNull().references(() => organizations.id),
+  leaveType: leaveTypeEnum("leave_type").notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  totalDays: real("total_days").notNull(),
+  reason: text("reason"),
+  status: leaveStatusEnum("status").notNull().default("Pending"),
+  approvedBy: integer("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+  rejectedBy: integer("rejected_by").references(() => users.id),
+  rejectedAt: timestamp("rejected_at"),
+  rejectionReason: text("rejection_reason"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  notificationSent: boolean("notification_sent").notNull().default(false),
+  documentUrl: text("document_url"), // For medical certificates or supporting docs
+}, (table) => {
+  return {
+    userIdIdx: index("hr_leave_requests_user_id_idx").on(table.userId),
+    orgIdIdx: index("hr_leave_requests_org_id_idx").on(table.orgId),
+    statusIdx: index("hr_leave_requests_status_idx").on(table.status),
+    leaveTypeIdx: index("hr_leave_requests_type_idx").on(table.leaveType),
+    dateRangeIdx: index("hr_leave_requests_date_range_idx").on(table.startDate, table.endDate),
+  };
+});
+
 // Insert schemas for HR tables
 export const insertHiringCandidateSchema = createInsertSchema(hiringCandidates).omit({ 
   id: true, 
@@ -220,6 +303,26 @@ export const insertCompanyDocumentSchema = createInsertSchema(companyDocuments).
   id: true, 
   createdAt: true, 
   updatedAt: true 
+});
+
+// Insert schemas for Leave Management
+export const insertHrLeavePolicySchema = createInsertSchema(hrLeavePolicies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export const insertHrLeaveBalanceSchema = createInsertSchema(hrLeaveBalances).omit({
+  id: true,
+  lastUpdated: true
+});
+
+export const insertHrLeaveRequestSchema = createInsertSchema(hrLeaveRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  approvedAt: true,
+  rejectedAt: true
 });
 
 // Dashboard Widget System
@@ -1116,7 +1219,7 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({ id: true, creat
 export const insertCommentSchema = createInsertSchema(comments).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertTimeClockEntrySchema = createInsertSchema(timeClockEntries).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertLeaveTypeSchema = createInsertSchema(leaveTypes).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertLeaveRequestSchema = createInsertSchema(leaveRequests).omit({ id: true, createdAt: true, updatedAt: true });
+// The insertLeaveRequestSchema has been replaced by insertHrLeaveRequestSchema
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, createdAt: true });
 export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({ id: true, createdAt: true });
@@ -1355,8 +1458,15 @@ export type InsertTimeClockEntry = z.infer<typeof insertTimeClockEntrySchema>;
 export type LeaveType = typeof leaveTypes.$inferSelect;
 export type InsertLeaveType = z.infer<typeof insertLeaveTypeSchema>;
 
-export type LeaveRequest = typeof leaveRequests.$inferSelect;
-export type InsertLeaveRequest = z.infer<typeof insertLeaveRequestSchema>;
+// HR Leave Management Types
+export type HrLeavePolicy = typeof hrLeavePolicies.$inferSelect;
+export type InsertHrLeavePolicy = z.infer<typeof insertHrLeavePolicySchema>;
+
+export type HrLeaveBalance = typeof hrLeaveBalances.$inferSelect;
+export type InsertHrLeaveBalance = z.infer<typeof insertHrLeaveBalanceSchema>;
+
+export type HrLeaveRequest = typeof hrLeaveRequests.$inferSelect;
+export type InsertHrLeaveRequest = z.infer<typeof insertHrLeaveRequestSchema>;
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
