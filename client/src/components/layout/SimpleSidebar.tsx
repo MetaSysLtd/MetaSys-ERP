@@ -28,7 +28,8 @@ import {
   Mail,
   Briefcase,
   Menu,
-  DollarSign
+  DollarSign,
+  Calendar
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Logo } from '@/components/ui/logo';
@@ -173,6 +174,7 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
 
   const secondaryNavItems: NavItem[] = [
     { name: "Time Tracking", href: "/time-tracking", icon: Clock },
+    { name: "Time Off", href: "/time-off", icon: Calendar },
     { 
       name: "Human Resources", 
       href: "/hr", 
