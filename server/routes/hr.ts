@@ -1,8 +1,12 @@
 import express from 'express';
 import { createAuthMiddleware } from '../auth-middleware';
 import { storage } from '../storage';
+import hrLeavesRouter from './hr-leaves';
 
 const hrRouter = express.Router();
+
+// Mount the HR Leave Management routes
+hrRouter.use('/leaves', hrLeavesRouter);
 
 // Get team members (all users with their roles)
 hrRouter.get("/team", createAuthMiddleware(1), async (req, res, next) => {
