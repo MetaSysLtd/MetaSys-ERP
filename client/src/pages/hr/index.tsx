@@ -386,29 +386,136 @@ export default function HRPage() {
         </TabsContent>
 
         <TabsContent value="leave" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-semibold mb-1">Leave Management</h2>
+              <p className="text-muted-foreground">Manage employee leave requests, balances, and policies</p>
+            </div>
+            <div className="flex gap-3">
+              <Button asChild>
+                <a href="/hr/leaves">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Open Full Module
+                </a>
+              </Button>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <Calendar className="h-8 w-8 text-blue-500" />
+                  <Badge variant="outline" className="bg-blue-50">Active</Badge>
+                </div>
+                <CardTitle className="text-xl mt-4">Pending Requests</CardTitle>
+                <CardDescription>Leave requests awaiting approval</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">5</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span className="text-amber-500">+2</span> this week
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <CalendarDays className="h-8 w-8 text-green-500" />
+                  <Badge variant="outline" className="bg-green-50">This Week</Badge>
+                </div>
+                <CardTitle className="text-xl mt-4">Approved Leaves</CardTitle>
+                <CardDescription>Confirmed upcoming leaves</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">12</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  3 starting this week
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <FileCheck className="h-8 w-8 text-purple-500" />
+                  <Badge variant="outline" className="bg-purple-50">Balances</Badge>
+                </div>
+                <CardTitle className="text-xl mt-4">Leave Balances</CardTitle>
+                <CardDescription>Team leave availability</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">186 days</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Remaining across team
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <Briefcase className="h-8 w-8 text-amber-500" />
+                  <Badge variant="outline" className="bg-amber-50">Policies</Badge>
+                </div>
+                <CardTitle className="text-xl mt-4">Leave Policies</CardTitle>
+                <CardDescription>Active policy documents</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">4</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  1 updated recently
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
           <Card>
             <CardHeader>
-              <CardTitle>Leave Management Module Coming Soon</CardTitle>
-              <CardDescription>
-                This feature is currently under development. Check back soon for enhanced leave management capabilities!
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <CardTitle>Recent Leave Activities</CardTitle>
+                <Button variant="outline" size="sm" asChild>
+                  <a href="/hr/leaves">View All</a>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">
-                The full Leave Management module will include:
-              </p>
-              <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-                <li>Leave request submission and approval workflows</li>
-                <li>Different leave types (vacation, sick, personal, etc.)</li>
-                <li>Accrual tracking and balance management</li>
-                <li>Team calendar with leave visibility</li>
-                <li>Reporting and analytics</li>
-                <li>Policy enforcement and compliance</li>
-              </ul>
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="h-9 w-9 rounded-full bg-green-100 flex items-center justify-center">
+                    <Calendar className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <div className="font-medium">Leave Request Approved</div>
+                    <div className="text-sm text-muted-foreground">Michael Chen's vacation request (May 15-22) was approved</div>
+                    <div className="text-xs text-gray-500 mt-1">Yesterday, 3:45 PM</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="font-medium">New Leave Request</div>
+                    <div className="text-sm text-muted-foreground">Jessica Martinez requested medical leave (May 5-7)</div>
+                    <div className="text-xs text-gray-500 mt-1">May 2, 2025</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="h-9 w-9 rounded-full bg-amber-100 flex items-center justify-center">
+                    <FileCheck className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <div className="font-medium">Leave Policy Updated</div>
+                    <div className="text-sm text-muted-foreground">Annual leave policy updated for Dispatch team</div>
+                    <div className="text-xs text-gray-500 mt-1">Apr 29, 2025</div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
-            <CardFooter>
-              <Button variant="outline">View Documentation</Button>
-            </CardFooter>
           </Card>
         </TabsContent>
 
