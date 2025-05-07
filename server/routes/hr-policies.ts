@@ -54,7 +54,7 @@ router.get('/leave', async (req, res) => {
 });
 
 // Create a new leave policy
-router.post('/leave-policies', async (req, res) => {
+router.post('/leave', async (req, res) => {
   try {
     const schema = z.object({
       name: z.string().min(1),
@@ -93,7 +93,7 @@ router.post('/leave-policies', async (req, res) => {
 });
 
 // Update a leave policy
-router.patch('/leave-policies/:id', async (req, res) => {
+router.patch('/leave/:id', async (req, res) => {
   try {
     const policyId = parseInt(req.params.id);
     
@@ -132,7 +132,7 @@ router.patch('/leave-policies/:id', async (req, res) => {
 });
 
 // Delete a leave policy
-router.delete('/leave-policies/:id', async (req, res) => {
+router.delete('/leave/:id', async (req, res) => {
   try {
     const policyId = parseInt(req.params.id);
     
@@ -192,7 +192,7 @@ router.get('/time-tracking', async (req, res) => {
 });
 
 // Create a new time tracking policy
-router.post('/time-tracking-policies', async (req, res) => {
+router.post('/time-tracking', async (req, res) => {
   try {
     const schema = z.object({
       name: z.string().min(1),
@@ -227,6 +227,59 @@ router.post('/time-tracking-policies', async (req, res) => {
       console.error('Error creating time tracking policy:', error);
       res.status(500).json({ error: 'Failed to create time tracking policy' });
     }
+  }
+});
+
+// Update a time tracking policy
+router.patch('/time-tracking/:id', async (req, res) => {
+  try {
+    const policyId = parseInt(req.params.id);
+    
+    // In a real implementation, you would fetch the policy and check if it exists
+    const existingPolicy = {
+      id: policyId,
+      orgId: req.user?.orgId,
+      name: 'Standard Work Hours',
+      description: 'Default work hours policy for all employees',
+      policyLevel: 'Organization',
+      targetId: req.user?.orgId,
+      workHoursPerDay: 8,
+      workDaysPerWeek: 5,
+      flexibleHours: true,
+      overtimeAllowed: true,
+      maxOvertimeHours: 10,
+      active: true,
+      createdBy: 1,
+      createdAt: '2025-01-01T00:00:00Z',
+    };
+    
+    const updatedPolicy = {
+      ...existingPolicy,
+      ...req.body,
+      updatedBy: req.user?.id,
+      updatedAt: new Date().toISOString(),
+    };
+    
+    // In a real implementation, you would update the database record
+    
+    res.json(updatedPolicy);
+  } catch (error) {
+    console.error('Error updating time tracking policy:', error);
+    res.status(500).json({ error: 'Failed to update time tracking policy' });
+  }
+});
+
+// Delete a time tracking policy
+router.delete('/time-tracking/:id', async (req, res) => {
+  try {
+    const policyId = parseInt(req.params.id);
+    
+    // In a real implementation, you would check if the policy exists and delete it
+    
+    res.status(204).end();
+  } catch (error) {
+    console.error('Error deleting time tracking policy:', error);
+    res.status(500).json({ error: 'Failed to delete time tracking policy' });
   }
 });
 
