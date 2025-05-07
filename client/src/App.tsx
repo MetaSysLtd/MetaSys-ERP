@@ -350,6 +350,22 @@ function Router() {
         )}
       </Route>
 
+      <Route path="/time-off">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={TimeOffPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/hr/policies">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={HRPoliciesPage} />
+          </AppLayout>
+        )}
+      </Route>
+
       <Route path="/teams/sales">
         {() => (
           <AppLayout>

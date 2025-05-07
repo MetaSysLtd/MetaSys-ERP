@@ -6,6 +6,8 @@ import { storage } from "./storage";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import adminRouter from './routes/admin';
+import timeOffRouter from './routes/time-off';
+import hrPoliciesRouter from './routes/hr-policies';
 import { 
   insertUserSchema, insertRoleSchema, insertLeadSchema, 
   insertLoadSchema, insertInvoiceSchema, insertInvoiceItemSchema,
