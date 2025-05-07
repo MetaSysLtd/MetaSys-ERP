@@ -1,12 +1,11 @@
 import express from 'express';
-import { createAuthMiddleware } from '../middleware/auth';
 import { storage } from '../storage';
 import { z } from 'zod';
 
 const router = express.Router();
 
-// Require authentication for all time-off routes
-router.use(isAuthenticated);
+// Authentication is handled at the API router level
+// Don't need to add it again here
 
 // Get leave requests for the current user
 router.get('/requests', async (req, res) => {
@@ -16,7 +15,7 @@ router.get('/requests', async (req, res) => {
       {
         id: 1,
         userId: req.user?.id,
-        orgId: req.user?.organizationId,
+        orgId: req.user?.orgId,
         leaveType: 'Casual',
         startDate: '2025-05-15',
         endDate: '2025-05-17',
@@ -28,7 +27,7 @@ router.get('/requests', async (req, res) => {
       {
         id: 2,
         userId: req.user?.id,
-        orgId: req.user?.organizationId,
+        orgId: req.user?.orgId,
         leaveType: 'Medical',
         startDate: '2025-04-10',
         endDate: '2025-04-15',
@@ -69,7 +68,7 @@ router.post('/requests', async (req, res) => {
     const newRequest = {
       id: 3, // In a real implementation, this would be auto-generated
       userId: req.user?.id,
-      orgId: req.user?.organizationId,
+      orgId: req.user?.orgId,
       leaveType: validated.leaveType,
       startDate: validated.startDate,
       endDate: validated.endDate,
@@ -107,7 +106,7 @@ router.patch('/requests/:id', async (req, res) => {
     const updatedRequest = {
       id: requestId,
       userId: req.user?.id,
-      orgId: req.user?.organizationId,
+      orgId: req.user?.orgId,
       leaveType: 'Casual',
       startDate: '2025-05-15',
       endDate: '2025-05-17',
@@ -147,7 +146,7 @@ router.post('/requests/:id/cancel', async (req, res) => {
     const cancelledRequest = {
       id: requestId,
       userId: req.user?.id,
-      orgId: req.user?.organizationId,
+      orgId: req.user?.orgId,
       leaveType: 'Casual',
       startDate: '2025-05-15',
       endDate: '2025-05-17',
@@ -173,7 +172,7 @@ router.get('/balances', async (req, res) => {
     const balance = {
       id: 1,
       userId: req.user?.id,
-      orgId: req.user?.organizationId,
+      orgId: req.user?.orgId,
       year: currentYear,
       casualLeaveUsed: 2,
       casualLeaveBalance: 8,

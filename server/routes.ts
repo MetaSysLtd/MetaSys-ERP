@@ -1309,6 +1309,10 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   // Register admin routes
   apiRouter.use('/admin', adminRouter);
   
+  // Register Time Off and HR Policies routes
+  apiRouter.use('/time-off', timeOffRouter);
+  apiRouter.use('/hr-policies', hrPoliciesRouter);
+  
   // Add seed data if needed
   await addSeedDataIfNeeded();
   
