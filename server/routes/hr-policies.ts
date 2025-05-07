@@ -8,7 +8,7 @@ const router = express.Router();
 // Don't need to add it again here
 
 // Get leave policies
-router.get('/leave-policies', async (req, res) => {
+router.get('/leave', async (req, res) => {
   try {
     // For now, return some sample leave policies
     const policies = [
@@ -146,7 +146,7 @@ router.delete('/leave-policies/:id', async (req, res) => {
 });
 
 // Get time tracking policies
-router.get('/time-tracking-policies', async (req, res) => {
+router.get('/time-tracking', async (req, res) => {
   try {
     // For now, return some sample time tracking policies
     const policies = [
