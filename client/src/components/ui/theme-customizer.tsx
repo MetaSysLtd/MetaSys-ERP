@@ -30,9 +30,10 @@ interface ThemeConfig {
 // Props for the component
 interface ThemeCustomizerProps {
   currentTheme: ThemeConfig;
+  isAdmin?: boolean;
 }
 
-export default function ThemeCustomizer({ currentTheme }: ThemeCustomizerProps) {
+export default function ThemeCustomizer({ currentTheme, isAdmin = false }: ThemeCustomizerProps) {
   const [theme, setTheme] = useState<ThemeConfig>(currentTheme);
   const [activeTab, setActiveTab] = useState("colors");
   const { toast } = useToast();
@@ -140,6 +141,8 @@ export default function ThemeCustomizer({ currentTheme }: ThemeCustomizerProps) 
                         id="brand-navy"
                         value={theme.colors["brand-navy"]}
                         onChange={(e) => updateColor("brand-navy", e.target.value)}
+                        readOnly={!isAdmin}
+                        disabled={!isAdmin}
                       />
                     </div>
                   </div>
@@ -155,6 +158,8 @@ export default function ThemeCustomizer({ currentTheme }: ThemeCustomizerProps) 
                         id="brand-accent"
                         value={theme.colors["brand-accent"]}
                         onChange={(e) => updateColor("brand-accent", e.target.value)}
+                        readOnly={!isAdmin}
+                        disabled={!isAdmin}
                       />
                     </div>
                   </div>
@@ -175,6 +180,8 @@ export default function ThemeCustomizer({ currentTheme }: ThemeCustomizerProps) 
                         id="brand-highlight"
                         value={theme.colors["brand-highlight"]}
                         onChange={(e) => updateColor("brand-highlight", e.target.value)}
+                        readOnly={!isAdmin}
+                        disabled={!isAdmin}
                       />
                     </div>
                   </div>
@@ -190,6 +197,8 @@ export default function ThemeCustomizer({ currentTheme }: ThemeCustomizerProps) 
                         id="brand-contrast"
                         value={theme.colors["brand-contrast"]}
                         onChange={(e) => updateColor("brand-contrast", e.target.value)}
+                        readOnly={!isAdmin}
+                        disabled={!isAdmin}
                       />
                     </div>
                   </div>
@@ -212,6 +221,8 @@ export default function ThemeCustomizer({ currentTheme }: ThemeCustomizerProps) 
                         id="brand-background"
                         value={theme.colors["brand-background"]}
                         onChange={(e) => updateColor("brand-background", e.target.value)}
+                        readOnly={!isAdmin}
+                        disabled={!isAdmin}
                       />
                     </div>
                   </div>
@@ -227,6 +238,8 @@ export default function ThemeCustomizer({ currentTheme }: ThemeCustomizerProps) 
                         id="brand-border"
                         value={theme.colors["brand-border"]}
                         onChange={(e) => updateColor("brand-border", e.target.value)}
+                        readOnly={!isAdmin}
+                        disabled={!isAdmin}
                       />
                     </div>
                   </div>
@@ -247,6 +260,8 @@ export default function ThemeCustomizer({ currentTheme }: ThemeCustomizerProps) 
                         id="brand-text"
                         value={theme.colors["brand-text"]}
                         onChange={(e) => updateColor("brand-text", e.target.value)}
+                        readOnly={!isAdmin}
+                        disabled={!isAdmin}
                       />
                     </div>
                   </div>
