@@ -49,6 +49,13 @@ export interface CRMHandoffRates {
   byRep: Array<{ name: string; success: number; failed: number }>;
 }
 
+export interface CRMTopPerformer {
+  name: string;
+  value: number;
+  growth: number;
+  avatarUrl?: string | null;
+}
+
 export interface CRMTopPerformers {
   salesReps: Array<{ 
     name: string; 
