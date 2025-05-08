@@ -1,141 +1,104 @@
+import { format } from "date-fns";
+
 /**
- * Format a number as currency with dollar sign and proper commas
+ * Format a number as currency (USD)
+ * @param value Number to format
+ * @param locale Locale to use for formatting (default: "en-US")
+ * @returns Formatted currency string
  */
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount);
+export function formatCurrency(value: number, locale = "en-US"): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "USD",
+  }).format(value);
 }
 
 /**
- * Format a number with commas for thousands
+ * Format a number as a percentage
+ * @param value Number to format (e.g. 0.75 for 75%)
+ * @param decimals Number of decimal places (default: 1)
+ * @returns Formatted percentage string
  */
-export function formatNumber(value: number): string {
-  return new Intl.NumberFormat('en-US').format(value);
+export function formatPercent(value: number, decimals = 1): string {
+  return `${(value * 100).toFixed(decimals)}%`;
 }
 
 /**
- * Format a date to a friendly readable format
+ * Format a date using date-fns
+ * @param date Date to format
+ * @param formatStr Format string (default: "MMM d, yyyy")
+ * @returns Formatted date string
  */
-export function formatDate(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  }).format(d);
+export function formatDate(date: Date | string, formatStr = "MMM d, yyyy"): string {
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return format(dateObj, formatStr);
 }
 
 /**
- * Format a date to show time as well
+ * Format a number with thousand separators
+ * @param value Number to format
+ * @param locale Locale to use for formatting (default: "en-US")
+ * @returns Formatted number string
  */
-export function formatDateTime(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric'
-  }).format(d);
+export function formatNumber(value: number, locale = "en-US"): string {
+  return new Intl.NumberFormat(locale).format(value);
 }
 
 /**
- * Format a percentage value with no decimal places
+ * Format a duration in seconds to a human readable string (e.g. "2h 30m")
+ * @param seconds Duration in seconds
+ * @param verbose Whether to include all units or just the two most significant
+ * @returns Formatted duration string
  */
-export function formatPercentage(value: number): string {
-  return `${Math.round(value)}%`;
+export function formatDuration(seconds: number, verbose = false): string {
+  if (seconds < 60) {
+    return `${seconds}s`;
+  }
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return verbose ? `${minutes}m ${seconds % 60}s` : `${minutes}m`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return verbose 
+      ? `${hours}h ${minutes % 60}m ${seconds % 60}s` 
+      : `${hours}h ${minutes % 60}m`;
+  }
+
+  const days = Math.floor(hours / 24);
+  return verbose 
+    ? `${days}d ${hours % 24}h ${minutes % 60}m ${seconds % 60}s` 
+    : `${days}d ${hours % 24}h`;
 }
 
 /**
- * Format a decimal as a percentage with specified decimal places
+ * Truncate a string to a maximum length and add ellipsis if needed
+ * @param str String to truncate
+ * @param maxLength Maximum length (default: 50)
+ * @returns Truncated string
  */
-export function formatPercent(value: number, decimalPlaces: number = 1): string {
-  return `${(value * 100).toFixed(decimalPlaces)}%`;
+export function truncateString(str: string, maxLength = 50): string {
+  if (str.length <= maxLength) return str;
+  return `${str.substring(0, maxLength - 3)}...`;
 }
 
 /**
- * Format a phone number with proper formatting: (XXX) XXX-XXXX
+ * Format a phone number to a standard format (e.g. "(123) 456-7890")
+ * @param phoneNumber Phone number to format
+ * @returns Formatted phone number
  */
 export function formatPhoneNumber(phoneNumber: string): string {
-  // If the phone number is not 10 digits, return it as is
-  if (!/^\d{10}$/.test(phoneNumber)) {
-    return phoneNumber;
+  // Remove all non-digit characters
+  const cleaned = phoneNumber.replace(/\D/g, "");
+  
+  // Check if the input is of correct length
+  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+  
+  if (match) {
+    return `(${match[1]}) ${match[2]}-${match[3]}`;
   }
   
-  // Format the phone number with US pattern
-  return `(${phoneNumber.substring(0, 3)}) ${phoneNumber.substring(3, 6)}-${phoneNumber.substring(6)}`;
-}
-
-/**
- * Truncate text to a certain length and add ellipsis if needed
- */
-export function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength) + '...';
-}
-
-/**
- * Capitalize the first letter of each word in a string
- */
-export function capitalizeWords(text: string): string {
-  return text
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-}
-
-/**
- * Format byte size to human readable format (KB, MB, GB, etc)
- */
-export function formatBytes(bytes: number, decimals: number = 2): string {
-  if (bytes === 0) return '0 Bytes';
-  
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-}
-
-/**
- * Format a number with a specific number of decimal places
- */
-export function formatDecimal(value: number, places: number = 2): string {
-  return value.toFixed(places);
-}
-
-/**
- * Format a date to a relative time string (e.g., "2 days ago")
- * @param date - The date to format
- * @returns Human-readable relative time string
- */
-export function formatRelativeTime(date: Date): string {
-  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-    return '';
-  }
-  
-  const now = new Date();
-  const diffInMs = now.getTime() - date.getTime();
-  const diffInSecs = Math.floor(diffInMs / 1000);
-  const diffInMins = Math.floor(diffInSecs / 60);
-  const diffInHours = Math.floor(diffInMins / 60);
-  const diffInDays = Math.floor(diffInHours / 24);
-
-  if (diffInSecs < 60) {
-    return 'just now';
-  } else if (diffInMins < 60) {
-    return `${diffInMins} ${diffInMins === 1 ? 'minute' : 'minutes'} ago`;
-  } else if (diffInHours < 24) {
-    return `${diffInHours} ${diffInHours === 1 ? 'hour' : 'hours'} ago`;
-  } else if (diffInDays < 7) {
-    return `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
-  } else {
-    return formatDate(date);
-  }
+  return phoneNumber;
 }

@@ -13,7 +13,7 @@ import {
   Legend 
 } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChartIcon, FileSpreadsheet, PieChart as PieChartIcon, TrendingUp } from "lucide-react";
+import { BarChart2, FileSpreadsheet, PieChart as PieChartIcon, TrendingUp } from "lucide-react";
 
 interface LeadsOverviewProps {
   data: {
@@ -89,7 +89,7 @@ export function LeadsOverview({ data }: LeadsOverviewProps) {
               Trend
             </TabsTrigger>
             <TabsTrigger value="status" className="flex items-center">
-              <ChartIcon className="h-4 w-4 mr-1" />
+              <BarChart2 className="h-4 w-4 mr-1" />
               By Status
             </TabsTrigger>
             <TabsTrigger value="source" className="flex items-center">

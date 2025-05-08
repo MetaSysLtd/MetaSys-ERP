@@ -1,93 +1,88 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
-import { formatPercent } from "@/lib/formatters";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { TrendingDown, TrendingUp, ExternalLink, ArrowLeftRight } from "lucide-react";
 
-interface ConversionData {
-  qualification: number;
-  handoff: number;
-  closing: number;
+interface RatioData {
+  name: string;
+  value: number;
+  change: number;
+  target: number;
 }
 
 interface ConversionRatiosProps {
-  data: ConversionData;
+  data: RatioData[];
 }
 
-const COLORS = ["#025E73", "#F2A71B", "#412754"];
-
 export function ConversionRatios({ data }: ConversionRatiosProps) {
-  // Transform data for the chart
-  const chartData = [
-    { name: "Qualification Rate", value: data.qualification },
-    { name: "Handoff Rate", value: data.handoff },
-    { name: "Closing Rate", value: data.closing }
-  ];
+  if (!data || data.length === 0) {
+    return (
+      <Card className="shadow-md hover:shadow-lg transition-all duration-200">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-medium text-[#025E73] flex items-center">
+            <ArrowLeftRight className="mr-2 h-5 w-5" />
+            Conversion Ratios
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[200px] flex items-center justify-center">
+            <p className="text-muted-foreground">No conversion data available</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  // Calculate the average conversion rate
-  const averageRate = 
-    (data.qualification + data.handoff + data.closing) / 3;
-  
   return (
     <Card className="shadow-md hover:shadow-lg transition-all duration-200">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium text-[#025E73]">Conversion Ratios</CardTitle>
-        <CardDescription className="text-sm text-gray-500">
-          Lead conversion performance metrics
-        </CardDescription>
+        <CardTitle className="text-lg font-medium text-[#025E73] flex items-center">
+          <ArrowLeftRight className="mr-2 h-5 w-5" />
+          Conversion Ratios
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col space-y-4">
-          <div className="flex justify-center items-center">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-[#025E73]">
-                {formatPercent(averageRate)}
+        <div className="space-y-4">
+          {data.map((ratio, index) => (
+            <div key={index} className="space-y-2">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <span className="font-medium text-sm">{ratio.name}</span>
+                  {ratio.change > 0 ? (
+                    <div className="flex items-center text-green-500 text-xs font-medium">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      {ratio.change.toFixed(1)}%
+                    </div>
+                  ) : (
+                    <div className="flex items-center text-red-500 text-xs font-medium">
+                      <TrendingDown className="h-3 w-3 mr-1" />
+                      {Math.abs(ratio.change).toFixed(1)}%
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm font-bold">{(ratio.value * 100).toFixed(1)}%</span>
               </div>
-              <div className="text-sm text-gray-500">Average Conversion</div>
-            </div>
-          </div>
-          
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={80}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {chartData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={COLORS[index % COLORS.length]} 
-                      stroke="none"
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => [`${formatPercent(value as number)}`, ""]}
+              <div className="flex items-center space-x-2">
+                <Progress 
+                  value={ratio.value * 100} 
+                  max={ratio.target * 100}
+                  className="h-2"
                 />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-2">
-            {chartData.map((item, index) => (
-              <div key={index} className="flex flex-col items-center">
-                <div className="text-lg font-semibold">
-                  {formatPercent(item.value)}
-                </div>
-                <div 
-                  className="text-xs text-center text-gray-600 truncate w-full"
-                  title={item.name}
-                >
-                  {item.name}
-                </div>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                  Target: {(ratio.target * 100).toFixed(0)}%
+                </span>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
+        
+        <div className="mt-4 pt-4 border-t">
+          <a 
+            href="#" 
+            className="text-sm text-[#025E73] flex items-center hover:underline"
+          >
+            <ExternalLink className="h-3 w-3 mr-1" />
+            View detailed conversion report
+          </a>
         </div>
       </CardContent>
     </Card>
