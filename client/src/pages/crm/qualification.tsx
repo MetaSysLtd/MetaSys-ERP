@@ -897,13 +897,7 @@ export default function LeadQualificationPage() {
                   ? 'Start by adding new leads to qualify'
                   : `No ${activeTab} leads available`}
               </p>
-              <Link href="/crm/new">
-                <Button
-                  className="mt-4 bg-[#025E73] hover:bg-[#025E73]/90"
-                >
-                  <Plus className="mr-2 h-4 w-4" /> Add New Lead
-                </Button>
-              </Link>
+              {/* "Add New Lead" button removed per requirements - leads should only be added via CRM > Leads */}
             </div>
           ) : (
             <div className="bg-white rounded-md shadow overflow-hidden">
