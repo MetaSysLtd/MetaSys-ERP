@@ -587,6 +587,109 @@ export function NewLeadModal({ open, onOpenChange, onSuccess }: NewLeadModalProp
                 
                 <FormField
                   control={step2Form.control}
+                  name="commissionRate"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-3">
+                      <FormLabel>Commission Rate (%) *</FormLabel>
+                      <FormControl>
+                        <div className="relative rounded-md">
+                          <Input {...field} type="number" step="0.5" min="0" max="30" />
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500 sm:text-sm">%</span>
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        Sales commission percentage
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={step2Form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-3">
+                      <FormLabel>Priority Level</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select priority" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Low">Low</SelectItem>
+                          <SelectItem value="Medium">Medium</SelectItem>
+                          <SelectItem value="High">High</SelectItem>
+                          <SelectItem value="Urgent">Urgent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={step2Form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-3">
+                      <FormLabel>Lead Category</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Carrier">Carrier</SelectItem>
+                          <SelectItem value="Shipper">Shipper</SelectItem>
+                          <SelectItem value="Broker">Broker</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={step2Form.control}
+                  name="currentAvailability"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-3">
+                      <FormLabel>Current Availability</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select availability" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Available">Available</SelectItem>
+                          <SelectItem value="Booked">Booked</SelectItem>
+                          <SelectItem value="Limited">Limited Availability</SelectItem>
+                          <SelectItem value="Unknown">Unknown</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={step2Form.control}
                   name="notes"
                   render={({ field }) => (
                     <FormItem className="sm:col-span-6">
