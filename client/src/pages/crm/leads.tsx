@@ -11,6 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
 import {
   Table,
   TableBody,
@@ -28,6 +32,7 @@ import {
   Clock, 
   Filter, 
   Users, 
+  UserPlus,
   LayoutGrid, 
   List, 
   Loader2,
@@ -39,12 +44,21 @@ import {
   Mail,
   Tag,
   Truck,
-  CalendarClock
+  CalendarClock,
+  Calendar as CalendarIcon,
+  Star,
+  ArrowDown10,
+  ArrowUp10,
+  BadgeCheck,
+  Building2,
+  DollarSign,
+  Info
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import NewLeadModal from "@/components/crm/NewLeadModal";
 import { formatDate, cn } from "@/lib/utils";
 import { KanbanView } from "@/components/crm/KanbanView";
+import { format } from "date-fns";
 
 export default function CRMLeadsPage() {
   const { toast } = useToast();
@@ -297,42 +311,79 @@ export default function CRMLeadsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
               {/* Status filter */}
-              <div>
-                <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              <div className="md:col-span-3">
+                <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                  <Tag className="h-4 w-4 mr-1.5 text-[#025E73]" />
                   Status
                 </label>
                 <Select
                   value={statusFilter}
                   onValueChange={(value) => setStatusFilter(value)}
                 >
-                  <SelectTrigger id="status-filter" className="w-full">
+                  <SelectTrigger id="status-filter" className="w-full bg-white border-gray-200 focus:ring-[#025E73] focus:border-[#025E73]">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="New">New</SelectItem>
-                    <SelectItem value="Contacted">Contacted</SelectItem>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="FollowUp">Follow Up</SelectItem>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
-                    <SelectItem value="Lost">Lost</SelectItem>
+                    <SelectItem value="New">
+                      <span className="flex items-center">
+                        <Badge className="mr-2 bg-blue-50 text-blue-700 border-blue-200">New</Badge>
+                        New Leads
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="Contacted">
+                      <span className="flex items-center">
+                        <Badge className="mr-2 bg-indigo-50 text-indigo-700 border-indigo-200">Contacted</Badge>
+                        Contacted
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="Active">
+                      <span className="flex items-center">
+                        <Badge className="mr-2 bg-green-50 text-green-700 border-green-200">Active</Badge>
+                        Active Leads
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="FollowUp">
+                      <span className="flex items-center">
+                        <Badge className="mr-2 bg-yellow-50 text-yellow-700 border-yellow-200">Follow Up</Badge>
+                        Follow-up
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="Qualifying">
+                      <span className="flex items-center">
+                        <Badge className="mr-2 bg-purple-50 text-purple-700 border-purple-200">Qualifying</Badge>
+                        In Qualification
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="Inactive">
+                      <span className="flex items-center">
+                        <Badge className="mr-2 bg-red-50 text-red-700 border-red-200">Inactive</Badge>
+                        Inactive
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="Lost">
+                      <span className="flex items-center">
+                        <Badge className="mr-2 bg-gray-50 text-gray-700 border-gray-200">Lost</Badge>
+                        Lost
+                      </span>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               {/* Category filter */}
-              <div>
-                <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
+              <div className="md:col-span-3">
+                <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                  <Info className="h-4 w-4 mr-1.5 text-[#025E73]" />
+                  Lead Category
                 </label>
                 <Select
                   value={categoryFilter}
                   onValueChange={(value) => setCategoryFilter(value)}
                 >
-                  <SelectTrigger id="category-filter" className="w-full">
+                  <SelectTrigger id="category-filter" className="w-full bg-white border-gray-200 focus:ring-[#025E73] focus:border-[#025E73]">
                     <SelectValue placeholder="Filter by category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -345,10 +396,33 @@ export default function CRMLeadsPage() {
                 </Select>
               </div>
               
+              {/* Date filter - disabled for now, will be implemented in future */}
+              <div className="md:col-span-3">
+                <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                  <CalendarIcon className="h-4 w-4 mr-1.5 text-[#025E73]" />
+                  Date Range
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="date-filter"
+                      variant="outline"
+                      size="default"
+                      className="w-full justify-start text-left font-normal bg-white border-gray-200 focus:ring-[#025E73] focus:border-[#025E73]"
+                      disabled
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <span>Coming soon</span>
+                    </Button>
+                  </PopoverTrigger>
+                </Popover>
+              </div>
+              
               {/* Search field */}
-              <div>
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-                  Search
+              <div className="md:col-span-3">
+                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+                  <Search className="h-4 w-4 mr-1.5 text-[#025E73]" />
+                  Search Leads
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -358,7 +432,7 @@ export default function CRMLeadsPage() {
                     id="search"
                     type="text"
                     placeholder="Name, email, phone, MC/DOT..."
-                    className="pl-10"
+                    className="pl-10 bg-white border-gray-200 focus:ring-[#025E73] focus:border-[#025E73]"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -367,12 +441,117 @@ export default function CRMLeadsPage() {
             </div>
             
             {/* Results count and view toggles */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center pt-2">
-              <div className="text-sm text-gray-500 mb-2 md:mb-0">
-                <Badge variant="outline" className="mr-2 bg-[#025E73] bg-opacity-10 text-[#025E73] border-[#025E73]">
-                  {filteredLeads.length}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center pt-4 border-t border-gray-200">
+              <div className="flex items-center space-x-4 mb-4 md:mb-0">
+                <div className="flex items-center">
+                  <span className="text-sm font-medium text-gray-700 mr-2">View:</span>
+                  <div className="flex border rounded-md overflow-hidden shadow-sm">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setViewMode('list')}
+                            className={`rounded-l-md px-3 ${
+                              viewMode === 'list'
+                                ? 'bg-[#025E73] text-white'
+                                : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <List className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>List View</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setViewMode('kanban')}
+                            className={`rounded-r-md px-3 ${
+                              viewMode === 'kanban'
+                                ? 'bg-[#025E73] text-white'
+                                : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <LayoutGrid className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Kanban Board</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <span className="text-sm font-medium text-gray-700 mr-2">Sort:</span>
+                  <Select
+                    value={`${sortField}-${sortDirection}`}
+                    onValueChange={(value) => {
+                      const [field, direction] = value.split('-');
+                      setSortField(field);
+                      setSortDirection(direction as "asc" | "desc");
+                    }}
+                  >
+                    <SelectTrigger className="w-[180px] h-9 border-gray-200 focus:ring-[#025E73] focus:border-[#025E73]">
+                      <SelectValue placeholder="Sort by..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="createdAt-desc">
+                        <span className="flex items-center">
+                          <ArrowDown10 className="h-3.5 w-3.5 mr-2" />
+                          Newest First
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="createdAt-asc">
+                        <span className="flex items-center">
+                          <ArrowUp10 className="h-3.5 w-3.5 mr-2" />
+                          Oldest First
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="companyName-asc">
+                        <span className="flex items-center">
+                          <Building2 className="h-3.5 w-3.5 mr-2" />
+                          Company (A-Z)
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="companyName-desc">
+                        <span className="flex items-center">
+                          <Building2 className="h-3.5 w-3.5 mr-2" />
+                          Company (Z-A)
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="qualificationScore-desc">
+                        <span className="flex items-center">
+                          <Star className="h-3.5 w-3.5 mr-2 text-yellow-500" />
+                          Highest Score First
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="priority-desc">
+                        <span className="flex items-center">
+                          <BadgeCheck className="h-3.5 w-3.5 mr-2 text-blue-500" />
+                          High Priority First
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="text-sm">
+                <Badge variant="outline" className="bg-[#F2F5F9] text-[#025E73] border-[#025E73] font-semibold">
+                  {filteredLeads.length} {filteredLeads.length === 1 ? 'lead' : 'leads'} 
+                  {statusFilter !== 'all' ? ` (${statusFilter})` : ''}
                 </Badge>
-                {filteredLeads.length === 1 ? 'lead' : 'leads'} found
               </div>
               
               <div className="flex gap-2">
@@ -517,86 +696,162 @@ export default function CRMLeadsPage() {
                     filteredLeads.map((lead) => (
                       <TableRow 
                         key={lead.id} 
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
-                        onClick={() => setLocation(`/crm/${lead.id}`)}
+                        className={`hover:bg-gray-50 cursor-pointer transition-colors border-l-2 ${
+                          lead.priority === "High" 
+                            ? "border-l-red-500" 
+                            : lead.qualificationScore > 80
+                              ? "border-l-green-500"
+                              : lead.status === "New"
+                                ? "border-l-blue-500"
+                                : "border-l-transparent"
+                        }`}
+                        onClick={() => setLocation(`/crm/leads/${lead.id}`)}
                       >
                         <TableCell className="font-medium">
                           <div className="flex flex-col">
-                            <span className="text-[#025E73] font-semibold hover:underline">
-                              {lead.companyName}
-                            </span>
-                            {lead.mcNumber && (
-                              <span className="text-xs text-gray-500">
-                                MC: {lead.mcNumber}
+                            <div className="flex items-center">
+                              <span className="text-[#025E73] font-semibold hover:underline">
+                                {lead.companyName}
                               </span>
-                            )}
+                              {lead.priority === "High" && (
+                                <Badge className="ml-2 bg-red-100 text-red-700 border-none shadow-sm">
+                                  Priority
+                                </Badge>
+                              )}
+                              {lead.qualificationScore > 80 && (
+                                <Badge className="ml-2 bg-green-100 text-green-700 border-none shadow-sm">
+                                  <Star className="h-3 w-3 mr-1 fill-current" />
+                                  High Score
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center mt-1">
+                              {lead.mcNumber && (
+                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                                  MC: {lead.mcNumber}
+                                </span>
+                              )}
+                              {lead.dotNumber && (
+                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded ml-1">
+                                  DOT: {lead.dotNumber}
+                                </span>
+                              )}
+                              {lead.category && (
+                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded ml-1">
+                                  {lead.category}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="space-y-1">
                             <div className="font-medium flex items-center">
-                              <Avatar className="h-6 w-6 mr-2 bg-gray-200">
-                                <AvatarFallback className="text-xs">{lead.contactName?.charAt(0) || '?'}</AvatarFallback>
+                              <Avatar className="h-7 w-7 mr-2 bg-[#025E73] text-white border-2 border-white shadow-sm">
+                                <AvatarFallback className="text-xs font-bold">{lead.contactName?.charAt(0) || '?'}</AvatarFallback>
                               </Avatar>
-                              {lead.contactName}
+                              <span className="font-medium">{lead.contactName || 'Unknown Contact'}</span>
                             </div>
                             {lead.phoneNumber && (
-                              <div className="text-xs text-gray-500 flex items-center">
+                              <div className="text-xs text-gray-600 flex items-center hover:text-[#025E73]">
                                 <Phone className="h-3 w-3 mr-1" />
                                 {lead.phoneNumber}
                               </div>
                             )}
                             {lead.email && (
-                              <div className="text-xs text-gray-500 flex items-center">
+                              <div className="text-xs text-gray-600 flex items-center hover:text-[#025E73]">
                                 <Mail className="h-3 w-3 mr-1" />
-                                {lead.email}
+                                <span className="truncate max-w-[150px]">{lead.email}</span>
                               </div>
                             )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={`${formatStatus(lead.status).color} font-medium`}>
+                          <Badge className={`${formatStatus(lead.status).color} font-medium shadow-sm`}>
                             {formatStatus(lead.status).label}
                           </Badge>
+                          {lead.updatedAt && lead.status === "FollowUp" && (
+                            <div className="text-xs mt-1 text-amber-600 flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Due: {formatDate(lead.updatedAt, true)}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={
-                            lead.priority === "High" 
-                              ? "bg-red-50 text-red-700 border-red-200" 
-                              : lead.priority === "Medium"
-                                ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                                : "bg-blue-50 text-blue-700 border-blue-200"
-                          }>
-                            {lead.priority || "Low"}
-                          </Badge>
+                          {lead.qualificationScore ? (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger className="flex flex-col items-start w-full">
+                                  <div className="flex justify-between w-full items-center mb-1">
+                                    <span className="text-sm font-medium">
+                                      Score: {lead.qualificationScore}
+                                    </span>
+                                    <Badge variant="outline" className={
+                                      lead.qualificationScore > 80
+                                        ? "bg-green-50 text-green-700 border-green-200" 
+                                        : lead.qualificationScore > 50
+                                          ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                                          : "bg-gray-50 text-gray-700 border-gray-200"
+                                    }>
+                                      {lead.qualificationScore > 80 ? "High" : lead.qualificationScore > 50 ? "Medium" : "Low"}
+                                    </Badge>
+                                  </div>
+                                  <Progress 
+                                    value={lead.qualificationScore || 0} 
+                                    max={100}
+                                    className={`h-2 ${
+                                      lead.qualificationScore > 80
+                                        ? "bg-green-100" 
+                                        : lead.qualificationScore > 50
+                                          ? "bg-yellow-100"
+                                          : "bg-gray-100"
+                                    }`}
+                                  />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Qualification Score: {lead.qualificationScore}/100</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+                              Not Scored
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center">
-                            <Truck className="h-3.5 w-3.5 mr-1.5 text-gray-500" />
+                            <Truck className="h-3.5 w-3.5 mr-1.5 text-[#025E73]" />
                             <span className="capitalize">
                               {lead.equipmentType ? lead.equipmentType.replace("-", " ") : "N/A"}
                             </span>
                           </div>
                           {lead.truckCategory && (
-                            <div className="text-xs text-gray-500 mt-1 ml-5">
+                            <div className="text-xs text-gray-600 mt-1 ml-5 bg-gray-50 px-1.5 py-0.5 rounded-sm inline-block">
                               {lead.truckCategory}
                             </div>
                           )}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center">
-                            <CalendarClock className="h-3.5 w-3.5 mr-1.5 text-gray-500" />
+                            <CalendarClock className="h-3.5 w-3.5 mr-1.5 text-[#025E73]" />
                             {formatDate(lead.createdAt)}
                           </div>
+                          {lead.assignedTo && (
+                            <div className="text-xs text-gray-600 mt-1 flex items-center">
+                              <UserPlus className="h-3 w-3 mr-1 text-gray-500" />
+                              Rep: {lead.assignedTo}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-8 border-[#025E73] text-[#025E73] hover:bg-[#025E73] hover:text-white transition-colors"
+                            className="h-8 border-[#025E73] text-[#025E73] hover:bg-[#025E73] hover:text-white transition-colors shadow-sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setLocation(`/crm/${lead.id}`);
+                              setLocation(`/crm/leads/${lead.id}`);
                             }}
                           >
                             <Eye className="h-3.5 w-3.5 mr-1" />
