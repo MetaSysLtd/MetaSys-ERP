@@ -37,7 +37,7 @@ import NewLeadModal from "@/components/crm/NewLeadModal";
 import { formatDate } from "@/lib/utils";
 import { KanbanView } from "@/components/crm/KanbanView";
 
-export default function LeadsPage() {
+export default function CRMLeadsPage() {
   const { toast } = useToast();
   const { user, role } = useAuth();
   const [, setLocation] = useLocation();
