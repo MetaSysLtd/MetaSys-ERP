@@ -2566,7 +2566,7 @@ export class MemStorage implements IStorage {
 
 export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
-
+  
   constructor() {
     // Create PostgreSQL session store
     const PostgresSessionStore = connectPg(session);
