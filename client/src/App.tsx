@@ -39,6 +39,7 @@ import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import ProfilePage from "@/pages/settings/profile";
 import AdminDashboard from "@/pages/admin";
+import AdminManagementPage from "@/pages/admin/management";
 import BugsPage from "@/pages/admin/bugs";
 import HRPage from "@/pages/hr";
 import HRPoliciesPage from "@/pages/hr/policies";
@@ -291,6 +292,14 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={AdminDashboard} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/admin/management">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={AdminManagementPage} />
           </AppLayout>
         )}
       </Route>

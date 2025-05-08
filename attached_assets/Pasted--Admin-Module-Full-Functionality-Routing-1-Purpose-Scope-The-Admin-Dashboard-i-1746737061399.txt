@@ -1,0 +1,67 @@
+## Admin Module: Full Functionality & Routing
+
+### 1. Purpose & Scope
+
+The **Admin Dashboard** is the super-control center. Every button and tab must **open a working page** where the System Administrator can **view, create, update, and delete** data across the entire ERP:
+
+* **Users**
+* **Roles**
+* **Organizations**
+* **Commissions (Policies & History)**
+* **Settings** (global, feature toggles, integrations)
+* **Tasks** (scheduled automations)
+* **Reports** (exports, filters)
+* **Bugs / System Logs**
+
+*No “Under Construction” placeholders.* Every nav item must map to its own functional screen.
+
+---
+
+### 2. Routing & Navigation
+
+For each top-bar tab under **Admin Dashboard**:
+
+1. **Dashboard** → System overview (health, security, tasks, uptime)
+2. **Management** → User & org hierarchy overview
+3. **Users** → CRUD table of all users (invite, deactivate, reset password)
+4. **Roles** → CRUD for role definitions & permission sets
+5. **Organizations** → CRUD for org units / sub-accounts
+6. **Commissions** → View and edit global commission policies; historical payout logs
+7. **Settings** → Global feature flags, integrations, branding, time-off policies
+8. **Tasks** → List of scheduled tasks; ability to enable/disable/edit
+9. **Reports** → Generate/export system usage, sales, dispatch, finance reports
+10. **Bugs** → View error logs; mark as resolved or export
+
+Each must have its own route (`/admin/users`, `/admin/roles`, etc.), not all pointing at `/admin`. **404s must be eliminated.**
+
+---
+
+### 3. CRUD Requirements
+
+On every Admin page, the System Administrator must be able to:
+
+* **List** existing records with search, sort, and pagination
+* **View** full details in a modal or detail page
+* **Create** new entries via a standardized form
+* **Edit** in place or via detail form
+* **Delete** or deactivate with confirmation
+
+All actions should call real backend endpoints and update the database. After any create/update/delete, the table refreshes automatically.
+
+---
+
+### 4. UI Consistency & Feedback
+
+* **Buttons** and **headers** on Admin pages must use the same design tokens we agreed on (Phase 1).
+* **Loading spinners**, **success toasts**, and **error alerts** must appear for every async action.
+* **404 or network errors** should surface a friendly error message (e.g. “Failed to load users. Please try again.”), not a blank page.
+
+---
+
+### 5. Roll-Out Plan
+
+1. **Fix Routing**: ensure each sidebar and top-bar link under Admin goes to a real page.
+2. **Build Core Screens** in priority order: Users → Roles → Organizations → Settings → Commissions → Tasks → Reports → Bugs.
+3. **QA Pass**: click through every link and action, verifying no 404s and correct data operations.
+4. **Sign-off**: Admin should be able to fully manage the platform without any dead ends.
+
