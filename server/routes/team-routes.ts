@@ -1,283 +1,309 @@
-import { Router } from 'express';
-import { z } from 'zod';
-import { storage } from '../storage';
-import { createInsertSchema } from 'drizzle-zod';
-import { teams } from '@shared/schema';
-import { checkAuth, checkPermission } from '../middleware';
-
-// Create insert schema for validation
-const insertTeamSchema = createInsertSchema(teams);
+import { Router } from "express";
+import { z } from "zod";
+import { insertTeamSchema, insertTeamMemberSchema } from "@shared/schema";
+import * as teamStorage from "../teamStorage";
+import { storage } from "../storage";
+import { checkAuth, checkPermission } from "../middleware";
 
 export function registerTeamRoutes(apiRouter: Router) {
   const teamRouter = Router();
   
-  // All team routes require authentication
+  // Apply auth middleware to all team routes
   teamRouter.use(checkAuth);
-  
-  // Get all teams for current organization
-  teamRouter.get('/', async (req, res) => {
+
+  // Get all teams
+  teamRouter.get("/", checkPermission(2), async (req, res) => {
     try {
-      // Users need at least role level 1 to view teams
-      if (!req.userRole || req.userRole.level < 1) {
-        return res.status(403).json({ error: 'Insufficient permissions' });
+      // Use the user's organization ID or fallback to a specified org ID
+      const orgId = req.user?.orgId;
+      
+      if (!orgId) {
+        return res.status(400).json({ 
+          error: "Organization ID is required" 
+        });
       }
       
-      const orgId = req.user?.orgId || 1; // Default to org 1 if not set
-      const teams = await storage.getTeams(orgId);
-      
+      const teams = await teamStorage.getTeams(orgId);
       res.json(teams);
     } catch (error) {
-      console.error('Error fetching teams:', error);
-      res.status(500).json({ error: 'Failed to fetch teams' });
+      console.error("Error getting teams:", error);
+      res.status(500).json({ 
+        error: "Failed to retrieve teams" 
+      });
     }
   });
-  
-  // Get team by ID
-  teamRouter.get('/:id', async (req, res) => {
+
+  // Get a specific team
+  teamRouter.get("/:id", checkPermission(2), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
       if (isNaN(id)) {
-        return res.status(400).json({ error: 'Invalid team ID' });
+        return res.status(400).json({ 
+          error: "Invalid team ID" 
+        });
       }
       
-      const team = await storage.getTeam(id);
+      const team = await teamStorage.getTeam(id);
       
       if (!team) {
-        return res.status(404).json({ error: 'Team not found' });
+        return res.status(404).json({ 
+          error: "Team not found" 
+        });
       }
       
       res.json(team);
     } catch (error) {
-      console.error(`Error fetching team ${req.params.id}:`, error);
-      res.status(500).json({ error: 'Failed to fetch team' });
+      console.error("Error getting team:", error);
+      res.status(500).json({ 
+        error: "Failed to retrieve team" 
+      });
     }
   });
-  
-  // Create a new team
-  teamRouter.post('/', checkPermission(2), async (req, res) => {
+
+  // Create a team
+  teamRouter.post("/", checkPermission(3), async (req, res) => {
     try {
-      // Minimum level 2 required to create teams
-      if (!req.userRole || req.userRole.level < 2) {
-        return res.status(403).json({ error: 'Insufficient permissions to create teams' });
-      }
-      
-      const orgId = req.user?.orgId || 1;
-      
       // Validate request body
       const validatedData = insertTeamSchema.parse({
         ...req.body,
-        orgId
+        orgId: req.user?.orgId
       });
       
-      const newTeam = await storage.createTeam(validatedData);
-      
-      res.status(201).json(newTeam);
+      const team = await teamStorage.createTeam(validatedData);
+      res.status(201).json(team);
     } catch (error) {
-      console.error('Error creating team:', error);
-      
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
-          error: 'Invalid team data', 
+          error: "Invalid team data", 
           details: error.errors 
         });
       }
       
-      res.status(500).json({ error: 'Failed to create team' });
+      console.error("Error creating team:", error);
+      res.status(500).json({ 
+        error: "Failed to create team" 
+      });
     }
   });
-  
+
   // Update a team
-  teamRouter.put('/:id', checkPermission(2), async (req, res) => {
+  teamRouter.put("/:id", checkPermission(3), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
       if (isNaN(id)) {
-        return res.status(400).json({ error: 'Invalid team ID' });
+        return res.status(400).json({ 
+          error: "Invalid team ID" 
+        });
       }
       
-      // Check if team exists
-      const team = await storage.getTeam(id);
+      const team = await teamStorage.getTeam(id);
       
       if (!team) {
-        return res.status(404).json({ error: 'Team not found' });
+        return res.status(404).json({ 
+          error: "Team not found" 
+        });
       }
       
-      // Minimum level 2 required to update teams
-      if (!req.userRole || req.userRole.level < 2) {
-        return res.status(403).json({ error: 'Insufficient permissions to update teams' });
+      // Check if user has permission to update this team
+      if (req.user?.orgId !== team.orgId && req.userRole?.level < 5) {
+        return res.status(403).json({ 
+          error: "You don't have permission to update this team" 
+        });
       }
       
-      // Validate request body
-      const updatedTeam = await storage.updateTeam(id, req.body);
-      
+      // Update team
+      const updatedTeam = await teamStorage.updateTeam(id, req.body);
       res.json(updatedTeam);
     } catch (error) {
-      console.error(`Error updating team ${req.params.id}:`, error);
-      
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: 'Invalid team data', 
-          details: error.errors 
-        });
-      }
-      
-      res.status(500).json({ error: 'Failed to update team' });
+      console.error("Error updating team:", error);
+      res.status(500).json({ 
+        error: "Failed to update team" 
+      });
     }
   });
-  
+
   // Delete a team
-  teamRouter.delete('/:id', checkPermission(2), async (req, res) => {
+  teamRouter.delete("/:id", checkPermission(4), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
       if (isNaN(id)) {
-        return res.status(400).json({ error: 'Invalid team ID' });
+        return res.status(400).json({ 
+          error: "Invalid team ID" 
+        });
       }
       
-      // Check if team exists
-      const team = await storage.getTeam(id);
+      const team = await teamStorage.getTeam(id);
       
       if (!team) {
-        return res.status(404).json({ error: 'Team not found' });
+        return res.status(404).json({ 
+          error: "Team not found" 
+        });
       }
       
-      // Minimum level 2 required to delete teams
-      if (!req.userRole || req.userRole.level < 2) {
-        return res.status(403).json({ error: 'Insufficient permissions to delete teams' });
+      // Check if user has permission to delete this team
+      if (req.user?.orgId !== team.orgId && req.userRole?.level < 5) {
+        return res.status(403).json({ 
+          error: "You don't have permission to delete this team" 
+        });
       }
       
-      // Remove all team members first
-      await storage.removeAllTeamMembers(id);
+      // First remove all team members
+      await teamStorage.removeAllTeamMembers(id);
       
-      // Delete the team
-      await storage.deleteTeam(id);
+      // Then delete the team
+      await teamStorage.deleteTeam(id);
       
       res.status(204).end();
     } catch (error) {
-      console.error(`Error deleting team ${req.params.id}:`, error);
-      res.status(500).json({ error: 'Failed to delete team' });
+      console.error("Error deleting team:", error);
+      res.status(500).json({ 
+        error: "Failed to delete team" 
+      });
     }
   });
-  
+
   // Get team members
-  teamRouter.get('/:id/members', async (req, res) => {
+  teamRouter.get("/:id/members", checkPermission(2), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       
       if (isNaN(id)) {
-        return res.status(400).json({ error: 'Invalid team ID' });
-      }
-      
-      // Check if team exists
-      const team = await storage.getTeam(id);
-      
-      if (!team) {
-        return res.status(404).json({ error: 'Team not found' });
-      }
-      
-      const members = await storage.getTeamMembers(id);
-      
-      res.json(members);
-    } catch (error) {
-      console.error(`Error fetching team members for team ${req.params.id}:`, error);
-      res.status(500).json({ error: 'Failed to fetch team members' });
-    }
-  });
-  
-  // Add user to team
-  teamRouter.post('/:id/members', checkPermission(2), async (req, res) => {
-    try {
-      const teamId = parseInt(req.params.id);
-      const userId = parseInt(req.body.userId);
-      
-      if (isNaN(teamId) || isNaN(userId)) {
-        return res.status(400).json({ error: 'Invalid team ID or user ID' });
-      }
-      
-      // Check if team exists
-      const team = await storage.getTeam(teamId);
-      
-      if (!team) {
-        return res.status(404).json({ error: 'Team not found' });
-      }
-      
-      // Minimum level 2 required to manage team members
-      if (!req.userRole || req.userRole.level < 2) {
-        return res.status(403).json({ error: 'Insufficient permissions to manage team members' });
-      }
-      
-      // Check if user is already in a team
-      const userTeam = await storage.getUserTeam(userId);
-      
-      if (userTeam) {
-        return res.status(409).json({ 
-          error: 'User already belongs to a team', 
-          teamId: userTeam.teamId 
+        return res.status(400).json({ 
+          error: "Invalid team ID" 
         });
       }
       
-      // Add user to team
-      const teamMember = await storage.addTeamMember({ userId, teamId });
+      const team = await teamStorage.getTeam(id);
+      
+      if (!team) {
+        return res.status(404).json({ 
+          error: "Team not found" 
+        });
+      }
+      
+      const members = await teamStorage.getTeamMembers(id);
+      res.json(members);
+    } catch (error) {
+      console.error("Error getting team members:", error);
+      res.status(500).json({ 
+        error: "Failed to retrieve team members" 
+      });
+    }
+  });
+
+  // Add a member to a team
+  teamRouter.post("/:id/members", checkPermission(3), async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.id);
+      
+      if (isNaN(teamId)) {
+        return res.status(400).json({ 
+          error: "Invalid team ID" 
+        });
+      }
+      
+      const team = await teamStorage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ 
+          error: "Team not found" 
+        });
+      }
+      
+      // Check if user has permission to add members to this team
+      if (req.user?.orgId !== team.orgId && req.userRole?.level < 5) {
+        return res.status(403).json({ 
+          error: "You don't have permission to add members to this team" 
+        });
+      }
+      
+      // Check if user is already in a team
+      const userTeam = await teamStorage.getUserTeam(req.body.userId);
+      
+      if (userTeam) {
+        return res.status(400).json({ 
+          error: "User is already in a team" 
+        });
+      }
+      
+      // Add member to team
+      const teamMember = await teamStorage.addTeamMember({
+        userId: req.body.userId,
+        teamId
+      });
       
       res.status(201).json(teamMember);
     } catch (error) {
-      console.error(`Error adding user to team ${req.params.id}:`, error);
-      res.status(500).json({ error: 'Failed to add user to team' });
+      console.error("Error adding team member:", error);
+      res.status(500).json({ 
+        error: "Failed to add team member" 
+      });
     }
   });
-  
-  // Remove user from team
-  teamRouter.delete('/:teamId/members/:userId', checkPermission(2), async (req, res) => {
+
+  // Remove a member from a team
+  teamRouter.delete("/:teamId/members/:userId", checkPermission(3), async (req, res) => {
     try {
       const teamId = parseInt(req.params.teamId);
       const userId = parseInt(req.params.userId);
       
       if (isNaN(teamId) || isNaN(userId)) {
-        return res.status(400).json({ error: 'Invalid team ID or user ID' });
+        return res.status(400).json({ 
+          error: "Invalid team ID or user ID" 
+        });
       }
       
-      // Check if team exists
-      const team = await storage.getTeam(teamId);
+      const team = await teamStorage.getTeam(teamId);
       
       if (!team) {
-        return res.status(404).json({ error: 'Team not found' });
+        return res.status(404).json({ 
+          error: "Team not found" 
+        });
       }
       
-      // Minimum level 2 required to manage team members
-      if (!req.userRole || req.userRole.level < 2) {
-        return res.status(403).json({ error: 'Insufficient permissions to manage team members' });
+      // Check if user has permission to remove members from this team
+      if (req.user?.orgId !== team.orgId && req.userRole?.level < 5) {
+        return res.status(403).json({ 
+          error: "You don't have permission to remove members from this team" 
+        });
       }
       
-      // Remove user from team
-      await storage.removeTeamMember(teamId, userId);
+      // Remove member from team
+      await teamStorage.removeTeamMember(teamId, userId);
       
       res.status(204).end();
     } catch (error) {
-      console.error(`Error removing user ${req.params.userId} from team ${req.params.teamId}:`, error);
-      res.status(500).json({ error: 'Failed to remove user from team' });
+      console.error("Error removing team member:", error);
+      res.status(500).json({ 
+        error: "Failed to remove team member" 
+      });
     }
   });
-  
-  // Get users available for team assignment (users not in any team)
-  teamRouter.get('/available-users', checkPermission(2), async (req, res) => {
+
+  // Get available users (not in a team)
+  teamRouter.get("/available-users", checkPermission(3), async (req, res) => {
     try {
-      const orgId = req.user?.orgId || 1;
+      const orgId = req.user?.orgId;
       
-      // Minimum level 2 required to view available users
-      if (!req.userRole || req.userRole.level < 2) {
-        return res.status(403).json({ error: 'Insufficient permissions to view available users' });
+      if (!orgId) {
+        return res.status(400).json({ 
+          error: "Organization ID is required" 
+        });
       }
       
-      const availableUsers = await storage.getAvailableUsers(orgId);
-      
+      const availableUsers = await teamStorage.getAvailableUsers(orgId);
       res.json(availableUsers);
     } catch (error) {
-      console.error('Error fetching available users:', error);
-      res.status(500).json({ error: 'Failed to fetch available users' });
+      console.error("Error getting available users:", error);
+      res.status(500).json({ 
+        error: "Failed to retrieve available users" 
+      });
     }
   });
-  
-  // Register team routes
-  apiRouter.use('/teams', teamRouter);
+
+  // Register the team router
+  apiRouter.use("/teams", teamRouter);
 }

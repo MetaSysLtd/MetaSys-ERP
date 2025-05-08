@@ -1,103 +1,74 @@
-import { and, eq, sql } from "drizzle-orm";
-import { 
-  teams, teamMembers, users, roles, 
-  type Team, type InsertTeam, type TeamMember, type InsertTeamMember, type User
-} from "@shared/schema";
-import { db } from './db';
+import { Team, InsertTeam, teams, teamMembers, users, roles } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, isNull, not, or } from "drizzle-orm";
 
-// Team Management Methods
+/**
+ * Gets all teams for an organization
+ */
 export async function getTeams(orgId: number): Promise<Team[]> {
-  try {
-    return await db.select()
-      .from(teams)
-      .where(eq(teams.orgId, orgId))
-      .orderBy(teams.name);
-  } catch (error) {
-    console.error("Error fetching teams:", error);
-    return [];
-  }
+  const result = await db
+    .select()
+    .from(teams)
+    .where(eq(teams.orgId, orgId))
+    .orderBy(teams.name);
+  return result;
 }
 
+/**
+ * Gets a specific team by ID
+ */
 export async function getTeam(id: number): Promise<Team | undefined> {
-  try {
-    const [team] = await db.select()
-      .from(teams)
-      .where(eq(teams.id, id));
-    
-    return team;
-  } catch (error) {
-    console.error(`Error fetching team ${id}:`, error);
-    return undefined;
-  }
+  const [result] = await db.select().from(teams).where(eq(teams.id, id));
+  return result;
 }
 
+/**
+ * Gets teams filtered by department for an organization
+ */
 export async function getTeamsByDepartment(department: string, orgId: number): Promise<Team[]> {
-  try {
-    return await db.select()
-      .from(teams)
-      .where(
-        and(
-          eq(teams.department, department),
-          eq(teams.orgId, orgId)
-        )
-      )
-      .orderBy(teams.name);
-  } catch (error) {
-    console.error(`Error fetching teams by department ${department}:`, error);
-    return [];
-  }
+  const result = await db
+    .select()
+    .from(teams)
+    .where(and(eq(teams.department, department), eq(teams.orgId, orgId)))
+    .orderBy(teams.name);
+  return result;
 }
 
+/**
+ * Creates a new team
+ */
 export async function createTeam(team: InsertTeam): Promise<Team> {
-  try {
-    const [newTeam] = await db.insert(teams)
-      .values({
-        ...team,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      })
-      .returning();
-      
-    return newTeam;
-  } catch (error) {
-    console.error("Error creating team:", error);
-    throw error;
-  }
+  const [result] = await db.insert(teams).values(team).returning();
+  return result;
 }
 
+/**
+ * Updates an existing team
+ */
 export async function updateTeam(id: number, data: Partial<Team>): Promise<Team> {
-  try {
-    const [updatedTeam] = await db.update(teams)
-      .set({
-        ...data,
-        updatedAt: new Date()
-      })
-      .where(eq(teams.id, id))
-      .returning();
-      
-    return updatedTeam;
-  } catch (error) {
-    console.error(`Error updating team ${id}:`, error);
-    throw error;
-  }
+  const [result] = await db
+    .update(teams)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(teams.id, id))
+    .returning();
+  return result;
 }
 
+/**
+ * Deletes a team
+ */
 export async function deleteTeam(id: number): Promise<void> {
-  try {
-    await db.delete(teams)
-      .where(eq(teams.id, id));
-  } catch (error) {
-    console.error(`Error deleting team ${id}:`, error);
-    throw error;
-  }
+  await db.delete(teams).where(eq(teams.id, id));
 }
 
+/**
+ * Gets all members of a specific team with their user and role information
+ */
 export async function getTeamMembers(teamId: number): Promise<any[]> {
-  try {
-    // Join team_members with users and roles to get full user information
-    const members = await db.select({
+  const result = await db
+    .select({
       id: teamMembers.id,
-      userId: teamMembers.userId,
+      userId: users.id,
       teamId: teamMembers.teamId,
       firstName: users.firstName,
       lastName: users.lastName,
@@ -111,98 +82,95 @@ export async function getTeamMembers(teamId: number): Promise<any[]> {
     .from(teamMembers)
     .innerJoin(users, eq(teamMembers.userId, users.id))
     .innerJoin(roles, eq(users.roleId, roles.id))
-    .where(eq(teamMembers.teamId, teamId));
-    
-    return members;
-  } catch (error) {
-    console.error(`Error fetching team members for team ${teamId}:`, error);
-    return [];
-  }
+    .where(eq(teamMembers.teamId, teamId))
+    .orderBy(users.firstName, users.lastName);
+  
+  return result;
 }
 
+/**
+ * Gets the team a user belongs to, if any
+ */
 export async function getUserTeam(userId: number): Promise<{ teamId: number } | null> {
-  try {
-    const [userTeam] = await db.select({
-      teamId: teamMembers.teamId
-    })
+  const [result] = await db
+    .select({ teamId: teamMembers.teamId })
     .from(teamMembers)
     .where(eq(teamMembers.userId, userId));
-    
-    return userTeam || null;
-  } catch (error) {
-    console.error(`Error fetching team for user ${userId}:`, error);
-    return null;
-  }
+  
+  return result || null;
 }
 
+/**
+ * Adds a user to a team
+ */
 export async function addTeamMember(data: { userId: number; teamId: number }): Promise<any> {
-  try {
-    // Check if the user is already in another team
-    const existingMembership = await getUserTeam(data.userId);
-    
-    if (existingMembership) {
-      throw new Error(`User already belongs to team ${existingMembership.teamId}`);
-    }
-    
-    // Add the user to the team
-    const [teamMember] = await db.insert(teamMembers)
-      .values({
-        userId: data.userId,
-        teamId: data.teamId,
-        createdAt: new Date()
-      })
-      .returning();
-      
-    return teamMember;
-  } catch (error) {
-    console.error(`Error adding user ${data.userId} to team ${data.teamId}:`, error);
-    throw error;
-  }
+  const [result] = await db
+    .insert(teamMembers)
+    .values(data)
+    .returning();
+  
+  return result;
 }
 
+/**
+ * Removes a user from a team
+ */
 export async function removeTeamMember(teamId: number, userId: number): Promise<void> {
-  try {
-    await db.delete(teamMembers)
-      .where(
-        and(
-          eq(teamMembers.teamId, teamId),
-          eq(teamMembers.userId, userId)
-        )
-      );
-  } catch (error) {
-    console.error(`Error removing user ${userId} from team ${teamId}:`, error);
-    throw error;
-  }
+  await db
+    .delete(teamMembers)
+    .where(
+      and(
+        eq(teamMembers.teamId, teamId),
+        eq(teamMembers.userId, userId)
+      )
+    );
 }
 
+/**
+ * Removes all members from a team (used before deleting a team)
+ */
 export async function removeAllTeamMembers(teamId: number): Promise<void> {
-  try {
-    await db.delete(teamMembers)
-      .where(eq(teamMembers.teamId, teamId));
-  } catch (error) {
-    console.error(`Error removing all members from team ${teamId}:`, error);
-    throw error;
-  }
+  await db
+    .delete(teamMembers)
+    .where(eq(teamMembers.teamId, teamId));
 }
 
-export async function getAvailableUsers(orgId: number): Promise<User[]> {
-  try {
-    // Get users that are in the organization but not in any team
-    const availableUsers = await db.select()
-      .from(users)
-      .where(
-        and(
-          eq(users.orgId, orgId),
-          sql`NOT EXISTS (
-            SELECT 1 FROM ${teamMembers} 
-            WHERE ${teamMembers.userId} = ${users.id}
-          )`
-        )
-      );
-    
-    return availableUsers;
-  } catch (error) {
-    console.error("Error fetching available users:", error);
-    return [];
+/**
+ * Gets all users that are not already in a team and can be added to teams
+ */
+export async function getAvailableUsers(orgId: number): Promise<any[]> {
+  // Get all user IDs that are already in a team
+  const usersInTeams = await db
+    .select({ userId: teamMembers.userId })
+    .from(teamMembers);
+  
+  const userIdsInTeams = usersInTeams.map(u => u.userId);
+  
+  // Get users not already in a team
+  let query = db
+    .select({
+      id: users.id,
+      username: users.username,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      roleId: users.roleId,
+      roleName: roles.name,
+    })
+    .from(users)
+    .innerJoin(roles, eq(users.roleId, roles.id))
+    .where(eq(users.active, true));
+  
+  // Add org filter if provided
+  if (orgId) {
+    query = query.where(eq(users.orgId, orgId));
   }
+  
+  // Add filter for users not in any team
+  if (userIdsInTeams.length > 0) {
+    query = query.where(not(users.id.in(userIdsInTeams)));
+  }
+  
+  const availableUsers = await query.orderBy(users.firstName, users.lastName);
+  return availableUsers;
 }
