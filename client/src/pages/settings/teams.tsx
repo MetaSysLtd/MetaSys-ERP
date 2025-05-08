@@ -762,7 +762,7 @@ const TeamHierarchy = () => {
   }
 
   // Group members by team
-  const membersByTeam = allMembers.reduce((groups, member) => {
+  const membersByTeam = allMembers.reduce<Record<number, any[]>>((groups, member) => {
     const teamId = member.teamId;
     if (!groups[teamId]) {
       groups[teamId] = [];
@@ -773,21 +773,22 @@ const TeamHierarchy = () => {
 
   // Find team info for each group
   const teamGroups = Object.keys(membersByTeam).map(teamId => {
-    const teamInfo = teams?.find(t => t.id === Number(teamId)) || { 
+    const numericTeamId = Number(teamId);
+    const teamInfo = teams?.find(t => t.id === numericTeamId) || { 
       name: 'Unknown Team', 
       department: 'unknown' 
     };
     
     return {
-      id: Number(teamId),
+      id: numericTeamId,
       name: teamInfo.name,
       department: teamInfo.department,
-      members: membersByTeam[teamId]
+      members: membersByTeam[numericTeamId]
     };
   });
 
-  const getDepartmentColor = (department) => {
-    const colors = {
+  const getDepartmentColor = (department: string): string => {
+    const colors: Record<string, string> = {
       sales: "bg-blue-100 text-blue-800 border-blue-300",
       dispatch: "bg-green-100 text-green-800 border-green-300",
       admin: "bg-purple-100 text-purple-800 border-purple-300", 
@@ -800,7 +801,7 @@ const TeamHierarchy = () => {
     return colors[department] || colors.unknown;
   };
 
-  const getRoleColor = (level) => {
+  const getRoleColor = (level: number): string => {
     if (level >= 5) return "bg-purple-100 text-purple-800"; // Admin
     if (level >= 4) return "bg-red-100 text-red-800"; // Manager
     if (level >= 3) return "bg-amber-100 text-amber-800"; // Team Lead
