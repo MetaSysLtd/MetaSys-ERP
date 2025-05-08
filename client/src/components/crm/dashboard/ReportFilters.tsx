@@ -1,82 +1,90 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { 
-  Filter, 
-  CalendarIcon, 
-  UserIcon, 
-  HeartIcon, 
-  DatabaseIcon 
-} from "lucide-react";
-import { 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger 
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { DatePicker } from "@/components/ui/date-picker";
+import { CalendarIcon, FilterIcon } from "lucide-react";
 
-type ReportFiltersProps = {
-  onFilterChange?: (filters: any) => void;
-};
+interface ReportFiltersProps {
+  onFilterChange: (filters: FilterOptions) => void;
+  timeframe: "day" | "week" | "month";
+}
 
-export function ReportFilters({ onFilterChange }: ReportFiltersProps) {
-  const [filters, setFilters] = useState({
-    timeframe: "week",
-    leadSource: "all",
-    leadStatus: "all",
-    assignedTo: "all",
-    dateRange: {
-      from: undefined as Date | undefined,
-      to: undefined as Date | undefined
-    }
+export interface FilterOptions {
+  timeframe: "day" | "week" | "month";
+  startDate?: Date;
+  endDate?: Date;
+  source?: string;
+  territory?: string;
+  salesRep?: number;
+}
+
+export function ReportFilters({ onFilterChange, timeframe }: ReportFiltersProps) {
+  const [filters, setFilters] = useState<FilterOptions>({
+    timeframe,
+    startDate: undefined,
+    endDate: undefined,
+    source: undefined,
+    territory: undefined,
+    salesRep: undefined,
   });
-  
-  const handleFilterChange = (key: string, value: any) => {
-    const newFilters = { ...filters, [key]: value };
+
+  const [isCustomRange, setIsCustomRange] = useState(false);
+
+  const handleTimeframeChange = (value: "day" | "week" | "month") => {
+    const newFilters = { ...filters, timeframe: value };
     setFilters(newFilters);
-    onFilterChange?.(newFilters);
+    onFilterChange(newFilters);
   };
-  
-  const handleDateRangeChange = (range: { from?: Date; to?: Date }) => {
-    const newFilters = { 
-      ...filters, 
-      dateRange: {
-        from: range.from,
-        to: range.to
-      } 
+
+  const handleStartDateChange = (date: Date | undefined) => {
+    setFilters({ ...filters, startDate: date });
+  };
+
+  const handleEndDateChange = (date: Date | undefined) => {
+    setFilters({ ...filters, endDate: date });
+  };
+
+  const handleSourceChange = (value: string) => {
+    setFilters({ ...filters, source: value });
+  };
+
+  const handleTerritoryChange = (value: string) => {
+    setFilters({ ...filters, territory: value });
+  };
+
+  const handleSalesRepChange = (value: string) => {
+    setFilters({ ...filters, salesRep: parseInt(value, 10) });
+  };
+
+  const handleApplyFilters = () => {
+    onFilterChange(filters);
+  };
+
+  const handleResetFilters = () => {
+    const resetFilters = {
+      timeframe,
+      startDate: undefined,
+      endDate: undefined,
+      source: undefined,
+      territory: undefined,
+      salesRep: undefined,
     };
-    setFilters(newFilters);
-    onFilterChange?.(newFilters);
+    setFilters(resetFilters);
+    setIsCustomRange(false);
+    onFilterChange(resetFilters);
   };
-  
+
   return (
-    <Card className="shadow hover:shadow-md transition-all duration-200">
+    <Card className="shadow-md hover:shadow-lg transition-all duration-200">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg text-[#025E73] font-medium flex items-center">
-          <Filter className="h-5 w-5 mr-2" />
-          Report Filters
-        </CardTitle>
+        <CardTitle className="text-lg font-medium text-[#025E73]">Report Filters</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Timeframe filter */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center mb-1">
-              <CalendarIcon className="h-4 w-4 mr-1" />
-              Timeframe
-            </label>
-            <Select 
-              value={filters.timeframe} 
-              onValueChange={(value) => handleFilterChange('timeframe', value)}
-            >
+            <label className="text-sm font-medium text-gray-700 mb-1 block">Time Period</label>
+            <Select value={filters.timeframe} onValueChange={handleTimeframeChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select timeframe" />
               </SelectTrigger>
@@ -84,130 +92,101 @@ export function ReportFilters({ onFilterChange }: ReportFiltersProps) {
                 <SelectItem value="day">Today</SelectItem>
                 <SelectItem value="week">This Week</SelectItem>
                 <SelectItem value="month">This Month</SelectItem>
-                <SelectItem value="quarter">This Quarter</SelectItem>
-                <SelectItem value="year">This Year</SelectItem>
-                <SelectItem value="custom">Custom Range</SelectItem>
+                <SelectItem value="custom" onClick={() => setIsCustomRange(true)}>Custom Range</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          
-          {/* Date Range Picker (only shown when custom timeframe is selected) */}
-          {filters.timeframe === 'custom' && (
-            <div className="sm:col-span-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center mb-1">
-                <CalendarIcon className="h-4 w-4 mr-1" />
-                Custom Date Range
-              </label>
-              <div className="flex items-center space-x-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start text-left font-normal"
-                    >
-                      {filters.dateRange.from ? (
-                        filters.dateRange.to ? (
-                          <>
-                            {format(filters.dateRange.from, "LLL dd, y")} - {format(filters.dateRange.to, "LLL dd, y")}
-                          </>
-                        ) : (
-                          format(filters.dateRange.from, "LLL dd, y")
-                        )
-                      ) : (
-                        <span>Pick a date range</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="range"
-                      selected={{
-                        from: filters.dateRange.from,
-                        to: filters.dateRange.to,
-                      }}
-                      onSelect={handleDateRangeChange}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+
+          {isCustomRange && (
+            <>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1 block">Start Date</label>
+                <DatePicker
+                  selected={filters.startDate}
+                  onSelect={handleStartDateChange}
+                >
+                  <Button variant="outline" className="w-full">
+                    {filters.startDate ? new Date(filters.startDate).toLocaleDateString() : "Select start date"}
+                    <CalendarIcon className="ml-auto h-4 w-4" />
+                  </Button>
+                </DatePicker>
               </div>
-            </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1 block">End Date</label>
+                <DatePicker
+                  selected={filters.endDate}
+                  onSelect={handleEndDateChange}
+                  disabled={!filters.startDate}
+                  fromDate={filters.startDate}
+                >
+                  <Button variant="outline" className="w-full" disabled={!filters.startDate}>
+                    {filters.endDate ? new Date(filters.endDate).toLocaleDateString() : "Select end date"}
+                    <CalendarIcon className="ml-auto h-4 w-4" />
+                  </Button>
+                </DatePicker>
+              </div>
+            </>
           )}
-          
-          {/* Lead Source filter */}
+
           <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center mb-1">
-              <DatabaseIcon className="h-4 w-4 mr-1" />
-              Lead Source
-            </label>
-            <Select 
-              value={filters.leadSource} 
-              onValueChange={(value) => handleFilterChange('leadSource', value)}
-            >
+            <label className="text-sm font-medium text-gray-700 mb-1 block">Lead Source</label>
+            <Select value={filters.source} onValueChange={handleSourceChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Select source" />
+                <SelectValue placeholder="All Sources" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Sources</SelectItem>
                 <SelectItem value="website">Website</SelectItem>
                 <SelectItem value="referral">Referral</SelectItem>
-                <SelectItem value="social">Social Media</SelectItem>
+                <SelectItem value="call">Cold Call</SelectItem>
                 <SelectItem value="event">Event</SelectItem>
-                <SelectItem value="cold_call">Cold Call</SelectItem>
-                <SelectItem value="partner">Partner</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          
-          {/* Lead Status filter */}
+
           <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center mb-1">
-              <HeartIcon className="h-4 w-4 mr-1" />
-              Lead Status
-            </label>
-            <Select 
-              value={filters.leadStatus} 
-              onValueChange={(value) => handleFilterChange('leadStatus', value)}
-            >
+            <label className="text-sm font-medium text-gray-700 mb-1 block">Territory</label>
+            <Select value={filters.territory} onValueChange={handleTerritoryChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder="All Territories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="New">New</SelectItem>
-                <SelectItem value="InProgress">In Progress</SelectItem>
-                <SelectItem value="FollowUp">Follow Up</SelectItem>
-                <SelectItem value="HandToDispatch">Hand to Dispatch</SelectItem>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Lost">Lost</SelectItem>
+                <SelectItem value="all">All Territories</SelectItem>
+                <SelectItem value="north">North</SelectItem>
+                <SelectItem value="south">South</SelectItem>
+                <SelectItem value="east">East</SelectItem>
+                <SelectItem value="west">West</SelectItem>
+                <SelectItem value="central">Central</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          
-          {/* Assigned To filter */}
+
           <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center mb-1">
-              <UserIcon className="h-4 w-4 mr-1" />
-              Assigned To
-            </label>
-            <Select 
-              value={filters.assignedTo} 
-              onValueChange={(value) => handleFilterChange('assignedTo', value)}
-            >
+            <label className="text-sm font-medium text-gray-700 mb-1 block">Sales Rep</label>
+            <Select value={filters.salesRep?.toString()} onValueChange={handleSalesRepChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Select user" />
+                <SelectValue placeholder="All Sales Reps" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Users</SelectItem>
-                <SelectItem value="1">Alex Johnson</SelectItem>
-                <SelectItem value="2">Sarah Kim</SelectItem>
-                <SelectItem value="3">Carlos Rodriguez</SelectItem>
-                <SelectItem value="4">Maya Johnson</SelectItem>
-                <SelectItem value="current">Assigned to Me</SelectItem>
-                <SelectItem value="unassigned">Unassigned</SelectItem>
+                <SelectItem value="0">All Sales Reps</SelectItem>
+                <SelectItem value="1">John Smith</SelectItem>
+                <SelectItem value="2">Sarah Johnson</SelectItem>
+                <SelectItem value="3">Michael Brown</SelectItem>
+                <SelectItem value="4">Jennifer Davis</SelectItem>
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+        <div className="flex justify-end space-x-2 mt-4">
+          <Button variant="outline" onClick={handleResetFilters}>
+            Reset
+          </Button>
+          <Button onClick={handleApplyFilters}>
+            <FilterIcon className="h-4 w-4 mr-2" />
+            Apply Filters
+          </Button>
         </div>
       </CardContent>
     </Card>
