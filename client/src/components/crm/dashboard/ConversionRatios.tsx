@@ -1,26 +1,32 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
   Legend,
+  ResponsiveContainer,
+  FunnelChart,
+  Funnel,
+  FunnelItem,
+  LabelList,
 } from "recharts";
-import { Progress } from "@/components/ui/progress";
+import { AlertCircle } from "lucide-react";
 
 type ConversionRatiosProps = {
   data: any;
 };
 
 export function ConversionRatios({ data }: ConversionRatiosProps) {
-  // Default colors
-  const COLORS = ["#025E73", "#F2A71B", "#412754", "#011F26", "#d1d5db"];
-  
-  // Format data for pie chart
-  const chartData = data?.ratios || [];
-  
-  const funnelStages = data?.funnelStages || [];
+  if (!data) {
+    data = {
+      ratios: [],
+      funnelStages: [],
+      insight: ""
+    };
+  }
   
   return (
     <Card className="shadow hover:shadow-md transition-all duration-200">
@@ -30,54 +36,79 @@ export function ConversionRatios({ data }: ConversionRatiosProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="h-[280px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+        <div className="grid grid-cols-1 gap-6">
+          {/* Conversion stage percentages */}
+          <div>
+            <h4 className="text-sm font-medium mb-3">Conversion by Stage</h4>
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={data.ratios}
+                  margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+                  layout="vertical"
                 >
-                  {chartData.map((entry: any, index: number) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={COLORS[index % COLORS.length]} 
-                    />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value) => [`${value}%`, undefined]} 
-                />
-                <Legend layout="vertical" verticalAlign="middle" align="right" />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          
-          <div className="flex flex-col justify-center space-y-6">
-            <h4 className="text-sm font-medium text-gray-500 mb-2">Conversion Funnel</h4>
-            
-            {funnelStages.map((stage: any, index: number) => (
-              <div key={index} className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">{stage.name}</span>
-                  <span className="text-sm font-medium">{stage.value}%</span>
-                </div>
-                <Progress value={stage.value} className="h-2" style={{ 
-                  "--tw-progress-fill": COLORS[index % COLORS.length] 
-                } as React.CSSProperties} />
-              </div>
-            ))}
-            
-            <div className="text-sm text-gray-500 italic mt-2">
-              {data?.insight || ""}
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                  <YAxis type="category" dataKey="name" width={120} />
+                  <Tooltip formatter={(value) => [`${value}%`, 'Success Rate']} />
+                  <Bar 
+                    dataKey="value" 
+                    name="Success Rate" 
+                    fill="#025E73" 
+                    radius={[0, 4, 4, 0]}
+                    label={{ 
+                      position: 'right', 
+                      formatter: (value: number) => `${value}%`,
+                      fill: '#000',
+                      fontSize: 12
+                    }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
+          
+          {/* Sales funnel */}
+          <div>
+            <h4 className="text-sm font-medium mb-3">Lead Qualification Funnel</h4>
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <FunnelChart>
+                  <Tooltip formatter={(value) => [`${value}%`, undefined]} />
+                  <Funnel
+                    dataKey="value"
+                    data={data.funnelStages}
+                    isAnimationActive
+                  >
+                    <LabelList
+                      position="right"
+                      fill="#000"
+                      stroke="none"
+                      dataKey="name"
+                    />
+                    <LabelList
+                      position="center"
+                      fill="#fff"
+                      stroke="none"
+                      dataKey="value"
+                      formatter={(value: number) => `${value}%`}
+                    />
+                  </Funnel>
+                </FunnelChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          
+          {/* Insight callout */}
+          {data.insight && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 flex items-start mt-1">
+              <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0 mr-2" />
+              <div>
+                <h5 className="text-sm font-medium text-blue-800">Insight</h5>
+                <p className="text-sm text-blue-700">{data.insight}</p>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
