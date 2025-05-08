@@ -11,9 +11,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  FunnelChart,
-  Funnel,
-  FunnelItem,
   LabelList,
 } from "recharts";
 import { InfoIcon } from "lucide-react";

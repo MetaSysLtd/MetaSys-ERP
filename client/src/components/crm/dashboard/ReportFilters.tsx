@@ -1,182 +1,173 @@
-import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, FilterIcon } from "lucide-react";
 import { formatDate } from "@/lib/formatters";
+import { CalendarIcon, Filter, RefreshCw } from "lucide-react";
+import { useState } from "react";
 
 interface ReportFiltersProps {
-  onFilterChange: (filters: {
-    timeframe: string;
-    dateRange?: { from: Date; to: Date } | undefined;
-    source?: string;
-    salesRep?: string;
-  }) => void;
-  salesReps?: Array<{ id: number; name: string }>;
-  sources?: Array<string>;
+  onFilterChange?: (filters: any) => void;
+  onRefresh?: () => void;
 }
 
-export function ReportFilters({ onFilterChange, salesReps = [], sources = [] }: ReportFiltersProps) {
-  const [timeframe, setTimeframe] = useState<string>("week");
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>(undefined);
-  const [source, setSource] = useState<string>("");
+export function ReportFilters({ onFilterChange, onRefresh }: ReportFiltersProps) {
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  });
   const [salesRep, setSalesRep] = useState<string>("");
-  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  const [status, setStatus] = useState<string>("");
 
-  const handleTimeframeChange = (value: string) => {
-    setTimeframe(value);
-    // Reset date range if a preset timeframe is selected
-    if (value !== "custom") {
-      setDateRange(undefined);
-      setShowDatePicker(false);
-    } else {
-      setShowDatePicker(true);
+  // Dummy data for demo
+  const salesReps = [
+    { id: "1", name: "John Doe" },
+    { id: "2", name: "Jane Smith" },
+    { id: "3", name: "Alex Johnson" },
+  ];
+
+  const statuses = [
+    { id: "new", name: "New" },
+    { id: "inprogress", name: "In Progress" },
+    { id: "followup", name: "Follow Up" },
+    { id: "handtodispatch", name: "Hand to Dispatch" },
+    { id: "active", name: "Active" },
+    { id: "lost", name: "Lost" },
+  ];
+
+  const handleFilterApply = () => {
+    if (onFilterChange) {
+      onFilterChange({
+        dateRange,
+        salesRep,
+        status,
+      });
     }
-    onFilterChange({ timeframe: value, dateRange, source, salesRep });
   };
 
-  const handleDateRangeChange = (range: { from: Date; to: Date } | undefined) => {
-    setDateRange(range);
-    if (range?.from && range?.to) {
-      onFilterChange({ timeframe: "custom", dateRange: range, source, salesRep });
-    }
-  };
-
-  const handleSourceChange = (value: string) => {
-    setSource(value);
-    onFilterChange({ timeframe, dateRange, source: value, salesRep });
-  };
-
-  const handleSalesRepChange = (value: string) => {
-    setSalesRep(value);
-    onFilterChange({ timeframe, dateRange, source, salesRep: value });
-  };
-
-  const resetFilters = () => {
-    setTimeframe("week");
-    setDateRange(undefined);
-    setSource("");
+  const handleReset = () => {
+    setDateRange({ from: undefined, to: undefined });
     setSalesRep("");
-    setShowDatePicker(false);
-    onFilterChange({ timeframe: "week" });
-  };
-
-  const formatDateRange = () => {
-    if (!dateRange || !dateRange.from || !dateRange.to) return "Select date range";
-    
-    const fromDate = formatDate(dateRange.from, "MMM D, YYYY");
-    const toDate = formatDate(dateRange.to, "MMM D, YYYY");
-    
-    return `${fromDate} - ${toDate}`;
+    setStatus("");
+    if (onFilterChange) {
+      onFilterChange({
+        dateRange: undefined,
+        salesRep: "",
+        status: "",
+      });
+    }
   };
 
   return (
-    <div className="bg-white rounded-lg p-4 mb-6 shadow-sm border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
-        <div className="flex items-center mb-2 sm:mb-0">
-          <FilterIcon className="h-4 w-4 mr-2 text-gray-500" />
-          <h3 className="text-sm font-medium">Filter Dashboard</h3>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 w-full sm:w-auto">
-          <Select value={timeframe} onValueChange={handleTimeframeChange}>
-            <SelectTrigger className="h-8 w-[120px]">
-              <SelectValue placeholder="Time period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="day">Today</SelectItem>
-              <SelectItem value="week">This Week</SelectItem>
-              <SelectItem value="month">This Month</SelectItem>
-              <SelectItem value="quarter">This Quarter</SelectItem>
-              <SelectItem value="custom">Custom Range</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {sources.length > 0 && (
-            <Select value={source} onValueChange={handleSourceChange}>
-              <SelectTrigger className="h-8 w-[160px]">
-                <SelectValue placeholder="Lead source" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All Sources</SelectItem>
-                {sources.map((src) => (
-                  <SelectItem key={src} value={src}>
-                    {src}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-          {salesReps.length > 0 && (
-            <Select value={salesRep} onValueChange={handleSalesRepChange}>
-              <SelectTrigger className="h-8 w-[160px]">
-                <SelectValue placeholder="Sales rep" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All Reps</SelectItem>
-                {salesReps.map((rep) => (
-                  <SelectItem key={rep.id} value={rep.id.toString()}>
-                    {rep.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-          {(timeframe === "custom" || showDatePicker) && (
+    <Card className="mt-4 shadow-sm border-slate-200">
+      <CardContent className="p-4">
+        <div className="flex flex-wrap gap-3 items-center justify-between">
+          <div className="flex flex-wrap gap-3 items-center">
+            {/* Date Range Picker */}
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
                   className={cn(
-                    "justify-start text-left font-normal h-8 w-[160px]",
-                    !dateRange && "text-muted-foreground"
+                    "justify-start text-left font-normal",
+                    !dateRange?.from && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formatDateRange()}
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {formatDate(dateRange.from, "MMM D, YYYY")} -{" "}
+                        {formatDate(dateRange.to, "MMM D, YYYY")}
+                      </>
+                    ) : (
+                      formatDate(dateRange.from, "MMM D, YYYY")
+                    )
+                  ) : (
+                    <span>Date Range</span>
+                  )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   initialFocus
                   mode="range"
-                  defaultMonth={dateRange?.from}
+                  defaultMonth={new Date()}
                   selected={dateRange}
-                  onSelect={handleDateRangeChange}
+                  onSelect={setDateRange}
                   numberOfMonths={2}
                 />
               </PopoverContent>
             </Popover>
-          )}
-        </div>
-      </div>
-      
-      {(timeframe !== "week" || source || salesRep) && (
-        <div className="flex justify-end mt-2">
-          <Button 
-            variant="ghost" 
+
+            {/* Sales Rep Filter */}
+            <Select value={salesRep} onValueChange={setSalesRep}>
+              <SelectTrigger className="w-[180px] h-9">
+                <SelectValue placeholder="Sales Rep" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Sales Reps</SelectItem>
+                {salesReps.map((rep) => (
+                  <SelectItem key={rep.id} value={rep.id}>
+                    {rep.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Status Filter */}
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="w-[150px] h-9">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Statuses</SelectItem>
+                {statuses.map((statusItem) => (
+                  <SelectItem key={statusItem.id} value={statusItem.id}>
+                    {statusItem.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Apply Filter Button */}
+            <Button
+              size="sm"
+              variant="default"
+              onClick={handleFilterApply}
+              className="bg-[#025E73] hover:bg-[#014759]"
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              Apply Filters
+            </Button>
+
+            {/* Reset Filters */}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleReset}
+              className="border-slate-300"
+            >
+              Reset
+            </Button>
+          </div>
+
+          {/* Refresh Button */}
+          <Button
             size="sm"
-            onClick={resetFilters}
-            className="text-xs h-7"
+            variant="outline"
+            onClick={onRefresh}
+            className="h-9"
           >
-            Reset Filters
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
           </Button>
         </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }

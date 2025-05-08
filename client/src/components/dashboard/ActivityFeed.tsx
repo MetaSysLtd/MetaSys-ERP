@@ -1,167 +1,124 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDateTime } from "@/lib/utils";
-import { Activity, MessageCircle, Users, Package } from "lucide-react";
-
-// Original activity interface (from database)
-export interface Activity {
-  id: number;
-  userId: number;
-  userName: string;
-  entityType: string;
-  entityId: number;
-  entityName?: string;
-  action: string;
-  details: string;
-  timestamp: string;
-}
-
-// New activity interface from API (dummy data)
-export interface DashboardActivity {
-  type: string;
-  user: string;
-  timestamp: string;
-  details: string;
-}
-
-// Combined type that accepts either format
-type CombinedActivity = Activity | DashboardActivity;
-
-interface ActivityItemProps {
-  activity: CombinedActivity;
-}
-
-function ActivityItem({ activity }: ActivityItemProps) {
-  // Determine color and icon based on activity type
-  let dotColor = "bg-blue-500";
-  let activityType = "";
-  let userName = "";
-  let details = "";
-  let timestamp = "";
-  let iconComponent = <Activity className="h-4 w-4 text-blue-500" />;
-  
-  try {
-    // Check which type of activity we're dealing with
-    if ('type' in activity) {
-      // It's a dashboard activity (from dummy data)
-      activityType = activity.type || "";
-      userName = activity.user || "System";
-      details = activity.details || "";
-      timestamp = activity.timestamp || new Date().toISOString();
-      
-      // Set dot color and icon based on activity type
-      if (activityType.includes("lead") || activityType.includes("client")) {
-        if (activityType.includes("qualified") || activityType.includes("won")) {
-          dotColor = "bg-green-500";
-          iconComponent = <Users className="h-4 w-4 text-green-500" />;
-        } else {
-          dotColor = "bg-blue-500";
-          iconComponent = <Users className="h-4 w-4 text-blue-500" />;
-        }
-      } else if (activityType.includes("load") || activityType.includes("dispatch")) {
-        if (activityType.includes("completed") || activityType.includes("delivered")) {
-          dotColor = "bg-emerald-500";
-          iconComponent = <Package className="h-4 w-4 text-emerald-500" />;
-        } else {
-          dotColor = "bg-indigo-500";
-          iconComponent = <Package className="h-4 w-4 text-indigo-500" />;
-        }
-      } else if (activityType.includes("invoice") || activityType.includes("payment") || activityType.includes("paid")) {
-        dotColor = "bg-purple-500";
-        iconComponent = <MessageCircle className="h-4 w-4 text-purple-500" />;
-      } else if (activityType.includes("message") || activityType.includes("comment")) {
-        dotColor = "bg-yellow-500";
-        iconComponent = <MessageCircle className="h-4 w-4 text-yellow-500" />;
-      }
-    } else {
-      // It's the original activity format (from database)
-      activityType = activity.action || "";
-      userName = activity.userName || "System";
-      details = activity.details || "";
-      timestamp = activity.timestamp || new Date().toISOString();
-      
-      // Set dot color and icon based on activity type
-      if (activity.entityType === "lead" || activity.entityType === "client") {
-        if ((activity.action === "status_changed" && (activity.details || "").includes("qualified")) ||
-            activity.action === "qualified") {
-          dotColor = "bg-green-500";
-          iconComponent = <Users className="h-4 w-4 text-green-500" />;
-        } else {
-          dotColor = "bg-blue-500";
-          iconComponent = <Users className="h-4 w-4 text-blue-500" />;
-        }
-      } else if (activity.entityType === "load" || activity.entityType === "dispatch") {
-        if ((activity.action === "status_changed" && (activity.details || "").includes("completed")) ||
-            activity.action === "completed") {
-          dotColor = "bg-emerald-500";
-          iconComponent = <Package className="h-4 w-4 text-emerald-500" />;
-        } else {
-          dotColor = "bg-indigo-500";
-          iconComponent = <Package className="h-4 w-4 text-indigo-500" />;
-        }
-      } else if (activity.entityType === "invoice" || activity.entityType === "payment") {
-        dotColor = "bg-purple-500";
-        iconComponent = <MessageCircle className="h-4 w-4 text-purple-500" />;
-      } else if (activity.entityType === "message" || activity.entityType === "comment") {
-        dotColor = "bg-yellow-500";
-        iconComponent = <MessageCircle className="h-4 w-4 text-yellow-500" />;
-      }
-    }
-  } catch (error) {
-    console.error("Error processing activity:", error);
-    // Use default values if there's an error
-    userName = "System";
-    details = "Activity recorded";
-    timestamp = new Date().toISOString();
-  }
-  
-  return (
-    <li className="relative pb-5 pl-7 border-l border-gray-200 last:border-l-0 last:pb-0">
-      <div className={`absolute -left-[5px] top-0 h-[10px] w-[10px] rounded-full ${dotColor} ring-4 ring-white`}></div>
-      <div className="absolute -left-7 top-[-2px] bg-white p-1 rounded-md">
-        {iconComponent}
-      </div>
-      <div className="flex flex-col space-y-1">
-        <div className="flex items-center">
-          <span className="font-medium text-gray-900">{userName}</span>
-          <span className="text-xs text-gray-500 ml-auto">{formatDateTime(timestamp)}</span>
-        </div>
-        <p className="text-sm text-gray-600">{details}</p>
-      </div>
-    </li>
-  );
-}
+import { Activity } from "@shared/schema";
+import { formatDate } from "@/lib/formatters";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Bell, Users, FileText, TrendingUp, Clipboard, ClipboardCheck, Truck, PenTool, DollarSign } from "lucide-react";
 
 interface ActivityFeedProps {
-  activities?: CombinedActivity[];
+  activities?: Activity[];
+  title?: string;
+  maxItems?: number;
+  showHeader?: boolean;
+  height?: string;
 }
 
-export function ActivityFeed({ activities = [] }: ActivityFeedProps) {
+export function ActivityFeed({
+  activities = [],
+  title = "Recent Activities",
+  maxItems = 10,
+  showHeader = true,
+  height = "400px",
+}: ActivityFeedProps) {
+  const getActivityIcon = (entityType: string, action: string) => {
+    switch (entityType) {
+      case "lead":
+        return <Users className="h-4 w-4 text-blue-500" />;
+      case "client":
+        return <Users className="h-4 w-4 text-green-500" />;
+      case "commission":
+        return <DollarSign className="h-4 w-4 text-emerald-500" />;
+      case "handoff":
+        return <ClipboardCheck className="h-4 w-4 text-orange-500" />;
+      case "invoice":
+        return <FileText className="h-4 w-4 text-purple-500" />;
+      case "load":
+        return <Truck className="h-4 w-4 text-indigo-500" />;
+      case "report":
+        return <Clipboard className="h-4 w-4 text-amber-500" />;
+      case "note":
+        return <PenTool className="h-4 w-4 text-gray-500" />;
+      case "performance":
+        return <TrendingUp className="h-4 w-4 text-red-500" />;
+      default:
+        return <Bell className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const getActionColor = (action: string) => {
+    switch (action) {
+      case "created":
+        return "bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-300";
+      case "updated":
+        return "bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300";
+      case "deleted":
+        return "bg-red-50 text-red-700 dark:bg-red-900 dark:text-red-300";
+      case "completed":
+        return "bg-purple-50 text-purple-700 dark:bg-purple-900 dark:text-purple-300";
+      case "assigned":
+        return "bg-yellow-50 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300";
+      case "qualified":
+        return "bg-teal-50 text-teal-700 dark:bg-teal-900 dark:text-teal-300";
+      case "handoff":
+        return "bg-orange-50 text-orange-700 dark:bg-orange-900 dark:text-orange-300";
+      case "earned":
+        return "bg-emerald-50 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300";
+      default:
+        return "bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+    }
+  };
+
+  const renderActionText = (action: string) => {
+    return action.charAt(0).toUpperCase() + action.slice(1);
+  };
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-medium">Activity Feed</CardTitle>
-        <button className="text-sm text-primary hover:text-primary/80">
-          View all
-        </button>
-      </CardHeader>
+    <Card className="shadow-md hover:shadow-lg transition-all duration-200">
+      {showHeader && (
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-medium text-[#025E73]">{title}</CardTitle>
+        </CardHeader>
+      )}
       <CardContent>
-        {!activities || activities.length === 0 ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <Activity className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">No recent activities</p>
+        <ScrollArea className="h-[400px]">
+          {activities.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10">
+              <Bell className="h-8 w-8 text-gray-400 mb-3" />
+              <p className="text-sm text-gray-400">No activities yet</p>
             </div>
-          </div>
-        ) : (
-          <ul className="space-y-4 mt-2 max-h-[320px] overflow-y-auto">
-            {activities.map((activity, index) => (
-              <ActivityItem 
-                key={'id' in activity ? `activity-${activity.id}` : `activity-${index}`} 
-                activity={activity} 
-              />
-            ))}
-          </ul>
-        )}
+          ) : (
+            <ul className="space-y-4">
+              {activities.slice(0, maxItems).map((activity) => (
+                <li key={activity.id} className="flex items-start space-x-3">
+                  <div className="bg-gray-100 dark:bg-gray-700 rounded-full p-2 mt-0.5">
+                    {getActivityIcon(activity.entityType, activity.action)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="text-sm font-medium">
+                        {activity.user?.firstName} {activity.user?.lastName}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {activity.createdAt && !isNaN(new Date(activity.createdAt).getTime()) 
+                          ? formatDate(new Date(activity.createdAt), "MMM D, YYYY") 
+                          : "Unknown date"}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${getActionColor(
+                          activity.action
+                        )}`}
+                      >
+                        {renderActionText(activity.action)}
+                      </span>
+                      <span className="text-sm text-gray-600 dark:text-gray-300">{activity.details}</span>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </ScrollArea>
       </CardContent>
     </Card>
   );

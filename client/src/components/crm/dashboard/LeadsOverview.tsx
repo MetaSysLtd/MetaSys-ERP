@@ -1,28 +1,34 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CRMLeadsOverview } from "@shared/schema";
 import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  AreaChart,
+  Area,
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
-  Legend,
   Tooltip,
-  LineChart,
-  Line,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
 } from "recharts";
-import { InfoIcon } from "lucide-react";
+import { formatDate } from "@/lib/formatters";
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface LeadsOverviewProps {
-  data: CRMLeadsOverview;
-  timeframe?: string;
+  data?: CRMLeadsOverview;
+  timeframe: "day" | "week" | "month";
 }
 
-export function LeadsOverview({ data, timeframe = "week" }: LeadsOverviewProps) {
+const COLORS = ["#025E73", "#F2A71B", "#412754", "#A5D8DD", "#F5CB5C", "#2E5266", "#6E8898"];
+
+export function LeadsOverview({ data, timeframe }: LeadsOverviewProps) {
+  const [activeTab, setActiveTab] = useState<"status" | "source" | "trend">("trend");
+
   if (!data) {
     return (
       <Card className="shadow-md hover:shadow-lg transition-all duration-200">
@@ -38,141 +44,159 @@ export function LeadsOverview({ data, timeframe = "week" }: LeadsOverviewProps) 
     );
   }
 
-  // Colors for charts
-  const COLORS = ["#025E73", "#F2A71B", "#412754", "#A5D8DD"];
+  // Transform data for charts if needed
+  const trendData = data.trend.map(point => ({
+    date: point.date,
+    name: formatDate(new Date(point.date), "MMM D"),
+    created: point.created,
+    qualified: point.qualified,
+    converted: point.converted
+  }));
 
-  // Calculate qualification stats
-  const qualifiedCount = data.byStatus.find(item => item.name === "Qualified")?.value || 0;
-  const unqualifiedCount = data.byStatus.find(item => item.name === "Unqualified")?.value || 0;
-  const totalLeads = qualifiedCount + unqualifiedCount;
-  const qualificationRate = totalLeads > 0 ? Math.round((qualifiedCount / totalLeads) * 100) : 0;
-
-  // Format for pie chart data
-  const pieChartData = [
-    { name: "Qualified", value: qualifiedCount },
-    { name: "Unqualified", value: unqualifiedCount },
-  ];
-
-  // Get the period label based on the timeframe
-  const periodLabelMap = {
-    day: "Today's Overview",
-    week: "This Week's Overview",
-    month: "This Month's Overview",
-    custom: "Custom Period Overview"
-  };
-  const periodLabel = periodLabelMap[timeframe as keyof typeof periodLabelMap] || "Overview";
-
+  const timeframeLabel = 
+    timeframe === "day" ? "Today" : 
+    timeframe === "week" ? "This Week" : 
+    "This Month";
+  
   return (
     <Card className="shadow-md hover:shadow-lg transition-all duration-200">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-medium text-[#025E73]">Leads Overview</CardTitle>
         <CardDescription className="text-sm text-gray-500">
-          {periodLabel}
+          {timeframeLabel} lead activity
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Lead Stats</h4>
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              <div className="bg-gray-50 rounded-md p-3">
-                <p className="text-xs text-gray-500">Total Leads</p>
-                <p className="text-2xl font-bold text-[#025E73]">{totalLeads}</p>
-              </div>
-              <div className="bg-gray-50 rounded-md p-3">
-                <p className="text-xs text-gray-500">Qualification Rate</p>
-                <p className="text-2xl font-bold text-[#F2A71B]">{qualificationRate}%</p>
-              </div>
-            </div>
-            
-            <div className="aspect-square w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieChartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    labelLine={false}
-                  >
-                    {pieChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value, name) => [`${value} leads`, name]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+        <Tabs defaultValue={activeTab} onValueChange={(val) => setActiveTab(val as any)} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="trend">Trend</TabsTrigger>
+            <TabsTrigger value="status">By Status</TabsTrigger>
+            <TabsTrigger value="source">By Source</TabsTrigger>
+          </TabsList>
           
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Leads by Source</h4>
-            <div className="h-40 mb-4">
+          <TabsContent value="trend" className="mt-0">
+            <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.bySource}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <AreaChart
+                  data={trendData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" name="Leads" fill="#025E73" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Leads Trend</h4>
-            <div className="h-40">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data.trend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
+                  <Tooltip 
+                    formatter={(value) => [`${value} leads`, ""]}
+                    labelFormatter={(label) => `Date: ${label}`}
+                  />
                   <Legend />
-                  <Line
+                  <Area
                     type="monotone"
                     dataKey="created"
                     name="Created"
+                    stackId="1"
                     stroke="#025E73"
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
+                    fill="#025E73"
+                    fillOpacity={0.8}
                   />
-                  <Line
+                  <Area
                     type="monotone"
                     dataKey="qualified"
                     name="Qualified"
+                    stackId="2"
                     stroke="#F2A71B"
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
+                    fill="#F2A71B"
+                    fillOpacity={0.7}
                   />
-                  <Line
+                  <Area
                     type="monotone"
                     dataKey="converted"
                     name="Converted"
+                    stackId="3"
                     stroke="#412754"
-                    strokeWidth={2}
-                    dot={{ r: 3 }}
+                    fill="#412754"
+                    fillOpacity={0.6}
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             </div>
-          </div>
-        </div>
-        
-        <div className="mt-4 border-t border-gray-100 pt-4">
-          <div className="flex items-start space-x-2">
-            <InfoIcon className="h-4 w-4 text-[#025E73] mt-0.5" />
-            <p className="text-xs text-gray-500">
-              Analysis shows most qualified leads come from Website and Partner sources. 
-              Converting leads from Cold Calls needs improvement.
-            </p>
-          </div>
-        </div>
+          </TabsContent>
+          
+          <TabsContent value="status" className="mt-0">
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={data.byStatus}
+                  layout="vertical"
+                  margin={{ top: 5, right: 30, left: 70, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip
+                    formatter={(value) => [`${value} leads`, ""]}
+                    labelFormatter={(label) => `Status: ${label}`}
+                  />
+                  <Bar 
+                    dataKey="value" 
+                    name="Leads" 
+                    fill="#025E73"
+                    radius={[0, 4, 4, 0]}
+                    label={{ 
+                      position: 'right', 
+                      formatter: (item: any) => `${item.value}`,
+                      fill: '#666',
+                      fontSize: 12
+                    }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="source" className="mt-0">
+            <div className="h-72 flex items-center">
+              <div className="w-2/3 h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={data.bySource}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      nameKey="name"
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {data.bySource.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => [`${value} leads`, ""]} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              
+              <div className="w-1/3">
+                {data.bySource.map((item, index) => (
+                  <div key={index} className="flex items-center mb-2">
+                    <div
+                      className="w-3 h-3 rounded-full mr-2"
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span className="text-xs text-gray-600 overflow-hidden truncate">{item.name}</span>
+                    <span className="text-xs text-gray-600 ml-auto">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
