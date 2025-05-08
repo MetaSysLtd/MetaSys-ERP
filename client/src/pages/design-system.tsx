@@ -86,6 +86,7 @@ export default function DesignSystemPage() {
                     "brand-text": "#333333"
                   }
                 }}
+                isAdmin={user.role === 'admin'}
               />
             </div>
           </TabsContent>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Check, RefreshCw } from "lucide-react";
+import { AlertTriangle, Check, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -294,6 +294,8 @@ export default function ThemeCustomizer({ currentTheme, isAdmin = false }: Theme
                       ...prev,
                       radius: parseFloat(e.target.value)
                     }))}
+                    readOnly={!isAdmin}
+                    disabled={!isAdmin}
                   />
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
@@ -304,33 +306,44 @@ export default function ThemeCustomizer({ currentTheme, isAdmin = false }: Theme
           </TabsContent>
         </Tabs>
         
-        <div className="mt-6 flex space-x-2 justify-end">
-          <Button 
-            variant="outline" 
-            className="gap-1"
-            onClick={handleReset}
-          >
-            <RefreshCw className="h-4 w-4" />
-            Reset to Defaults
-          </Button>
-          <Button 
-            className="gap-1 bg-[#025E73] hover:bg-[#025E73]/90"
-            onClick={handleSave}
-            disabled={saveThemeMutation.isPending}
-          >
-            {saveThemeMutation.isPending ? (
-              <div className="flex items-center">
-                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-r-transparent border-white/80"></div>
-                Saving...
-              </div>
-            ) : (
-              <>
-                <Check className="h-4 w-4" />
-                Apply Changes
-              </>
-            )}
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="mt-6 flex space-x-2 justify-end">
+            <Button 
+              variant="outline" 
+              className="gap-1"
+              onClick={handleReset}
+            >
+              <RefreshCw className="h-4 w-4" />
+              Reset to Defaults
+            </Button>
+            <Button 
+              className="gap-1 bg-[#025E73] hover:bg-[#025E73]/90"
+              onClick={handleSave}
+              disabled={saveThemeMutation.isPending}
+            >
+              {saveThemeMutation.isPending ? (
+                <div className="flex items-center">
+                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-t-transparent border-r-transparent border-white/80"></div>
+                  Saving...
+                </div>
+              ) : (
+                <>
+                  <Check className="h-4 w-4" />
+                  Apply Changes
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+        
+        {!isAdmin && (
+          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-sm text-yellow-800 flex items-center">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Only System Administrators can modify theme settings
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
