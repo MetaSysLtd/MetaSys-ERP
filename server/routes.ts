@@ -2117,6 +2117,291 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   const leadRemarkRouter = express.Router();
   app.use("/lead-remarks", leadRemarkRouter);
   
+  // Team management routes
+  const teamRouter = express.Router();
+  app.use("/api/teams", teamRouter);
+  
+  // Get all teams
+  teamRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const teams = await storage.getTeams(req.orgId);
+      res.json(teams);
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch teams",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Get a specific team by ID
+  teamRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const teamId = Number(req.params.id);
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      res.json(team);
+    } catch (error) {
+      console.error("Error fetching team:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch team",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Create a new team
+  teamRouter.post("/", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      // Check if user has permission to create teams (System Admin or HR Manager+)
+      const isAdmin = req.userRole.level >= 5;
+      const isHR = req.userRole.department === 'hr' && req.userRole.level >= 3;
+      
+      if (!isAdmin && !isHR) {
+        return res.status(403).json({ 
+          message: "Forbidden: You don't have permission to create teams"
+        });
+      }
+      
+      const teamData = {
+        ...req.body,
+        orgId: req.orgId
+      };
+      
+      const team = await storage.createTeam(teamData);
+      res.status(201).json(team);
+    } catch (error) {
+      console.error("Error creating team:", error);
+      res.status(500).json({ 
+        message: "Failed to create team",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Update a team
+  teamRouter.patch("/:id", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const teamId = Number(req.params.id);
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Check if user has permission to update teams (System Admin or HR Manager+)
+      const isAdmin = req.userRole.level >= 5;
+      const isHR = req.userRole.department === 'hr' && req.userRole.level >= 3;
+      
+      if (!isAdmin && !isHR) {
+        return res.status(403).json({ 
+          message: "Forbidden: You don't have permission to update teams"
+        });
+      }
+      
+      const updatedTeam = await storage.updateTeam(teamId, req.body);
+      res.json(updatedTeam);
+    } catch (error) {
+      console.error("Error updating team:", error);
+      res.status(500).json({ 
+        message: "Failed to update team",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Delete a team
+  teamRouter.delete("/:id", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const teamId = Number(req.params.id);
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Check if user has permission to delete teams (System Admin or HR Manager+)
+      const isAdmin = req.userRole.level >= 5;
+      const isHR = req.userRole.department === 'hr' && req.userRole.level >= 3;
+      
+      if (!isAdmin && !isHR) {
+        return res.status(403).json({ 
+          message: "Forbidden: You don't have permission to delete teams"
+        });
+      }
+      
+      // First remove all team members
+      await storage.removeAllTeamMembers(teamId);
+      
+      // Then delete the team
+      await storage.deleteTeam(teamId);
+      
+      res.json({ message: "Team deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting team:", error);
+      res.status(500).json({ 
+        message: "Failed to delete team",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Get team members for a specific team
+  teamRouter.get("/:id/members", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const teamId = Number(req.params.id);
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      const members = await storage.getTeamMembers(teamId);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch team members",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Add a member to a team
+  teamRouter.post("/members", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const { teamId, userId } = req.body;
+      
+      if (!teamId || !userId) {
+        return res.status(400).json({ message: "Team ID and User ID are required" });
+      }
+      
+      const team = await storage.getTeam(Number(teamId));
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Check if user has permission (System Admin or HR Manager+)
+      const isAdmin = req.userRole.level >= 5;
+      const isHR = req.userRole.department === 'hr' && req.userRole.level >= 3;
+      
+      if (!isAdmin && !isHR) {
+        return res.status(403).json({ 
+          message: "Forbidden: You don't have permission to add team members"
+        });
+      }
+      
+      // Check if user already belongs to another team
+      const existingTeamMember = await storage.getUserTeam(Number(userId));
+      
+      if (existingTeamMember) {
+        return res.status(400).json({ 
+          message: "User already belongs to another team",
+          teamId: existingTeamMember.teamId
+        });
+      }
+      
+      const teamMember = await storage.addTeamMember({
+        userId: Number(userId),
+        teamId: Number(teamId)
+      });
+      
+      res.status(201).json(teamMember);
+    } catch (error) {
+      console.error("Error adding team member:", error);
+      res.status(500).json({ 
+        message: "Failed to add team member",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Remove a member from a team
+  teamRouter.delete("/:teamId/members/:userId", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      const teamId = Number(req.params.teamId);
+      const userId = Number(req.params.userId);
+      
+      const team = await storage.getTeam(teamId);
+      
+      if (!team) {
+        return res.status(404).json({ message: "Team not found" });
+      }
+      
+      // Check if user has permission (System Admin or HR Manager+)
+      const isAdmin = req.userRole.level >= 5;
+      const isHR = req.userRole.department === 'hr' && req.userRole.level >= 3;
+      
+      if (!isAdmin && !isHR) {
+        return res.status(403).json({ 
+          message: "Forbidden: You don't have permission to remove team members"
+        });
+      }
+      
+      await storage.removeTeamMember(teamId, userId);
+      
+      res.json({ message: "Team member removed successfully" });
+    } catch (error) {
+      console.error("Error removing team member:", error);
+      res.status(500).json({ 
+        message: "Failed to remove team member",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Get teams by department
+  teamRouter.get("/department/:department", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const department = req.params.department;
+      const teams = await storage.getTeamsByDepartment(department, req.orgId);
+      res.json(teams);
+    } catch (error) {
+      console.error("Error fetching teams by department:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch teams by department",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
+  // Get available users (not in any team)
+  userRouter.get("/available", createAuthMiddleware(3), async (req, res, next) => {
+    try {
+      // Check if user has permission (System Admin or HR Manager+)
+      const isAdmin = req.userRole.level >= 5;
+      const isHR = req.userRole.department === 'hr' && req.userRole.level >= 3;
+      
+      if (!isAdmin && !isHR) {
+        return res.status(403).json({ 
+          message: "Forbidden: You don't have permission to view available users"
+        });
+      }
+      
+      const availableUsers = await storage.getAvailableUsers(req.orgId);
+      
+      // Remove passwords before sending to client
+      const sanitizedUsers = availableUsers.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      
+      res.json(sanitizedUsers);
+    } catch (error) {
+      console.error("Error fetching available users:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch available users",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+  
   // Get all remarks for a specific lead
   leadRemarkRouter.get("/lead/:leadId", createAuthMiddleware(1), async (req, res, next) => {
     try {
