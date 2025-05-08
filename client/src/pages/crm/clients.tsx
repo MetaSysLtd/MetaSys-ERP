@@ -162,16 +162,7 @@ export default function ClientsPage() {
             </MotionWrapper>
             <MotionWrapper animation="fade-left" delay={0.3}>
               <div className="flex flex-wrap space-x-2">
-                {canCreateClient === true && (
-                  <Button
-                    onClick={() => setLocation("/crm/leads")}
-                    size="sm"
-                    className="h-9"
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add New Lead
-                  </Button>
-                )}
+                {/* "Add New Lead" button removed per requirements - leads should only be added via CRM > Leads */}
               </div>
             </MotionWrapper>
           </div>
