@@ -1,142 +1,123 @@
 /**
- * Utility functions for formatting dates in the server-side code
+ * Utility functions for handling date formatting and date range calculations
+ * Used primarily by the CRM Dashboard for consistent date handling
  */
 
 /**
- * Format a Date object to a MySQL/PostgreSQL compatible datetime string (YYYY-MM-DD HH:MM:SS)
- * 
- * @param date - The Date object to format
- * @returns A database-compatible datetime string
+ * Get the start and end date for today
+ * @returns {Object} Object with startDate and endDate strings in ISO format
  */
-export function formatDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-  
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-}
-
-/**
- * Format a Date object to a simple date string (YYYY-MM-DD)
- * 
- * @param date - The Date object to format
- * @returns A simple date string
- */
-export function formatSimpleDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  
-  return `${year}-${month}-${day}`;
-}
-
-/**
- * Get the first day of the current month
- * 
- * @returns The first day of the current month as a Date object
- */
-export function getFirstDayOfMonth(date?: Date): Date {
-  const targetDate = date || new Date();
-  return new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
-}
-
-/**
- * Get the last day of the current month
- * 
- * @returns The last day of the current month as a Date object
- */
-export function getLastDayOfMonth(date?: Date): Date {
-  const targetDate = date || new Date();
-  return new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
-}
-
-/**
- * Get the first day of the current week (Sunday)
- * 
- * @returns The first day of the current week as a Date object
- */
-export function getFirstDayOfWeek(date?: Date): Date {
-  const targetDate = date || new Date();
-  const dayOfWeek = targetDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
-  const diff = targetDate.getDate() - dayOfWeek;
-  return new Date(targetDate.setDate(diff));
-}
-
-/**
- * Get the last day of the current week (Saturday)
- * 
- * @returns The last day of the current week as a Date object
- */
-export function getLastDayOfWeek(date?: Date): Date {
-  const firstDay = getFirstDayOfWeek(date);
-  const lastDay = new Date(firstDay);
-  lastDay.setDate(lastDay.getDate() + 6);
-  return lastDay;
-}
-
-/**
- * Get a date from a specified number of days ago
- * 
- * @param days - The number of days to go back
- * @returns A Date object from the specified number of days ago
- */
-export function getDaysAgo(days: number): Date {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  return date;
-}
-
-/**
- * Format a date to a human-readable string (e.g., "May 8, 2025")
- * 
- * @param date - The Date object to format
- * @returns A human-readable date string
- */
-export function formatReadableDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-}
-
-/**
- * Format a date to a relative time string (e.g., "5 minutes ago", "2 days ago")
- * 
- * @param date - The Date object to format
- * @returns A relative time string
- */
-export function formatRelativeTime(date: Date): string {
+export function getTodayRange(): { startDate: string; endDate: string } {
   const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const startDate = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+  const endDate = new Date(new Date(now).setHours(23, 59, 59, 999)).toISOString();
   
-  if (diffInSeconds < 60) {
-    return `${diffInSeconds} second${diffInSeconds !== 1 ? 's' : ''} ago`;
+  return { startDate, endDate };
+}
+
+/**
+ * Get the start and end date for current week
+ * @returns {Object} Object with startDate and endDate strings in ISO format
+ */
+export function getCurrentWeekRange(): { startDate: string; endDate: string } {
+  const now = new Date();
+  const currentDay = now.getDay(); // 0 = Sunday, 6 = Saturday
+  
+  // Calculate start of week (Sunday)
+  const startDay = new Date(now);
+  startDay.setDate(now.getDate() - currentDay);
+  startDay.setHours(0, 0, 0, 0);
+  
+  // Calculate end of week (Saturday)
+  const endDay = new Date(now);
+  endDay.setDate(now.getDate() + (6 - currentDay));
+  endDay.setHours(23, 59, 59, 999);
+  
+  return { 
+    startDate: startDay.toISOString(), 
+    endDate: endDay.toISOString() 
+  };
+}
+
+/**
+ * Get the start and end date for current month
+ * @returns {Object} Object with startDate and endDate strings in ISO format
+ */
+export function getCurrentMonthRange(): { startDate: string; endDate: string } {
+  const now = new Date();
+  
+  // First day of current month
+  const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  startDate.setHours(0, 0, 0, 0);
+  
+  // Last day of current month
+  const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  endDate.setHours(23, 59, 59, 999);
+  
+  return { 
+    startDate: startDate.toISOString(), 
+    endDate: endDate.toISOString() 
+  };
+}
+
+/**
+ * Get the start and end date for current quarter
+ * @returns {Object} Object with startDate and endDate strings in ISO format
+ */
+export function getCurrentQuarterRange(): { startDate: string; endDate: string } {
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentQuarter = Math.floor(currentMonth / 3);
+  
+  // First day of current quarter
+  const startDate = new Date(now.getFullYear(), currentQuarter * 3, 1);
+  startDate.setHours(0, 0, 0, 0);
+  
+  // Last day of current quarter
+  const endDate = new Date(now.getFullYear(), currentQuarter * 3 + 3, 0);
+  endDate.setHours(23, 59, 59, 999);
+  
+  return { 
+    startDate: startDate.toISOString(), 
+    endDate: endDate.toISOString() 
+  };
+}
+
+/**
+ * Get date range based on timeframe string
+ * @param {string} timeframe - One of 'day', 'week', 'month', or 'quarter'
+ * @returns {Object} Object with startDate and endDate strings in ISO format
+ */
+export function getDateRangeByTimeframe(timeframe: string): { startDate: string; endDate: string } {
+  switch (timeframe.toLowerCase()) {
+    case 'day':
+      return getTodayRange();
+    case 'week':
+      return getCurrentWeekRange();
+    case 'month':
+      return getCurrentMonthRange();
+    case 'quarter':
+      return getCurrentQuarterRange();
+    default:
+      return getTodayRange(); // Default to today if invalid timeframe
   }
-  
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) {
-    return `${diffInMinutes} minute${diffInMinutes !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) {
-    return `${diffInHours} hour${diffInHours !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 30) {
-    return `${diffInDays} day${diffInDays !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInMonths = Math.floor(diffInDays / 30);
-  if (diffInMonths < 12) {
-    return `${diffInMonths} month${diffInMonths !== 1 ? 's' : ''} ago`;
-  }
-  
-  const diffInYears = Math.floor(diffInMonths / 12);
-  return `${diffInYears} year${diffInYears !== 1 ? 's' : ''} ago`;
+}
+
+/**
+ * Format a date in YYYY-MM format for use with commission data
+ * @param {Date} date - The date to format
+ * @returns {string} Date in YYYY-MM format
+ */
+export function formatYearMonth(date: Date): string {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  return `${year}-${month}`;
+}
+
+/**
+ * Get current month in YYYY-MM format
+ * @returns {string} Current month in YYYY-MM format
+ */
+export function getCurrentYearMonth(): string {
+  return formatYearMonth(new Date());
 }

@@ -3717,6 +3717,78 @@ export class DatabaseStorage implements IStorage {
       );
   }
   
+  async getCommissionsByMonth(month: string): Promise<{
+    totalCommissions: number;
+    totalUsers: number;
+    averageCommission: number;
+    topEarners: Array<{ userId: number; amount: number; name: string }>;
+  }> {
+    try {
+      const [year, monthNum] = month.split('-').map(Number);
+      if (!year || !monthNum) {
+        throw new Error('Invalid month format. Expected YYYY-MM');
+      }
+      
+      // Get commission runs for the specified month
+      const runs = await this.getCommissionRunsByMonth(month);
+      
+      if (runs.length === 0) {
+        return {
+          totalCommissions: 0,
+          totalUsers: 0,
+          averageCommission: 0,
+          topEarners: []
+        };
+      }
+      
+      // Calculate total commission amount
+      const totalCommissions = runs.reduce((sum, run) => sum + run.amount, 0);
+      
+      // Count unique users
+      const uniqueUserIds = [...new Set(runs.map(run => run.userId))];
+      const totalUsers = uniqueUserIds.length;
+      
+      // Calculate average commission per user
+      const averageCommission = totalUsers > 0 ? totalCommissions / totalUsers : 0;
+      
+      // Get top earners
+      const userCommissions = new Map<number, number>();
+      runs.forEach(run => {
+        const currentAmount = userCommissions.get(run.userId) || 0;
+        userCommissions.set(run.userId, currentAmount + run.amount);
+      });
+      
+      // Convert to array and sort
+      const userCommissionsArray = Array.from(userCommissions.entries())
+        .map(([userId, amount]) => ({ userId, amount }))
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, 5); // Top 5 earners
+      
+      // Get user names for top earners
+      const topEarners = [];
+      for (const earner of userCommissionsArray) {
+        const user = await this.getUser(earner.userId);
+        if (user) {
+          topEarners.push({
+            userId: earner.userId,
+            amount: earner.amount,
+            name: `${user.firstName} ${user.lastName}`
+          });
+        }
+      }
+      
+      return {
+        totalCommissions,
+        totalUsers,
+        averageCommission,
+        topEarners
+      };
+    } catch (error) {
+      console.error('Error in getCommissionsByMonth:', error);
+      throw error;
+    }
+  }
+  
   async getCommissionRunsByUser(userId: number): Promise<CommissionRun[]> {
     return db.select().from(commissionRuns).where(eq(commissionRuns.userId, userId));
   }
@@ -3871,6 +3943,170 @@ export class DatabaseStorage implements IStorage {
     .limit(options.limit);
     
     return results;
+  }
+  
+  /**
+   * Get top performing users based on various metrics
+   * Useful for CRM dashboard display
+   */
+  async getTopPerformingUsers(options: {
+    startDate: string;
+    endDate: string;
+    metric: 'leads' | 'conversions' | 'handoffs' | 'commissions';
+    limit: number;
+    orgId?: number;
+  }): Promise<Array<{
+    userId: number;
+    userName: string;
+    count: number;
+    amount?: number;
+    profileImageUrl?: string | null;
+  }>> {
+    try {
+      const { startDate, endDate, metric, limit, orgId } = options;
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      switch (metric) {
+        case 'leads': {
+          // Users with most leads created
+          const leadsQuery = db.select({
+            userId: leads.createdBy,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            profileImageUrl: users.profileImageUrl,
+            count: sql<number>`count(${leads.id})`.as('count')
+          })
+          .from(leads)
+          .innerJoin(users, eq(leads.createdBy, users.id))
+          .where(
+            and(
+              gte(leads.createdAt, start),
+              lte(leads.createdAt, end),
+              orgId ? eq(leads.orgId, orgId) : undefined
+            ).filter(Boolean) // Remove undefined conditions
+          )
+          .groupBy(leads.createdBy, users.firstName, users.lastName, users.profileImageUrl)
+          .orderBy(desc(sql<number>`count(${leads.id})`))
+          .limit(limit);
+          
+          const topLeadCreators = await leadsQuery;
+          
+          return topLeadCreators.map(creator => ({
+            userId: creator.userId,
+            userName: `${creator.firstName} ${creator.lastName}`,
+            count: creator.count,
+            profileImageUrl: creator.profileImageUrl
+          }));
+        }
+        
+        case 'conversions': {
+          // Users with most lead status changes to qualified
+          const statusChangesQuery = db.select({
+            userId: activities.userId,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            profileImageUrl: users.profileImageUrl,
+            count: sql<number>`count(${activities.id})`.as('count')
+          })
+          .from(activities)
+          .innerJoin(users, eq(activities.userId, users.id))
+          .where(
+            and(
+              eq(activities.entityType, 'lead'),
+              like(activities.action, '%qualified%'),
+              gte(activities.timestamp, start),
+              lte(activities.timestamp, end)
+            )
+          )
+          .groupBy(activities.userId, users.firstName, users.lastName, users.profileImageUrl)
+          .orderBy(desc(sql<number>`count(${activities.id})`))
+          .limit(limit);
+          
+          const topConverters = await statusChangesQuery;
+          
+          return topConverters.map(converter => ({
+            userId: converter.userId,
+            userName: `${converter.firstName} ${converter.lastName}`,
+            count: converter.count,
+            profileImageUrl: converter.profileImageUrl
+          }));
+        }
+        
+        case 'handoffs': {
+          // Users with most lead handoffs to dispatch
+          const handoffsQuery = db.select({
+            userId: activities.userId,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            profileImageUrl: users.profileImageUrl,
+            count: sql<number>`count(${activities.id})`.as('count')
+          })
+          .from(activities)
+          .innerJoin(users, eq(activities.userId, users.id))
+          .where(
+            and(
+              eq(activities.entityType, 'lead'),
+              like(activities.action, '%hand%to%dispatch%'),
+              gte(activities.timestamp, start),
+              lte(activities.timestamp, end)
+            )
+          )
+          .groupBy(activities.userId, users.firstName, users.lastName, users.profileImageUrl)
+          .orderBy(desc(sql<number>`count(${activities.id})`))
+          .limit(limit);
+          
+          const topHandoffs = await handoffsQuery;
+          
+          return topHandoffs.map(handoff => ({
+            userId: handoff.userId,
+            userName: `${handoff.firstName} ${handoff.lastName}`,
+            count: handoff.count,
+            profileImageUrl: handoff.profileImageUrl
+          }));
+        }
+        
+        case 'commissions': {
+          // Get commission monthly data for the given period
+          const monthStart = new Date(start.getFullYear(), start.getMonth(), 1);
+          const monthFormatted = `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}`;
+          
+          const commissionsQuery = db.select({
+            userId: commissionsMonthly.userId,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            profileImageUrl: users.profileImageUrl,
+            amount: commissionsMonthly.totalCommission
+          })
+          .from(commissionsMonthly)
+          .innerJoin(users, eq(commissionsMonthly.userId, users.id))
+          .where(
+            and(
+              eq(commissionsMonthly.month, monthFormatted),
+              orgId ? eq(commissionsMonthly.orgId, orgId) : undefined
+            ).filter(Boolean) // Remove undefined conditions
+          )
+          .orderBy(desc(commissionsMonthly.totalCommission))
+          .limit(limit);
+          
+          const topCommissions = await commissionsQuery;
+          
+          return topCommissions.map(commission => ({
+            userId: commission.userId,
+            userName: `${commission.firstName} ${commission.lastName}`,
+            count: 1, // Just a placeholder as we're using amount as the primary metric
+            amount: commission.amount,
+            profileImageUrl: commission.profileImageUrl
+          }));
+        }
+        
+        default:
+          return [];
+      }
+    } catch (error) {
+      console.error(`Error in getTopPerformingUsers for metric ${options.metric}:`, error);
+      throw error;
+    }
   }
 
   async createCommissionMonthly(commission: InsertCommissionMonthly): Promise<CommissionMonthly> {
