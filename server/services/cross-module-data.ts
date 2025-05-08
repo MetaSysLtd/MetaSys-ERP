@@ -597,19 +597,24 @@ async function getRelatedEntityData(
 
     case 'dispatches:invoices':
       // Get invoices related to this dispatch through dispatch lead relationships
-      // For now, return all invoices linked to leads that are assigned to this dispatcher
-      const dispatchData = await db.query.dispatchTasks.findFirst({
-        where: eq(dispatchTasks.id, primaryId),
-        with: {
-          dispatcher: true
-        }
+      // First get the dispatch task to find the dispatcher
+      const dispatchTask = await db.query.dispatchTasks.findFirst({
+        where: eq(dispatchTasks.id, primaryId)
       });
       
-      if (!dispatchData?.dispatcher?.id) return [];
+      if (!dispatchTask || !dispatchTask.dispatcherId) return [];
+      
+      // Find loads handled by this dispatcher
+      const dispatcherLoads = await db.select().from(loads)
+        .where(eq(loads.dispatcherId, dispatchTask.dispatcherId));
+      
+      if (dispatcherLoads.length === 0) return [];
+      
+      // Get invoices related to these loads via the lead ID
+      const leadIds = dispatcherLoads.map(load => load.leadId);
       
       return await db.select().from(invoices)
-        .innerJoin(leads, eq(invoices.leadId, leads.id))
-        .where(eq(leads.assignedTo, dispatchData.dispatcher.id))
+        .where(inArray(invoices.leadId, leadIds))
         .orderBy(desc(invoices.issuedDate));
         
     case 'dispatches:tasks':
@@ -624,22 +629,23 @@ async function getRelatedEntityData(
         .orderBy(desc(tasks.dueDate));
     
     case 'invoices:dispatches':
-      // Get dispatch related to this invoice by finding the associated load/lead
+      // Get dispatch related to this invoice by finding related lead and load
       const invoice = await db.query.invoices.findFirst({
         where: eq(invoices.id, primaryId)
       });
       
       if (!invoice) return null;
       
-      // Get the load associated with this invoice, then the dispatch
+      // Find the load associated with this invoice
       const associatedLoad = await db.query.loads.findFirst({
         where: eq(loads.leadId, invoice.leadId)
       });
       
-      if (!associatedLoad || !associatedLoad.dispatchId) return null;
+      if (!associatedLoad || !associatedLoad.dispatcherId) return null;
       
+      // Find dispatch tasks associated with this dispatcher
       return await db.query.dispatchTasks.findFirst({
-        where: eq(dispatchTasks.id, associatedLoad.dispatchId)
+        where: eq(dispatchTasks.dispatcherId, associatedLoad.dispatcherId)
       });
       
     case 'invoices:clients':
