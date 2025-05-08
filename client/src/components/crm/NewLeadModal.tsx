@@ -39,7 +39,6 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
     status: "New",
     assignedTo: user?.id || 0,
     serviceCharges: 0,
-    commissionRate: 10,
     priority: "Medium",
     category: "Carrier",
     currentAvailability: "Unknown",
@@ -110,7 +109,6 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
         status: "New",
         assignedTo: user?.id || 0,
         serviceCharges: 0,
-        commissionRate: 10,
         priority: "Medium",
         category: "Carrier",
         currentAvailability: "Unknown",
@@ -410,23 +408,6 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
             
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="commissionRate">
-                  Commission Rate (%) <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="commissionRate"
-                  name="commissionRate"
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={formData.commissionRate.toString()}
-                  onChange={handleChange}
-                  placeholder="Commission Rate"
-                />
-              </div>
-              
-              <div className="space-y-2">
                 <Label htmlFor="priority">
                   Priority
                 </Label>
@@ -444,9 +425,7 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              
               <div className="space-y-2">
                 <Label htmlFor="category">
                   Category
@@ -466,7 +445,9 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
                   </SelectContent>
                 </Select>
               </div>
-              
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="currentAvailability">
                   Current Availability
@@ -483,6 +464,27 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
                     <SelectItem value="Limited">Limited</SelectItem>
                     <SelectItem value="Unavailable">Unavailable</SelectItem>
                     <SelectItem value="Unknown">Unknown</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="truckCategory">
+                  Truck Category
+                </Label>
+                <Select
+                  value={formData.truckCategory}
+                  onValueChange={(value) => handleSelectChange("truckCategory", value)}
+                >
+                  <SelectTrigger id="truckCategory">
+                    <SelectValue placeholder="Select truck category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Class 8">Class 8</SelectItem>
+                    <SelectItem value="Class 7">Class 7</SelectItem>
+                    <SelectItem value="Class 6">Class 6</SelectItem>
+                    <SelectItem value="Class 5">Class 5</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
