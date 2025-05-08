@@ -133,3 +133,23 @@ export const API_ENDPOINTS = {
   ORGANIZATIONS: '/api/organizations',
   CROSS_MODULE: '/api/cross-module'
 };
+
+/**
+ * API routes for system functionality
+ */
+export const API_ROUTES = {
+  SYSTEM: {
+    HEALTH: '/api/system/health',
+    STATUS: '/api/system/status'
+  },
+  AUTH: {
+    LOGIN: '/api/auth/login',
+    LOGOUT: '/api/auth/logout',
+    REGISTER: '/api/auth/register',
+    ME: '/api/auth/me'
+  },
+  USER: {
+    PROFILE: '/api/user/profile',
+    PREFERENCES: '/api/user/preferences'
+  }
+};
