@@ -598,77 +598,94 @@ export default function CRMLeadsPage() {
                 <TableHeader className="bg-gray-50">
                   <TableRow>
                     <TableHead 
-                      className="w-1/6 cursor-pointer hover:bg-gray-100"
+                      className="w-[18%] cursor-pointer hover:bg-gray-100 transition-colors rounded-tl-md"
                       onClick={() => toggleSort('companyName')}
                     >
                       <div className="flex items-center">
-                        Company
-                        {sortField === 'companyName' && (
-                          <ArrowUpDown className={cn(
-                            "ml-1 h-4 w-4", 
-                            sortDirection === 'asc' ? "text-[#025E73]" : "text-gray-500"
-                          )} />
+                        <Building2 className="h-4 w-4 mr-1.5 text-[#025E73]" />
+                        <span className="font-semibold text-gray-700">Company</span>
+                        {sortField === 'companyName' ? (
+                          sortDirection === 'asc' ? (
+                            <ArrowUp10 className="ml-1 h-4 w-4 text-[#025E73]" />
+                          ) : (
+                            <ArrowDown10 className="ml-1 h-4 w-4 text-[#025E73]" />
+                          )
+                        ) : (
+                          <ChevronsUpDown className="ml-1 h-3.5 w-3.5 text-gray-400" />
                         )}
                       </div>
                     </TableHead>
-                    <TableHead className="w-1/6">Contact Information</TableHead>
+                    <TableHead className="w-[18%]">
+                      <div className="flex items-center">
+                        <UserPlus className="h-4 w-4 mr-1.5 text-[#025E73]" />
+                        <span className="font-semibold text-gray-700">Contact Information</span>
+                      </div>
+                    </TableHead>
                     <TableHead 
-                      className="w-1/12 cursor-pointer hover:bg-gray-100"
+                      className="w-[13%] cursor-pointer hover:bg-gray-100 transition-colors"
                       onClick={() => toggleSort('status')}
                     >
                       <div className="flex items-center">
-                        Status
-                        {sortField === 'status' && (
-                          <ArrowUpDown className={cn(
-                            "ml-1 h-4 w-4", 
-                            sortDirection === 'asc' ? "text-[#025E73]" : "text-gray-500"
-                          )} />
+                        <Tag className="h-4 w-4 mr-1.5 text-[#025E73]" />
+                        <span className="font-semibold text-gray-700">Status</span>
+                        {sortField === 'status' ? (
+                          sortDirection === 'asc' ? (
+                            <ArrowUp10 className="ml-1 h-4 w-4 text-[#025E73]" />
+                          ) : (
+                            <ArrowDown10 className="ml-1 h-4 w-4 text-[#025E73]" />
+                          )
+                        ) : (
+                          <ChevronsUpDown className="ml-1 h-3.5 w-3.5 text-gray-400" />
                         )}
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="w-1/12 cursor-pointer hover:bg-gray-100"
-                      onClick={() => toggleSort('priority')}
+                      className="w-[15%] cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => toggleSort('qualificationScore')}
                     >
                       <div className="flex items-center">
-                        Priority
-                        {sortField === 'priority' && (
-                          <ArrowUpDown className={cn(
-                            "ml-1 h-4 w-4", 
-                            sortDirection === 'asc' ? "text-[#025E73]" : "text-gray-500"
-                          )} />
+                        <Star className="h-4 w-4 mr-1.5 text-[#025E73]" />
+                        <span className="font-semibold text-gray-700">Qualification</span>
+                        {sortField === 'qualificationScore' ? (
+                          sortDirection === 'asc' ? (
+                            <ArrowUp10 className="ml-1 h-4 w-4 text-[#025E73]" />
+                          ) : (
+                            <ArrowDown10 className="ml-1 h-4 w-4 text-[#025E73]" />
+                          )
+                        ) : (
+                          <ChevronsUpDown className="ml-1 h-3.5 w-3.5 text-gray-400" />
                         )}
                       </div>
                     </TableHead>
-                    <TableHead 
-                      className="w-1/6 cursor-pointer hover:bg-gray-100"
-                      onClick={() => toggleSort('equipmentType')}
-                    >
+                    <TableHead className="w-[13%]">
                       <div className="flex items-center">
-                        Equipment
-                        {sortField === 'equipmentType' && (
-                          <ArrowUpDown className={cn(
-                            "ml-1 h-4 w-4", 
-                            sortDirection === 'asc' ? "text-[#025E73]" : "text-gray-500"
-                          )} />
-                        )}
+                        <Truck className="h-4 w-4 mr-1.5 text-[#025E73]" />
+                        <span className="font-semibold text-gray-700">Equipment</span>
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="w-1/6 cursor-pointer hover:bg-gray-100"
+                      className="w-[13%] cursor-pointer hover:bg-gray-100 transition-colors"
                       onClick={() => toggleSort('createdAt')}
                     >
                       <div className="flex items-center">
-                        Created
-                        {sortField === 'createdAt' && (
-                          <ArrowUpDown className={cn(
-                            "ml-1 h-4 w-4", 
-                            sortDirection === 'asc' ? "text-[#025E73]" : "text-gray-500"
-                          )} />
+                        <CalendarClock className="h-4 w-4 mr-1.5 text-[#025E73]" />
+                        <span className="font-semibold text-gray-700">Date</span>
+                        {sortField === 'createdAt' ? (
+                          sortDirection === 'asc' ? (
+                            <ArrowUp10 className="ml-1 h-4 w-4 text-[#025E73]" />
+                          ) : (
+                            <ArrowDown10 className="ml-1 h-4 w-4 text-[#025E73]" />
+                          )
+                        ) : (
+                          <ChevronsUpDown className="ml-1 h-3.5 w-3.5 text-gray-400" />
                         )}
                       </div>
                     </TableHead>
-                    <TableHead className="w-1/12 text-right">Actions</TableHead>
+                    <TableHead className="w-[10%] text-right rounded-tr-md">
+                      <div className="flex items-center justify-end">
+                        <span className="font-semibold text-gray-700">Action</span>
+                      </div>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

@@ -15,10 +15,40 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-export function formatDate(date: Date | string | null | undefined): string {
+export function formatDate(date: Date | string | null | undefined, detailed: boolean = false): string {
   if (!date) return 'N/A';
   try {
-    return format(new Date(date), 'MMM d, yyyy');
+    const dateObj = new Date(date);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Handle detailed mode - used for due dates or follow-ups
+    if (detailed) {
+      const isToday = dateObj.toDateString() === today.toDateString();
+      const isYesterday = dateObj.toDateString() === yesterday.toDateString();
+      const isWithinWeek = dateObj > new Date(today.setDate(today.getDate() - 7));
+      
+      if (isToday) {
+        return `Today at ${format(dateObj, 'h:mm a')}`;
+      } else if (isYesterday) {
+        return `Yesterday at ${format(dateObj, 'h:mm a')}`;
+      } else if (isWithinWeek) {
+        return format(dateObj, 'EEEE') + ` at ${format(dateObj, 'h:mm a')}`;
+      } else {
+        return format(dateObj, 'MMM d, yyyy') + ` at ${format(dateObj, 'h:mm a')}`;
+      }
+    }
+    
+    // Handle regular date display
+    const isCurrentYear = dateObj.getFullYear() === today.getFullYear();
+    if (isCurrentYear) {
+      // For current year, don't show the year
+      return format(dateObj, 'MMM d');
+    } else {
+      // For other years, show full date
+      return format(dateObj, 'MMM d, yyyy');
+    }
   } catch (error) {
     console.error('Invalid date format:', error, date);
     return 'Invalid date';
