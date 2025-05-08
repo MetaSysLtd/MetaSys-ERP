@@ -468,6 +468,25 @@ export default function SettingsPage() {
                         <span className="truncate">Admin Settings</span>
                       </TabsTrigger>
                     )}
+                    
+                    <TabsTrigger 
+                      value="design-system" 
+                      className="justify-start px-4 py-3 w-full font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-[#025E73] rounded-none text-sm"
+                      onClick={() => {
+                        // Navigate to design system
+                        navigate("/design-system");
+                        // Close mobile menu
+                        const sidebar = document.getElementById('settings-sidebar');
+                        const overlay = document.getElementById('mobile-menu-overlay');
+                        if (window.innerWidth < 1024) {
+                          if (sidebar) sidebar.classList.add('hidden');
+                          if (overlay) overlay.classList.add('hidden');
+                        }
+                      }}
+                    >
+                      <Palette className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Design System</span>
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
