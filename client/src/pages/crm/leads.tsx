@@ -272,7 +272,7 @@ export default function CRMLeadsPage() {
         {/* Display leads in selected view mode */}
         {viewMode === 'kanban' ? (
           <MotionWrapper animation="fade-up" delay={0.5}>
-            <KanbanView leads={filteredLeads} setLocation={setLocation} />
+            <KanbanView leads={filteredLeads} setLocation={setLocation} showFilter={statusFilter} />
           </MotionWrapper>
         ) : (
           <MotionWrapper animation="fade-up" delay={0.5}>

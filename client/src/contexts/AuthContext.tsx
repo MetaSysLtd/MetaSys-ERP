@@ -52,7 +52,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch(API_ROUTES.AUTH.CURRENT_USER, {
+        const res = await fetch(API_ROUTES.AUTH.ME, {
           method: "GET",
           credentials: "include"
         });
