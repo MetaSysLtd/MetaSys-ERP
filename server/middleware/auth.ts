@@ -72,3 +72,11 @@ export function auth(minimumLevel: number = 1) {
 export function adminOnly(req: Request, res: Response, next: NextFunction) {
   return auth(3)(req, res, next);
 }
+
+// Simple middleware for checking if user is authenticated
+export function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({ error: "Unauthorized: Please log in to access this resource" });
+  }
+  return next();
+}

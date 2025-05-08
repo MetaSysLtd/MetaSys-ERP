@@ -3416,6 +3416,54 @@ export class DatabaseStorage implements IStorage {
     return query;
   }
   
+  async getLeadsByDateRange(startDate: string, endDate: string): Promise<Lead[]> {
+    try {
+      return await db.select()
+        .from(leads)
+        .where(
+          and(
+            gte(leads.createdAt, new Date(startDate)),
+            lte(leads.createdAt, new Date(endDate))
+          )
+        )
+        .orderBy(desc(leads.createdAt));
+    } catch (error) {
+      console.error('Error in getLeadsByDateRange:', error);
+      throw error;
+    }
+  }
+
+  async getActivitiesByDateRange(startDate: string, endDate: string, limit: number = 50): Promise<Activity[]> {
+    try {
+      const query = db.select({
+        id: activities.id,
+        userId: activities.userId,
+        entityType: activities.entityType,
+        entityId: activities.entityId,
+        action: activities.action,
+        details: activities.details,
+        timestamp: activities.timestamp
+      })
+        .from(activities)
+        .where(
+          and(
+            gte(activities.timestamp, new Date(startDate)),
+            lte(activities.timestamp, new Date(endDate))
+          )
+        )
+        .orderBy(desc(activities.timestamp));
+      
+      if (limit) {
+        query.limit(limit);
+      }
+      
+      return query;
+    } catch (error) {
+      console.error('Error in getActivitiesByDateRange:', error);
+      throw error;
+    }
+  }
+  
   async getActivitiesByEntityType(entityType: string, since?: Date, limit?: number): Promise<Activity[]> {
     let query = db.select({
       id: activities.id,
