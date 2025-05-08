@@ -549,7 +549,10 @@ async function getRelatedEntityData(
     case 'leads:tasks':
       return await db.select().from(tasks)
         .where(
-          eq(tasks.relatedToId, primaryId)
+          and(
+            eq(tasks.relatedEntityType, 'lead'),
+            eq(tasks.relatedEntityId, primaryId)
+          )
         )
         .orderBy(desc(tasks.dueDate));
     
@@ -578,8 +581,8 @@ async function getRelatedEntityData(
       return await db.select().from(tasks)
         .where(
           and(
-            eq(tasks.relatedToType, 'client'),
-            eq(tasks.relatedToId, primaryId)
+            eq(tasks.relatedEntityType, 'client'),
+            eq(tasks.relatedEntityId, primaryId)
           )
         )
         .orderBy(desc(tasks.dueDate));
@@ -605,8 +608,8 @@ async function getRelatedEntityData(
       return await db.select().from(tasks)
         .where(
           and(
-            eq(tasks.relatedToType, 'dispatch'),
-            eq(tasks.relatedToId, primaryId)
+            eq(tasks.relatedEntityType, 'dispatch'),
+            eq(tasks.relatedEntityId, primaryId)
           )
         )
         .orderBy(desc(tasks.dueDate));
