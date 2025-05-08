@@ -1,185 +1,149 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
 import { storage } from '../storage';
-import { adminOnly, isAuthenticated } from '../middleware/auth';
-import { eq } from 'drizzle-orm';
 import { getDateRangeByTimeframe, getCurrentYearMonth } from '../utils/date-formatter';
 
-const router = Router();
-
-// Helper to handle errors consistently
-const errorHandler = (res: any, error: any, message: string) => {
-  console.error(`CRM Dashboard Error - ${message}:`, error);
-  res.status(500).json({ 
-    error: message, 
-    details: error.message
-  });
-};
-
-/**
- * GET /api/crm-dashboard/overview
- * Returns an overview of lead statistics for the CRM dashboard
- * Requires authentication
- * Query parameters:
- *  - timeframe: (day|week|month|quarter) - defaults to 'day'
- */
-router.get('/overview', isAuthenticated, async (req, res) => {
-  try {
-    // Get the date range based on the timeframe parameter (or default to today)
-    const timeframe = (req.query.timeframe as string) || 'day';
-    const { startDate, endDate } = getDateRangeByTimeframe(timeframe);
-    
-    // Get all leads within the date range
-    const leads = await storage.getLeadsByDateRange(startDate, endDate);
-    
-    // Calculate statistics
-    const totalLeads = leads.length;
-    const newLeads = leads.filter(lead => lead.status === 'New').length;
-    const inProgressLeads = leads.filter(lead => lead.status === 'InProgress').length;
-    const followUpLeads = leads.filter(lead => lead.status === 'FollowUp').length;
-    const handedToDispatchLeads = leads.filter(lead => lead.status === 'HandToDispatch').length;
-    const activeLeads = leads.filter(lead => lead.status === 'Active').length;
-    const lostLeads = leads.filter(lead => lead.status === 'Lost').length;
-    
-    // Calculate conversion rates
-    const qualifiedLeads = handedToDispatchLeads + activeLeads;
-    const qualificationRate = totalLeads > 0 ? (qualifiedLeads / totalLeads) * 100 : 0;
-    const handoffRate = inProgressLeads > 0 ? (handedToDispatchLeads / inProgressLeads) * 100 : 0;
-    
-    // Format the response
-    res.json({
-      timeframe,
-      startDate,
-      endDate,
-      stats: {
-        totalLeads,
-        newLeads,
-        inProgressLeads,
-        followUpLeads,
-        handedToDispatchLeads,
-        activeLeads,
-        lostLeads,
-        qualifiedLeads,
-        qualificationRate: parseFloat(qualificationRate.toFixed(2)),
-        handoffRate: parseFloat(handoffRate.toFixed(2))
-      }
-    });
-  } catch (error) {
-    errorHandler(res, error, 'Failed to fetch CRM dashboard overview');
-  }
-});
-
-/**
- * GET /api/crm-dashboard/commissions
- * Returns commission statistics for the CRM dashboard
- * Requires authentication
- * Query parameters:
- *  - month: (YYYY-MM) - defaults to current month
- */
-router.get('/commissions', isAuthenticated, async (req, res) => {
-  try {
-    // Get the month parameter (or default to current month)
-    const month = (req.query.month as string) || getCurrentYearMonth();
-    
-    // Get commission data for the specified month
-    const commissionData = await storage.getCommissionsByMonth(month);
-    
-    // Format the response
-    res.json({
-      month,
-      stats: commissionData
-    });
-  } catch (error) {
-    errorHandler(res, error, 'Failed to fetch CRM dashboard commission data');
-  }
-});
-
-/**
- * GET /api/crm-dashboard/activity
- * Returns recent activity data for the CRM dashboard
- * Requires authentication
- * Query parameters:
- *  - timeframe: (day|week|month|quarter) - defaults to 'day'
- *  - limit: number of activities to return - defaults to 20
- */
-router.get('/activity', isAuthenticated, async (req, res) => {
-  try {
-    // Get the date range based on the timeframe parameter (or default to today)
-    const timeframe = (req.query.timeframe as string) || 'day';
-    const limit = parseInt(req.query.limit as string || '20');
-    const { startDate, endDate } = getDateRangeByTimeframe(timeframe);
-    
-    // Get activities within the date range
-    const activities = await storage.getActivitiesByDateRange(startDate, endDate, limit);
-    
-    // Enrich activities with user information
-    const enrichedActivities = [];
-    for (const activity of activities) {
-      const user = await storage.getUser(activity.userId);
-      enrichedActivities.push({
-        ...activity,
-        user: user ? {
-          id: user.id,
-          name: `${user.firstName} ${user.lastName}`,
-          profileImageUrl: user.profileImageUrl
-        } : null
+// Using the createAuthMiddleware directly from consolidated-routes.ts
+// This function is available at the global level in the application
+const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
+  return async (req: any, res: any, next: any) => {
+    // Check if user is authenticated via session
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ 
+        error: "Unauthorized: Please log in to access this resource",
+        missing: ["session"] 
       });
     }
+
+    try {
+      // Fetch the user from storage
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        req.session.destroy(() => {});
+        return res.status(401).json({ 
+          error: "Unauthorized: User not found", 
+          missing: ["user"] 
+        });
+      }
+
+      // Fetch the user's role
+      const role = await storage.getRole(user.roleId);
+      if (!role) {
+        return res.status(403).json({ 
+          error: "User is not assigned to any role. Contact Admin.", 
+          missing: ["role", "permissions"] 
+        });
+      }
+
+      // Check if the user's role level is sufficient
+      if (role.level < requiredRoleLevel) {
+        return res.status(403).json({ 
+          error: "Forbidden: Insufficient permissions", 
+          missing: ["permissions"],
+          details: `Required level: ${requiredRoleLevel}, Current level: ${role.level}`
+        });
+      }
+
+      // Add user and role to the request object for use in route handlers
+      req.user = user;
+      req.userRole = role;
+      next();
+    } catch (error) {
+      console.error("Auth middleware error:", error);
+      next(error);
+    }
+  };
+};
+
+const router = express.Router();
+
+// Apply auth middleware to all routes in this router
+// Minimum role level 2 required for CRM Dashboard access
+router.use(createAuthMiddleware(2));
+
+// Get dashboard overview data based on timeframe
+router.get('/', async (req, res) => {
+  try {
+    const timeframe = req.query.timeframe as string || 'week';
+    const { startDate, endDate } = getDateRangeByTimeframe(timeframe);
     
-    // Format the response
-    res.json({
+    // Get leads data for the timeframe
+    const leads = await storage.getLeadsByDateRange(startDate, endDate);
+    
+    // Get activities data for the timeframe
+    const activities = await storage.getActivitiesByDateRange(startDate, endDate);
+    
+    // Calculate conversion ratios
+    const totalLeads = leads.length;
+    const qualifiedLeads = leads.filter(lead => lead.qualified).length;
+    const unqualifiedLeads = totalLeads - qualifiedLeads;
+    
+    const conversionRatio = totalLeads > 0 
+      ? Math.round((qualifiedLeads / totalLeads) * 100) 
+      : 0;
+    
+    // Calculate handoff success rates
+    const handoffLeads = leads.filter(lead => lead.status === 'HandedOff' || lead.status === 'Active').length;
+    const handoffRate = qualifiedLeads > 0 
+      ? Math.round((handoffLeads / qualifiedLeads) * 100) 
+      : 0;
+    
+    // Response data
+    const dashboardData = {
       timeframe,
-      startDate,
-      endDate,
-      activities: enrichedActivities
-    });
+      period: {
+        startDate,
+        endDate
+      },
+      leads: {
+        total: totalLeads,
+        qualified: qualifiedLeads,
+        unqualified: unqualifiedLeads,
+        conversionRate: conversionRatio
+      },
+      handoffs: {
+        total: handoffLeads,
+        successRate: handoffRate
+      },
+      activities: {
+        total: activities.length,
+        byType: activities.reduce((acc, activity) => {
+          const type = activity.type || 'other';
+          acc[type] = (acc[type] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>)
+      }
+    };
+    
+    res.status(200).json(dashboardData);
   } catch (error) {
-    errorHandler(res, error, 'Failed to fetch CRM dashboard activity data');
+    console.error('Error retrieving CRM dashboard data:', error);
+    res.status(500).json({ error: 'Failed to retrieve CRM dashboard data' });
   }
 });
 
-/**
- * GET /api/crm-dashboard/top-performers
- * Returns top performing users for the CRM dashboard
- * Requires authentication
- * Query parameters:
- *  - timeframe: (day|week|month|quarter) - defaults to 'month'
- *  - metric: (leads|conversions|handoffs|commissions) - defaults to 'leads'
- *  - limit: number of users to return - defaults to 5
- */
-router.get('/top-performers', isAuthenticated, async (req, res) => {
+// Get top performing users
+router.get('/top-performers', async (req, res) => {
   try {
-    // Get parameters
-    const timeframe = (req.query.timeframe as string) || 'month';
-    const metric = (req.query.metric as 'leads' | 'conversions' | 'handoffs' | 'commissions') || 'leads';
-    const limit = parseInt(req.query.limit as string || '5');
+    const limit = parseInt(req.query.limit as string) || 5;
+    const topUsers = await storage.getTopPerformingUsers(limit);
     
-    // Get date range
-    const { startDate, endDate } = getDateRangeByTimeframe(timeframe);
-    
-    // Get top performers
-    let orgId: number | undefined = undefined;
-    if (req.user && req.user.orgId) {
-      orgId = req.user.orgId;
-    }
-    
-    const topPerformers = await storage.getTopPerformingUsers({
-      startDate,
-      endDate,
-      metric,
-      limit,
-      orgId
-    });
-    
-    // Format the response
-    res.json({
-      timeframe,
-      metric,
-      startDate,
-      endDate,
-      performers: topPerformers
-    });
+    res.status(200).json(topUsers);
   } catch (error) {
-    errorHandler(res, error, 'Failed to fetch CRM dashboard top performers');
+    console.error('Error retrieving top performers:', error);
+    res.status(500).json({ error: 'Failed to retrieve top performers' });
+  }
+});
+
+// Get commission data
+router.get('/commissions', async (req, res) => {
+  try {
+    const month = req.query.month as string || storage.getCurrentYearMonth();
+    const commissions = await storage.getCommissionsByMonth(month);
+    
+    res.status(200).json(commissions);
+  } catch (error) {
+    console.error('Error retrieving commission data:', error);
+    res.status(500).json({ error: 'Failed to retrieve commission data' });
   }
 });
 
