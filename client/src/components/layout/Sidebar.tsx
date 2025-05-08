@@ -20,7 +20,8 @@ import {
   HeartPulse,
   Megaphone,
   Trophy,
-  Bug
+  Bug,
+  Palette
 } from "lucide-react";
 import { useDispatch, useSelector } from 'react-redux';
 import { setPreferences, syncToggleDropdown, toggleDropdown } from '@/store/uiPreferencesSlice';
@@ -227,6 +228,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
     { name: "Client Portal", href: "/client-portal", icon: Building2 },
     { name: "Gamification", href: "/gamification", icon: Trophy },
     { name: "Reports", href: "/reports", icon: BarChart2 },
+    { name: "Design System", href: "/design-system", icon: Palette },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
 
