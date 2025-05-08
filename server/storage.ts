@@ -61,6 +61,20 @@ import {
 export interface IStorage {
   // Session store for authentication
   sessionStore: session.Store;
+  
+  // Team management
+  getTeams(orgId: number): Promise<Team[]>;
+  getTeam(id: number): Promise<Team | undefined>;
+  getTeamsByDepartment(department: string, orgId: number): Promise<Team[]>;
+  createTeam(team: InsertTeam): Promise<Team>;
+  updateTeam(id: number, data: Partial<Team>): Promise<Team>;
+  deleteTeam(id: number): Promise<void>;
+  getTeamMembers(teamId: number): Promise<any[]>; // Return user + team info
+  getUserTeam(userId: number): Promise<{ teamId: number } | null>;
+  addTeamMember(data: { userId: number; teamId: number }): Promise<any>;
+  removeTeamMember(teamId: number, userId: number): Promise<void>;
+  removeAllTeamMembers(teamId: number): Promise<void>;
+  getAvailableUsers(orgId: number): Promise<User[]>;
 
   // Organization operations
   getOrganization(id: number): Promise<Organization | undefined>;
