@@ -4,7 +4,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Pencil, Trash2, PlusCircle, UserPlus, Users, X } from "lucide-react";
+import { Pencil, Trash2, PlusCircle, UserPlus, Users, X, ChevronDown, ChevronRight, Layers } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 import {

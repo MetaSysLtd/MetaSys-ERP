@@ -178,11 +178,26 @@ export function registerTeamRoutes(apiRouter: Router) {
         });
       }
       
+      // Store team info before deletion for the socket event
+      const teamInfo = { ...team };
+      
       // First remove all team members
       await teamStorage.removeAllTeamMembers(id);
       
       // Then delete the team
       await teamStorage.deleteTeam(id);
+      
+      // Emit socket event for team deletion
+      notifyDataChange(
+        'team', 
+        id, 
+        'deleted', 
+        teamInfo, 
+        { 
+          orgId: teamInfo.orgId, 
+          broadcastToOrg: true 
+        }
+      );
       
       res.status(204).end();
     } catch (error) {
@@ -263,6 +278,45 @@ export function registerTeamRoutes(apiRouter: Router) {
         teamId
       });
       
+      // Get user info for the event
+      const user = await storage.getUser(req.body.userId);
+      
+      // Emit socket event for team member addition
+      notifyDataChange(
+        'team', 
+        teamId, 
+        'updated', 
+        { 
+          team,
+          action: 'member_added',
+          teamMember,
+          user
+        }, 
+        { 
+          orgId: team.orgId, 
+          broadcastToOrg: true,
+          userId: req.body.userId
+        }
+      );
+      
+      // Also emit a specific team_member_added event
+      notifyDataChange(
+        'team_member', 
+        teamMember.id, 
+        'created', 
+        { 
+          teamId,
+          userId: req.body.userId,
+          teamName: team.name,
+          userName: user?.username
+        },
+        {
+          orgId: team.orgId,
+          broadcastToOrg: true,
+          userId: req.body.userId
+        }
+      );
+      
       res.status(201).json(teamMember);
     } catch (error) {
       console.error("Error adding team member:", error);
@@ -299,8 +353,47 @@ export function registerTeamRoutes(apiRouter: Router) {
         });
       }
       
+      // Get user info for the event
+      const user = await storage.getUser(userId);
+      
       // Remove member from team
       await teamStorage.removeTeamMember(teamId, userId);
+      
+      // Emit socket event for team member removal
+      notifyDataChange(
+        'team', 
+        teamId, 
+        'updated', 
+        { 
+          team,
+          action: 'member_removed',
+          userId,
+          user
+        }, 
+        { 
+          orgId: team.orgId, 
+          broadcastToOrg: true,
+          userId 
+        }
+      );
+      
+      // Also emit a specific team_member_removed event
+      notifyDataChange(
+        'team_member', 
+        `${teamId}_${userId}`, 
+        'deleted', 
+        { 
+          teamId,
+          userId,
+          teamName: team.name,
+          userName: user?.username
+        },
+        {
+          orgId: team.orgId,
+          broadcastToOrg: true,
+          userId
+        }
+      );
       
       res.status(204).end();
     } catch (error) {
