@@ -228,16 +228,7 @@ export default function CRMPage() {
                 <div className="flex flex-wrap space-x-3 items-center">
                   <ViewToggle view={viewMode} onChange={setViewMode} />
                   
-                  {canCreateContact && (
-                    <Button
-                      onClick={() => setNewContactModalOpen(true)}
-                      size="sm"
-                      className="h-9 ml-2 bg-[#025E73] hover:bg-[#025E73]/90"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      New Lead
-                    </Button>
-                  )}
+                  {/* New Lead button removed per requirements */}
                 </div>
               </MotionWrapper>
             </div>

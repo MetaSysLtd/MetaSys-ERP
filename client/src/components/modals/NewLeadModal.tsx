@@ -61,6 +61,10 @@ const leadFormSchemaStep2 = z.object({
   truckCategory: z.string().optional(),
   factoringStatus: z.string().min(1, { message: "Factoring status is required" }),
   serviceCharges: z.coerce.number().min(0.1, { message: "Service charges must be greater than 0" }),
+  commissionRate: z.coerce.number().min(0, { message: "Commission rate must be 0 or greater" }).default(10),
+  priority: z.enum(["Low", "Medium", "High", "Urgent"]).default("Medium"),
+  category: z.enum(["Carrier", "Shipper", "Broker", "Other"]).default("Carrier"),
+  currentAvailability: z.enum(["Available", "Booked", "Limited", "Unknown"]).default("Unknown"),
   notes: z.string().optional(),
 });
 
@@ -123,6 +127,10 @@ export function NewLeadModal({ open, onOpenChange, onSuccess }: NewLeadModalProp
       truckCategory: "",
       factoringStatus: "",
       serviceCharges: 5, // Default to 5%
+      commissionRate: 10, // Default to 10%
+      priority: "Medium",
+      category: "Carrier",
+      currentAvailability: "Unknown",
       notes: "",
     },
   });
