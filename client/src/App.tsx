@@ -40,6 +40,13 @@ import SettingsPage from "@/pages/settings";
 import ProfilePage from "@/pages/settings/profile";
 import AdminDashboard from "@/pages/admin";
 import AdminManagementPage from "@/pages/admin/management";
+import AdminUsersPage from "@/pages/admin/users";
+import AdminRolesPage from "@/pages/admin/roles";
+import AdminOrganizationsPage from "@/pages/admin/organizations";
+import AdminCommissionsPage from "@/pages/admin/commissions";
+import AdminSettingsPage from "@/pages/admin/settings";
+import AdminTasksPage from "@/pages/admin/tasks";
+import AdminReportsPage from "@/pages/admin/reports";
 import BugsPage from "@/pages/admin/bugs";
 import HRPage from "@/pages/hr";
 import HRPoliciesPage from "@/pages/hr/policies";
@@ -300,6 +307,62 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={AdminManagementPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/admin/users">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={AdminUsersPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/admin/roles">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={AdminRolesPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/admin/organizations">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={AdminOrganizationsPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/admin/commissions">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={AdminCommissionsPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/admin/settings">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={AdminSettingsPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/admin/tasks">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={AdminTasksPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/admin/reports">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={AdminReportsPage} />
           </AppLayout>
         )}
       </Route>
