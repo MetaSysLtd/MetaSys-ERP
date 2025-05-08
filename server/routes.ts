@@ -1788,7 +1788,7 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
     }
   });
 
-  userRouter.patch("/:id", createAuthMiddleware(3), async (req, res, next) => {
+  userRouter.patch("/:id", createAuthMiddleware(1), async (req, res, next) => {
     try {
       const userId = Number(req.params.id);
       const user = await storage.getUser(userId);
@@ -1797,23 +1797,59 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         return res.status(404).json({ message: "User not found" });
       }
       
-      // Only allow updating own profile unless admin or manager
-      if (req.user.id !== userId && req.userRole.level < 3) {
+      // Make a copy of the original request body for filtering
+      const updates = { ...req.body };
+      
+      // Determine permission level
+      const isAdmin = req.userRole.level >= 5;  // System Admin
+      const isHR = req.userRole.department === 'hr' && req.userRole.level >= 3;  // HR Manager or above
+      const isSelf = req.user.id === userId;
+      
+      // Users can only update their own profile unless they're an admin or HR
+      if (!isSelf && !isAdmin && !isHR) {
         return res.status(403).json({ message: "Forbidden: You can only update your own profile" });
       }
-
-      // Don't allow role changes unless admin
-      if (req.body.roleId && req.userRole.level < 4) {
-        return res.status(403).json({ message: "Forbidden: You cannot change user roles" });
+      
+      // Username and full name changes only allowed for admins or HR
+      if ((!isAdmin && !isHR) && (updates.username || updates.firstName || updates.lastName)) {
+        delete updates.username;
+        delete updates.firstName;
+        delete updates.lastName;
+        
+        // Inform the user that these fields were not updated
+        return res.status(403).json({ 
+          message: "Forbidden: Only System Admins or HR can change username and full name",
+          restrictedFields: ["username", "firstName", "lastName"]
+        });
       }
       
-      const updatedUser = await storage.updateUser(userId, req.body);
+      // Additional permission checks
+      // Don't allow role changes unless admin
+      if (updates.roleId && !isAdmin) {
+        delete updates.roleId;
+        return res.status(403).json({ message: "Forbidden: Only System Admins can change user roles" });
+      }
+
+      // Prevent userId or id changes by anyone - these must remain unique and unchangeable
+      delete updates.id;
+      
+      // If we removed all fields, there's nothing to update
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ message: "No valid fields to update" });
+      }
+      
+      // Process the update with the filtered fields
+      const updatedUser = await storage.updateUser(userId, updates);
       
       // Remove password from response
       const { password, ...userWithoutPassword } = updatedUser;
       res.json(userWithoutPassword);
     } catch (error) {
-      next(error);
+      console.error("Error updating user:", error);
+      res.status(500).json({ 
+        message: "Failed to update profile", 
+        error: error.message || "Internal server error"
+      });
     }
   });
 
