@@ -16,6 +16,70 @@ export const leadScoreEnum = pgEnum('lead_score', ['Low', 'Medium', 'High', 'Ver
 export const leadValidationStatusEnum = pgEnum('lead_validation_status', ['Valid', 'Invalid', 'Pending']);
 export const formStatusEnum = pgEnum('form_status', ['Sent', 'Viewed', 'Completed', 'Expired']);
 
+// CRM Dashboard types
+export interface CRMDashboardMetrics {
+  createdLeads: number;
+  createdLeadsChange: number;
+  qualifiedLeads: number;
+  qualifiedLeadsChange: number;
+  qualificationRate: number;
+  handoffCount: number;
+  handoffRate: number;
+  handoffChange: number;
+  commissionsEarned: number;
+  commissionsChange: number;
+  activeClients: number;
+}
+
+export interface CRMLeadsOverview {
+  byStatus: Array<{ name: string; value: number }>;
+  bySource: Array<{ name: string; value: number }>;
+  trend: Array<{ date: string; created: number; qualified: number; converted: number }>;
+}
+
+export interface CRMConversionRatios {
+  ratios: Array<{ name: string; value: number }>;
+  funnelStages: Array<{ name: string; value: number }>;
+  insight: string;
+}
+
+export interface CRMHandoffRates {
+  overall: number;
+  byMonth: Array<{ name: string; success: number; target: number }>;
+  byRep: Array<{ name: string; success: number; failed: number }>;
+}
+
+export interface CRMTopPerformers {
+  salesReps: Array<{ 
+    name: string; 
+    metric: "conversions" | "revenue" | "growth"; 
+    count?: number; 
+    value?: number;
+    percentage?: number;
+    achievement: string;
+    avatarUrl: string | null;
+  }>;
+}
+
+export interface CRMCommissionHighlights {
+  earned: number;
+  target: number;
+  projected: number;
+  growth: number;
+  average: number;
+  insight: string;
+}
+
+export interface CRMDashboardData {
+  metrics: CRMDashboardMetrics;
+  leadsOverview: CRMLeadsOverview;
+  conversionRatios: CRMConversionRatios;
+  handoffRates: CRMHandoffRates;
+  topPerformers: CRMTopPerformers;
+  commissionHighlights: CRMCommissionHighlights;
+  recentActivities: Array<any>; // Using the existing Activity type from the ActivityFeed component
+}
+
 // HR Hiring & Onboarding enums
 export const hiringCandidateStatusEnum = pgEnum('hiring_candidate_status', ['applied', 'screening', 'interviewed', 'offered', 'onboarded']);
 export const documentStatusEnum = pgEnum('document_status', ['uploaded', 'missing', 'awaiting_verification']);

@@ -16,6 +16,7 @@ import { HandoffRates } from "@/components/crm/dashboard/HandoffRates";
 import { CommissionHighlights } from "@/components/crm/dashboard/CommissionHighlights";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
+import { CRMDashboardData } from "@shared/schema";
 
 export default function CRMDashboard() {
   const { toast } = useToast();
@@ -23,13 +24,57 @@ export default function CRMDashboard() {
   const [, setLocation] = useLocation();
   const [timeframe, setTimeframe] = useState<"day" | "week" | "month">("week");
   
+  // Default empty data structure for when data is loading or there's an error
+  const emptyDashboardData: CRMDashboardData = {
+    metrics: {
+      createdLeads: 0,
+      createdLeadsChange: 0,
+      qualifiedLeads: 0,
+      qualifiedLeadsChange: 0,
+      qualificationRate: 0,
+      handoffCount: 0,
+      handoffRate: 0,
+      handoffChange: 0,
+      commissionsEarned: 0,
+      commissionsChange: 0,
+      activeClients: 0
+    },
+    leadsOverview: {
+      byStatus: [],
+      bySource: [],
+      trend: []
+    },
+    conversionRatios: {
+      ratios: [],
+      funnelStages: [],
+      insight: ""
+    },
+    handoffRates: {
+      overall: 0,
+      byMonth: [],
+      byRep: []
+    },
+    topPerformers: {
+      salesReps: []
+    },
+    commissionHighlights: {
+      earned: 0,
+      target: 0,
+      projected: 0,
+      growth: 0,
+      average: 0,
+      insight: ""
+    },
+    recentActivities: []
+  };
+
   // Fetch CRM Dashboard data
   const { 
-    data: dashboardData, 
+    data: dashboardData = emptyDashboardData, 
     isLoading, 
     error, 
     refetch 
-  } = useQuery({
+  } = useQuery<CRMDashboardData>({
     queryKey: ["/api/crm/dashboard", timeframe],
     enabled: !!user,
   });
