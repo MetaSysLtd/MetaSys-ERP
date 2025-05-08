@@ -422,24 +422,22 @@ export default function SettingsPage() {
                       <Settings className="h-4 w-4 mr-2 flex-shrink-0" />
                       <span className="truncate">Animations</span>
                     </TabsTrigger>
-                    {role.level >= 4 && (
-                      <TabsTrigger 
-                        value="teams" 
-                        className="justify-start px-4 py-3 w-full font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-[#025E73] rounded-none text-sm"
-                        onClick={() => {
-                          // Close mobile menu
-                          const sidebar = document.getElementById('settings-sidebar');
-                          const overlay = document.getElementById('mobile-menu-overlay');
-                          if (window.innerWidth < 1024) {
-                            if (sidebar) sidebar.classList.add('hidden');
-                            if (overlay) overlay.classList.add('hidden');
-                          }
-                        }}
-                      >
-                        <Users className="h-4 w-4 mr-2 flex-shrink-0" />
-                        <span className="truncate">Teams</span>
-                      </TabsTrigger>
-                    )}
+                    <TabsTrigger 
+                      value="teams" 
+                      className="justify-start px-4 py-3 w-full font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-[#025E73] rounded-none text-sm"
+                      onClick={() => {
+                        // Close mobile menu
+                        const sidebar = document.getElementById('settings-sidebar');
+                        const overlay = document.getElementById('mobile-menu-overlay');
+                        if (window.innerWidth < 1024) {
+                          if (sidebar) sidebar.classList.add('hidden');
+                          if (overlay) overlay.classList.add('hidden');
+                        }
+                      }}
+                    >
+                      <Users className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Teams</span>
+                    </TabsTrigger>
                     {role.level >= 3 && (
                       <TabsTrigger 
                         value="commission-policies" 
