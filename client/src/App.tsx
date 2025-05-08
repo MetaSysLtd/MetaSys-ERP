@@ -49,6 +49,7 @@ import GamificationPage from "@/pages/gamification";
 import LeaderboardPage from "@/pages/leaderboard";
 import ClientPortalPage from "@/pages/client-portal";
 import CommissionPoliciesPage from "@/pages/settings/commission-policies";
+import DesignSystemPage from "@/pages/design-system";
 // Team pages
 import SalesTeamPage from "@/pages/teams/sales";
 import DispatchTeamPage from "@/pages/teams/dispatch";
@@ -402,6 +403,14 @@ function Router() {
         {() => (
           <AppLayout>
             <ProtectedRoute component={ClientPortalPage} />
+          </AppLayout>
+        )}
+      </Route>
+
+      <Route path="/design-system">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={DesignSystemPage} />
           </AppLayout>
         )}
       </Route>
