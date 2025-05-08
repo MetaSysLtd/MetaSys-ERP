@@ -1,190 +1,248 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Filter, Search, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon, Search, SlidersHorizontal, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
+export interface FilterValues {
+  dateRange: { from: Date | undefined; to: Date | undefined };
+  salesRep: string | undefined;
+  status: string | undefined;
+  searchTerm: string | undefined;
+}
+
 interface ReportFiltersProps {
-  onFilterChange: (filters: {
-    dateRange: { from: Date | undefined; to: Date | undefined };
-    salesRep: string | undefined;
-    status: string | undefined;
-    searchTerm: string | undefined;
-  }) => void;
+  onFilterChange: (filters: FilterValues) => void;
   salesReps: { id: string; name: string }[];
   statuses: { id: string; label: string }[];
 }
 
-export function ReportFilters({ onFilterChange, salesReps, statuses }: ReportFiltersProps) {
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+export function ReportFilters({ 
+  onFilterChange, 
+  salesReps, 
+  statuses 
+}: ReportFiltersProps) {
+  const [date, setDate] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
     from: undefined,
     to: undefined,
   });
   const [salesRep, setSalesRep] = useState<string | undefined>(undefined);
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState<string | undefined>(undefined);
-  
-  // Update parent component with all current filters
-  const updateFilters = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleApplyFilters = () => {
     onFilterChange({
-      dateRange,
+      dateRange: date,
       salesRep,
       status,
-      searchTerm
+      searchTerm,
     });
+    setIsOpen(false);
   };
-  
-  // Reset all filters
-  const resetFilters = () => {
-    setDateRange({ from: undefined, to: undefined });
+
+  const handleResetFilters = () => {
+    setDate({ from: undefined, to: undefined });
     setSalesRep(undefined);
     setStatus(undefined);
     setSearchTerm(undefined);
-    
     onFilterChange({
       dateRange: { from: undefined, to: undefined },
       salesRep: undefined,
       status: undefined,
-      searchTerm: undefined
+      searchTerm: undefined,
     });
+    setIsOpen(false);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    // For immediate search feedback, apply filter on each keystroke
+    if (e.target.value === "") {
+      onFilterChange({
+        dateRange: date,
+        salesRep,
+        status,
+        searchTerm: undefined,
+      });
+    }
   };
 
   return (
-    <Card className="shadow-sm mb-6 border-[#f2f2f2]">
-      <CardContent className="pt-6">
-        <div className="flex flex-col space-y-4 md:flex-row md:items-end md:space-x-4 md:space-y-0">
-          <div className="grid gap-2 flex-1">
-            <Label htmlFor="search" className="text-xs font-medium text-[#025E73]">
-              Search Leads
-            </Label>
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="search"
-                placeholder="Search by name, email, or company..."
-                className="pl-8"
-                value={searchTerm || ""}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value || undefined);
+    <Card className="mb-6 shadow-sm">
+      <CardContent className="p-4">
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
+          <div className="relative flex-grow">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search leads, companies, contacts..."
+              className="pl-8 w-full"
+              value={searchTerm || ""}
+              onChange={handleSearchChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  onFilterChange({
+                    dateRange: date,
+                    salesRep,
+                    status,
+                    searchTerm,
+                  });
+                }
+              }}
+            />
+            {searchTerm && (
+              <Button
+                variant="ghost"
+                className="absolute right-0 top-0 h-9 w-9 p-0"
+                onClick={() => {
+                  setSearchTerm(undefined);
+                  onFilterChange({
+                    dateRange: date,
+                    salesRep,
+                    status,
+                    searchTerm: undefined,
+                  });
                 }}
-              />
-            </div>
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Clear search</span>
+              </Button>
+            )}
           </div>
           
-          <div className="grid gap-2 w-full md:w-[180px]">
-            <Label htmlFor="dateRange" className="text-xs font-medium text-[#025E73]">
-              Date Range
-            </Label>
-            <Popover>
+          <div className="flex gap-2">
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
               <PopoverTrigger asChild>
-                <Button
-                  id="dateRange"
-                  variant="outline"
-                  className={cn(
-                    "justify-start text-left font-normal",
-                    !dateRange.from && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "LLL dd")} -{" "}
-                        {format(dateRange.to, "LLL dd")}
-                      </>
-                    ) : (
-                      format(dateRange.from, "LLL dd, y")
-                    )
-                  ) : (
-                    <span>Select dates</span>
+                <Button variant="outline" className="h-9 flex items-center whitespace-nowrap">
+                  <SlidersHorizontal className="mr-2 h-4 w-4" />
+                  <span>Filters</span>
+                  {(date.from || salesRep || status) && (
+                    <span className="ml-1 rounded-full bg-[#025E73] text-white w-5 h-5 text-xs flex items-center justify-center">
+                      {[date.from, salesRep, status].filter(Boolean).length}
+                    </span>
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="range"
-                  selected={{ 
-                    from: dateRange.from,
-                    to: dateRange.to 
-                  }}
-                  onSelect={(range) => {
-                    setDateRange({
-                      from: range?.from,
-                      to: range?.to
-                    });
-                  }}
-                  initialFocus
-                />
+              <PopoverContent className="w-[340px] p-4" align="end">
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="date-range">Date Range</Label>
+                    <div className="flex gap-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            id="date-range"
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !date.from && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date.from ? (
+                              date.to ? (
+                                <>
+                                  {format(date.from, "LLL dd, y")} -{" "}
+                                  {format(date.to, "LLL dd, y")}
+                                </>
+                              ) : (
+                                format(date.from, "LLL dd, y")
+                              )
+                            ) : (
+                              <span>Pick a date range</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="range"
+                            selected={date}
+                            onSelect={setDate}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="sales-rep">Sales Rep</Label>
+                    <Select
+                      value={salesRep}
+                      onValueChange={setSalesRep}
+                    >
+                      <SelectTrigger id="sales-rep">
+                        <SelectValue placeholder="All sales reps" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All sales reps</SelectItem>
+                        {salesReps.map((rep) => (
+                          <SelectItem key={rep.id} value={rep.id}>
+                            {rep.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status</Label>
+                    <Select
+                      value={status}
+                      onValueChange={setStatus}
+                    >
+                      <SelectTrigger id="status">
+                        <SelectValue placeholder="All statuses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All statuses</SelectItem>
+                        {statuses.map((statusItem) => (
+                          <SelectItem key={statusItem.id} value={statusItem.id}>
+                            {statusItem.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetFilters}
+                    >
+                      Reset filters
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleApplyFilters}
+                      className="bg-[#025E73] hover:bg-[#025E73]/90"
+                    >
+                      Apply filters
+                    </Button>
+                  </div>
+                </div>
               </PopoverContent>
             </Popover>
-          </div>
-          
-          <div className="grid gap-2 w-full md:w-[150px]">
-            <Label htmlFor="salesRep" className="text-xs font-medium text-[#025E73]">
-              Sales Rep
-            </Label>
-            <Select
-              value={salesRep}
-              onValueChange={(value) => setSalesRep(value)}
-            >
-              <SelectTrigger id="salesRep">
-                <SelectValue placeholder="Any Rep" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Any Rep</SelectItem>
-                {salesReps.map((rep) => (
-                  <SelectItem key={rep.id} value={rep.id}>
-                    {rep.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="grid gap-2 w-full md:w-[150px]">
-            <Label htmlFor="status" className="text-xs font-medium text-[#025E73]">
-              Status
-            </Label>
-            <Select
-              value={status}
-              onValueChange={(value) => setStatus(value)}
-            >
-              <SelectTrigger id="status">
-                <SelectValue placeholder="Any Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Any Status</SelectItem>
-                {statuses.map((status) => (
-                  <SelectItem key={status.id} value={status.id}>
-                    {status.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="flex space-x-2">
-            <Button 
-              onClick={updateFilters}
-              className="bg-[#025E73] text-white hover:bg-[#02485a]"
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              Apply
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={resetFilters}
-              className="border-[#025E73] text-[#025E73]"
-            >
-              <X className="mr-2 h-4 w-4" />
-              Reset
-            </Button>
           </div>
         </div>
       </CardContent>
