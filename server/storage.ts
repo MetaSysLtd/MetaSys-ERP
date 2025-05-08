@@ -56,6 +56,11 @@ import {
   getAllFormTemplates, getFormTemplateById, getFormTemplatesByLeadType,
   getAllFormSubmissions, getFormSubmissionsByLeadId, getFormSubmissionById
 } from './formApi';
+import {
+  getTeams, getTeam, getTeamsByDepartment, createTeam, updateTeam, deleteTeam,
+  getTeamMembers, getUserTeam, addTeamMember, removeTeamMember, removeAllTeamMembers,
+  getAvailableUsers
+} from './teamStorage';
 
 // Interface for storage operations
 export interface IStorage {
