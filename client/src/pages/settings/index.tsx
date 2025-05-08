@@ -55,6 +55,14 @@ import {
   DollarSign,
   Palette,
 } from "lucide-react";
+import ThemeCustomizer from "@/components/ui/theme-customizer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getDepartmentColor } from "@/lib/utils";
 
 // Profile update form schema
@@ -468,13 +476,11 @@ export default function SettingsPage() {
                         <span className="truncate">Admin Settings</span>
                       </TabsTrigger>
                     )}
-                    
+                    {/* Design System Tab - for all users */}
                     <TabsTrigger 
                       value="design-system" 
                       className="justify-start px-4 py-3 w-full font-normal data-[state=active]:bg-gray-50 data-[state=active]:border-l-2 data-[state=active]:border-[#025E73] rounded-none text-sm"
                       onClick={() => {
-                        // Navigate to design system
-                        navigate("/design-system");
                         // Close mobile menu
                         const sidebar = document.getElementById('settings-sidebar');
                         const overlay = document.getElementById('mobile-menu-overlay');
@@ -694,6 +700,262 @@ export default function SettingsPage() {
                         ))}
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="design-system" className="m-0">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Design System</CardTitle>
+                    <CardDescription>
+                      Customize your platform appearance and explore design guidelines
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs defaultValue="theme">
+                      <TabsList className="mb-4">
+                        <TabsTrigger value="theme">Theme</TabsTrigger>
+                        <TabsTrigger value="typography">Typography</TabsTrigger>
+                        <TabsTrigger value="colors">Colors</TabsTrigger>
+                        <TabsTrigger value="components">Components</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="theme">
+                        <ThemeCustomizer 
+                          currentTheme={{
+                            variant: "professional",
+                            primary: "#1D3557",
+                            secondary: "#457B9D",
+                            appearance: "light",
+                            radius: 0.5,
+                            colors: {
+                              "brand-navy": "#1D3557",
+                              "brand-accent": "#457B9D",
+                              "brand-highlight": "#2EC4B6",
+                              "brand-contrast": "#FFDD57",
+                              "brand-background": "#F1FAFB",
+                              "brand-border": "#D6D6D6",
+                              "brand-text": "#333333"
+                            }
+                          }}
+                        />
+                      </TabsContent>
+                      
+                      <TabsContent value="typography">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Typography Guidelines</CardTitle>
+                            <CardDescription>
+                              Consistent typography creates a clear hierarchy and improves readability
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-6">
+                              <div>
+                                <h1 className="text-4xl font-bold mb-2">Heading 1 (32px/40px)</h1>
+                                <p className="text-gray-500">Font weight: 700 (Bold)</p>
+                              </div>
+                              
+                              <div>
+                                <h2 className="text-3xl font-bold mb-2">Heading 2 (28px/36px)</h2>
+                                <p className="text-gray-500">Font weight: 700 (Bold)</p>
+                              </div>
+                              
+                              <div>
+                                <h3 className="text-2xl font-semibold mb-2">Heading 3 (24px/32px)</h3>
+                                <p className="text-gray-500">Font weight: 600 (Semibold)</p>
+                              </div>
+                              
+                              <div>
+                                <h4 className="text-xl font-semibold mb-2">Heading 4 (20px/28px)</h4>
+                                <p className="text-gray-500">Font weight: 600 (Semibold)</p>
+                              </div>
+                              
+                              <div>
+                                <h5 className="text-lg font-medium mb-2">Heading 5 (18px/24px)</h5>
+                                <p className="text-gray-500">Font weight: 500 (Medium)</p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-base mb-2">Body text (16px/24px)</p>
+                                <p className="text-gray-500">Font weight: 400 (Regular)</p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-sm mb-2">Small text (14px/20px)</p>
+                                <p className="text-gray-500">Font weight: 400 (Regular)</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </TabsContent>
+                      
+                      <TabsContent value="colors">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Color System</CardTitle>
+                            <CardDescription>
+                              Our color palette is designed for clarity, consistency, and accessibility
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div className="space-y-4">
+                                <h3 className="text-lg font-medium">Primary Colors</h3>
+                                
+                                <div className="space-y-3">
+                                  <div>
+                                    <div className="h-12 rounded-md bg-[#1D3557]"></div>
+                                    <div className="mt-1">
+                                      <p className="font-medium">Primary Dark Blue</p>
+                                      <p className="text-sm text-gray-500">#1D3557</p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div>
+                                    <div className="h-12 rounded-md bg-[#457B9D]"></div>
+                                    <div className="mt-1">
+                                      <p className="font-medium">Accent Bright Blue</p>
+                                      <p className="text-sm text-gray-500">#457B9D</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-4">
+                                <h3 className="text-lg font-medium">Accent Colors</h3>
+                                
+                                <div className="space-y-3">
+                                  <div>
+                                    <div className="h-12 rounded-md bg-[#2EC4B6]"></div>
+                                    <div className="mt-1">
+                                      <p className="font-medium">Highlight Aqua</p>
+                                      <p className="text-sm text-gray-500">#2EC4B6</p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div>
+                                    <div className="h-12 rounded-md bg-[#FFDD57]"></div>
+                                    <div className="mt-1">
+                                      <p className="font-medium">Contrast Yellow</p>
+                                      <p className="text-sm text-gray-500">#FFDD57</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                              <div>
+                                <h3 className="text-lg font-medium mb-3">Background</h3>
+                                <div className="h-12 rounded-md bg-[#F1FAFB] border"></div>
+                                <div className="mt-1">
+                                  <p className="font-medium">Light Background</p>
+                                  <p className="text-sm text-gray-500">#F1FAFB</p>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <h3 className="text-lg font-medium mb-3">Border</h3>
+                                <div className="h-12 rounded-md border-4 border-[#D6D6D6]"></div>
+                                <div className="mt-1">
+                                  <p className="font-medium">Border Gray</p>
+                                  <p className="text-sm text-gray-500">#D6D6D6</p>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <h3 className="text-lg font-medium mb-3">Text</h3>
+                                <div className="h-12 rounded-md bg-[#333333]"></div>
+                                <div className="mt-1">
+                                  <p className="font-medium">Text Dark</p>
+                                  <p className="text-sm text-gray-500">#333333</p>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </TabsContent>
+                      
+                      <TabsContent value="components">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Component Library</CardTitle>
+                            <CardDescription>
+                              Examples of core UI components used throughout the platform
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-8">
+                              <div>
+                                <h3 className="text-lg font-medium mb-4">Buttons</h3>
+                                <div className="flex flex-wrap gap-3">
+                                  <Button>Default</Button>
+                                  <Button variant="secondary">Secondary</Button>
+                                  <Button variant="outline">Outline</Button>
+                                  <Button variant="ghost">Ghost</Button>
+                                  <Button variant="link">Link</Button>
+                                  <Button disabled>Disabled</Button>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <h3 className="text-lg font-medium mb-4">Inputs</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <Label htmlFor="example-input">Text Input</Label>
+                                    <Input id="example-input" placeholder="Enter text..." className="mt-1" />
+                                  </div>
+                                  <div>
+                                    <Label htmlFor="example-select">Select Input</Label>
+                                    <Select>
+                                      <SelectTrigger id="example-select" className="mt-1">
+                                        <SelectValue placeholder="Select an option" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="option1">Option 1</SelectItem>
+                                        <SelectItem value="option2">Option 2</SelectItem>
+                                        <SelectItem value="option3">Option 3</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <h3 className="text-lg font-medium mb-4">Cards</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <Card>
+                                    <CardHeader>
+                                      <CardTitle>Simple Card</CardTitle>
+                                      <CardDescription>Card with minimal content</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <p>This is a basic card component used for displaying content in a contained format.</p>
+                                    </CardContent>
+                                  </Card>
+                                  
+                                  <Card>
+                                    <CardHeader>
+                                      <CardTitle>Interactive Card</CardTitle>
+                                      <CardDescription>Card with actions</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <p>Cards can contain various interactive elements like buttons.</p>
+                                    </CardContent>
+                                    <CardFooter className="flex justify-between">
+                                      <Button variant="outline">Cancel</Button>
+                                      <Button>Save</Button>
+                                    </CardFooter>
+                                  </Card>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </TabsContent>
+                    </Tabs>
                   </CardContent>
                 </Card>
               </TabsContent>
