@@ -44,10 +44,17 @@ export function formatDateTime(date: string | Date): string {
 }
 
 /**
- * Format a percentage value
+ * Format a percentage value with no decimal places
  */
 export function formatPercentage(value: number): string {
   return `${Math.round(value)}%`;
+}
+
+/**
+ * Format a decimal as a percentage with specified decimal places
+ */
+export function formatPercent(value: number, decimalPlaces: number = 1): string {
+  return `${(value * 100).toFixed(decimalPlaces)}%`;
 }
 
 /**

@@ -1,173 +1,177 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CRMCommissionHighlights } from "@shared/schema";
-import {
-  RadialBarChart,
-  RadialBar,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-} from "recharts";
-import { formatCurrency } from "@/lib/formatters";
-import { TrendingUp, TrendingDown, DollarSign, Award, AlertCircle, Info } from "lucide-react";
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, RadialBarChart, RadialBar, Legend } from "recharts";
+import { formatCurrency, formatPercent } from "@/lib/formatters";
+import { calculatePercentageChange } from "@/lib/calculations";
+import { ArrowDownIcon, ArrowUpIcon, MinusIcon } from "lucide-react";
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+interface CommissionData {
+  total: number;
+  achieved: number;
+  target: number;
+  projection: number;
+  categories: {
+    name: string;
+    amount: number;
+    percentage: number;
+  }[];
+  previous: {
+    total: number;
+  };
+}
 
 interface CommissionHighlightsProps {
-  data?: CRMCommissionHighlights;
+  data: CommissionData;
 }
 
 export function CommissionHighlights({ data }: CommissionHighlightsProps) {
-  if (!data) {
-    return (
-      <Card className="shadow-md hover:shadow-lg transition-all duration-200">
-        <CardHeader>
-          <CardTitle>Commission Highlights</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-64">
-            <p className="text-gray-500">No data available</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const [activeTab, setActiveTab] = useState<"breakdown" | "progress">("progress");
+  
+  // Calculate percentage of achievement toward target
+  const achievementPercent = data.target > 0 ? data.achieved / data.target : 0;
+  
+  // Calculate change percentage from previous period
+  const changePercent = calculatePercentageChange(data.total, data.previous.total);
+  const changeDirection = 
+    changePercent > 2 ? 'up' : 
+    changePercent < -2 ? 'down' : 'stable';
 
-  // Calculate percentage of target achieved
-  const targetPercentage = data.target > 0 ? Math.min((data.earned / data.target) * 100, 100) : 0;
-  const projectedPercentage = data.target > 0 ? Math.min((data.projected / data.target) * 100, 100) : 0;
-
-  // Colors for visualization
-  const COLORS = ["#025E73", "#F2A71B", "#412754"];
-
-  // Data for radial chart
-  const progressData = [
+  // Format the data for the pie chart
+  const pieChartData = data.categories.map(category => ({
+    name: category.name,
+    value: category.amount,
+    percentage: category.percentage
+  }));
+  
+  // Format the data for the radial bar chart
+  const radialBarData = [
     {
-      name: "Earned",
-      value: targetPercentage,
-      fill: "#025E73",
-    },
-    {
-      name: "Projected",
-      value: projectedPercentage > targetPercentage ? projectedPercentage : 0,
-      fill: "#F2A71B",
-    },
+      name: "Achieved",
+      value: achievementPercent,
+      fill: "#025E73"
+    }
   ];
-
+  
+  const COLORS = ["#025E73", "#F2A71B", "#412754", "#1ca979", "#e74c3c", "#3498db"];
+  
   return (
     <Card className="shadow-md hover:shadow-lg transition-all duration-200">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium text-[#025E73]">
-          Commission Highlights
-        </CardTitle>
+        <CardTitle className="text-lg font-medium text-[#025E73]">Commission Highlights</CardTitle>
         <CardDescription className="text-sm text-gray-500">
-          Sales commission performance metrics
+          Current commission earnings and targets
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {/* Commission indicators */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
-              <div className="flex items-center text-xs text-gray-500 mb-1">
-                <DollarSign className="h-3 w-3 mr-1" /> Earned
+        <div className="flex flex-col space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <div className="text-2xl font-bold text-[#025E73]">
+                {formatCurrency(data.total)}
               </div>
-              <div className="text-xl font-bold text-[#025E73]">
-                {formatCurrency(data.earned)}
-              </div>
-              <div
-                className={`text-xs flex items-center mt-1 ${
-                  data.growth >= 0 ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {data.growth >= 0 ? (
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                ) : (
-                  <TrendingDown className="h-3 w-3 mr-1" />
-                )}
-                {data.growth >= 0 ? "+" : ""}
-                {data.growth}% from last period
+              <div className="text-sm text-gray-500">
+                Total commissions
               </div>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
-              <div className="flex items-center text-xs text-gray-500 mb-1">
-                <Award className="h-3 w-3 mr-1" /> Target
-              </div>
-              <div className="text-xl font-bold text-[#025E73]">
-                {formatCurrency(data.target)}
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                {targetPercentage.toFixed(0)}% achieved
-              </div>
+            
+            <div className="flex items-center">
+              {changeDirection === 'up' && (
+                <ArrowUpIcon className="w-4 h-4 text-green-500 mr-1" />
+              )}
+              {changeDirection === 'down' && (
+                <ArrowDownIcon className="w-4 h-4 text-red-500 mr-1" />
+              )}
+              {changeDirection === 'stable' && (
+                <MinusIcon className="w-4 h-4 text-gray-500 mr-1" />
+              )}
+              <span className={
+                changeDirection === 'up' ? 'text-green-500' :
+                changeDirection === 'down' ? 'text-red-500' : 'text-gray-500'
+              }>
+                {formatPercent(Math.abs(changePercent) / 100)}
+              </span>
             </div>
           </div>
-
-          {/* Radial progress visualization */}
-          <div className="h-44 mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadialBarChart
-                cx="50%"
-                cy="50%"
-                innerRadius="60%"
-                outerRadius="80%"
-                barSize={10}
-                data={progressData}
-                startAngle={90}
-                endAngle={-270}
-              >
-                <RadialBar
-                  label={{ position: "center", fill: "#888", fontSize: 14, formatter: () => `${targetPercentage.toFixed(0)}%` }}
-                  background
-                  clockWise
-                  dataKey="value"
-                />
-                <Tooltip
-                  formatter={(value) => [`${value.toFixed(0)}%`, ""]}
-                  labelFormatter={(name) => `${name} of Target`}
-                />
-              </RadialBarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Additional metrics */}
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
-              <div className="flex items-center text-xs text-gray-500 mb-1">
-                <TrendingUp className="h-3 w-3 mr-1" /> Projected
+          
+          <Tabs defaultValue={activeTab} onValueChange={(val) => setActiveTab(val as any)} className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="progress">Progress</TabsTrigger>
+              <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="progress" className="mt-0">
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadialBarChart 
+                    cx="50%" 
+                    cy="50%" 
+                    innerRadius="60%" 
+                    outerRadius="80%" 
+                    barSize={20} 
+                    data={radialBarData}
+                    startAngle={180}
+                    endAngle={0}
+                  >
+                    <RadialBar
+                      background
+                      dataKey="value"
+                      label={{ 
+                        position: 'center', 
+                        fill: '#666', 
+                        fontSize: 16,
+                        formatter: () => `${(achievementPercent * 100).toFixed(1)}%` 
+                      }}
+                    />
+                    <Tooltip
+                      formatter={(value: any) => [`${(value * 100).toFixed(1)}%`, "Target Achieved"]}
+                    />
+                  </RadialBarChart>
+                </ResponsiveContainer>
               </div>
-              <div className="text-xl font-bold text-[#F2A71B]">
-                {formatCurrency(data.projected)}
+              
+              <div className="mt-2 grid grid-cols-2 gap-2 text-center">
+                <div>
+                  <div className="text-sm text-gray-500">Target</div>
+                  <div className="font-semibold">{formatCurrency(data.target)}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Projection</div>
+                  <div className="font-semibold">{formatCurrency(data.projection)}</div>
+                </div>
               </div>
-              <div
-                className={`text-xs ${
-                  data.projected > data.target ? "text-green-600" : "text-gray-500"
-                }`}
-              >
-                {data.projected > data.target
-                  ? `${((data.projected / data.target - 1) * 100).toFixed(0)}% above target`
-                  : `${((1 - data.projected / data.target) * 100).toFixed(0)}% below target`}
+            </TabsContent>
+            
+            <TabsContent value="breakdown" className="mt-0">
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieChartData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={60}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => [formatCurrency(value as number), "Amount"]}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            </div>
-            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
-              <div className="flex items-center text-xs text-gray-500 mb-1">
-                <DollarSign className="h-3 w-3 mr-1" /> Average
+              
+              <div className="mt-2 text-xs text-gray-500 text-center">
+                Commission distribution by category
               </div>
-              <div className="text-xl font-bold text-[#025E73]">
-                {formatCurrency(data.average)}
-              </div>
-              <div className="text-xs text-gray-500">per sales rep</div>
-            </div>
-          </div>
-
-          {/* Insight */}
-          {data.insight && (
-            <div className="mt-2 border-t border-gray-100 pt-3">
-              <div className="flex items-start space-x-2">
-                <Info className="h-4 w-4 text-[#025E73] flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-gray-600">{data.insight}</p>
-              </div>
-            </div>
-          )}
+            </TabsContent>
+          </Tabs>
         </div>
       </CardContent>
     </Card>

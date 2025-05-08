@@ -1,226 +1,109 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CRMTopPerformers } from "@shared/schema";
-import { formatCurrency, formatNumber } from "@/lib/formatters";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowUpRight, ArrowDownRight, Award, TrendingUp } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { formatCurrency, formatPercent, formatNumber } from "@/lib/formatters";
+import { calculateTrendChange } from "@/lib/calculations";
+
+interface SalesRep {
+  name: string;
+  revenue: number;
+  leads: number;
+  conversions: number;
+}
+
+interface TopPerformersData {
+  topRevenue: SalesRep[];
+  topLeads: SalesRep[];
+  topConversion: SalesRep[];
+  period: "week" | "month" | "quarter" | "year";
+}
 
 interface TopPerformersProps {
-  data?: CRMTopPerformers;
+  data: TopPerformersData;
 }
 
 export function TopPerformers({ data }: TopPerformersProps) {
-  if (!data || !data.salesReps || data.salesReps.length === 0) {
-    return (
-      <Card className="shadow-md hover:shadow-lg transition-all duration-200">
-        <CardHeader>
-          <CardTitle>Top Performers</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-64">
-            <p className="text-gray-500">No data available</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Sort by descending value/count
-  const sortedReps = [...data.salesReps].sort((a, b) => {
-    const aScore = a.value || a.count || 0;
-    const bScore = b.value || b.count || 0;
-    return bScore - aScore;
-  });
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part.charAt(0))
-      .join('')
-      .toUpperCase();
+  // Get the title based on the time period
+  const getPeriodTitle = () => {
+    switch (data.period) {
+      case "week": return "This Week";
+      case "month": return "This Month";
+      case "quarter": return "This Quarter";
+      case "year": return "This Year";
+      default: return "Current Period";
+    }
   };
-
+  
+  // Format the data for the chart
+  // Considering we're showing top revenue performers
+  const chartData = data.topRevenue
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5)
+    .map((rep) => ({
+      name: rep.name.split(' ')[0], // First name only for the chart
+      revenue: rep.revenue,
+      leads: rep.leads,
+      conversions: rep.conversions
+    }));
+  
   return (
     <Card className="shadow-md hover:shadow-lg transition-all duration-200">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium text-[#025E73]">
-          Top Performers
-        </CardTitle>
+        <CardTitle className="text-lg font-medium text-[#025E73]">Top Performers</CardTitle>
         <CardDescription className="text-sm text-gray-500">
-          Sales representatives leaderboard
+          {getPeriodTitle()} sales leaders
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="conversions">
-          <TabsList className="mb-4 w-full">
-            <TabsTrigger value="conversions">Conversions</TabsTrigger>
-            <TabsTrigger value="revenue">Revenue</TabsTrigger>
-            <TabsTrigger value="growth">Growth</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="conversions">
-            <div className="space-y-4">
-              {sortedReps
-                .filter(rep => rep.metric === "conversions")
-                .map((rep, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center p-2 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors duration-150"
-                  >
-                    <div className="flex-shrink-0 mr-4">
-                      <Avatar className="h-10 w-10 border-2 border-[#025E73]">
-                        {rep.avatarUrl ? (
-                          <AvatarImage src={rep.avatarUrl} alt={rep.name} />
-                        ) : (
-                          <AvatarFallback>{getInitials(rep.name)}</AvatarFallback>
-                        )}
-                      </Avatar>
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium text-gray-900">{rep.name}</p>
-                          <div className="flex items-center space-x-2">
-                            <Badge
-                              variant="outline"
-                              className="text-xs bg-blue-50 text-blue-700 border-blue-200"
-                            >
-                              <Award className="h-3 w-3 mr-1" />
-                              {rep.achievement}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-[#025E73]">
-                            {formatNumber(rep.count || 0)}
-                          </p>
-                          <div
-                            className={`text-xs flex items-center ${
-                              (rep.percentage || 0) >= 0 ? "text-green-600" : "text-red-600"
-                            }`}
-                          >
-                            {(rep.percentage || 0) >= 0 ? (
-                              <ArrowUpRight className="h-3 w-3 mr-1" />
-                            ) : (
-                              <ArrowDownRight className="h-3 w-3 mr-1" />
-                            )}
-                            {(rep.percentage || 0) >= 0 ? "+" : ""}
-                            {rep.percentage || 0}%
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis tickFormatter={(value) => `$${value / 1000}k`} />
+              <Tooltip 
+                formatter={(value, name) => {
+                  if (name === "revenue") return [formatCurrency(value as number), "Revenue"];
+                  if (name === "leads") return [formatNumber(value as number), "Leads"];
+                  if (name === "conversions") return [formatPercent(value as number), "Conversion Rate"];
+                  return [value, name];
+                }}
+              />
+              <Bar 
+                dataKey="revenue" 
+                name="Revenue" 
+                fill="#025E73"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        
+        <div className="mt-4">
+          <h4 className="text-sm font-medium mb-2">Top Performance Categories</h4>
+          <div className="space-y-1">
+            <div className="flex justify-between items-center text-sm">
+              <span className="font-medium">Revenue Leader</span>
+              <span className="text-[#025E73] font-medium">
+                {data.topRevenue[0]?.name || 'N/A'} ({formatCurrency(data.topRevenue[0]?.revenue || 0)})
+              </span>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="revenue">
-            <div className="space-y-4">
-              {sortedReps
-                .filter(rep => rep.metric === "revenue")
-                .map((rep, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center p-2 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors duration-150"
-                  >
-                    <div className="flex-shrink-0 mr-4">
-                      <Avatar className="h-10 w-10 border-2 border-[#025E73]">
-                        {rep.avatarUrl ? (
-                          <AvatarImage src={rep.avatarUrl} alt={rep.name} />
-                        ) : (
-                          <AvatarFallback>{getInitials(rep.name)}</AvatarFallback>
-                        )}
-                      </Avatar>
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium text-gray-900">{rep.name}</p>
-                          <div className="flex items-center space-x-2">
-                            <Badge
-                              variant="outline"
-                              className="text-xs bg-green-50 text-green-700 border-green-200"
-                            >
-                              <Award className="h-3 w-3 mr-1" />
-                              {rep.achievement}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-[#025E73]">
-                            {formatCurrency(rep.value || 0)}
-                          </p>
-                          <div
-                            className={`text-xs flex items-center ${
-                              (rep.percentage || 0) >= 0 ? "text-green-600" : "text-red-600"
-                            }`}
-                          >
-                            {(rep.percentage || 0) >= 0 ? (
-                              <ArrowUpRight className="h-3 w-3 mr-1" />
-                            ) : (
-                              <ArrowDownRight className="h-3 w-3 mr-1" />
-                            )}
-                            {(rep.percentage || 0) >= 0 ? "+" : ""}
-                            {rep.percentage || 0}%
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            <div className="flex justify-between items-center text-sm">
+              <span className="font-medium">Most Leads</span>
+              <span className="text-[#F2A71B] font-medium">
+                {data.topLeads[0]?.name || 'N/A'} ({data.topLeads[0]?.leads || 0})
+              </span>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="growth">
-            <div className="space-y-4">
-              {sortedReps
-                .filter(rep => rep.metric === "growth")
-                .map((rep, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center p-2 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors duration-150"
-                  >
-                    <div className="flex-shrink-0 mr-4">
-                      <Avatar className="h-10 w-10 border-2 border-[#025E73]">
-                        {rep.avatarUrl ? (
-                          <AvatarImage src={rep.avatarUrl} alt={rep.name} />
-                        ) : (
-                          <AvatarFallback>{getInitials(rep.name)}</AvatarFallback>
-                        )}
-                      </Avatar>
-                    </div>
-                    <div className="flex-grow">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium text-gray-900">{rep.name}</p>
-                          <div className="flex items-center space-x-2">
-                            <Badge
-                              variant="outline"
-                              className="text-xs bg-purple-50 text-purple-700 border-purple-200"
-                            >
-                              <TrendingUp className="h-3 w-3 mr-1" />
-                              {rep.achievement}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-[#025E73]">
-                            {(rep.percentage || 0) >= 0 ? "+" : ""}
-                            {rep.percentage || 0}%
-                          </p>
-                          <div className="text-xs text-gray-500">
-                            {formatNumber(rep.count || 0)} conversions / ${formatNumber(rep.value || 0)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            <div className="flex justify-between items-center text-sm">
+              <span className="font-medium">Best Conversion</span>
+              <span className="text-[#412754] font-medium">
+                {data.topConversion[0]?.name || 'N/A'} ({formatPercent(data.topConversion[0]?.conversions || 0)})
+              </span>
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
