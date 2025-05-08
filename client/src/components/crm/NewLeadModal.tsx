@@ -33,12 +33,23 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
   const [formData, setFormData] = useState({
     companyName: "",
     mcNumber: "",
+    mcAge: 0,
+    dotNumber: "",
     contactName: "",
     status: "New",
     assignedTo: user?.id || 0,
     serviceCharges: 0,
+    commissionRate: 10,
+    priority: "Medium",
+    category: "Carrier",
+    currentAvailability: "Unknown",
+    equipmentType: "",
+    truckCategory: "",
+    factoringStatus: "",
     phoneNumber: "",
     email: "",
+    source: "SQL",
+    sourceDetails: "",
     remarks: "",
     tags: [] as string[]
   });
@@ -93,12 +104,23 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
       setFormData({
         companyName: "",
         mcNumber: "",
+        mcAge: 0,
+        dotNumber: "",
         contactName: "",
         status: "New",
         assignedTo: user?.id || 0,
         serviceCharges: 0,
+        commissionRate: 10,
+        priority: "Medium",
+        category: "Carrier",
+        currentAvailability: "Unknown",
+        equipmentType: "",
+        truckCategory: "",
+        factoringStatus: "",
         phoneNumber: "",
         email: "",
+        source: "SQL",
+        sourceDetails: "",
         remarks: "",
         tags: []
       });
@@ -255,23 +277,53 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
               </div>
             </div>
             
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="mcNumber" className="flex items-center">
+                  MC Number <span className="text-red-500">*</span>
+                  {errors.mcNumber && (
+                    <span className="ml-2 text-xs text-red-500 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {errors.mcNumber}
+                    </span>
+                  )}
+                </Label>
+                <Input
+                  id="mcNumber"
+                  name="mcNumber"
+                  value={formData.mcNumber}
+                  onChange={handleChange}
+                  placeholder="MC Number"
+                  className={errors.mcNumber ? "border-red-500" : ""}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="mcAge">
+                  MC Age <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="mcAge"
+                  name="mcAge"
+                  type="number"
+                  min="0"
+                  value={formData.mcAge.toString()}
+                  onChange={handleChange}
+                  placeholder="Age in months"
+                />
+              </div>
+            </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="mcNumber" className="flex items-center">
-                MC Age <span className="text-red-500">*</span>
-                {errors.mcNumber && (
-                  <span className="ml-2 text-xs text-red-500 flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    {errors.mcNumber}
-                  </span>
-                )}
+              <Label htmlFor="dotNumber">
+                DOT Number
               </Label>
               <Input
-                id="mcNumber"
-                name="mcNumber"
-                value={formData.mcNumber}
+                id="dotNumber"
+                name="dotNumber"
+                value={formData.dotNumber}
                 onChange={handleChange}
-                placeholder="MC Number"
-                className={errors.mcNumber ? "border-red-500" : ""}
+                placeholder="DOT Number"
               />
             </div>
             
@@ -352,6 +404,167 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
                   onChange={handleChange}
                   placeholder="Service Charges"
                   className={errors.serviceCharges ? "border-red-500" : ""}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="commissionRate">
+                  Commission Rate (%) <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="commissionRate"
+                  name="commissionRate"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={formData.commissionRate.toString()}
+                  onChange={handleChange}
+                  placeholder="Commission Rate"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="priority">
+                  Priority
+                </Label>
+                <Select
+                  value={formData.priority}
+                  onValueChange={(value) => handleSelectChange("priority", value)}
+                >
+                  <SelectTrigger id="priority">
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="category">
+                  Category
+                </Label>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) => handleSelectChange("category", value)}
+                >
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Carrier">Carrier</SelectItem>
+                    <SelectItem value="Shipper">Shipper</SelectItem>
+                    <SelectItem value="Broker">Broker</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="currentAvailability">
+                  Current Availability
+                </Label>
+                <Select
+                  value={formData.currentAvailability}
+                  onValueChange={(value) => handleSelectChange("currentAvailability", value)}
+                >
+                  <SelectTrigger id="currentAvailability">
+                    <SelectValue placeholder="Select availability" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Available">Available</SelectItem>
+                    <SelectItem value="Limited">Limited</SelectItem>
+                    <SelectItem value="Unavailable">Unavailable</SelectItem>
+                    <SelectItem value="Unknown">Unknown</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="equipmentType">
+                  Equipment Type
+                </Label>
+                <Select
+                  value={formData.equipmentType}
+                  onValueChange={(value) => handleSelectChange("equipmentType", value)}
+                >
+                  <SelectTrigger id="equipmentType">
+                    <SelectValue placeholder="Select equipment type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="flatbed">Flatbed</SelectItem>
+                    <SelectItem value="dry-van">Dry Van</SelectItem>
+                    <SelectItem value="reefer">Reefer</SelectItem>
+                    <SelectItem value="step-deck">Step Deck</SelectItem>
+                    <SelectItem value="lowboy">Lowboy</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="factoringStatus">
+                  Factoring Status
+                </Label>
+                <Select
+                  value={formData.factoringStatus}
+                  onValueChange={(value) => handleSelectChange("factoringStatus", value)}
+                >
+                  <SelectTrigger id="factoringStatus">
+                    <SelectValue placeholder="Select factoring status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="has-factoring">Has Factoring</SelectItem>
+                    <SelectItem value="needs-factoring">Needs Factoring</SelectItem>
+                    <SelectItem value="not-applicable">Not Applicable</SelectItem>
+                    <SelectItem value="unknown">Unknown</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="source">
+                  Lead Source
+                </Label>
+                <Select
+                  value={formData.source}
+                  onValueChange={(value) => handleSelectChange("source", value)}
+                >
+                  <SelectTrigger id="source">
+                    <SelectValue placeholder="Select lead source" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SQL">SQL</SelectItem>
+                    <SelectItem value="Website">Website</SelectItem>
+                    <SelectItem value="Referral">Referral</SelectItem>
+                    <SelectItem value="Cold Call">Cold Call</SelectItem>
+                    <SelectItem value="Event">Event</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="sourceDetails">
+                  Source Details
+                </Label>
+                <Input
+                  id="sourceDetails"
+                  name="sourceDetails"
+                  value={formData.sourceDetails}
+                  onChange={handleChange}
+                  placeholder="Additional source information"
                 />
               </div>
             </div>
