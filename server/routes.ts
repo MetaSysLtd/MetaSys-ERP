@@ -9,6 +9,7 @@ import adminRouter from './routes/admin';
 import timeOffRouter from './routes/time-off';
 import hrPoliciesRouter from './routes/hr-policies';
 import crmDashboardRouter from './routes/crm-dashboard';
+import { registerTeamRoutes } from './routes/team-routes';
 import { 
   insertUserSchema, insertRoleSchema, insertLeadSchema, 
   insertLoadSchema, insertInvoiceSchema, insertInvoiceItemSchema,
@@ -1316,6 +1317,9 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   
   // Register CRM Dashboard routes
   apiRouter.use('/crm/dashboard', crmDashboardRouter);
+  
+  // Register team management routes
+  registerTeamRoutes(apiRouter);
   
   // Add seed data if needed
   await addSeedDataIfNeeded();
