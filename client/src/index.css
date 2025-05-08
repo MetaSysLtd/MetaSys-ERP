@@ -20,28 +20,27 @@
 }
 
 :root {
-  /* Brand Colors - PRIMARY */
-  --c-brand-teal: #025E73;
-  --c-brand-teal-light: rgba(2, 94, 115, 0.8);
-  --c-brand-teal-dark: #014857;
+  /* Core Design System Colors */
+  --c-primary: #1D3557;       /* Primary dark blue */
+  --c-primary-light: #2A4A78;
+  --c-primary-dark: #142841;
   
-  --c-brand-navy: #011F26;
-  --c-brand-navy-light: #01333E;
-  --c-brand-navy-dark: #001216;
+  --c-accent: #457B9D;        /* Accent bright blue */
+  --c-accent-light: #5C9AC1;
+  --c-accent-dark: #35647E;
   
-  /* Brand Colors - SECONDARY */
-  --c-brand-yellow: #F2A71B;
-  --c-brand-yellow-light: #F4B440;
-  --c-brand-yellow-dark: #C78A14;
+  --c-highlight: #2EC4B6;     /* Highlight aqua */
+  --c-highlight-light: #4DD6CA;
+  --c-highlight-dark: #25A195;
   
-  --c-brand-plum: #412754;
-  --c-brand-plum-light: #523168;
-  --c-brand-plum-dark: #301C3F;
+  --c-contrast: #FFDD57;      /* Contrast soft yellow */
+  --c-contrast-light: #FFE57A;
+  --c-contrast-dark: #ECC93A;
   
   /* UI System Colors */
   --c-bg-primary: #FFFFFF;
-  --c-bg-secondary: #F9FAFB;
-  --c-bg-tertiary: #F1F5F9;
+  --c-bg-secondary: #F1FAFB; /* Background light blue/gray */
+  --c-bg-tertiary: #F8FBFC;
   --c-bg-card: #FFFFFF;
   
   /* Gradient Backgrounds */
@@ -65,19 +64,21 @@
   --c-info: #0ea5e9;
   
   /* Border & Shadow Colors */
-  --c-border: #E2E8F0;
-  --c-border-accent: var(--c-brand-yellow);
-  --c-border-focus: var(--c-brand-teal);
-  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.05);
-  --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-  --shadow-dropdown: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --c-border: #D6D6D6;
+  --c-border-accent: var(--c-contrast);
+  --c-border-focus: var(--c-accent);
+  --shadow-subtle: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-deeper: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --shadow-card: var(--shadow-subtle);
+  --shadow-card-hover: var(--shadow-deeper);
+  --shadow-dropdown: var(--shadow-deeper);
   --blur-backdrop: blur(8px);
   
-  /* Radius */
-  --radius-base: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-sm: 0.5rem;
-  --radius-xs: 0.25rem;
+  /* Radius - Per Design System */
+  --radius-sm: 0.25rem; /* 4px for inputs/cards */
+  --radius-md: 0.5rem;  /* 8px for buttons */
+  --radius-base: 0.5rem;
+  --radius-lg: 0.75rem;
   --radius-full: 9999px;
   
   /* Animation duration variables */
@@ -130,46 +131,56 @@
 
   /* Typography scale as specified in design spec */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
-    color: var(--c-brand-navy);
+    @apply tracking-tight;
+    color: var(--c-primary);
   }
   
   h1 {
-    font-size: 28px;
-    line-height: 36px;
-    @apply font-semibold;
+    font-size: 32px;
+    line-height: 40px;
+    @apply font-bold;
   }
   
   h2 {
-    font-size: 22px;
-    line-height: 30px;
+    font-size: 24px;
+    line-height: 32px;
+    @apply font-bold;
   }
   
   h3 {
-    font-size: 18px;
-    line-height: 26px;
+    font-size: 20px;
+    line-height: 28px;
+    @apply font-semibold;
   }
   
   h4 {
-    font-size: 16px;
+    font-size: 18px;
     line-height: 24px;
+    @apply font-semibold;
   }
   
   h5 {
-    font-size: 14px;
-    line-height: 22px;
+    font-size: 16px;
+    line-height: 24px;
     @apply font-medium;
   }
   
   h6 {
-    font-size: 13px;
+    font-size: 14px;
     line-height: 20px;
+    @apply font-medium;
   }
   
   p {
-    font-size: 14px;
-    line-height: 22px;
+    font-size: 16px;
+    line-height: 24px;
+    @apply font-normal;
     color: var(--c-text-main);
+  }
+  
+  .text-small {
+    font-size: 14px;
+    line-height: 20px;
   }
   
   .text-subtle {

@@ -11,25 +11,25 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
-        brandTeal: {
-          DEFAULT: "var(--c-brand-teal)",
-          light: "var(--c-brand-teal-light)",
-          dark: "var(--c-brand-teal-dark)",
-        },
         brandNavy: {
-          DEFAULT: "var(--c-brand-navy)",
-          light: "var(--c-brand-navy-light)",
-          dark: "var(--c-brand-navy-dark)",
+          DEFAULT: "#1D3557",
+          light: "#2A4A78",
+          dark: "#142841",
         },
-        brandYellow: {
-          DEFAULT: "var(--c-brand-yellow)",
-          light: "var(--c-brand-yellow-light)",
-          dark: "var(--c-brand-yellow-dark)",
+        brandAccent: {
+          DEFAULT: "#457B9D",
+          light: "#5C9AC1",
+          dark: "#35647E",
         },
-        brandPlum: {
-          DEFAULT: "var(--c-brand-plum)",
-          light: "var(--c-brand-plum-light)",
-          dark: "var(--c-brand-plum-dark)",
+        brandHighlight: {
+          DEFAULT: "#2EC4B6",
+          light: "#4DD6CA",
+          dark: "#25A195",
+        },
+        brandContrast: {
+          DEFAULT: "#FFDD57",
+          light: "#FFE57A",
+          dark: "#ECC93A",
         },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",

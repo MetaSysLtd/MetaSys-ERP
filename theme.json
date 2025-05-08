@@ -1,13 +1,16 @@
 {
   "variant": "tint",
-  "primary": "#025E73",
+  "primary": "#1D3557",
   "appearance": "light",
-  "radius": 0.75,
-  "secondary": "#F2A71B",
+  "radius": 0.5,
+  "secondary": "#457B9D",
   "colors": {
-    "brand-navy": "#011F26",
-    "brand-teal": "#025E73",
-    "brand-yellow": "#F2A71B", 
-    "brand-plum": "#412754"
+    "brand-navy": "#1D3557",
+    "brand-accent": "#457B9D",
+    "brand-highlight": "#2EC4B6",
+    "brand-contrast": "#FFDD57",
+    "brand-background": "#F1FAFB",
+    "brand-border": "#D6D6D6",
+    "brand-text": "#1D3557"
   }
 }

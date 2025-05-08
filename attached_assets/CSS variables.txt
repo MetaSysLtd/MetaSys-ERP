@@ -1,0 +1,75 @@
+5 CSS variables
+Place in a global stylesheet or :root block
+
+:root {
+  /* typography */
+  --font-family-base: 'Inter', sans-serif;
+  --font-size-body: 16px;
+  --line-height-body: 24px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* colors */
+  --color-primary: #1D3557;
+  --color-accent: #457B9D;
+  --color-highlight: #2EC4B6;
+  --color-contrast: #FFDD57;
+  --color-bg: #F1FAFB;
+  --color-border: #D6D6D6;
+  --color-text: #1D3557;
+  --color-text-inverse: #FFFFFF;
+
+  /* spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+
+  /* shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-lg: 0 4px 8px rgba(0,0,0,0.1);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+}
+6 Tailwind config snippet
+Add to tailwind.config.js
+
+module.exports = {
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif']
+      },
+      colors: {
+        primary: '#1D3557',
+        accent: '#457B9D',
+        highlight: '#2EC4B6',
+        contrast: '#FFDD57',
+        bg: '#F1FAFB',
+        border: '#D6D6D6',
+        text: '#1D3557',
+        'text-inverse': '#FFFFFF'
+      },
+      spacing: {
+        '1': '4px',
+        '2': '8px',
+        '3': '16px',
+        '4': '24px',
+        '5': '32px'
+      },
+      boxShadow: {
+        sm: '0 1px 2px rgba(0,0,0,0.05)',
+        DEFAULT: '0 2px 4px rgba(0,0,0,0.05)',
+        lg: '0 4px 8px rgba(0,0,0,0.1)'
+      },
+      borderRadius: {
+        sm: '4px',
+        md: '8px'
+      }
+    }
+  }
+}

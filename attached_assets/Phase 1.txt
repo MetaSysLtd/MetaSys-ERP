@@ -1,0 +1,42 @@
+Phase 1: Core design system
+\
+1 Typography
+• font family
+– base: Inter, fallback sans-serif
+• font sizes & line-heights
+– h1: 32px / 40px
+– h2: 24px / 32px
+– h3: 20px / 28px
+– h4: 18px / 24px
+– body: 16px / 24px
+– small: 14px / 20px
+• font weights
+– 400 regular (body text)
+– 500 medium (buttons, labels)
+– 600 semibold (subheads)
+– 700 bold (heads, emphasis)
+
+2 Color palette
+• primary dark blue: #1D3557
+• accent bright blue: #457B9D
+• highlight aqua: #2EC4B6
+• contrast soft yellow: #FFDD57
+• background light blue/gray: #F1FAFB
+• border/divider gray: #D6D6D6
+• text dark: #1D3557
+• text light (on colored bg): #FFFFFF
+
+3 Spacing scale
+(use multiples of 8px; 4px for very small gaps)
+• 4px
+• 8px
+• 16px
+• 24px
+• 32px
+• 40px
+• 48px
+
+4 Shadows & borders
+• subtle shadow (default): 0px 2px 4px rgba(0,0,0,0.05)
+• deeper shadow (focus/modals): 0px 4px 8px rgba(0,0,0,0.1)
+• border radius: 4px for inputs/cards; 8px for buttons
