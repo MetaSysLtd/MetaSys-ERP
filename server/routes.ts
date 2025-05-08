@@ -8,6 +8,7 @@ import { fromZodError } from "zod-validation-error";
 import adminRouter from './routes/admin';
 import timeOffRouter from './routes/time-off';
 import hrPoliciesRouter from './routes/hr-policies';
+import crmDashboardRouter from './routes/crm-dashboard';
 import { 
   insertUserSchema, insertRoleSchema, insertLeadSchema, 
   insertLoadSchema, insertInvoiceSchema, insertInvoiceItemSchema,
@@ -1312,6 +1313,9 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   // Register Time Off and HR Policies routes
   apiRouter.use('/time-off', timeOffRouter);
   apiRouter.use('/hr-policies', hrPoliciesRouter);
+  
+  // Register CRM Dashboard routes
+  apiRouter.use('/crm/dashboard', crmDashboardRouter);
   
   // Add seed data if needed
   await addSeedDataIfNeeded();
