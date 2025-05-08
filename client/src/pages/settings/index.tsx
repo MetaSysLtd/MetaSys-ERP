@@ -702,6 +702,24 @@ export default function SettingsPage() {
                 </Card>
               </TabsContent>
               
+              <TabsContent value="teams" className="m-0">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Team Management</CardTitle>
+                    <CardDescription>
+                      Manage your team structure and members
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-center py-8">
+                      <Button onClick={() => navigate("/settings/teams")}>
+                        Go to Team Management
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
               <TabsContent value="design-system" className="m-0">
                 <Card>
                   <CardHeader>
