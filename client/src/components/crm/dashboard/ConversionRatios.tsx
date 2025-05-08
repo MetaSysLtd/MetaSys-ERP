@@ -1,27 +1,31 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CRMConversionRatios } from "@shared/schema";
 import {
-  ResponsiveContainer,
   BarChart,
   Bar,
-  FunnelChart,
-  Funnel,
-  LabelList,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  FunnelChart,
+  Funnel,
+  FunnelItem,
+  LabelList,
 } from "recharts";
+import { InfoIcon } from "lucide-react";
 
 interface ConversionRatiosProps {
   data: CRMConversionRatios;
 }
 
 export function ConversionRatios({ data }: ConversionRatiosProps) {
-  if (!data || (!data.ratios.length && !data.funnelStages.length)) {
+  if (!data || !data.ratios || !data.funnelStages) {
     return (
-      <Card className="shadow-md hover:shadow-lg transition-all duration-200 h-full">
+      <Card className="shadow-md hover:shadow-lg transition-all duration-200">
         <CardHeader>
           <CardTitle>Conversion Ratios</CardTitle>
         </CardHeader>
@@ -34,70 +38,76 @@ export function ConversionRatios({ data }: ConversionRatiosProps) {
     );
   }
 
-  const COLORS = ["#025E73", "#0A7A9B", "#1297C3", "#1AB5EB", "#A5D8DD"];
-
+  // Colors for visualization
+  const COLORS = ["#025E73", "#F2A71B", "#412754", "#A5D8DD"];
+  
   return (
-    <Card className="shadow-md hover:shadow-lg transition-all duration-200 h-full">
+    <Card className="shadow-md hover:shadow-lg transition-all duration-200">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium text-[#025E73]">Conversion Ratios</CardTitle>
+        <CardTitle className="text-lg font-medium text-[#025E73]">Conversion Funnel</CardTitle>
         <CardDescription className="text-sm text-gray-500">
-          Performance across the sales funnel
+          Lead to contract conversion journey
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Funnel Stages</h4>
-          <div className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <FunnelChart>
-                <Tooltip formatter={(value) => [`${value} leads`, 'Count']} />
-                <Funnel
-                  dataKey="value"
-                  nameKey="name"
-                  data={data.funnelStages}
-                  isAnimationActive
-                >
-                  <LabelList
-                    position="right"
-                    fill="#000"
-                    stroke="none"
-                    formatter={(value: number, entry: any) => `${entry.name}: ${value}`}
-                  />
-                  {data.funnelStages.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Funnel>
-              </FunnelChart>
-            </ResponsiveContainer>
+        <div>
+          {/* Conversion Ratios */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {data.ratios.map((ratio, index) => (
+              <div key={index} className="bg-gray-50 rounded-md p-3">
+                <p className="text-xs text-gray-500">{ratio.name}</p>
+                <p className="text-2xl font-bold" style={{ color: COLORS[index % COLORS.length] }}>
+                  {ratio.value}%
+                </p>
+              </div>
+            ))}
           </div>
-        </div>
-
-        <div className="mb-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Conversion Rates</h4>
-          <div className="h-40">
+          
+          {/* Funnel Visualization */}
+          <div className="h-64 mt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.ratios} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                <XAxis type="number" tickFormatter={(value) => `${value}%`} />
-                <YAxis type="category" dataKey="name" width={100} />
-                <Tooltip formatter={(value) => [`${value}%`, 'Rate']} />
-                <Bar dataKey="value" fill="#025E73" radius={[0, 4, 4, 0]}>
-                  {data.ratios.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                  <LabelList dataKey="value" position="right" formatter={(value: number) => `${value}%`} />
-                </Bar>
+              <BarChart
+                layout="vertical"
+                data={data.funnelStages}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis type="number" />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  width={100}
+                  tick={{ fontSize: 12 }}
+                />
+                <Tooltip
+                  formatter={(value) => [`${value} leads`, ""]}
+                  labelFormatter={() => ""}
+                />
+                <Bar 
+                  dataKey="value" 
+                  fill="#025E73"
+                  radius={[0, 4, 4, 0]}
+                  label={{ 
+                    position: 'right', 
+                    formatter: (item: any) => `${item.value}`,
+                    fill: '#666',
+                    fontSize: 12
+                  }}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
+          
+          {/* Insight */}
+          {data.insight && (
+            <div className="mt-4 border-t border-gray-100 pt-4">
+              <div className="flex items-start space-x-2">
+                <InfoIcon className="h-4 w-4 text-[#025E73] mt-0.5" />
+                <p className="text-xs text-gray-500">{data.insight}</p>
+              </div>
+            </div>
+          )}
         </div>
-
-        {data.insight && (
-          <div className="mt-4 border-t border-gray-100 pt-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-1">Insight</h4>
-            <p className="text-xs text-gray-500">{data.insight}</p>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
