@@ -3,13 +3,14 @@ import { useLocation, useSearch } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MotionWrapper } from "@/components/ui/motion-wrapper";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -30,11 +31,19 @@ import {
   LayoutGrid, 
   List, 
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ChevronsUpDown,
+  ArrowUpDown,
+  Eye,
+  Phone,
+  Mail,
+  Tag,
+  Truck,
+  CalendarClock
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import NewLeadModal from "@/components/crm/NewLeadModal";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 import { KanbanView } from "@/components/crm/KanbanView";
 
 export default function CRMLeadsPage() {
@@ -50,11 +59,24 @@ export default function CRMLeadsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredLeads, setFilteredLeads] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [sortField, setSortField] = useState<string>("createdAt");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   
   // Get leads from the API
   const { data: leads, isLoading, error, isError } = useQuery({
     queryKey: ["/api/leads"],
   });
+  
+  // Handle sort toggle
+  const toggleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
   
   useEffect(() => {
     if (error) {
@@ -66,7 +88,7 @@ export default function CRMLeadsPage() {
     }
   }, [error, toast]);
   
-  // Filter leads based on status and search query
+  // Filter and sort leads
   useEffect(() => {
     if (!leads) return;
     
@@ -76,6 +98,11 @@ export default function CRMLeadsPage() {
     // Filter by status
     if (statusFilter && statusFilter !== "all") {
       filtered = filtered.filter((lead) => lead.status === statusFilter);
+    }
+    
+    // Filter by category
+    if (categoryFilter && categoryFilter !== "all") {
+      filtered = filtered.filter((lead) => lead.category === categoryFilter);
     }
     
     // Filter by search query
@@ -92,8 +119,38 @@ export default function CRMLeadsPage() {
       );
     }
     
+    // Sort filtered leads
+    if (sortField) {
+      filtered.sort((a, b) => {
+        const aValue = a[sortField];
+        const bValue = b[sortField];
+        
+        // Handle nullish values
+        if (aValue == null && bValue == null) return 0;
+        if (aValue == null) return sortDirection === 'asc' ? -1 : 1;
+        if (bValue == null) return sortDirection === 'asc' ? 1 : -1;
+        
+        // Handle dates
+        if (sortField === 'createdAt' || sortField === 'updatedAt') {
+          const aDate = new Date(aValue).getTime();
+          const bDate = new Date(bValue).getTime();
+          return sortDirection === 'asc' ? aDate - bDate : bDate - aDate;
+        }
+        
+        // Handle strings
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortDirection === 'asc' 
+            ? aValue.localeCompare(bValue) 
+            : bValue.localeCompare(aValue);
+        }
+        
+        // Handle numbers
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      });
+    }
+    
     setFilteredLeads(filtered);
-  }, [leads, statusFilter, searchQuery]);
+  }, [leads, statusFilter, searchQuery, categoryFilter, sortField, sortDirection]);
   
   // Determine user permissions
   const canCreateLead = 
@@ -104,13 +161,14 @@ export default function CRMLeadsPage() {
   // Format status for display
   const formatStatus = (status: string) => {
     return {
-      "New": { label: "New", color: "text-blue-600 bg-blue-50 border-blue-200" },
-      "Active": { label: "Active", color: "text-green-600 bg-green-50 border-green-200" },
-      "FollowUp": { label: "Follow Up", color: "text-yellow-600 bg-yellow-50 border-yellow-200" },
-      "Lost": { label: "Lost", color: "text-gray-600 bg-gray-50 border-gray-200" },
-      "Pending": { label: "Pending", color: "text-purple-600 bg-purple-50 border-purple-200" },
-      "Inactive": { label: "Inactive", color: "text-red-600 bg-red-50 border-red-200" },
-    }[status] || { label: status, color: "text-gray-600 bg-gray-50 border-gray-200" };
+      "New": { label: "New", color: "bg-blue-50 text-blue-700 border-blue-200" },
+      "Contacted": { label: "Contacted", color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+      "Active": { label: "Active", color: "bg-green-50 text-green-700 border-green-200" },
+      "FollowUp": { label: "Follow Up", color: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+      "Lost": { label: "Lost", color: "bg-gray-50 text-gray-700 border-gray-200" },
+      "Pending": { label: "Pending", color: "bg-purple-50 text-purple-700 border-purple-200" },
+      "Inactive": { label: "Inactive", color: "bg-red-50 text-red-700 border-red-200" },
+    }[status] || { label: status, color: "bg-gray-50 text-gray-700 border-gray-200" };
   };
 
   // Render loading skeleton
@@ -118,11 +176,49 @@ export default function CRMLeadsPage() {
     return (
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
-          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-64" />
           <Skeleton className="h-10 w-36" />
         </div>
-        <Skeleton className="h-12 w-full mb-6" />
-        <Skeleton className="h-64 w-full rounded-md" />
+        <Card className="mb-6">
+          <CardHeader className="pb-0">
+            <Skeleton className="h-6 w-32 mb-2" />
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="flex justify-between items-center">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-9 w-32" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-0">
+            <div className="p-4">
+              <div className="grid grid-cols-6 gap-4 mb-4">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="grid grid-cols-6 gap-4 mb-4">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -130,7 +226,7 @@ export default function CRMLeadsPage() {
   // Render error state
   if (isError) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="container mx-auto p-6">
         <Card className="border-red-200 bg-red-50">
           <CardHeader>
             <CardTitle className="flex items-center text-red-700">
@@ -147,6 +243,7 @@ export default function CRMLeadsPage() {
             <Button
               variant="outline"
               onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/leads"] })}
+              className="bg-white hover:bg-gray-50"
             >
               Retry
             </Button>
@@ -156,181 +253,365 @@ export default function CRMLeadsPage() {
     );
   }
 
+  // Get unique categories for filter
+  const categories = Array.isArray(leads) 
+    ? ['all', ...Array.from(new Set(leads.map(lead => lead.category).filter(Boolean)))] 
+    : ['all'];
+
   // Render leads page
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto p-4 md:p-6">
       {/* Page header */}
       <MotionWrapper animation="fade-down" delay={0.1}>
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center">
-              <MotionWrapper animation="fade-right" delay={0.2}>
-                <h1 className="text-2xl font-semibold text-gray-900 mb-2 sm:mb-0">
-                  CRM Leads Management
-                </h1>
-              </MotionWrapper>
-              <MotionWrapper animation="fade-left" delay={0.3}>
-                <div className="flex flex-wrap space-x-2">
-                  {canCreateLead && (
-                    <Button
-                      onClick={() => setNewLeadModalOpen(true)}
-                      size="sm"
-                      className="h-9"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      New Lead
-                    </Button>
-                  )}
-                </div>
-              </MotionWrapper>
-            </div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 bg-gradient-to-r from-[#025E73] to-[#011F26] bg-clip-text text-transparent">
+              CRM Leads Management
+            </h1>
+            <p className="text-gray-500 mt-1">Track, qualify and convert prospects into customers</p>
           </div>
+          
+          {canCreateLead && (
+            <Button
+              onClick={() => setNewLeadModalOpen(true)}
+              size="sm"
+              className="mt-4 md:mt-0 bg-gradient-to-r from-[#025E73] to-[#011F26] text-white hover:opacity-90 shadow-sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Lead
+            </Button>
+          )}
         </div>
       </MotionWrapper>
       
-      {/* Page content */}
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <MotionWrapper animation="fade-up" delay={0.4}>
-          <Card className="shadow mb-6">
-            <CardHeader className="px-5 py-4 border-b border-gray-200">
-              <CardTitle className="text-lg leading-6 font-medium text-gray-900">
-                Lead Filters
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-5">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="w-full sm:w-1/3">
-                  <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
-                    Status
-                  </label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(value) => setStatusFilter(value)}
-                  >
-                    <SelectTrigger id="status-filter" className="w-full">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="New">New</SelectItem>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="FollowUp">Follow Up</SelectItem>
-                      <SelectItem value="Pending">Pending</SelectItem>
-                      <SelectItem value="Inactive">Inactive</SelectItem>
-                      <SelectItem value="Lost">Lost</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="w-full sm:w-2/3">
-                  <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-                    Search
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Search className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <Input
-                      id="search"
-                      type="text"
-                      placeholder="Search by name, email, phone, MC/DOT number..."
-                      className="pl-10"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+      {/* Filters and view controls */}
+      <MotionWrapper animation="fade-up" delay={0.2}>
+        <Card className="mb-6 border-t-4 border-t-[#025E73] shadow-md">
+          <CardHeader className="pb-0">
+            <CardTitle className="text-lg text-gray-900 flex items-center">
+              <Filter className="h-5 w-5 mr-2 text-[#025E73]" />
+              Lead Filters
+            </CardTitle>
+            <CardDescription>
+              Filter and search through your leads
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              {/* Status filter */}
+              <div>
+                <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) => setStatusFilter(value)}
+                >
+                  <SelectTrigger id="status-filter" className="w-full">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="New">New</SelectItem>
+                    <SelectItem value="Contacted">Contacted</SelectItem>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="FollowUp">Follow Up</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectItem value="Lost">Lost</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Category filter */}
+              <div>
+                <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                  Category
+                </label>
+                <Select
+                  value={categoryFilter}
+                  onValueChange={(value) => setCategoryFilter(value)}
+                >
+                  <SelectTrigger id="category-filter" className="w-full">
+                    <SelectValue placeholder="Filter by category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category === 'all' ? 'All Categories' : category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Search field */}
+              <div>
+                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+                  Search
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-gray-400" />
                   </div>
+                  <Input
+                    id="search"
+                    type="text"
+                    placeholder="Name, email, phone, MC/DOT..."
+                    className="pl-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
                 </div>
               </div>
-              <div className="mt-4 flex justify-between items-center">
-                <div className="text-sm text-gray-500">
-                  {filteredLeads.length} {filteredLeads.length === 1 ? 'lead' : 'leads'} found
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant={viewMode === 'list' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode('list')}
-                    className="flex gap-1 items-center"
-                  >
-                    <List className="h-4 w-4" />
-                    <span className="hidden sm:inline">List</span>
-                  </Button>
-                  <Button
-                    variant={viewMode === 'kanban' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode('kanban')}
-                    className="flex gap-1 items-center"
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                    <span className="hidden sm:inline">Kanban</span>
-                  </Button>
-                </div>
+            </div>
+            
+            {/* Results count and view toggles */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center pt-2">
+              <div className="text-sm text-gray-500 mb-2 md:mb-0">
+                <Badge variant="outline" className="mr-2 bg-[#025E73] bg-opacity-10 text-[#025E73] border-[#025E73]">
+                  {filteredLeads.length}
+                </Badge>
+                {filteredLeads.length === 1 ? 'lead' : 'leads'} found
               </div>
-            </CardContent>
-          </Card>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className={cn(
+                    "flex gap-1 items-center", 
+                    viewMode === 'list' ? "bg-[#025E73] hover:bg-[#025E73]/90 text-white" : ""
+                  )}
+                >
+                  <List className="h-4 w-4" />
+                  <span className="hidden sm:inline">List</span>
+                </Button>
+                <Button
+                  variant={viewMode === 'kanban' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('kanban')}
+                  className={cn(
+                    "flex gap-1 items-center",
+                    viewMode === 'kanban' ? "bg-[#025E73] hover:bg-[#025E73]/90 text-white" : ""
+                  )}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                  <span className="hidden sm:inline">Kanban</span>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </MotionWrapper>
+      
+      {/* Display leads in selected view mode */}
+      {viewMode === 'kanban' ? (
+        <MotionWrapper animation="fade-up" delay={0.3}>
+          <KanbanView leads={filteredLeads} setLocation={setLocation} showFilter={statusFilter} />
         </MotionWrapper>
-        
-        {/* Display leads in selected view mode */}
-        {viewMode === 'kanban' ? (
-          <MotionWrapper animation="fade-up" delay={0.5}>
-            <KanbanView leads={filteredLeads} setLocation={setLocation} showFilter={statusFilter} />
-          </MotionWrapper>
-        ) : (
-          <MotionWrapper animation="fade-up" delay={0.5}>
-            <Card className="shadow overflow-hidden">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
+      ) : (
+        <MotionWrapper animation="fade-up" delay={0.3}>
+          <Card className="shadow-md overflow-hidden border rounded-lg border-gray-200">
+            <div className="overflow-x-auto">
+              <Table className="w-full">
+                <TableHeader className="bg-gray-50">
+                  <TableRow>
+                    <TableHead 
+                      className="w-1/6 cursor-pointer hover:bg-gray-100"
+                      onClick={() => toggleSort('companyName')}
+                    >
+                      <div className="flex items-center">
+                        Company
+                        {sortField === 'companyName' && (
+                          <ArrowUpDown className={cn(
+                            "ml-1 h-4 w-4", 
+                            sortDirection === 'asc' ? "text-[#025E73]" : "text-gray-500"
+                          )} />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-1/6">Contact Information</TableHead>
+                    <TableHead 
+                      className="w-1/12 cursor-pointer hover:bg-gray-100"
+                      onClick={() => toggleSort('status')}
+                    >
+                      <div className="flex items-center">
+                        Status
+                        {sortField === 'status' && (
+                          <ArrowUpDown className={cn(
+                            "ml-1 h-4 w-4", 
+                            sortDirection === 'asc' ? "text-[#025E73]" : "text-gray-500"
+                          )} />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="w-1/12 cursor-pointer hover:bg-gray-100"
+                      onClick={() => toggleSort('priority')}
+                    >
+                      <div className="flex items-center">
+                        Priority
+                        {sortField === 'priority' && (
+                          <ArrowUpDown className={cn(
+                            "ml-1 h-4 w-4", 
+                            sortDirection === 'asc' ? "text-[#025E73]" : "text-gray-500"
+                          )} />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="w-1/6 cursor-pointer hover:bg-gray-100"
+                      onClick={() => toggleSort('equipmentType')}
+                    >
+                      <div className="flex items-center">
+                        Equipment
+                        {sortField === 'equipmentType' && (
+                          <ArrowUpDown className={cn(
+                            "ml-1 h-4 w-4", 
+                            sortDirection === 'asc' ? "text-[#025E73]" : "text-gray-500"
+                          )} />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="w-1/6 cursor-pointer hover:bg-gray-100"
+                      onClick={() => toggleSort('createdAt')}
+                    >
+                      <div className="flex items-center">
+                        Created
+                        {sortField === 'createdAt' && (
+                          <ArrowUpDown className={cn(
+                            "ml-1 h-4 w-4", 
+                            sortDirection === 'asc' ? "text-[#025E73]" : "text-gray-500"
+                          )} />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-1/12 text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredLeads.length === 0 ? (
                     <TableRow>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Equipment</TableHead>
-                      <TableHead>Created At</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredLeads.map((lead) => (
-                      <TableRow key={lead.id}>
-                        <TableCell className="font-medium">{lead.companyName}</TableCell>
-                        <TableCell>
-                          <div>
-                            <span className="font-medium">{lead.contactName}</span>
-                            <div className="text-xs text-gray-500">{lead.phoneNumber}</div>
-                            {lead.email && <div className="text-xs text-gray-500">{lead.email}</div>}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${formatStatus(lead.status).color}`}>
-                            {formatStatus(lead.status).label}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="capitalize">
-                            {lead.equipmentType ? lead.equipmentType.replace("-", " ") : "N/A"}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {formatDate(lead.createdAt)}
-                        </TableCell>
-                        <TableCell>
+                      <TableCell colSpan={7} className="h-24 text-center">
+                        <div className="flex flex-col items-center justify-center text-gray-500">
+                          <SearchIcon className="h-10 w-10 mb-2 text-gray-400" />
+                          <p>No leads found matching your filters</p>
                           <Button
                             variant="link"
-                            className="text-primary-600 hover:text-primary-900 p-0 h-auto"
-                            onClick={() => setLocation(`/crm/${lead.id}`)}
+                            onClick={() => {
+                              setStatusFilter('all');
+                              setCategoryFilter('all');
+                              setSearchQuery('');
+                            }}
+                            className="mt-2"
                           >
+                            Clear filters
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredLeads.map((lead) => (
+                      <TableRow 
+                        key={lead.id} 
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => setLocation(`/crm/${lead.id}`)}
+                      >
+                        <TableCell className="font-medium">
+                          <div className="flex flex-col">
+                            <span className="text-[#025E73] font-semibold hover:underline">
+                              {lead.companyName}
+                            </span>
+                            {lead.mcNumber && (
+                              <span className="text-xs text-gray-500">
+                                MC: {lead.mcNumber}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="font-medium flex items-center">
+                              <Avatar className="h-6 w-6 mr-2 bg-gray-200">
+                                <AvatarFallback className="text-xs">{lead.contactName?.charAt(0) || '?'}</AvatarFallback>
+                              </Avatar>
+                              {lead.contactName}
+                            </div>
+                            {lead.phoneNumber && (
+                              <div className="text-xs text-gray-500 flex items-center">
+                                <Phone className="h-3 w-3 mr-1" />
+                                {lead.phoneNumber}
+                              </div>
+                            )}
+                            {lead.email && (
+                              <div className="text-xs text-gray-500 flex items-center">
+                                <Mail className="h-3 w-3 mr-1" />
+                                {lead.email}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`${formatStatus(lead.status).color} font-medium`}>
+                            {formatStatus(lead.status).label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={
+                            lead.priority === "High" 
+                              ? "bg-red-50 text-red-700 border-red-200" 
+                              : lead.priority === "Medium"
+                                ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                                : "bg-blue-50 text-blue-700 border-blue-200"
+                          }>
+                            {lead.priority || "Low"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Truck className="h-3.5 w-3.5 mr-1.5 text-gray-500" />
+                            <span className="capitalize">
+                              {lead.equipmentType ? lead.equipmentType.replace("-", " ") : "N/A"}
+                            </span>
+                          </div>
+                          {lead.truckCategory && (
+                            <div className="text-xs text-gray-500 mt-1 ml-5">
+                              {lead.truckCategory}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <CalendarClock className="h-3.5 w-3.5 mr-1.5 text-gray-500" />
+                            {formatDate(lead.createdAt)}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 border-[#025E73] text-[#025E73] hover:bg-[#025E73] hover:text-white transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLocation(`/crm/${lead.id}`);
+                            }}
+                          >
+                            <Eye className="h-3.5 w-3.5 mr-1" />
                             View
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </Card>
-          </MotionWrapper>
-        )}
-      </div>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </Card>
+        </MotionWrapper>
+      )}
       
       {/* New Lead Modal */}
       <NewLeadModal 
@@ -338,5 +619,28 @@ export default function CRMLeadsPage() {
         onOpenChange={setNewLeadModalOpen}
       />
     </div>
+  );
+}
+
+// Custom icon for empty state
+function SearchIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+      <path d="M11 8v6" />
+      <path d="M8 11h6" />
+    </svg>
   );
 }
