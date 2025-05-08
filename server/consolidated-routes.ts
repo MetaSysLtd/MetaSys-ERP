@@ -711,6 +711,11 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     apiRouter.use('/crm/mql', module.default);
   });
   
+  // Register the CRM Dashboard routes
+  import('./routes/crm-dashboard').then(module => {
+    apiRouter.use('/crm/dashboard', module.default);
+  });
+  
   // CRM module routes are registered via dynamic imports above
   
   // Register all module routes

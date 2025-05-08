@@ -74,15 +74,16 @@ router.get('/', async (req, res) => {
     
     // Calculate conversion ratios
     const totalLeads = leads.length;
-    const qualifiedLeads = leads.filter(lead => lead.qualified).length;
+    // In the actual schema, we consider leads with status 'Active' or 'HandToDispatch' as qualified
+    const qualifiedLeads = leads.filter(lead => lead.status === 'Active' || lead.status === 'HandToDispatch').length;
     const unqualifiedLeads = totalLeads - qualifiedLeads;
     
     const conversionRatio = totalLeads > 0 
       ? Math.round((qualifiedLeads / totalLeads) * 100) 
       : 0;
     
-    // Calculate handoff success rates
-    const handoffLeads = leads.filter(lead => lead.status === 'HandedOff' || lead.status === 'Active').length;
+    // Calculate handoff success rates - leads that were successfully handed off to dispatch
+    const handoffLeads = leads.filter(lead => lead.status === 'HandToDispatch' || lead.status === 'Active').length;
     const handoffRate = qualifiedLeads > 0 
       ? Math.round((handoffLeads / qualifiedLeads) * 100) 
       : 0;
@@ -107,7 +108,8 @@ router.get('/', async (req, res) => {
       activities: {
         total: activities.length,
         byType: activities.reduce((acc, activity) => {
-          const type = activity.type || 'other';
+          // Use action as the activity type since there's no type field
+          const type = activity.action || 'other';
           acc[type] = (acc[type] || 0) + 1;
           return acc;
         }, {} as Record<string, number>)
@@ -125,7 +127,15 @@ router.get('/', async (req, res) => {
 router.get('/top-performers', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 5;
-    const topUsers = await storage.getTopPerformingUsers(limit);
+    // Get the current month date range
+    const { startDate, endDate } = getCurrentMonthRange();
+    // Pass full parameters object to getTopPerformingUsers
+    const topUsers = await storage.getTopPerformingUsers({
+      startDate,
+      endDate,
+      metric: 'leads',
+      limit: limit
+    });
     
     res.status(200).json(topUsers);
   } catch (error) {
@@ -137,7 +147,7 @@ router.get('/top-performers', async (req, res) => {
 // Get commission data
 router.get('/commissions', async (req, res) => {
   try {
-    const month = req.query.month as string || storage.getCurrentYearMonth();
+    const month = req.query.month as string || getCurrentYearMonth();
     const commissions = await storage.getCommissionsByMonth(month);
     
     res.status(200).json(commissions);
