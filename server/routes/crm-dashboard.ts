@@ -2,8 +2,10 @@ import express from "express";
 import { storage } from "../storage";
 import { formatDate } from "../utils/formatters";
 import { z } from "zod";
+import { createAuthMiddleware } from "../auth-middleware";
 
 const router = express.Router();
+const authMiddleware = createAuthMiddleware(1); // Require at least role level 1
 
 // Query parameter validation schema
 const dashboardQuerySchema = z.object({
@@ -15,7 +17,7 @@ const dashboardQuerySchema = z.object({
 });
 
 // Main dashboard endpoint
-router.get("/crm/dashboard", async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   try {
     const { timeframe, salesRep, status, dateFrom, dateTo } = dashboardQuerySchema.parse(req.query);
     
