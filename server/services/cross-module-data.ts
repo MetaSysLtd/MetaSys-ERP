@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { logger } from '../logger';
 import { checkPermission } from './permissions';
 import { getIo } from '../socket';
@@ -13,7 +13,8 @@ import {
   dispatchTasks, 
   dispatch_clients, 
   invoices, 
-  invoiceItems 
+  invoiceItems,
+  loads // Added the loads table from schema
 } from '@shared/schema';
 
 /**
@@ -597,22 +598,23 @@ async function getRelatedEntityData(
 
     case 'dispatches:invoices':
       // Get invoices related to this dispatch through dispatch lead relationships
-      // First get the dispatch task to find the dispatcher
+      // Get the dispatcher ID from the dispatch task
       const dispatchTask = await db.query.dispatchTasks.findFirst({
         where: eq(dispatchTasks.id, primaryId)
       });
       
       if (!dispatchTask || !dispatchTask.dispatcherId) return [];
       
-      // Find loads handled by this dispatcher
-      const dispatcherLoads = await db.select().from(loads)
-        .where(eq(loads.dispatcherId, dispatchTask.dispatcherId));
+      // Get the leads assigned to this dispatcher
+      const dispatcherLeads = await db.select().from(leads)
+        .where(eq(leads.assignedTo, dispatchTask.dispatcherId));
       
-      if (dispatcherLoads.length === 0) return [];
+      if (dispatcherLeads.length === 0) return [];
       
-      // Get invoices related to these loads via the lead ID
-      const leadIds = dispatcherLoads.map(load => load.leadId);
+      // Get the lead IDs
+      const leadIds = dispatcherLeads.map(lead => lead.id);
       
+      // Get invoices for these leads
       return await db.select().from(invoices)
         .where(inArray(invoices.leadId, leadIds))
         .orderBy(desc(invoices.issuedDate));
@@ -629,34 +631,41 @@ async function getRelatedEntityData(
         .orderBy(desc(tasks.dueDate));
     
     case 'invoices:dispatches':
-      // Get dispatch related to this invoice by finding related lead and load
+      // Get dispatch related to this invoice by finding the related lead
       const invoice = await db.query.invoices.findFirst({
         where: eq(invoices.id, primaryId)
       });
       
       if (!invoice) return null;
       
-      // Find the load associated with this invoice
-      const associatedLoad = await db.query.loads.findFirst({
-        where: eq(loads.leadId, invoice.leadId)
+      // Get the lead for this invoice
+      const invoiceLead = await db.query.leads.findFirst({
+        where: eq(leads.id, invoice.leadId)
       });
       
-      if (!associatedLoad || !associatedLoad.dispatcherId) return null;
+      if (!invoiceLead) return null;
       
-      // Find dispatch tasks associated with this dispatcher
-      return await db.query.dispatchTasks.findFirst({
-        where: eq(dispatchTasks.dispatcherId, associatedLoad.dispatcherId)
-      });
+      // If the lead has a dispatcher, get the most recent dispatch task for that dispatcher
+      if (invoiceLead.assignedTo) {
+        return await db.query.dispatchTasks.findFirst({
+          where: eq(dispatchTasks.dispatcherId, invoiceLead.assignedTo),
+          orderBy: [desc(dispatchTasks.date)]
+        });
+      }
+      
+      return null;
       
     case 'invoices:clients':
-      // Get client related to this invoice
+      // Get client related to this invoice by finding dispatch client with matching lead ID
+      const invoiceData = await db.query.invoices.findFirst({
+        where: eq(invoices.id, primaryId)
+      });
+      
+      if (!invoiceData || !invoiceData.leadId) return null;
+      
+      // Find the dispatch client associated with this lead
       return await db.query.dispatch_clients.findFirst({
-        where: eq(dispatch_clients.id, await db.select({ 
-          leadId: invoices.leadId 
-        })
-        .from(invoices)
-        .where(eq(invoices.id, primaryId))
-        .then(results => results[0]?.leadId || 0))
+        where: eq(dispatch_clients.leadId, invoiceData.leadId)
       });
       
     case 'invoices:activities':
