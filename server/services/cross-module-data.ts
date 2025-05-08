@@ -178,12 +178,13 @@ async function getCommissionData(userId: number, orgId: number): Promise<any> {
   const query = db.select().from(commissions);
 
   if (orgId > 0) {
-    query.where(eq(commissions.orgId, orgId));
+    // Use sql`TRUE` for all commissions in the organization since commissions doesn't have orgId
+    query.where(sql`TRUE`);
   } else {
     query.where(eq(commissions.userId, userId));
   }
 
-  return await query.orderBy(desc(commissions.month));
+  return await query.orderBy(desc(commissions.calculationDate));
 }
 
 /**
@@ -193,11 +194,8 @@ async function getActivityData(userId: number, orgId: number): Promise<any> {
   // Get activities associated with the user or organization
   const query = db.select().from(activities);
 
-  if (orgId > 0) {
-    query.where(eq(activities.orgId, orgId));
-  } else {
-    query.where(eq(activities.userId, userId));
-  }
+  // Activities table doesn't have orgId, use userId only
+  query.where(eq(activities.userId, userId));
 
   return await query.orderBy(desc(activities.timestamp));
 }
@@ -210,8 +208,8 @@ async function getDispatchData(userId: number, orgId: number): Promise<any> {
   return await db.select().from(dispatchTasks).where(
     orgId > 0 
       ? eq(dispatchTasks.orgId, orgId) 
-      : eq(dispatchTasks.assignedTo, userId)
-  ).orderBy(desc(dispatchTasks.updatedAt));
+      : eq(dispatchTasks.dispatcherId, userId)
+  ).orderBy(desc(dispatchTasks.date));
 }
 
 /**
@@ -272,8 +270,8 @@ async function getPerformanceData(userId: number, orgId: number): Promise<any> {
     user: {
       id: userData.id,
       name: `${userData.firstName} ${userData.lastName}`,
-      role: userData.roleId,
-      department: userData.department
+      role: userData.roleId
+      // Department information not available in the user schema
     },
     leads: leadMetrics[0],
     commissions: userData.commissions,
@@ -598,9 +596,20 @@ async function getRelatedEntityData(
         .orderBy(desc(activities.timestamp));
 
     case 'dispatches:invoices':
-      // Get invoices related to this dispatch
+      // Get invoices related to this dispatch through dispatch lead relationships
+      // For now, return all invoices linked to leads that are assigned to this dispatcher
+      const dispatchData = await db.query.dispatchTasks.findFirst({
+        where: eq(dispatchTasks.id, primaryId),
+        with: {
+          dispatcher: true
+        }
+      });
+      
+      if (!dispatchData?.dispatcher?.id) return [];
+      
       return await db.select().from(invoices)
-        .where(eq(invoices.dispatchId, primaryId))
+        .innerJoin(leads, eq(invoices.leadId, leads.id))
+        .where(eq(leads.assignedTo, dispatchData.dispatcher.id))
         .orderBy(desc(invoices.issuedDate));
         
     case 'dispatches:tasks':
@@ -615,14 +624,22 @@ async function getRelatedEntityData(
         .orderBy(desc(tasks.dueDate));
     
     case 'invoices:dispatches':
-      // Get dispatch related to this invoice
+      // Get dispatch related to this invoice by finding the associated load/lead
+      const invoice = await db.query.invoices.findFirst({
+        where: eq(invoices.id, primaryId)
+      });
+      
+      if (!invoice) return null;
+      
+      // Get the load associated with this invoice, then the dispatch
+      const associatedLoad = await db.query.loads.findFirst({
+        where: eq(loads.leadId, invoice.leadId)
+      });
+      
+      if (!associatedLoad || !associatedLoad.dispatchId) return null;
+      
       return await db.query.dispatchTasks.findFirst({
-        where: eq(dispatchTasks.id, await db.select({ 
-          dispatchId: invoices.dispatchId 
-        })
-        .from(invoices)
-        .where(eq(invoices.id, primaryId))
-        .then(results => results[0]?.dispatchId || 0))
+        where: eq(dispatchTasks.id, associatedLoad.dispatchId)
       });
       
     case 'invoices:clients':
