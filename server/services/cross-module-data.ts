@@ -125,18 +125,7 @@ export async function getModuleData(
       errorMessage = `${errorMessage}: ${error.message}`;
       
       // Log additional diagnostic information
-      logger.debug({
-        context: "cross-module-data",
-        action: "getModuleData",
-        dataType,
-        userId,
-        options,
-        errorDetails: {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        }
-      });
+      logger.debug(`Detailed error in getModuleData - context: cross-module-data, action: getModuleData, dataType: ${dataType}, userId: ${userId}, error: ${error.name} - ${error.message}`);
     }
     
     return {
@@ -420,7 +409,12 @@ export async function getIntegratedData(
   dataType: string,
   entityId: number,
   options: DataAccessOptions = { userId: 0 }
-): Promise<any> {
+): Promise<{ 
+  data: any | null; 
+  related?: Record<string, any>; 
+  message?: string;
+  success: boolean;
+}> {
   try {
     // Check permission for the main data type
     const mainPermission = dataTypePermissions[dataType] || `${dataType}.view`;
@@ -429,6 +423,7 @@ export async function getIntegratedData(
     if (!hasMainAccess) {
       return {
         data: null,
+        success: false,
         message: `Access denied: You don't have permission to view ${dataType}`
       };
     }
@@ -438,6 +433,7 @@ export async function getIntegratedData(
     if (!mainData) {
       return {
         data: null,
+        success: false,
         message: `No data found for ${dataType} with ID ${entityId}`
       };
     }
@@ -452,13 +448,23 @@ export async function getIntegratedData(
         const permission = dataTypePermissions[relType] || `${relType}.view`;
         const hasAccess = await checkPermission(userId, permission);
         
-        if (hasAccess) {
-          const data = await getRelatedEntityData(dataType, entityId, relType);
-          relatedData[relType] = data;
-        } else {
+        try {
+          if (hasAccess) {
+            const data = await getRelatedEntityData(dataType, entityId, relType);
+            relatedData[relType] = data;
+          } else {
+            relatedData[relType] = { 
+              restricted: true, 
+              message: `Access denied: You don't have permission to view ${relType}` 
+            };
+          }
+        } catch (relError) {
+          // Log the error but don't fail the whole request
+          logger.error(`Error getting related data (main: ${dataType}, related: ${relType}, id: ${entityId}):`, relError);
+          
           relatedData[relType] = { 
-            restricted: true, 
-            message: `Access denied: You don't have permission to view ${relType}` 
+            error: true, 
+            message: `Error retrieving related ${relType} data` 
           };
         }
       })
@@ -466,11 +472,28 @@ export async function getIntegratedData(
     
     return {
       data: mainData,
-      related: relatedData
+      related: relatedData,
+      success: true
     };
   } catch (error) {
     logger.error(`Error getting integrated data (type: ${dataType}, id: ${entityId}):`, error);
-    throw error;
+    
+    // Generate a user-friendly error message
+    let errorMessage = "An error occurred while retrieving integrated data";
+    
+    if (error instanceof Error) {
+      // Add more context to the error while keeping it user-friendly
+      errorMessage = `${errorMessage}: ${error.message}`;
+      
+      // Log additional diagnostic information
+      logger.debug(`Detailed error in getIntegratedData - context: cross-module-data, action: getIntegratedData, dataType: ${dataType}, entityId: ${entityId}, userId: ${userId}, error: ${error.name} - ${error.message}`);
+    }
+    
+    return {
+      data: null,
+      success: false,
+      message: errorMessage
+    };
   }
 }
 
@@ -526,10 +549,7 @@ async function getRelatedEntityData(
     case 'leads:tasks':
       return await db.select().from(tasks)
         .where(
-          and(
-            eq(tasks.entityType, 'lead'),
-            eq(tasks.entityId, primaryId)
-          )
+          eq(tasks.relatedToId, primaryId)
         )
         .orderBy(desc(tasks.dueDate));
     
@@ -553,12 +573,83 @@ async function getRelatedEntityData(
           )
         )
         .orderBy(desc(activities.timestamp));
+        
+    case 'clients:tasks':
+      return await db.select().from(tasks)
+        .where(
+          and(
+            eq(tasks.relatedToType, 'client'),
+            eq(tasks.relatedToId, primaryId)
+          )
+        )
+        .orderBy(desc(tasks.dueDate));
     
     case 'dispatches:activities':
       return await db.select().from(activities)
         .where(
           and(
             eq(activities.entityType, 'dispatch'),
+            eq(activities.entityId, primaryId)
+          )
+        )
+        .orderBy(desc(activities.timestamp));
+
+    case 'dispatches:invoices':
+      // Get invoices related to this dispatch
+      return await db.select().from(invoices)
+        .where(eq(invoices.dispatchId, primaryId))
+        .orderBy(desc(invoices.issuedDate));
+        
+    case 'dispatches:tasks':
+      // Get tasks related to this dispatch
+      return await db.select().from(tasks)
+        .where(
+          and(
+            eq(tasks.relatedToType, 'dispatch'),
+            eq(tasks.relatedToId, primaryId)
+          )
+        )
+        .orderBy(desc(tasks.dueDate));
+    
+    case 'invoices:dispatches':
+      // Get dispatch related to this invoice
+      return await db.query.dispatchTasks.findFirst({
+        where: eq(dispatchTasks.id, await db.select({ 
+          dispatchId: invoices.dispatchId 
+        })
+        .from(invoices)
+        .where(eq(invoices.id, primaryId))
+        .then(results => results[0]?.dispatchId || 0))
+      });
+      
+    case 'invoices:clients':
+      // Get client related to this invoice
+      return await db.query.dispatch_clients.findFirst({
+        where: eq(dispatch_clients.id, await db.select({ 
+          leadId: invoices.leadId 
+        })
+        .from(invoices)
+        .where(eq(invoices.id, primaryId))
+        .then(results => results[0]?.leadId || 0))
+      });
+      
+    case 'invoices:activities':
+      // Get activities related to this invoice
+      return await db.select().from(activities)
+        .where(
+          and(
+            eq(activities.entityType, 'invoice'),
+            eq(activities.entityId, primaryId)
+          )
+        )
+        .orderBy(desc(activities.timestamp));
+      
+    case 'tasks:activities':
+      // Get activities related to this task
+      return await db.select().from(activities)
+        .where(
+          and(
+            eq(activities.entityType, 'task'),
             eq(activities.entityId, primaryId)
           )
         )
