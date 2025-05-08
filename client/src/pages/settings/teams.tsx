@@ -4,8 +4,11 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Pencil, Trash2, PlusCircle, UserPlus, Users, X, ChevronDown, ChevronRight, Layers } from "lucide-react";
+import { Pencil, Trash2, PlusCircle, UserPlus, Users, X, ChevronDown, ChevronRight, Layers, User, UserCheck, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import {
   Card,
@@ -51,10 +54,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+
 
 // Define types
 interface Team {
@@ -711,6 +711,147 @@ const TeamHierarchy = () => {
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+// Team Hierarchy Component
+const TeamHierarchy = () => {
+  const { data: allMembers, isLoading, error } = useQuery({
+    queryKey: ["/api/teams/all-members"],
+  });
+
+  const { data: teams } = useQuery({
+    queryKey: ["/api/teams"],
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
+        <div className="space-y-2">
+          <div className="h-14 bg-slate-200 rounded animate-pulse" />
+          <div className="h-14 bg-slate-200 rounded animate-pulse" />
+          <div className="h-14 bg-slate-200 rounded animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Failed to load team hierarchy. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!allMembers || allMembers.length === 0) {
+    return (
+      <div className="text-center py-8 border rounded-md bg-muted/20">
+        <Users className="h-10 w-10 mx-auto text-muted-foreground" />
+        <h3 className="mt-4 text-lg font-medium">No Team Members</h3>
+        <p className="text-sm text-muted-foreground mt-2">
+          Your organization's team structure will appear here once you've added members to teams.
+        </p>
+      </div>
+    );
+  }
+
+  // Group members by team
+  const membersByTeam = allMembers.reduce((groups, member) => {
+    const teamId = member.teamId;
+    if (!groups[teamId]) {
+      groups[teamId] = [];
+    }
+    groups[teamId].push(member);
+    return groups;
+  }, {});
+
+  // Find team info for each group
+  const teamGroups = Object.keys(membersByTeam).map(teamId => {
+    const teamInfo = teams?.find(t => t.id === Number(teamId)) || { 
+      name: 'Unknown Team', 
+      department: 'unknown' 
+    };
+    
+    return {
+      id: Number(teamId),
+      name: teamInfo.name,
+      department: teamInfo.department,
+      members: membersByTeam[teamId]
+    };
+  });
+
+  const getDepartmentColor = (department) => {
+    const colors = {
+      sales: "bg-blue-100 text-blue-800 border-blue-300",
+      dispatch: "bg-green-100 text-green-800 border-green-300",
+      admin: "bg-purple-100 text-purple-800 border-purple-300", 
+      finance: "bg-amber-100 text-amber-800 border-amber-300",
+      hr: "bg-pink-100 text-pink-800 border-pink-300",
+      marketing: "bg-indigo-100 text-indigo-800 border-indigo-300",
+      unknown: "bg-gray-100 text-gray-800 border-gray-300"
+    };
+    
+    return colors[department] || colors.unknown;
+  };
+
+  const getRoleColor = (level) => {
+    if (level >= 5) return "bg-purple-100 text-purple-800"; // Admin
+    if (level >= 4) return "bg-red-100 text-red-800"; // Manager
+    if (level >= 3) return "bg-amber-100 text-amber-800"; // Team Lead
+    return "bg-blue-100 text-blue-800"; // Regular staff
+  };
+  
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4">
+        {teamGroups.map(team => (
+          <div 
+            key={team.id} 
+            className="border rounded-md overflow-hidden"
+          >
+            <div className={`px-4 py-3 font-medium flex items-center justify-between ${getDepartmentColor(team.department)}`}>
+              <div className="flex items-center">
+                <Users className="h-5 w-5 mr-2" />
+                <span>{team.name}</span>
+              </div>
+              <Badge variant="outline" className="capitalize">
+                {team.department}
+              </Badge>
+            </div>
+            
+            <div className="p-4 space-y-2">
+              {team.members.map(member => (
+                <div 
+                  key={member.id}
+                  className="flex items-center justify-between p-2 rounded-md border bg-background/40"
+                >
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <div>
+                      <div className="font-medium">
+                        {member.firstName} {member.lastName}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {member.email}
+                      </div>
+                    </div>
+                  </div>
+                  <Badge className={`${getRoleColor(member.role.level)}`}>
+                    {member.role.name}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 
