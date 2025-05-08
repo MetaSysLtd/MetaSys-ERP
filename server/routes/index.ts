@@ -3,33 +3,25 @@ import timeTrackingRouter from './time-tracking';
 import hrRouter from './hr';
 import financeRouter from './finance';
 import marketingRouter from './marketing';
-import portalRouter from './client-portal';
+import portalRouter from './portal';
 import dashboardRouter from './dashboard';
 import bugsRouter from './bugs';
 import crmRouter from './crm';
+import crmDashboardRouter from './crm-dashboard';
 import activitiesRouter from './activities';
 import leadsRouter from './leads';
 import accountsRouter from './accounts';
 import commissionsRouter from './commissions';
 import adminRouter from './admin';
-import crmDashboardRouter from './crm-dashboard';
+import crossModuleRouter from './cross-module';
+import { logger } from '../logger';
 
-export { default as timeTrackingRouter } from './time-tracking';
-export { default as hrRouter } from './hr';
-export { default as financeRouter } from './finance';
-export { default as marketingRouter } from './marketing';
-export { default as portalRouter } from './client-portal';
-export { default as dashboardRouter } from './dashboard';
-export { default as bugsRouter } from './bugs';
-export { default as crmRouter } from './crm';
-export { default as activitiesRouter } from './activities';
-export { default as leadsRouter } from './leads';
-export { default as accountsRouter } from './accounts';
-export { default as commissionsRouter } from './commissions';
-export { default as adminRouter } from './admin';
-export { default as crmDashboardRouter } from './crm-dashboard';
-
+/**
+ * Register all module routes with the API router
+ */
 export function registerModuleRoutes(apiRouter: express.Router): void {
+  logger.info('Registering module routes');
+  
   // Time Tracking Module
   apiRouter.use('/time-tracking', timeTrackingRouter);
   
@@ -65,4 +57,9 @@ export function registerModuleRoutes(apiRouter: express.Router): void {
   
   // Admin Management Module
   apiRouter.use('/admin', adminRouter);
+  
+  // Cross-Module Data Flow Integration
+  apiRouter.use('/cross-module', crossModuleRouter);
+  
+  logger.info('All module routes registered');
 }

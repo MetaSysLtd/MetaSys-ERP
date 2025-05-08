@@ -1,301 +1,145 @@
-import express, { Request, Response, NextFunction } from 'express';
-import { ParamsDictionary } from 'express-serve-static-core';
-import { ParsedQs } from 'qs';
-import { storage } from '../storage';
-import { User, Role } from "@shared/schema";
-import session from 'express-session';
-
-// Extended Express Request interface with auth properties
-interface AuthenticatedRequest extends Request {
-  isAuthenticated?(): boolean;
-  user?: User;
-  userRole?: Role;
-}
+import express from 'express';
+import { createAuthMiddleware } from '../auth-middleware';
+import { logger } from '../logger';
 
 const router = express.Router();
 
-// Simple middleware for checking authentication
-function checkAuth(req: Request, res: Response, next: NextFunction) {
-  // Check if user is authenticated via session
-  if (!req.session || !req.session.userId) {
-    return res.status(401).json({ 
-      error: "Unauthorized: Please log in to access this resource",
-      missing: ["session"] 
-    });
-  }
-
-  // Add the user from session to the request
-  storage.getUser(req.session.userId)
-    .then(user => {
-      if (!user) {
-        req.session!.destroy(() => {});
-        return res.status(401).json({ 
-          error: "Unauthorized: User not found", 
-          missing: ["user"] 
-        });
-      }
-      
-      // Add user to request
-      (req as AuthenticatedRequest).user = user;
-      
-      // Get the user's role for permission checking
-      storage.getRole(user.roleId)
-        .then(role => {
-          if (role) {
-            (req as AuthenticatedRequest).userRole = role;
-          }
-          next();
-        })
-        .catch(error => {
-          console.error("Error fetching user role:", error);
-          next();
-        });
-    })
-    .catch(error => {
-      console.error("Error in checkAuth middleware:", error);
-      return res.status(500).json({ error: "Internal server error during authentication" });
-    });
-}
-
-// Basic role level check (level 1 for sales reps, level 3 for managers, etc.)
-function checkLevel(level: number) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    // First run the checkAuth middleware to ensure user is authenticated
-    checkAuth(req, res, (err?: any) => {
-      if (err) return next(err); // If checkAuth failed
-      
-      // Now check the role level
-      const authReq = req as AuthenticatedRequest;
-      const userLevel = authReq.userRole?.level || 0;
-      if (userLevel < level) {
-        return res.status(403).json({ 
-          error: "Forbidden: You don't have required permissions",
-          details: `Required level: ${level}, Current level: ${userLevel}`
-        });
-      }
-      
-      next();
-    });
-  };
-}
-
-// Get commission data by month for specific user
-router.get('/monthly/user/:userId/:month?', checkAuth, async (req: Request, res: Response) => {
+/**
+ * GET /api/commissions
+ * Get commissions
+ */
+router.get('/', createAuthMiddleware(1), async (req, res, next) => {
   try {
-    const userId = parseInt(req.params.userId);
-    const month = req.params.month || new Date().toISOString().slice(0, 7);
-    
-    // Get user details
-    const user = await storage.getUser(userId);
-    
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    
-    // For demo purposes, create a sample commission response
-    const commission = {
-      userId,
-      month,
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      total: Math.floor(Math.random() * 10000) + 5000, // Random sample for demo
-      baseCommission: Math.floor(Math.random() * 8000) + 3000,
-      adjustedCommission: Math.floor(Math.random() * 9000) + 4000,
-      bonuses: {
-        repOfMonth: Math.floor(Math.random() * 500),
-        activeTrucks: Math.floor(Math.random() * 300),
-        teamLead: Math.floor(Math.random() * 200)
-      },
-      leads: Math.floor(Math.random() * 20),
-      clients: Math.floor(Math.random() * 10),
-      items: [
-        {
-          id: 1,
-          date: new Date().toISOString(),
-          clientName: "ABC Trucking",
-          type: "Load Commission",
-          leadSource: "Cold Call",
-          amount: 450,
-          status: "Paid"
-        },
-        {
-          id: 2,
-          date: new Date().toISOString(),
-          clientName: "XYZ Logistics",
-          type: "Referral Bonus",
-          leadSource: "Website",
-          amount: 250,
-          status: "Pending"
-        }
-      ]
-    };
-    
-    return res.json(commission);
+    // Get commissions
+    res.json([]);
   } catch (error) {
-    console.error("Error in /monthly/user/:userId/:month route:", error);
-    return res.status(500).json({ error: "Failed to fetch commission data" });
+    logger.error('Error in commissions route:', error);
+    next(error);
   }
 });
 
-// Get all commission data for a user (for listing available months)
-router.get('/monthly/user/:userId', checkAuth, async (req: Request, res: Response) => {
+/**
+ * POST /api/commissions
+ * Create a new commission
+ */
+router.post('/', createAuthMiddleware(2), async (req, res, next) => {
   try {
-    const userId = parseInt(req.params.userId);
+    // Create a new commission
+    res.status(201).json({
+      id: 1,
+      userId: req.body.userId,
+      leadId: req.body.leadId,
+      accountId: req.body.accountId,
+      amount: req.body.amount,
+      type: req.body.type || 'standard',
+      status: 'pending',
+      paymentDate: req.body.paymentDate,
+      description: req.body.description,
+      createdBy: req.user?.id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+  } catch (error) {
+    logger.error('Error creating commission:', error);
+    next(error);
+  }
+});
+
+/**
+ * GET /api/commissions/:id
+ * Get a specific commission
+ */
+router.get('/:id', createAuthMiddleware(1), async (req, res, next) => {
+  try {
+    // Get a specific commission
+    const id = parseInt(req.params.id, 10);
     
-    // For demo purposes, return last 6 months as placeholders
-    const months = [];
-    const currentDate = new Date();
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
     
-    for (let i = 0; i < 6; i++) {
-      const date = new Date(currentDate);
-      date.setMonth(date.getMonth() - i);
-      const monthStr = date.toISOString().slice(0, 7);
-      
-      months.push({
-        month: monthStr,
-        total: Math.floor(Math.random() * 10000) + 5000 // Random sample for demo
+    res.json({
+      id,
+      userId: 1,
+      leadId: 1,
+      accountId: 1,
+      amount: 500,
+      type: 'standard',
+      status: 'pending',
+      paymentDate: new Date(),
+      description: 'Commission for new client acquisition',
+      createdBy: req.user?.id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+  } catch (error) {
+    logger.error('Error in specific commission route:', error);
+    next(error);
+  }
+});
+
+/**
+ * PUT /api/commissions/:id
+ * Update a commission
+ */
+router.put('/:id', createAuthMiddleware(2), async (req, res, next) => {
+  try {
+    // Update a commission
+    const id = parseInt(req.params.id, 10);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
+    
+    res.json({
+      id,
+      userId: req.body.userId,
+      leadId: req.body.leadId,
+      accountId: req.body.accountId,
+      amount: req.body.amount,
+      type: req.body.type,
+      status: req.body.status,
+      paymentDate: req.body.paymentDate,
+      description: req.body.description,
+      createdBy: req.user?.id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+  } catch (error) {
+    logger.error('Error updating commission:', error);
+    next(error);
+  }
+});
+
+/**
+ * GET /api/commissions/user/:userId
+ * Get commissions for a specific user
+ */
+router.get('/user/:userId', createAuthMiddleware(1), async (req, res, next) => {
+  try {
+    // Get commissions for a specific user
+    const userId = parseInt(req.params.userId, 10);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ error: 'Invalid User ID format' });
+    }
+    
+    // Check if the requesting user has permission to view commissions for this user
+    const requestingUserId = req.user?.id;
+    const isOwnCommissions = requestingUserId === userId;
+    const userRole = req.user?.roleId || 0;
+    const hasAdminAccess = userRole >= 3; // Admin role level and above
+    
+    if (!isOwnCommissions && !hasAdminAccess) {
+      return res.status(403).json({
+        error: 'You do not have permission to view commissions for other users'
       });
     }
     
-    return res.json(months);
+    res.json([]);
   } catch (error) {
-    console.error("Error in /monthly/user/:userId route:", error);
-    return res.status(500).json({ error: "Failed to fetch commission months" });
-  }
-});
-
-// Get metrics for commission details view
-router.get('/metrics/:userId', checkAuth, async (req: Request, res: Response) => {
-  try {
-    const userId = parseInt(req.params.userId);
-    const month = req.query.month as string || new Date().toISOString().slice(0, 7);
-    
-    // Get user details
-    const user = await storage.getUser(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    
-    // For demo purposes, create sample metrics
-    const metrics = {
-      userId,
-      month,
-      name: `${user.firstName} ${user.lastName}`,
-      activeLeads: Math.floor(Math.random() * 15),
-      totalLeads: Math.floor(Math.random() * 30),
-      callsMade: Math.floor(Math.random() * 100),
-      leadsConverted: Math.floor(Math.random() * 10),
-      targets: {
-        leadTarget: 10,
-        clientTarget: 3,
-        revenueTarget: 15000,
-        callTarget: 20 * 20 // Daily call target * working days
-      },
-      performance: {
-        leadProgress: Math.floor(Math.random() * 100),
-        callProgress: Math.floor(Math.random() * 100)
-      }
-    };
-    
-    return res.json(metrics);
-  } catch (error) {
-    console.error("Error in /metrics/:userId route:", error);
-    return res.status(500).json({ error: "Failed to fetch commission metrics" });
-  }
-});
-
-// Get all sales representatives with commission data (for team view)
-router.get('/sales-reps', checkLevel(3), async (req: Request, res: Response) => {
-  try {
-    const month = req.query.month as string || new Date().toISOString().slice(0, 7);
-    
-    // Get all users with sales roles
-    const users = await storage.getUsers();
-    const salesReps = users.filter(user => user.roleId === 2); // Assuming roleId 2 is for sales reps
-    
-    // For demo purposes, create sample sales rep data
-    const repsWithCommission = salesReps.map((rep, index) => {
-      return {
-        userId: rep.id,
-        firstName: rep.firstName,
-        lastName: rep.lastName,
-        username: rep.username,
-        profileImageUrl: rep.profileImageUrl,
-        totalCommission: Math.floor(Math.random() * 20000) + 1000,
-        leads: Math.floor(Math.random() * 30),
-        clients: Math.floor(Math.random() * 15),
-        growth: Math.floor(Math.random() * 200) - 100, // Between -100 and +100
-        targetPercentage: Math.floor(Math.random() * 100),
-        rank: index + 1
-      };
-    });
-    
-    // Sort by total commission and assign proper ranks
-    const sortedReps = repsWithCommission
-      .sort((a, b) => b.totalCommission - a.totalCommission)
-      .map((rep, index) => ({
-        ...rep,
-        rank: index + 1
-      }));
-    
-    return res.json(sortedReps);
-  } catch (error) {
-    console.error("Error in /sales-reps route:", error);
-    return res.status(500).json({ error: "Failed to fetch sales representatives data" });
-  }
-});
-
-// Calculate commission for a user based on their activity
-router.post('/calculate/:userId', checkLevel(3), async (req: Request, res: Response) => {
-  try {
-    const userId = parseInt(req.params.userId);
-    const month = req.body.month || new Date().toISOString().slice(0, 7);
-    
-    // Check if the user exists
-    const user = await storage.getUser(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    
-    // Check if request user has permission
-    const authReq = req as AuthenticatedRequest;
-    const isAdmin = authReq.userRole && authReq.userRole.level >= 3;
-    if (!isAdmin && authReq.user?.id !== userId) {
-      return res.status(403).json({ error: "You don't have permission to calculate commissions for other users" });
-    }
-    
-    // For demo purposes, create sample calculation result
-    const calculation = {
-      userId,
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      month,
-      total: Math.floor(Math.random() * 10000) + 5000,
-      baseCommission: Math.floor(Math.random() * 8000) + 3000,
-      adjustedCommission: Math.floor(Math.random() * 9000) + 4000,
-      repOfMonthBonus: Math.floor(Math.random() * 500),
-      activeTrucksBonus: Math.floor(Math.random() * 300),
-      teamLeadBonus: Math.floor(Math.random() * 200),
-      calculationDetails: {
-        baseCommissionDetails: {
-          activeLeadsCount: Math.floor(Math.random() * 20),
-          baseAmount: Math.floor(Math.random() * 8000) + 3000
-        },
-        bonuses: {
-          repOfMonth: Math.floor(Math.random() * 500),
-          activeTrucks: Math.floor(Math.random() * 300),
-          teamLead: Math.floor(Math.random() * 200)
-        }
-      },
-      message: "Newly calculated"
-    };
-    
-    return res.json(calculation);
-  } catch (error) {
-    console.error("Error in /calculate/:userId route:", error);
-    return res.status(500).json({ error: "Failed to calculate commission" });
+    logger.error('Error in user commissions route:', error);
+    next(error);
   }
 });
 

@@ -1,85 +1,30 @@
 import express from 'express';
 import { createAuthMiddleware } from '../auth-middleware';
+import { logger } from '../logger';
 
-const financeRouter = express.Router();
+const router = express.Router();
 
-// Get financial summary
-financeRouter.get("/summary", createAuthMiddleware(1), async (req, res, next) => {
+/**
+ * GET /api/finance/invoices
+ * Get invoices
+ */
+router.get('/invoices', createAuthMiddleware(1), async (req, res, next) => {
   try {
-    res.json({
-      revenue: {
-        monthly: 246500,
-        ytd: 980000,
-        previousMonth: 227600
-      },
-      expenses: {
-        monthly: 184720,
-        ytd: 760500,
-        previousMonth: 192600
-      },
-      cashFlow: {
-        monthly: 61780,
-        ytd: 219500,
-        previousMonth: 35000
-      },
-      invoices: {
-        pending: 87320,
-        count: 12
-      }
-    });
+    // Get invoices
+    res.json([]);
   } catch (error) {
+    logger.error('Error in finance invoices route:', error);
     next(error);
   }
 });
 
-// Get expenses
-financeRouter.get("/expenses", createAuthMiddleware(1), async (req, res, next) => {
+/**
+ * GET /api/finance/profit-loss
+ * Get profit and loss report
+ */
+router.get('/profit-loss', createAuthMiddleware(3), async (req, res, next) => {
   try {
-    res.json([
-      {
-        id: 1,
-        category: "Payroll",
-        amount: 120000,
-        date: "2025-05-01",
-        description: "Monthly payroll"
-      },
-      {
-        id: 2,
-        category: "Rent",
-        amount: 15000,
-        date: "2025-05-01",
-        description: "Office rent"
-      },
-      {
-        id: 3,
-        category: "Software",
-        amount: 4500,
-        date: "2025-05-03",
-        description: "SaaS subscriptions"
-      },
-      {
-        id: 4,
-        category: "Utilities",
-        amount: 2800,
-        date: "2025-05-05",
-        description: "Electricity and internet"
-      },
-      {
-        id: 5,
-        category: "Insurance",
-        amount: 8600,
-        date: "2025-05-10",
-        description: "Business insurance"
-      }
-    ]);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Get profit and loss report
-financeRouter.get("/profit-loss", createAuthMiddleware(1), async (req, res, next) => {
-  try {
+    // Get profit and loss report
     const year = req.query.year || new Date().getFullYear();
     const month = req.query.month || new Date().getMonth() + 1;
     
@@ -111,8 +56,37 @@ financeRouter.get("/profit-loss", createAuthMiddleware(1), async (req, res, next
       profitMargin: 25.06
     });
   } catch (error) {
+    logger.error('Error in finance profit-loss route:', error);
     next(error);
   }
 });
 
-export default financeRouter;
+/**
+ * GET /api/finance/commissions
+ * Get commissions data
+ */
+router.get('/commissions', createAuthMiddleware(1), async (req, res, next) => {
+  try {
+    // Get commissions data
+    res.json([]);
+  } catch (error) {
+    logger.error('Error in finance commissions route:', error);
+    next(error);
+  }
+});
+
+/**
+ * GET /api/finance/expenses
+ * Get expenses data
+ */
+router.get('/expenses', createAuthMiddleware(1), async (req, res, next) => {
+  try {
+    // Get expenses data
+    res.json([]);
+  } catch (error) {
+    logger.error('Error in finance expenses route:', error);
+    next(error);
+  }
+});
+
+export default router;

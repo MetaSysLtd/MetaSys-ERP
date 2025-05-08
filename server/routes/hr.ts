@@ -1,94 +1,73 @@
 import express from 'express';
 import { createAuthMiddleware } from '../auth-middleware';
-import { storage } from '../storage';
-import hrLeavesRouter from './hr-leaves';
+import { logger } from '../logger';
 
-const hrRouter = express.Router();
+const router = express.Router();
 
-// Mount the HR Leave Management routes
-hrRouter.use('/leaves', hrLeavesRouter);
-
-// Get team members (all users with their roles)
-hrRouter.get("/team", createAuthMiddleware(1), async (req, res, next) => {
+/**
+ * GET /api/hr/employees
+ * Get employee list
+ */
+router.get('/employees', createAuthMiddleware(1), async (req, res, next) => {
   try {
-    // Return all users with their roles
-    const users = await storage.getUsers();
-    const teamMembers = await Promise.all(users.map(async (user) => {
-      try {
-        const role = await storage.getRole(user.roleId);
-        const { password, ...safeUser } = user;
-        return { ...safeUser, role };
-      } catch (error) {
-        const { password, ...safeUser } = user;
-        return { ...safeUser, role: null };
-      }
-    }));
-    
-    res.json(teamMembers);
+    // Get employees
+    res.json([]);
   } catch (error) {
+    logger.error('Error in HR employees route:', error);
     next(error);
   }
 });
 
-// Get job postings
-hrRouter.get("/jobs", createAuthMiddleware(1), async (req, res, next) => {
+/**
+ * GET /api/hr/hiring
+ * Get hiring data
+ */
+router.get('/hiring', createAuthMiddleware(2), async (req, res, next) => {
   try {
-    // Mock job postings data
-    res.json([
-      {
-        id: 1,
-        title: "Senior Dispatcher",
-        department: "Operations",
-        location: "Chicago, IL",
-        type: "Full-time",
-        postedDate: "2025-04-15",
-        status: "Active",
-        applicants: 12
-      },
-      {
-        id: 2,
-        title: "Sales Representative",
-        department: "Sales",
-        location: "Remote",
-        type: "Full-time",
-        postedDate: "2025-04-20",
-        status: "Active",
-        applicants: 8
-      },
-      {
-        id: 3,
-        title: "Administrative Assistant",
-        department: "Admin",
-        location: "Chicago, IL",
-        type: "Part-time",
-        postedDate: "2025-04-25",
-        status: "Active",
-        applicants: 15
-      }
-    ]);
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Get employee records (minimal version for now)
-hrRouter.get("/employees", createAuthMiddleware(1), async (req, res, next) => {
-  try {
-    const users = await storage.getUsers();
-    const employees = users.map(user => {
-      const { password, ...safeUser } = user;
-      return {
-        ...safeUser,
-        department: user.roleId === 2 ? "Sales" : user.roleId === 3 ? "Dispatch" : "Administration",
-        startDate: "2025-01-01", // Placeholder
-        status: "Active"
-      };
+    // Get hiring data
+    res.json({
+      candidates: [],
+      openPositions: []
     });
-    
-    res.json(employees);
   } catch (error) {
+    logger.error('Error in HR hiring route:', error);
     next(error);
   }
 });
 
-export default hrRouter;
+/**
+ * GET /api/hr/leave
+ * Get leave management data
+ */
+router.get('/leave', createAuthMiddleware(1), async (req, res, next) => {
+  try {
+    // Get leave data
+    res.json({
+      requests: [],
+      balance: {
+        vacation: 20,
+        sick: 10,
+        personal: 5
+      }
+    });
+  } catch (error) {
+    logger.error('Error in HR leave route:', error);
+    next(error);
+  }
+});
+
+/**
+ * GET /api/hr/documents
+ * Get HR documents
+ */
+router.get('/documents', createAuthMiddleware(1), async (req, res, next) => {
+  try {
+    // Get HR documents
+    res.json([]);
+  } catch (error) {
+    logger.error('Error in HR documents route:', error);
+    next(error);
+  }
+});
+
+export default router;

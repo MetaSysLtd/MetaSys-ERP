@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { users, roles, permissions, rolePermissions } from '@shared/schema';
+import { users, roles, permissionTemplates } from '@shared/schema';
 import { db } from '../db';
 import { eq, and } from 'drizzle-orm';
-import { PERMISSIONS } from '@shared/constants';
 import { logger } from '../logger';
 
 /**
@@ -18,339 +17,217 @@ interface UserPermissions {
 
 // Cache to store user permissions to avoid repeated database queries
 const permissionsCache = new Map<string, UserPermissions>();
-const PERMISSIONS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Cache duration in milliseconds (5 minutes)
+const CACHE_DURATION = 5 * 60 * 1000;
 
 /**
- * Fetch permissions for a user from database
- * @param userId - User ID
- * @param orgId - Organization ID
- * @returns Promise resolving to list of permission codes
+ * Gets user permissions from the database or cache
  */
-export async function fetchUserPermissions(userId: number, orgId: number | null): Promise<string[]> {
+export async function getUserPermissions(userId: number): Promise<UserPermissions | null> {
+  const cacheKey = `permissions_${userId}`;
+  const now = new Date();
+  
+  // Check if permissions are cached and not expired
+  const cached = permissionsCache.get(cacheKey);
+  if (cached && now.getTime() - cached.cachedAt.getTime() < CACHE_DURATION) {
+    return cached;
+  }
+  
   try {
-    // Check if user exists
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, userId));
-
-    if (!user) {
-      return [];
-    }
-
-    // If user is system admin, they have all permissions
-    if (user.isSystemAdmin) {
-      return Object.values(PERMISSIONS);
-    }
-
-    // Get user's role
-    const [userRole] = await db
-      .select()
-      .from(roles)
-      .where(eq(roles.id, user.roleId));
-    
-    if (!userRole) {
-      return [];
-    }
-
-    // Get permissions for the role
-    const rolePerms = await db
-      .select({
-        permissionCode: permissions.code
-      })
-      .from(rolePermissions)
-      .innerJoin(permissions, eq(permissions.id, rolePermissions.permissionId))
-      .where(eq(rolePermissions.roleId, userRole.id));
-
-    return rolePerms.map(p => p.permissionCode);
-  } catch (error) {
-    logger.error('Error fetching user permissions:', error);
-    return [];
-  }
-}
-
-/**
- * Get permissions for a user with caching
- * @param userId - User ID
- * @param orgId - Organization ID
- * @returns Promise resolving to list of permission codes
- */
-export async function getUserPermissions(userId: number, orgId: number | null): Promise<string[]> {
-  const cacheKey = `${userId}-${orgId}`;
-  const cachedPermissions = permissionsCache.get(cacheKey);
-  
-  // Return cached permissions if they exist and are still valid
-  if (cachedPermissions && (Date.now() - cachedPermissions.cachedAt.getTime() < PERMISSIONS_CACHE_TTL)) {
-    return cachedPermissions.permissions;
-  }
-  
-  // Fetch fresh permissions
-  const permissions = await fetchUserPermissions(userId, orgId);
-  
-  // Cache the result
-  permissionsCache.set(cacheKey, {
-    userId,
-    orgId,
-    isSystemAdmin: permissions.length === Object.values(PERMISSIONS).length,
-    permissions,
-    cachedAt: new Date()
-  });
-  
-  return permissions;
-}
-
-/**
- * Clear permissions cache for a user
- * @param userId - User ID
- * @param orgId - Optional organization ID
- */
-export function clearPermissionsCache(userId: number, orgId?: number | null): void {
-  if (orgId !== undefined) {
-    // Clear specific user-org cache
-    permissionsCache.delete(`${userId}-${orgId}`);
-  } else {
-    // Clear all caches for this user
-    for (const [key, value] of permissionsCache.entries()) {
-      if (value.userId === userId) {
-        permissionsCache.delete(key);
+    // Get user with role
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      with: {
+        role: true
       }
-    }
-  }
-}
-
-/**
- * Check if a user has a specific permission
- * @param userId - User ID
- * @param orgId - Organization ID
- * @param permission - Permission code to check
- * @returns Promise resolving to boolean
- */
-export async function userHasPermission(
-  userId: number, 
-  permission: string, 
-  orgId: number | null = null
-): Promise<boolean> {
-  const permissions = await getUserPermissions(userId, orgId);
-  return permissions.includes(permission);
-}
-
-/**
- * Express middleware to check if the current user has a specific permission
- * @param permission - Permission code to check
- * @returns Express middleware function
- */
-export function requirePermission(permission: string) {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // No user in request
-      if (!req.user) {
-        return res.status(401).json({ 
-          error: 'Unauthorized', 
-          message: 'Authentication required' 
-        });
-      }
-      
-      const userId = req.user.id;
-      const orgId = req.user.orgId || null;
-      
-      // Check system admin status first (quick check)
-      if (req.user.isSystemAdmin) {
-        return next();
-      }
-      
-      // Check specific permission
-      const hasPermission = await userHasPermission(userId, permission, orgId);
-      
-      if (hasPermission) {
-        return next();
-      }
-      
-      // Permission denied
-      return res.status(403).json({ 
-        error: 'Forbidden', 
-        message: 'You do not have permission to perform this action' 
-      });
-    } catch (error) {
-      logger.error(`Permission check error for "${permission}":`, error);
-      return res.status(500).json({ 
-        error: 'Internal Server Error', 
-        message: 'An error occurred while checking permissions' 
-      });
-    }
-  };
-}
-
-/**
- * Express middleware to check if the current user has at least one of the specified permissions
- * @param requiredPermissions - Array of permission codes to check
- * @returns Express middleware function
- */
-export function requireAnyPermission(requiredPermissions: string[]) {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // No user in request
-      if (!req.user) {
-        return res.status(401).json({ 
-          error: 'Unauthorized', 
-          message: 'Authentication required' 
-        });
-      }
-      
-      const userId = req.user.id;
-      const orgId = req.user.orgId || null;
-      
-      // Check system admin status first (quick check)
-      if (req.user.isSystemAdmin) {
-        return next();
-      }
-      
-      // Get all user permissions
-      const userPermissions = await getUserPermissions(userId, orgId);
-      
-      // Check if user has at least one of the required permissions
-      const hasAnyPermission = requiredPermissions.some(perm => 
-        userPermissions.includes(perm)
-      );
-      
-      if (hasAnyPermission) {
-        return next();
-      }
-      
-      // Permission denied
-      return res.status(403).json({ 
-        error: 'Forbidden', 
-        message: 'You do not have permission to perform this action' 
-      });
-    } catch (error) {
-      logger.error(`Permission check error:`, error);
-      return res.status(500).json({ 
-        error: 'Internal Server Error', 
-        message: 'An error occurred while checking permissions' 
-      });
-    }
-  };
-}
-
-/**
- * Express middleware to check if the current user has all of the specified permissions
- * @param requiredPermissions - Array of permission codes to check
- * @returns Express middleware function
- */
-export function requireAllPermissions(requiredPermissions: string[]) {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      // No user in request
-      if (!req.user) {
-        return res.status(401).json({ 
-          error: 'Unauthorized', 
-          message: 'Authentication required' 
-        });
-      }
-      
-      const userId = req.user.id;
-      const orgId = req.user.orgId || null;
-      
-      // Check system admin status first (quick check)
-      if (req.user.isSystemAdmin) {
-        return next();
-      }
-      
-      // Get all user permissions
-      const userPermissions = await getUserPermissions(userId, orgId);
-      
-      // Check if user has all of the required permissions
-      const hasAllPermissions = requiredPermissions.every(perm => 
-        userPermissions.includes(perm)
-      );
-      
-      if (hasAllPermissions) {
-        return next();
-      }
-      
-      // Permission denied
-      return res.status(403).json({ 
-        error: 'Forbidden', 
-        message: 'You do not have all required permissions to perform this action' 
-      });
-    } catch (error) {
-      logger.error(`Permission check error:`, error);
-      return res.status(500).json({ 
-        error: 'Internal Server Error', 
-        message: 'An error occurred while checking permissions' 
-      });
-    }
-  };
-}
-
-/**
- * Express middleware to restrict access to system administrators only
- * @returns Express middleware function
- */
-export function requireSystemAdmin() {
-  return (req: Request, res: Response, next: NextFunction) => {
-    // No user in request
-    if (!req.user) {
-      return res.status(401).json({ 
-        error: 'Unauthorized', 
-        message: 'Authentication required' 
-      });
-    }
-    
-    // Check system admin flag
-    if (req.user.isSystemAdmin) {
-      return next();
-    }
-    
-    // Access denied
-    return res.status(403).json({ 
-      error: 'Forbidden', 
-      message: 'System administrator access required' 
     });
+    
+    if (!user || !user.role) {
+      return null;
+    }
+    
+    // Get the user's permissions
+    const isSystemAdmin = user.role.level >= 5 || !!user.isSystemAdmin;
+    let permissions: string[] = [];
+    
+    // If user has a role, get permissions from the role
+    if (user.role.permissions) {
+      permissions = Array.isArray(user.role.permissions) 
+        ? user.role.permissions 
+        : [];
+    }
+    
+    // Get template permissions if available
+    if (user.role.templateId) {
+      const template = await db.query.permissionTemplates.findFirst({
+        where: eq(permissionTemplates.id, user.role.templateId)
+      });
+      
+      if (template && template.permissions) {
+        const templatePermissions = template.permissions as string[];
+        permissions = [...new Set([...permissions, ...templatePermissions])];
+      }
+    }
+    
+    // If user is system admin, grant all permissions
+    if (isSystemAdmin) {
+      permissions.push('*'); // Wildcard permission
+    }
+    
+    // Cache the permissions
+    const userPermissions: UserPermissions = {
+      userId,
+      orgId: user.orgId,
+      isSystemAdmin,
+      permissions,
+      cachedAt: now
+    };
+    
+    permissionsCache.set(cacheKey, userPermissions);
+    return userPermissions;
+  } catch (error) {
+    logger.error('Error retrieving user permissions:', error);
+    return null;
+  }
+}
+
+/**
+ * Clears the permissions cache for a specific user
+ */
+export function clearUserPermissionsCache(userId: number): void {
+  const cacheKey = `permissions_${userId}`;
+  permissionsCache.delete(cacheKey);
+}
+
+/**
+ * Clears the entire permissions cache
+ */
+export function clearAllPermissionsCache(): void {
+  permissionsCache.clear();
+}
+
+/**
+ * Middleware to check if a user has a specific permission
+ */
+export function hasPermission(requiredPermission: string) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized: Please log in' });
+    }
+    
+    try {
+      const userPermissions = await getUserPermissions(req.user.id);
+      
+      if (!userPermissions) {
+        return res.status(403).json({ error: 'Forbidden: Permissions not available' });
+      }
+      
+      // System admins have all permissions
+      if (userPermissions.isSystemAdmin) {
+        return next();
+      }
+      
+      // Check if user has the required permission or a wildcard
+      if (
+        userPermissions.permissions.includes(requiredPermission) || 
+        userPermissions.permissions.includes('*')
+      ) {
+        return next();
+      }
+      
+      // Check for module wildcard permission
+      // Example: If requiredPermission is 'crm.leads.view', check for 'crm.*'
+      const moduleName = requiredPermission.split('.')[0];
+      if (userPermissions.permissions.includes(`${moduleName}.*`)) {
+        return next();
+      }
+      
+      return res.status(403).json({ 
+        error: 'Forbidden: Insufficient permissions',
+        missing: [requiredPermission]
+      });
+    } catch (error) {
+      logger.error('Permission check error:', error);
+      return res.status(500).json({ error: 'Internal server error during permission check' });
+    }
   };
 }
 
 /**
- * Express middleware to restrict access to the organization's admin users
- * @returns Express middleware function
+ * Checks if a user has a specific permission (non-middleware version)
  */
-export function requireOrganizationAdmin() {
+export async function checkPermission(
+  userId: number, 
+  requiredPermission: string
+): Promise<boolean> {
+  try {
+    const userPermissions = await getUserPermissions(userId);
+    
+    if (!userPermissions) {
+      return false;
+    }
+    
+    // System admins have all permissions
+    if (userPermissions.isSystemAdmin) {
+      return true;
+    }
+    
+    // Check if user has the required permission or a wildcard
+    if (
+      userPermissions.permissions.includes(requiredPermission) || 
+      userPermissions.permissions.includes('*')
+    ) {
+      return true;
+    }
+    
+    // Check for module wildcard permission
+    const moduleName = requiredPermission.split('.')[0];
+    if (userPermissions.permissions.includes(`${moduleName}.*`)) {
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    logger.error('Permission check error:', error);
+    return false;
+  }
+}
+
+/**
+ * Middleware to check if a user has a specific role level
+ */
+export function hasRoleLevel(requiredLevel: number) {
   return async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized: Please log in' });
+    }
+    
     try {
-      // No user in request
-      if (!req.user) {
-        return res.status(401).json({ 
-          error: 'Unauthorized', 
-          message: 'Authentication required' 
+      // Get user's role
+      const user = await db.query.users.findFirst({
+        where: eq(users.id, req.user.id),
+        with: {
+          role: true
+        }
+      });
+      
+      if (!user || !user.role) {
+        return res.status(403).json({ error: 'Forbidden: User role not found' });
+      }
+      
+      // Check if user's role level is sufficient
+      if (user.role.level < requiredLevel) {
+        return res.status(403).json({
+          error: 'Forbidden: Insufficient role level',
+          details: `Required level: ${requiredLevel}, Current level: ${user.role.level}`
         });
       }
       
-      // System admins have access to everything
-      if (req.user.isSystemAdmin) {
-        return next();
-      }
-      
-      // Check if user has the org admin permission
-      const hasOrgAdminPermission = await userHasPermission(
-        req.user.id, 
-        PERMISSIONS.MANAGE_ORGANIZATION, 
-        req.user.orgId || null
-      );
-      
-      if (hasOrgAdminPermission) {
-        return next();
-      }
-      
-      // Access denied
-      return res.status(403).json({ 
-        error: 'Forbidden', 
-        message: 'Organization administrator access required' 
-      });
+      return next();
     } catch (error) {
-      logger.error('Organization admin check error:', error);
-      return res.status(500).json({ 
-        error: 'Internal Server Error', 
-        message: 'An error occurred while checking permissions' 
-      });
+      logger.error('Role level check error:', error);
+      return res.status(500).json({ error: 'Internal server error during role check' });
     }
   };
 }
