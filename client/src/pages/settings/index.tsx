@@ -53,6 +53,7 @@ import {
   Check,
   Sparkles,
   DollarSign,
+  Palette,
 } from "lucide-react";
 import { getDepartmentColor } from "@/lib/utils";
 
