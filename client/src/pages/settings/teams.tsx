@@ -557,6 +557,163 @@ const TeamMembers = ({ team, onClose }) => {
   );
 };
 
+// Team Hierarchy Visualization component
+const TeamHierarchy = () => {
+  const [expandedDepartments, setExpandedDepartments] = useState<string[]>([]);
+  const { data: teams, isLoading } = useQuery({
+    queryKey: ["/api/teams"],
+  });
+
+  // For a real application, this endpoint would get all team members
+  // For now, we'll use the existing endpoints to get members for each team
+  const { data: allUsers } = useQuery({
+    queryKey: ["/api/users"],
+  });
+  
+  // Group teams by department
+  const teamsByDepartment = React.useMemo(() => {
+    if (!teams) return {};
+    
+    return teams.reduce((acc, team) => {
+      const dept = team.department;
+      if (!acc[dept]) {
+        acc[dept] = [];
+      }
+      acc[dept].push(team);
+      return acc;
+    }, {});
+  }, [teams]);
+
+  // Toggle department expansion
+  const toggleDepartment = (department: string) => {
+    setExpandedDepartments(prev => 
+      prev.includes(department) 
+        ? prev.filter(d => d !== department)
+        : [...prev, department]
+    );
+  };
+
+  // Get department color class
+  const getDepartmentColorClass = (department: string) => {
+    switch (department) {
+      case 'sales': return 'text-blue-600 border-blue-200 bg-blue-50';
+      case 'dispatch': return 'text-green-600 border-green-200 bg-green-50';
+      case 'admin': return 'text-purple-600 border-purple-200 bg-purple-50';
+      case 'finance': return 'text-yellow-600 border-yellow-200 bg-yellow-50';
+      case 'hr': return 'text-pink-600 border-pink-200 bg-pink-50';
+      case 'marketing': return 'text-orange-600 border-orange-200 bg-orange-50';
+      default: return 'text-gray-600 border-gray-200 bg-gray-50';
+    }
+  };
+
+  // In a real application, we would use team members data directly
+  // For this implementation, we'll use the team lead ID to identify the lead
+  const getTeamLead = (teamLeadId: number | null) => {
+    if (!teamLeadId || !allUsers) return null;
+    return allUsers.find(user => user.id === teamLeadId);
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Organization Hierarchy</CardTitle>
+          <CardDescription>Loading organization structure...</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!teams || teams.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Organization Hierarchy</CardTitle>
+          <CardDescription>View your organization's team structure</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>No teams found</AlertTitle>
+            <AlertDescription>
+              Create teams to visualize your organization hierarchy.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Layers className="mr-2 h-5 w-5" />
+          Organization Hierarchy
+        </CardTitle>
+        <CardDescription>
+          Visualize your organization's team structure and reporting lines
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {Object.entries(teamsByDepartment).map(([department, departmentTeams]) => (
+            <div key={department} className="border rounded-md overflow-hidden">
+              <div 
+                className={`flex items-center justify-between p-3 cursor-pointer ${getDepartmentColorClass(department)}`}
+                onClick={() => toggleDepartment(department)}
+              >
+                <div className="font-medium capitalize">{department} Department</div>
+                <div>
+                  {expandedDepartments.includes(department) ? (
+                    <ChevronDown className="h-5 w-5" />
+                  ) : (
+                    <ChevronRight className="h-5 w-5" />
+                  )}
+                </div>
+              </div>
+              
+              {expandedDepartments.includes(department) && (
+                <div className="p-3 space-y-3 bg-white">
+                  {departmentTeams.map((team: Team) => {
+                    const teamLead = getTeamLead(team.teamLeadId);
+                    
+                    return (
+                      <div key={team.id} className="ml-4 border-l-2 pl-4 py-1">
+                        <div className="font-medium">{team.name}</div>
+                        
+                        {teamLead && (
+                          <div className="ml-4 mt-1 flex items-center">
+                            <Badge variant="outline" className="mr-2">Team Lead</Badge>
+                            <span>{teamLead.firstName} {teamLead.lastName}</span>
+                          </div>
+                        )}
+                        
+                        {!teamLead && (
+                          <div className="ml-4 mt-1 text-gray-400 italic">
+                            No team lead assigned
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 // Main team management page
 export default function TeamManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -704,11 +861,25 @@ export default function TeamManagementPage() {
         </Dialog>
       </div>
 
-      <TeamList
-        onEditTeam={handleEditTeam}
-        onViewTeam={handleViewTeamMembers}
-        onDeleteTeam={handleDeleteTeam}
-      />
+      <div className="space-y-6">
+        <TeamList
+          onEditTeam={handleEditTeam}
+          onViewTeam={handleViewTeamMembers}
+          onDeleteTeam={handleDeleteTeam}
+        />
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Team Hierarchy</CardTitle>
+            <CardDescription>
+              Organizational structure visualization showing team members and their roles
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TeamHierarchy />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Edit Team Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

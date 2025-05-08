@@ -1,6 +1,6 @@
 import { Team, InsertTeam, teams, teamMembers, users, roles } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, isNull, not, or } from "drizzle-orm";
+import { eq, and, isNull, not, or, inArray } from "drizzle-orm";
 
 /**
  * Gets all teams for an organization
@@ -173,4 +173,36 @@ export async function getAvailableUsers(orgId: number): Promise<any[]> {
   
   const availableUsers = await query.orderBy(users.firstName, users.lastName);
   return availableUsers;
+}
+
+/**
+ * Gets all members across multiple teams (for hierarchy visualization)
+ */
+export async function getAllTeamMembers(teamIds: number[]): Promise<any[]> {
+  if (!teamIds.length) return [];
+  
+  const result = await db
+    .select({
+      id: teamMembers.id,
+      userId: users.id,
+      teamId: teamMembers.teamId,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      role: {
+        id: roles.id,
+        name: roles.name,
+        level: roles.level
+      }
+    })
+    .from(teamMembers)
+    .innerJoin(users, eq(teamMembers.userId, users.id))
+    .innerJoin(roles, eq(users.roleId, roles.id))
+    .where(teamIds.length === 1 
+      ? eq(teamMembers.teamId, teamIds[0]) 
+      : inArray(teamMembers.teamId, teamIds)
+    )
+    .orderBy(users.firstName, users.lastName);
+  
+  return result;
 }

@@ -424,6 +424,37 @@ export function registerTeamRoutes(apiRouter: Router) {
       });
     }
   });
+  
+  // Get all team members (for hierarchy visualization)
+  teamRouter.get("/all-members", checkPermission(1), async (req, res) => {
+    try {
+      const orgId = req.user?.orgId;
+      
+      if (!orgId) {
+        return res.status(400).json({ 
+          error: "Organization ID is required" 
+        });
+      }
+      
+      // Get all teams for this organization
+      const teams = await teamStorage.getTeams(orgId);
+      
+      if (!teams || teams.length === 0) {
+        return res.json([]);
+      }
+      
+      // Get all team members for these teams
+      const teamIds = teams.map(team => team.id);
+      const allMembers = await teamStorage.getAllTeamMembers(teamIds);
+      
+      res.json(allMembers);
+    } catch (error) {
+      console.error("Error getting all team members:", error);
+      res.status(500).json({ 
+        error: "Failed to retrieve team members" 
+      });
+    }
+  });
 
   // Register the team router
   apiRouter.use("/teams", teamRouter);
