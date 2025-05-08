@@ -97,6 +97,12 @@ export interface IStorage {
   createFeatureFlag(flag: InsertFeatureFlag): Promise<FeatureFlag>;
   updateFeatureFlag(id: number, updates: Partial<FeatureFlag>): Promise<FeatureFlag | undefined>;
   
+  // CRM Dashboard operations
+  getLeadsByDateRange(startDate: string, endDate: string): Promise<Lead[]>;
+  getActivitiesByDateRange(startDate: string, endDate: string, limit?: number): Promise<Activity[]>;
+  getCommissionsByMonth(year: number, month: number): Promise<Commission[]>;
+  getTopPerformingUsers(limit?: number): Promise<User[]>;
+  
   // Account operations (CRM Deep-Carve)
   getAccount(id: number): Promise<Account | undefined>;
   getAccounts(): Promise<Account[]>;
