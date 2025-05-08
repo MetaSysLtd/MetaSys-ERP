@@ -4,6 +4,8 @@ import { insertTeamSchema, insertTeamMemberSchema } from "@shared/schema";
 import * as teamStorage from "../teamStorage";
 import { storage } from "../storage";
 import { checkAuth, checkPermission } from "../middleware";
+import { notifyDataChange, RealTimeEvents } from "../socket";
+import { logger } from "../logger";
 
 export function registerTeamRoutes(apiRouter: Router) {
   const teamRouter = Router();
@@ -71,6 +73,19 @@ export function registerTeamRoutes(apiRouter: Router) {
       });
       
       const team = await teamStorage.createTeam(validatedData);
+      
+      // Emit socket event for team creation
+      notifyDataChange(
+        'team', 
+        team.id, 
+        'created', 
+        team, 
+        { 
+          orgId: team.orgId, 
+          broadcastToOrg: true 
+        }
+      );
+      
       res.status(201).json(team);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -115,6 +130,19 @@ export function registerTeamRoutes(apiRouter: Router) {
       
       // Update team
       const updatedTeam = await teamStorage.updateTeam(id, req.body);
+      
+      // Emit socket event for team update
+      notifyDataChange(
+        'team', 
+        updatedTeam.id, 
+        'updated', 
+        updatedTeam, 
+        { 
+          orgId: updatedTeam.orgId, 
+          broadcastToOrg: true 
+        }
+      );
+      
       res.json(updatedTeam);
     } catch (error) {
       console.error("Error updating team:", error);

@@ -25,7 +25,13 @@ export enum RealTimeEvents {
   UI_PREFS_UPDATED = 'uiPrefsUpdated',
   REPORT_GENERATED = 'report:generated',
   USER_ASSIGNMENT_CHANGED = 'user:assignment_changed',
-  DASHBOARD_UPDATED = 'dashboard:updated'
+  DASHBOARD_UPDATED = 'dashboard:updated',
+  TEAM_CREATED = 'team:created',
+  TEAM_UPDATED = 'team:updated',
+  TEAM_DELETED = 'team:deleted',
+  TEAM_MEMBER_ADDED = 'team:member_added',
+  TEAM_MEMBER_REMOVED = 'team:member_removed',
+  TEAM_HIERARCHY_UPDATED = 'team:hierarchy_updated'
 }
 
 // Initialize Socket.IO
