@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { ChevronLeft } from "lucide-react";
 
 export default function DesignSystemPage() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [, navigate] = useLocation();
 
   // Redirect if not authenticated
@@ -86,7 +86,7 @@ export default function DesignSystemPage() {
                     "brand-text": "#333333"
                   }
                 }}
-                isAdmin={user.role === 'admin'}
+                isAdmin={role && role.level >= 5}
               />
             </div>
           </TabsContent>

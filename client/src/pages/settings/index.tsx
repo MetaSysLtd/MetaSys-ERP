@@ -739,6 +739,7 @@ export default function SettingsPage() {
                               "brand-text": "#333333"
                             }
                           }}
+                          isAdmin={role.level >= 5}
                         />
                       </TabsContent>
                       
