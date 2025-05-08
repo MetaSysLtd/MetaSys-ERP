@@ -4,7 +4,17 @@ import { logger } from '../logger';
 import { checkPermission } from './permissions';
 import { getIo } from '../socket';
 import { RealTimeEvents } from '@shared/constants';
-import { users, leads, commissions, activities, tasks, dispatchTasks, dispatch_clients } from '@shared/schema';
+import { 
+  users, 
+  leads, 
+  commissions, 
+  activities, 
+  tasks, 
+  dispatchTasks, 
+  dispatch_clients, 
+  invoices, 
+  invoiceItems 
+} from '@shared/schema';
 
 /**
  * Service to handle cross-module data flow with permission checks
@@ -45,7 +55,7 @@ export async function getModuleData(
   dataType: string,
   userId: number,
   options: DataAccessOptions = { userId: 0 }
-): Promise<{ data: any; hasAccess: boolean }> {
+): Promise<{ data: any; hasAccess: boolean; error?: string }> {
   try {
     // Check if user has permission to access this data type
     const requiredPermission = dataTypePermissions[dataType] || `${dataType}.view`;
@@ -54,7 +64,8 @@ export async function getModuleData(
     if (!hasAccess) {
       return { 
         data: null, 
-        hasAccess: false 
+        hasAccess: false,
+        error: `Access denied: You don't have permission to view ${dataType}` 
       };
     }
     
@@ -92,7 +103,11 @@ export async function getModuleData(
         data = await getDashboardData(userId, orgId);
         break;
       default:
-        throw new Error(`Unknown data type: ${dataType}`);
+        return {
+          data: null,
+          hasAccess: false,
+          error: `Unknown data type: ${dataType}`
+        };
     }
     
     return { 
@@ -101,7 +116,34 @@ export async function getModuleData(
     };
   } catch (error) {
     logger.error(`Error getting module data (type: ${dataType}):`, error);
-    throw error;
+    
+    // Generate a user-friendly error message
+    let errorMessage = "An error occurred while retrieving data";
+    
+    if (error instanceof Error) {
+      // Add more context to the error while keeping it user-friendly
+      errorMessage = `${errorMessage}: ${error.message}`;
+      
+      // Log additional diagnostic information
+      logger.debug({
+        context: "cross-module-data",
+        action: "getModuleData",
+        dataType,
+        userId,
+        options,
+        errorDetails: {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        }
+      });
+    }
+    
+    return {
+      data: null,
+      hasAccess: false,
+      error: errorMessage
+    };
   }
 }
 
@@ -188,11 +230,11 @@ async function getDispatchData(userId: number, orgId: number): Promise<any> {
  */
 async function getInvoiceData(userId: number, orgId: number): Promise<any> {
   // Get invoices associated with the user or organization
-  return await db.select().from(finance.invoices).where(
+  return await db.select().from(invoices).where(
     orgId > 0 
-      ? eq(finance.invoices.orgId, orgId) 
-      : eq(finance.invoices.createdBy, userId)
-  ).orderBy(desc(finance.invoices.date));
+      ? eq(invoices.orgId, orgId) 
+      : eq(invoices.createdBy, userId)
+  ).orderBy(desc(invoices.issuedDate));
 }
 
 /**
@@ -454,8 +496,8 @@ async function getPrimaryEntityData(dataType: string, entityId: number): Promise
         where: eq(tasks.id, entityId)
       });
     case 'invoices':
-      return await db.query.finance.invoices.findFirst({
-        where: eq(finance.invoices.id, entityId)
+      return await db.query.invoices.findFirst({
+        where: eq(invoices.id, entityId)
       });
     default:
       return null;
@@ -498,9 +540,9 @@ async function getRelatedEntityData(
         .orderBy(desc(commissions.createdAt));
     
     case 'clients:invoices':
-      return await db.select().from(finance.invoices)
-        .where(eq(finance.invoices.clientId, primaryId))
-        .orderBy(desc(finance.invoices.date));
+      return await db.select().from(invoices)
+        .where(eq(invoices.leadId, primaryId))
+        .orderBy(desc(invoices.issuedDate));
     
     case 'clients:activities':
       return await db.select().from(activities)
