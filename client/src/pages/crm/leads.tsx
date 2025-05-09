@@ -897,7 +897,7 @@ export default function CRMLeadsPage() {
                             
                             <AdminActions 
                               item={lead}
-                              module="lead"
+                              module="leads"
                               onEdit={() => openEditModal(lead)}
                               onDelete={async () => {
                                 await deleteEntity(lead.id);

@@ -35,7 +35,8 @@ export function useAdminControls({
   moduleFields
 }: AdminControlsOptions) {
   const { toast } = useToast();
-  const { user, role } = useAuth();
+  const auth = useAuth();
+  const role = auth?.role || { level: 0 };
   const queryClient = useQueryClient();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -45,24 +46,45 @@ export function useAdminControls({
   // Default field configuration for common entity types
   const defaultFields: Record<string, FieldConfig[]> = {
     leads: [
-      { name: "firstName", label: "First Name", type: "text", required: true },
-      { name: "lastName", label: "Last Name", type: "text", required: true },
-      { name: "email", label: "Email", type: "email", required: true },
-      { name: "phone", label: "Phone", type: "text" },
-      { name: "company", label: "Company", type: "text" },
-      { name: "status", label: "Status", type: "select", options: [
-        { label: "New", value: "new" },
-        { label: "Contacted", value: "contacted" },
-        { label: "Qualified", value: "qualified" },
-        { label: "Proposal", value: "proposal" },
-        { label: "Negotiation", value: "negotiation" },
-        { label: "Won", value: "won" },
-        { label: "Lost", value: "lost" },
+      { name: "companyName", label: "Company Name", type: "text", required: true },
+      { name: "mcNumber", label: "MC Number", type: "text", required: true },
+      { name: "dotNumber", label: "DOT Number", type: "text" },
+      { name: "equipmentType", label: "Equipment Type", type: "text", required: true },
+      { name: "truckCategory", label: "Truck Category", type: "text" },
+      { name: "factoringStatus", label: "Factoring Status", type: "text", required: true },
+      { name: "serviceCharges", label: "Service Charges", type: "number" },
+      { name: "contactName", label: "Contact Name", type: "text", required: true },
+      { name: "phoneNumber", label: "Phone Number", type: "text", required: true },
+      { name: "email", label: "Email", type: "email" },
+      { name: "status", label: "Status", type: "select", required: true, options: [
+        { label: "New", value: "New" },
+        { label: "In Progress", value: "InProgress" },
+        { label: "Follow Up", value: "FollowUp" },
+        { label: "Hand To Dispatch", value: "HandToDispatch" },
+        { label: "Active", value: "Active" },
+        { label: "Lost", value: "Lost" },
       ]},
-      { name: "priority", label: "Priority", type: "select", options: [
-        { label: "Low", value: "low" },
-        { label: "Medium", value: "medium" },
-        { label: "High", value: "high" },
+      { name: "source", label: "Source", type: "select", required: true, options: [
+        { label: "SQL", value: "SQL" },
+        { label: "MQL", value: "MQL" },
+        { label: "Website", value: "Website" },
+        { label: "Referral", value: "Referral" },
+        { label: "Cold Call", value: "Cold Call" },
+        { label: "Event", value: "Event" },
+        { label: "Partner", value: "Partner" },
+        { label: "Other", value: "Other" },
+      ]},
+      { name: "sourceDetails", label: "Source Details", type: "text" },
+      { name: "qualificationScore", label: "Qualification Score", type: "select", options: [
+        { label: "Low", value: "Low" },
+        { label: "Medium", value: "Medium" },
+        { label: "High", value: "High" },
+        { label: "Very High", value: "Very High" },
+      ]},
+      { name: "validationStatus", label: "Validation Status", type: "select", options: [
+        { label: "Valid", value: "Valid" },
+        { label: "Invalid", value: "Invalid" },
+        { label: "Pending", value: "Pending" },
       ]},
       { name: "notes", label: "Notes", type: "textarea" },
     ],
