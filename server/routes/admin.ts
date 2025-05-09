@@ -1,8 +1,12 @@
 import express from 'express';
 import { createAuthMiddleware } from '../auth-middleware';
 import { logger } from '../logger';
+import adminRoutes from './admin-routes';
 
 const router = express.Router();
+
+// Mount our admin-routes for CRUD operations on any entity
+router.use('/', adminRoutes);
 
 /**
  * GET /api/admin/users
