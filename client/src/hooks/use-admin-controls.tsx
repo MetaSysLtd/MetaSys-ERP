@@ -1,113 +1,165 @@
-import { useState, useCallback } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import { adminService } from '@/services/adminService';
-import { queryClient } from '@/lib/queryClient';
-import { FieldConfig } from '@/components/admin/AdminEditModal';
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { adminService } from "@/services/adminService";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface UseAdminControlsOptions {
-  module: string;
-  queryKey: string | string[];
+export interface FieldConfig {
+  name: string;
+  label: string;
+  type: 'text' | 'number' | 'textarea' | 'boolean' | 'select' | 'date' | 'email';
+  options?: { label: string; value: string | number | boolean }[];
+  readOnly?: boolean;
+  disabled?: boolean;
+  description?: string;
+  required?: boolean;
+  pattern?: {
+    value: RegExp;
+    message: string;
+  };
+  min?: number;
+  max?: number;
+  minLength?: number;
+  maxLength?: number;
 }
 
-/**
- * Hook for using global admin controls to edit and delete entities
- */
-export function useAdminControls({ module, queryKey }: UseAdminControlsOptions) {
+interface AdminControlsOptions {
+  module: string;
+  queryKey: string | string[];
+  moduleFields?: FieldConfig[];
+}
+
+export function useAdminControls({ 
+  module, 
+  queryKey,
+  moduleFields
+}: AdminControlsOptions) {
+  const { toast } = useToast();
   const { user, role } = useAuth();
+  const queryClient = useQueryClient();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [fields, setFields] = useState<FieldConfig[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAdminActionLoading, setIsAdminActionLoading] = useState(false);
+  const isSystemAdmin = role?.level >= 5;
+  
+  // Default field configuration for common entity types
+  const defaultFields: Record<string, FieldConfig[]> = {
+    leads: [
+      { name: "firstName", label: "First Name", type: "text", required: true },
+      { name: "lastName", label: "Last Name", type: "text", required: true },
+      { name: "email", label: "Email", type: "email", required: true },
+      { name: "phone", label: "Phone", type: "text" },
+      { name: "company", label: "Company", type: "text" },
+      { name: "status", label: "Status", type: "select", options: [
+        { label: "New", value: "new" },
+        { label: "Contacted", value: "contacted" },
+        { label: "Qualified", value: "qualified" },
+        { label: "Proposal", value: "proposal" },
+        { label: "Negotiation", value: "negotiation" },
+        { label: "Won", value: "won" },
+        { label: "Lost", value: "lost" },
+      ]},
+      { name: "priority", label: "Priority", type: "select", options: [
+        { label: "Low", value: "low" },
+        { label: "Medium", value: "medium" },
+        { label: "High", value: "high" },
+      ]},
+      { name: "notes", label: "Notes", type: "textarea" },
+    ],
+  };
+  
+  // Use provided fields or fall back to default fields for the module
+  const fields = moduleFields || defaultFields[module] || [];
 
-  // Check if user is a System Admin
-  const isSystemAdmin = (role?.level && role.level >= 5) || user?.isSystemAdmin === true;
+  // Define query keys for invalidation
+  const queryKeyArray = Array.isArray(queryKey) ? queryKey : [queryKey];
 
-  // Load field configuration for the module
-  const loadFieldConfig = useCallback(async () => {
-    if (!module) return;
-    
-    try {
-      setIsLoading(true);
-      const fieldConfig = await adminService.getModuleFieldConfig(module);
-      setFields(fieldConfig);
-    } catch (error) {
-      console.error('Error loading field configuration:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [module]);
-
-  // Open the edit modal for an item
-  const openEditModal = useCallback(async (item: any) => {
-    if (!isSystemAdmin || !item) return;
-    
-    setSelectedItem(item);
-    
-    // If we don't have field config yet, load it
-    if (fields.length === 0) {
-      await loadFieldConfig();
-    }
-    
-    setIsEditModalOpen(true);
-  }, [isSystemAdmin, fields.length, loadFieldConfig]);
-
-  // Update an entity
-  const updateEntity = useCallback(async (data: any) => {
-    if (!selectedItem?.id) return;
-    
-    try {
-      setIsLoading(true);
-      await adminService.updateEntity(module, selectedItem.id, data);
-      
-      // Invalidate queries to refresh data
-      if (Array.isArray(queryKey)) {
-        queryClient.invalidateQueries({ queryKey });
-      } else {
-        queryClient.invalidateQueries({ queryKey: [queryKey] });
+  // Create mutation for updating entities
+  const updateMutation = useMutation({
+    mutationFn: async (data: any) => {
+      setIsAdminActionLoading(true);
+      try {
+        const result = await adminService.updateEntity(module, data);
+        return result;
+      } finally {
+        setIsAdminActionLoading(false);
       }
-      
+    },
+    onSuccess: () => {
+      // Using the object form of invalidateQueries for TanStack Query v5
+      queryClient.invalidateQueries({ queryKey: queryKeyArray });
+      toast({
+        title: "Updated successfully",
+        description: `The ${module} has been updated successfully.`,
+      });
       setIsEditModalOpen(false);
-    } catch (error) {
-      console.error('Error updating entity:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update failed",
+        description: error.message || `Failed to update ${module}.`,
+        variant: "destructive",
+      });
     }
-  }, [module, selectedItem, queryKey]);
+  });
 
-  // Delete an entity
-  const deleteEntity = useCallback(async (id: number | string) => {
-    if (!isSystemAdmin) return;
-    
-    try {
-      setIsLoading(true);
-      await adminService.deleteEntity(module, id);
-      
-      // Invalidate queries to refresh data
-      if (Array.isArray(queryKey)) {
-        queryClient.invalidateQueries({ queryKey });
-      } else {
-        queryClient.invalidateQueries({ queryKey: [queryKey] });
+  // Create mutation for deleting entities
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number | string) => {
+      setIsAdminActionLoading(true);
+      try {
+        const result = await adminService.deleteEntity(module, id);
+        return result;
+      } finally {
+        setIsAdminActionLoading(false);
       }
-      
-      return true;
-    } catch (error) {
-      console.error('Error deleting entity:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+    },
+    onSuccess: () => {
+      // Using the object form of invalidateQueries for TanStack Query v5
+      queryClient.invalidateQueries({ queryKey: queryKeyArray });
+      toast({
+        title: "Deleted successfully",
+        description: `The ${module} has been removed.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Delete failed",
+        description: error.message || `Failed to delete ${module}.`,
+        variant: "destructive",
+      });
     }
-  }, [isSystemAdmin, module, queryKey]);
+  });
+
+  // Function to open edit modal
+  const openEditModal = (item: any) => {
+    setSelectedItem(item);
+    setIsEditModalOpen(true);
+  };
+
+  // Function to handle entity update
+  const updateEntity = async (data: any) => {
+    return updateMutation.mutateAsync({ ...data, id: selectedItem.id });
+  };
+
+  // Function to handle entity deletion
+  const deleteEntity = async (id: number | string) => {
+    if (window.confirm(`Are you sure you want to delete this ${module}? This action cannot be undone.`)) {
+      return deleteMutation.mutateAsync(id);
+    }
+    return true;
+  };
 
   return {
-    isSystemAdmin,
+    openEditModal,
+    updateEntity,
+    deleteEntity,
     isEditModalOpen,
     setIsEditModalOpen,
     selectedItem,
-    fields,
-    isLoading,
-    openEditModal,
-    updateEntity,
-    deleteEntity
+    isAdminActionLoading,
+    isSystemAdmin,
+    isLoading: isAdminActionLoading,
+    fields
   };
 }
