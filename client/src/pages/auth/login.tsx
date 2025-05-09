@@ -291,14 +291,7 @@ function LoginForm() {
               </form>
             </Form>
           </CardContent>
-          <CardFooter className="pb-6 pt-0 border-t-0">
-            <div className="w-full text-center text-gray-500 text-sm">
-              <div className="flex items-center justify-center gap-1">
-                <InfoIcon className="h-3 w-3" />
-                <span>Default login: username "admin", password "admin123"</span>
-              </div>
-            </div>
-          </CardFooter>
+          <CardFooter className="pb-6 pt-0 border-t-0" />
         </Card>
 
         {/* Copyright text */}
