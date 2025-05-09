@@ -1,9 +1,8 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
-import {useEffect} from "react"; // Added import for useEffect
+import { useEffect } from "react";
 
 interface Props {
   children: ReactNode;
@@ -129,29 +128,92 @@ const useErrorLogging = (error: Error | null, errorInfo: ErrorInfo | null) => {
   }, [error, errorInfo]);
 };
 
-export const ErrorBoundaryWithLogging = (props: Props) => {
-  const [error, setError] = React.useState<Error | null>(null);
-  const [errorInfo, setErrorInfo] = React.useState<ErrorInfo | null>(null);
+interface ExtendedProps extends Props {
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+}
 
-  React.useEffect(() => {
-    useErrorLogging(error, errorInfo)
-  }, [error, errorInfo]);
+export class ErrorBoundaryWithLogging extends Component<ExtendedProps, State> {
+  constructor(props: ExtendedProps) {
+    super(props);
+    this.state = { 
+      hasError: false, 
+      error: null, 
+      errorInfo: null 
+    };
+  }
 
-  const resetErrorBoundary = () => {
-    setError(null);
-    setErrorInfo(null);
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error, errorInfo: null };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+    this.setState({
+      error: error,
+      errorInfo: errorInfo
+    });
+    
+    // Log to console
+    console.error("[Global Error]", error);
+    
+    // Pass to parent if needed
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
+
+    // Send to server
+    fetch('/api/errors/client', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'REACT_ERROR_BOUNDARY',
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack,
+        url: window.location.href,
+        timestamp: new Date().toISOString()
+      })
+    }).catch(err => console.error("Failed to log error:", err));
+  }
+
+  handleReset = (): void => {
+    this.setState({ 
+      hasError: false, 
+      error: null, 
+      errorInfo: null 
+    });
   };
 
-  const handleError = (error: Error, errorInfo: ErrorInfo) => {
-    setError(error);
-    setErrorInfo(errorInfo);
-  };
+  render(): ReactNode {
+    const { moduleName, fallback, children } = this.props;
 
-  return (
-    <ErrorBoundary
-      {...props}
-      fallback={ <div>An error occurred. Please try again later.</div> }
-      onError={handleError}
-    />
-  );
+    if (this.state.hasError) {
+      // Custom fallback UI
+      if (fallback) {
+        return fallback;
+      }
+
+      // Default error UI
+      return (
+        <EmptyState
+          icon={<AlertTriangle className="h-12 w-12 text-destructive" />}
+          title={`Something went wrong ${moduleName ? `in ${moduleName}` : ''}`}
+          description={this.state.error?.message || "An unexpected error occurred"}
+          className="my-8 border border-destructive/10 bg-destructive/5"
+          action={
+            <Button 
+              onClick={this.handleReset}
+              variant="outline"
+              className="mt-4"
+            >
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Try again
+            </Button>
+          }
+        />
+      );
+    }
+
+    // Normally, just render children
+    return children;
+  }
 };

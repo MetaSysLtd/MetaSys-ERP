@@ -53,15 +53,24 @@ export default function Dashboard() {
           );
         }
         
-        return response.json();
+        const data = await response.json();
+        
+        // Validate that we received valid data
+        if (!data || typeof data !== 'object') {
+          throw new Error("Invalid dashboard data received");
+        }
+        
+        return data;
       } catch (error) {
-        return handleApiError(error, "Dashboard", "dashboard metrics");
+        console.error("[Dashboard] Error loading dashboard data:", error);
+        throw new Error("Failed to load dashboard data.");
       }
     },
     // Reduce the frequency of refetches to avoid overwhelming the user with error messages
-    refetchInterval: 30000, // 30 seconds
+    refetchInterval: 60000, // 60 seconds
     refetchOnWindowFocus: false,
-    retry: 1, // Only retry once to avoid error message spam
+    retry: 2, // Retry up to 2 times
+    retryDelay: 2000, // 2 seconds between retries
   });
 
   return (

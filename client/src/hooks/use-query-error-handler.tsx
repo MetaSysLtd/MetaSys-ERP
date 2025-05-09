@@ -47,8 +47,9 @@ export function QueryErrorHandler({ error, children, fallback }: QueryErrorHandl
 
   // Handle the error with our hook
   if (error) {
-    handleError(error);
-
+    // Don't call handleError here to avoid infinite loops
+    // Just display the error UI
+    
     // Return a fallback UI if provided, otherwise show an error alert
     if (fallback) {
       return <>{fallback}</>;
