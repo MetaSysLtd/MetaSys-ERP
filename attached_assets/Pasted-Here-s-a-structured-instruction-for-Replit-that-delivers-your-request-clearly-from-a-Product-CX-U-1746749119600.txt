@@ -1,0 +1,134 @@
+Here’s a structured instruction for Replit that delivers your request clearly, from a Product + CX/UX angle — with full logic, workflow, and frontend placement. This ensures the ERP behaves like a real system-admin platform (like HubSpot or Salesforce):
+
+
+---
+
+Request: Global Admin Control to Edit or Delete Any Data
+
+1. Business Logic
+
+As System Admin / Super Admin, I must be able to:
+
+View, Edit, or Delete any record in the platform
+(Leads, Clients, Invoices, HR Records, Finance Entries, Loads, Time Tracking, Leave Logs, Commissions, etc.)
+
+Override standard user restrictions (sales, finance, dispatchers)
+
+Clean up or correct data without relying on backend/manual DB fixes
+
+
+This is critical for internal governance, error correction, and platform reliability.
+
+
+---
+
+2. UX/UI Expectations
+
+a. Every Module Screen (Table/List View) Must:
+
+Show full data table (like it does now), but:
+
+If the logged-in user is an Admin, show two additional actions in each row:
+
+Edit (pencil icon or “Edit” button)
+
+Delete (trash icon or “Delete” in kebab menu)
+
+
+
+b. Edit Behavior (Frontend):
+
+Clicking “Edit” opens a modal or detail page
+
+All fields are prefilled and editable (except system-generated IDs)
+
+Required fields must validate before update
+
+On submit: show loader, success/fail toast, update view
+
+
+c. Delete Behavior (Frontend):
+
+Clicking “Delete” prompts a confirmation modal
+
+Text: “Are you sure you want to permanently delete this record? This action cannot be undone.”
+
+Buttons: Cancel | Delete
+
+After deletion: row disappears, success toast appears
+
+
+d. Permissions Logic:
+
+Only users with role = System Admin or Super Admin can:
+
+See Edit/Delete icons
+
+Perform data overrides
+
+
+
+
+---
+
+3. Consistency Across Modules
+
+This logic should apply to:
+
+Module	Records
+
+CRM	Leads, Clients, Accounts, Activities, Commissions
+Dispatch	Loads, Carrier Records
+Invoices	Invoice Entries, Status
+Finance	Transaction Logs, Rate Cards
+HR	Team Members, Leave Logs, Time Tracking
+Marketing	Campaign Logs, Lead Sources
+Admin Dashboard	Scheduled Tasks, Roles, Users, Settings
+
+
+
+---
+
+4. Additional Enhancements (Optional)
+
+Audit Trail: When a record is edited or deleted by Admin, store a log (timestamp + Admin ID + previous value)
+
+Soft Delete Toggle: Optional setting to soft-delete (mark as “Inactive”) instead of full deletion
+
+Global Search (Admin Only): Search and jump to any record (by ID, phone, email) from the top nav
+
+
+
+---
+
+5. Placement (UX Reference for Replit)
+
+Example: On CRM > Leads page (List View)
+
+| Company     | Status   | Contact | Actions (Standard) | Actions (If Admin)       |
+|------------|----------|---------|---------------------|---------------------------|
+| ABC Co.    | Active   | John    | View                | View | Edit | Delete        |
+
+Buttons styled consistently with platform tokens
+
+Hover states and modals must follow same shadow, radius, spacing patterns from Phase 1 design system
+
+
+
+---
+
+Final Summary for Replit
+
+> Build a universal system admin control that enables editing and deleting any record from any module in the ERP, strictly for users with “System Admin” or “Super Admin” roles.
+
+Every list/table view in the platform should include Edit and Delete options when accessed by an Admin.
+
+These actions must show clear modals, validate user input, handle success/error states, and update the UI in real-time.
+
+
+
+
+---
+
+Let me know if you want a QA checklist for this next.
+
