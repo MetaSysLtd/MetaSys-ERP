@@ -20,13 +20,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
-interface AdminEditModalProps {
+export interface AdminEditModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  item: any;
-  module: string;
+  data: any;
   fields: FieldConfig[];
   onSubmit: (data: any) => Promise<void>;
+  isLoading?: boolean;
+  title?: string;
 }
 
 export interface FieldConfig {
@@ -55,10 +56,11 @@ export interface FieldConfig {
 export function AdminEditModal({
   open,
   onOpenChange,
-  item,
-  module,
+  data,
   fields,
-  onSubmit
+  onSubmit,
+  isLoading = false,
+  title = "Edit Item"
 }: AdminEditModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -111,28 +113,30 @@ export function AdminEditModal({
   
   const schema = generateSchema();
   
-  // Initialize the form with values from the item
+  // Initialize the form with values from the data
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: fields.reduce((values, field) => {
-      values[field.name] = item[field.name] !== undefined ? item[field.name] : '';
+      values[field.name] = data && data[field.name] !== undefined ? data[field.name] : '';
       return values;
     }, {} as Record<string, any>),
   });
   
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (formData: any) => {
+    if (isLoading) return;
+    
     setIsSubmitting(true);
     try {
-      await onSubmit(data);
+      await onSubmit(formData);
       toast({
         title: "Success",
-        description: `${module} updated successfully`,
+        description: "Item updated successfully",
       });
       onOpenChange(false);
     } catch (error: any) {
       toast({
         title: "Error",
-        description: `Failed to update ${module}: ${error.message}`,
+        description: `Failed to update: ${error.message}`,
         variant: "destructive",
       });
     } finally {
@@ -248,9 +252,9 @@ export function AdminEditModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Edit {module}</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Make changes to the {module.toLowerCase()} data below. System Admins can edit all fields.
+            Make changes to the fields below. System Admins can edit all fields.
           </DialogDescription>
         </DialogHeader>
         
@@ -258,10 +262,10 @@ export function AdminEditModal({
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="grid gap-4 py-4">
               {/* Read-only ID display */}
-              {item.id && (
+              {data && data.id && (
                 <div className="flex flex-col space-y-1.5">
                   <p className="text-sm font-medium">ID</p>
-                  <p className="text-sm text-muted-foreground">{item.id}</p>
+                  <p className="text-sm text-muted-foreground">{data.id}</p>
                 </div>
               )}
               
@@ -276,12 +280,12 @@ export function AdminEditModal({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLoading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button type="submit" disabled={isSubmitting || isLoading}>
+                {(isSubmitting || isLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Changes
               </Button>
             </DialogFooter>

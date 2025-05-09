@@ -23,6 +23,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { AdminActions } from "@/components/admin/AdminActions";
+import { useAdminControls } from "@/hooks/use-admin-controls";
+import { AdminEditModal } from "@/components/admin/AdminEditModal";
 import { 
   Plus, 
   Search, 
@@ -76,6 +79,22 @@ export default function CRMLeadsPage() {
   const [sortField, setSortField] = useState<string>("createdAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  
+  // Setup admin controls
+  const { 
+    isSystemAdmin,
+    isEditModalOpen, 
+    setIsEditModalOpen,
+    selectedItem,
+    fields,
+    isLoading: isAdminActionLoading,
+    openEditModal,
+    updateEntity,
+    deleteEntity 
+  } = useAdminControls({ 
+    module: 'leads', 
+    queryKey: ["/api/leads"] 
+  });
   
   // Get leads from the API
   const { data: leads, isLoading, error, isError } = useQuery({
@@ -862,18 +881,30 @@ export default function CRMLeadsPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 border-[#025E73] text-[#025E73] hover:bg-[#025E73] hover:text-white transition-colors shadow-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setLocation(`/crm/leads/${lead.id}`);
-                            }}
-                          >
-                            <Eye className="h-3.5 w-3.5 mr-1" />
-                            View
-                          </Button>
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8 border-[#025E73] text-[#025E73] hover:bg-[#025E73] hover:text-white transition-colors shadow-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLocation(`/crm/leads/${lead.id}`);
+                              }}
+                            >
+                              <Eye className="h-3.5 w-3.5 mr-1" />
+                              View
+                            </Button>
+                            
+                            <AdminActions 
+                              item={lead}
+                              module="lead"
+                              onEdit={() => openEditModal(lead)}
+                              onDelete={async () => {
+                                await deleteEntity(lead.id);
+                                return;
+                              }}
+                            />
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -889,6 +920,17 @@ export default function CRMLeadsPage() {
       <NewLeadModal 
         open={newLeadModalOpen} 
         onOpenChange={setNewLeadModalOpen}
+      />
+      
+      {/* Admin Edit Modal */}
+      <AdminEditModal
+        title={`Edit Lead`}
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        fields={fields}
+        data={selectedItem}
+        onSubmit={updateEntity}
+        isLoading={isAdminActionLoading}
       />
     </div>
   );
