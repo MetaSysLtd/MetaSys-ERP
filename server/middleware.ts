@@ -15,6 +15,42 @@ export const checkAuth = async (req: Request, res: Response, next: NextFunction)
   next();
 };
 
+// Middleware to require authentication
+export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ error: 'Unauthorized: Please login to access this resource' });
+  }
+
+  // Add user role information to the request
+  if (!req.userRole && req.user.roleId) {
+    req.userRole = await storage.getRole(req.user.roleId);
+  }
+
+  next();
+};
+
+// Middleware to require admin privileges
+export const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  // First ensure the user role is loaded
+  if (!req.userRole && req.user?.roleId) {
+    req.userRole = await storage.getRole(req.user.roleId);
+  }
+
+  // Check if user is a system admin (level 5+ or has isSystemAdmin flag)
+  const isSystemAdmin = 
+    (req.userRole?.level && req.userRole.level >= 5) || 
+    req.user?.isSystemAdmin === true;
+
+  if (!isSystemAdmin) {
+    return res.status(403).json({ 
+      error: 'Admin privileges required',
+      message: 'This action requires system administrator privileges'
+    });
+  }
+
+  next();
+};
+
 // Permission level middleware
 export const checkPermission = (requiredLevel: number) => {
   return async (req: Request, res: Response, next: NextFunction) => {
