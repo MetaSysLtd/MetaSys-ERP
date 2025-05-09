@@ -167,12 +167,14 @@ export function AdminEditModal({
 
   // Render appropriate input component based on field type
   const renderFieldInput = (fieldConfig: FieldConfig, formField: any) => {
+    const isDisabled = fieldConfig.disabled || isSubmitting || isLoading;
+    
     switch (fieldConfig.type) {
       case 'textarea':
         return (
           <Textarea
             {...formField}
-            disabled={fieldConfig.disabled || isSubmitting}
+            disabled={isDisabled}
             readOnly={fieldConfig.readOnly}
             placeholder={`Enter ${fieldConfig.label.toLowerCase()}`}
           />
@@ -182,7 +184,7 @@ export function AdminEditModal({
           <Switch
             checked={formField.value}
             onCheckedChange={formField.onChange}
-            disabled={fieldConfig.disabled || isSubmitting}
+            disabled={isDisabled}
           />
         );
       case 'select':
@@ -190,7 +192,7 @@ export function AdminEditModal({
           <Select
             value={String(formField.value)}
             onValueChange={formField.onChange}
-            disabled={fieldConfig.disabled || isSubmitting}
+            disabled={isDisabled}
           >
             <SelectTrigger>
               <SelectValue placeholder={`Select ${fieldConfig.label.toLowerCase()}`} />
@@ -209,7 +211,7 @@ export function AdminEditModal({
           <Input
             {...formField}
             type="number"
-            disabled={fieldConfig.disabled || isSubmitting}
+            disabled={isDisabled}
             readOnly={fieldConfig.readOnly}
             placeholder={`Enter ${fieldConfig.label.toLowerCase()}`}
             min={fieldConfig.min}
@@ -221,7 +223,7 @@ export function AdminEditModal({
           <Input
             {...formField}
             type="date"
-            disabled={fieldConfig.disabled || isSubmitting}
+            disabled={isDisabled}
             readOnly={fieldConfig.readOnly}
             value={formField.value ? new Date(formField.value).toISOString().split('T')[0] : ''}
           />
@@ -231,7 +233,7 @@ export function AdminEditModal({
           <Input
             {...formField}
             type="email"
-            disabled={fieldConfig.disabled || isSubmitting}
+            disabled={isDisabled}
             readOnly={fieldConfig.readOnly}
             placeholder={`Enter ${fieldConfig.label.toLowerCase()}`}
           />
@@ -240,7 +242,7 @@ export function AdminEditModal({
         return (
           <Input
             {...formField}
-            disabled={fieldConfig.disabled || isSubmitting}
+            disabled={isDisabled}
             readOnly={fieldConfig.readOnly}
             placeholder={`Enter ${fieldConfig.label.toLowerCase()}`}
           />
