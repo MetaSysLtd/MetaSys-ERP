@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { adminService } from "@/services/adminService";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 
 export interface FieldConfig {
   name: string;
@@ -40,7 +40,7 @@ export function useAdminControls({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isAdminActionLoading, setIsAdminActionLoading] = useState(false);
-  const isSystemAdmin = role?.level >= 5;
+  const isSystemAdmin = (role?.level || 0) >= 5;
   
   // Default field configuration for common entity types
   const defaultFields: Record<string, FieldConfig[]> = {
