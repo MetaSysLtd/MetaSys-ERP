@@ -20,7 +20,7 @@ export function useAdminControls({ module, queryKey }: UseAdminControlsOptions) 
   const [isLoading, setIsLoading] = useState(false);
 
   // Check if user is a System Admin
-  const isSystemAdmin = role?.level >= 5 || user?.isSystemAdmin;
+  const isSystemAdmin = (role?.level && role.level >= 5) || user?.isSystemAdmin === true;
 
   // Load field configuration for the module
   const loadFieldConfig = useCallback(async () => {

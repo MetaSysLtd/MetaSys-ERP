@@ -40,7 +40,7 @@ export function AdminActions({
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Check if user is a System Admin (role level >= 5 or isSystemAdmin flag is true)
-  const isSystemAdmin = role?.level >= 5 || user?.isSystemAdmin;
+  const isSystemAdmin = (role?.level && role.level >= 5) || user?.isSystemAdmin === true;
 
   if (!isSystemAdmin) {
     return null;

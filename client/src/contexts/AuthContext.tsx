@@ -12,6 +12,7 @@ interface User {
   roleId: number;
   active: boolean;
   profileImageUrl: string | null;
+  isSystemAdmin?: boolean;
 }
 
 interface Role {
