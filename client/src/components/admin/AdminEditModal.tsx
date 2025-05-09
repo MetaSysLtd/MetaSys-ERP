@@ -68,6 +68,10 @@ export function AdminEditModal({
   const generateSchema = () => {
     const schemaObj: Record<string, any> = {};
     
+    if (!fields || !Array.isArray(fields)) {
+      return z.object({});
+    }
+    
     fields.forEach(field => {
       let schema;
       
@@ -116,10 +120,12 @@ export function AdminEditModal({
   // Initialize the form with values from the data
   const form = useForm({
     resolver: zodResolver(schema),
-    defaultValues: fields.reduce((values, field) => {
-      values[field.name] = data && data[field.name] !== undefined ? data[field.name] : '';
-      return values;
-    }, {} as Record<string, any>),
+    defaultValues: Array.isArray(fields) 
+      ? fields.reduce((values, field) => {
+          values[field.name] = data && data[field.name] !== undefined ? data[field.name] : '';
+          return values;
+        }, {} as Record<string, any>)
+      : {},
   });
   
   const handleSubmit = async (formData: any) => {
@@ -273,7 +279,7 @@ export function AdminEditModal({
               
               {/* Grid layout for fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {fields.map(renderField)}
+                {Array.isArray(fields) ? fields.map(renderField) : <p>No fields to display</p>}
               </div>
             </div>
             
