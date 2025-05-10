@@ -13,7 +13,8 @@ import { useToast } from '@/hooks/use-toast';
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/login";
 import ForgotPassword from "@/pages/auth/forgot-password";
-import Dashboard from "@/pages/dashboard";
+// Use the more stable implementation for the dashboard
+import Dashboard from "@/pages/dashboard/safe-dashboard";
 import CRMPage from "@/pages/crm";
 import ContactDetails from "@/pages/crm/[id]";
 import CRMLeadsPage from "@/pages/crm/leads";
