@@ -122,38 +122,7 @@ export function AdminEditModal({
     resolver: zodResolver(schema),
     defaultValues: Array.isArray(fields) 
       ? fields.reduce((values, field) => {
-          // Handle different field types with appropriate default values
-          let defaultValue: string | boolean | number = '';
-          
-          if (data && data[field.name] !== undefined) {
-            // Use existing data value if available
-            defaultValue = data[field.name];
-          } else {
-            // Set type-appropriate default values
-            switch (field.type) {
-              case 'boolean':
-                defaultValue = false;
-                break;
-              case 'number':
-                defaultValue = 0;
-                break;
-              case 'select':
-                // Use first option as default, or empty string
-                defaultValue = field.options && field.options.length > 0 
-                  ? String(field.options[0].value) 
-                  : '';
-                break;
-              default:
-                defaultValue = '';
-            }
-          }
-          
-          // Convert to string for text fields to avoid type errors
-          if (field.type !== 'boolean' && field.type !== 'number' && typeof defaultValue !== 'string') {
-            defaultValue = String(defaultValue);
-          }
-          
-          values[field.name] = defaultValue;
+          values[field.name] = data && data[field.name] !== undefined ? data[field.name] : '';
           return values;
         }, {} as Record<string, any>)
       : {},

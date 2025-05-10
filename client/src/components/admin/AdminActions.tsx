@@ -39,9 +39,6 @@ export function AdminActions({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Normalize module name for display (singular form)
-  const displayModule = module === "leads" ? "lead" : module.endsWith("s") ? module.slice(0, -1) : module;
-
   // Check if user is a System Admin (role level >= 5 or isSystemAdmin flag is true)
   const isSystemAdmin = (role?.level && role.level >= 5) || user?.isSystemAdmin === true;
 
