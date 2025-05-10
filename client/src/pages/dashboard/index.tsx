@@ -27,50 +27,99 @@ import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed"
 
 import { DashboardWidgetManager } from "@/components/dashboard/DashboardWidgetManager";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { QueryErrorHandler } from "@/hooks/use-query-error-handler";
+import { QueryErrorHandler } from "@/components/ui/query-error-handler";
 import { handleApiError } from "@/lib/api-error-handler";
 import { retryFetch } from "@/lib/api-error-handler";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default function Dashboard() {
   const { user, role } = useAuth();
   const [dateRange, setDateRange] = useState({ from: new Date(), to: new Date() });
   const [department, setDepartment] = useState("all");
+  const [hasError, setHasError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  // Default data to use as fallback when the API call fails
+  const fallbackData = {
+    counts: {
+      leads: 0,
+      clients: 0,
+      loads: 0,
+      invoices: 0
+    },
+    recent: {
+      leads: [],
+      loads: [],
+      invoices: []
+    },
+    activities: [],
+    revenueData: {
+      total: 0,
+      change: 0,
+      data: []
+    }
+  };
 
   // Using proper error handling with the dashboard API
   const dashboardQuery = useQuery({
     queryKey: ["/api/dashboard", dateRange, department],
     queryFn: async () => {
       try {
+        console.log("[Dashboard] Fetching dashboard data...");
+        
+        // Reset error state when trying a new fetch
+        setHasError(false);
+        setErrorMsg("");
+        
         // Use retry fetch for resilience
         const response = await retryFetch("/api/dashboard");
         
         if (!response.ok) {
-          throw new Error(
-            response.status === 500
-              ? "Dashboard data temporarily unavailable. Our team is working on it."
-              : "Failed to load dashboard data."
-          );
+          const errorMessage = response.status === 500
+            ? "Dashboard data temporarily unavailable. Our team is working on it."
+            : "Failed to load dashboard data.";
+          
+          console.error(`[Dashboard] API Error: ${errorMessage} (${response.status})`);
+          setHasError(true);
+          setErrorMsg(errorMessage);
+          
+          // Return fallback data instead of throwing
+          return { ...fallbackData, error: errorMessage };
         }
         
-        const data = await response.json();
-        
-        // Validate that we received valid data
-        if (!data || typeof data !== 'object') {
-          throw new Error("Invalid dashboard data received");
+        try {
+          const data = await response.json();
+          
+          // Validate that we received valid data
+          if (!data || typeof data !== 'object') {
+            console.error("[Dashboard] Invalid data format received");
+            setHasError(true);
+            setErrorMsg("Invalid dashboard data received");
+            return { ...fallbackData, error: "Invalid data format" };
+          }
+          
+          console.log("[Dashboard] Data loaded successfully");
+          return data;
+        } catch (parseError) {
+          console.error("[Dashboard] JSON parse error:", parseError);
+          setHasError(true);
+          setErrorMsg("Failed to parse dashboard data");
+          return { ...fallbackData, error: "Parse error" };
         }
-        
-        return data;
       } catch (error) {
         console.error("[Dashboard] Error loading dashboard data:", error);
-        throw new Error("Failed to load dashboard data.");
+        setHasError(true);
+        setErrorMsg("Failed to load dashboard data");
+        return { ...fallbackData, error: "Network error" };
       }
     },
     // Reduce the frequency of refetches to avoid overwhelming the user with error messages
-    refetchInterval: 60000, // 60 seconds
+    refetchInterval: 30000, // 30 seconds
     refetchOnWindowFocus: false,
-    retry: 2, // Retry up to 2 times
-    retryDelay: 2000, // 2 seconds between retries
+    retry: 3, // Retry up to 3 times
+    retryDelay: 3000, // 3 seconds between retries
   });
 
   return (
@@ -117,12 +166,30 @@ export default function Dashboard() {
         <MotionWrapper animation="fade-in" delay={0.3}>
           <KPISection />
         </MotionWrapper>
+
+        {/* Show error message if one is set */}
+        {hasError && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{errorMsg || "Failed to load dashboard data"}</AlertDescription>
+          </Alert>
+        )}
+        
+        {/* Show error message if query has error */}
+        {dashboardQuery.error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              {dashboardQuery.error instanceof Error 
+                ? dashboardQuery.error.message 
+                : "Failed to load dashboard data"}
+            </AlertDescription>
+          </Alert>
+        )}
   
-        {/* Use QueryErrorHandler to handle dashboard data gracefully */}
-        <QueryErrorHandler
-          error={dashboardQuery.error}
-          fallback={<div className="text-center py-8">Error loading dashboard data</div>}
-        >
+        {/* Even with errors, continue showing components with safe fallbacks */}
           <MotionWrapper animation="scale-up" delay={0.4}>
             <RevenueCard data={dashboardQuery.data?.revenueData} />
           </MotionWrapper>
@@ -217,7 +284,6 @@ export default function Dashboard() {
           <MotionWrapper animation="fade-in" delay={1.1}>
             <EmployeeSummary data={dashboardQuery.data?.employees} />
           </MotionWrapper>
-        </QueryErrorHandler>
       </div>
     </ErrorBoundary>
   );
