@@ -12,7 +12,7 @@ declare global {
       roleId: number;
       [key: string]: any;
     }
-    
+
     interface Request {
       userRole?: {
         id: number;
@@ -32,7 +32,12 @@ declare global {
 export function auth(minimumLevel: number = 1) {
   return async (req: Request, res: Response, next: NextFunction) => {
     // Check if user is authenticated
-    if (!req.isAuthenticated || !req.isAuthenticated()) {
+    if (!req.session || !req.isAuthenticated || !req.isAuthenticated()) {
+      if (req.session) {
+        req.session.destroy((err) => {
+          if (err) console.error('Session destruction error:', err);
+        });
+      }
       return res.status(401).json({ error: "Unauthorized: Please log in to access this resource" });
     }
 
@@ -45,10 +50,10 @@ export function auth(minimumLevel: number = 1) {
     try {
       // Get user role
       const role = await storage.getRole(req.user?.roleId);
-      
+
       // Store user role in request for later use
       req.userRole = role;
-      
+
       // Check if role meets minimum level requirement
       if (!role || role.level < minimumLevel) {
         return res.status(403).json({ 
@@ -57,10 +62,10 @@ export function auth(minimumLevel: number = 1) {
           currentLevel: role?.level || 0
         });
       }
-      
+
       // User has sufficient permission
       return next();
-      
+
     } catch (error) {
       console.error("Error in auth middleware:", error);
       return res.status(500).json({ error: "Internal server error during authentication" });

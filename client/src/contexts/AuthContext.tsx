@@ -1,4 +1,3 @@
-
 import { createContext, useState, useEffect, ReactNode } from "react";
 import { API_ROUTES } from "@shared/constants";
 
@@ -55,22 +54,26 @@ function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const res = await fetch(API_ROUTES.AUTH.ME, {
           method: "GET",
-          credentials: "include"
+          credentials: "include",
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
         });
-        
+
         if (res.status === 401) {
           setIsAuthenticated(false);
           setUser(null);
           setRole(null);
           return;
         }
-        
+
         if (!res.ok) {
           throw new Error(`${res.status}: ${await res.text() || res.statusText}`);
         }
-        
+
         const data = await res.json();
-        
+
         if (data.authenticated) {
           setIsAuthenticated(true);
           setUser(data.user);
@@ -96,10 +99,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (username: string, password: string) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       console.log(`Attempting to login with username: ${username}`);
-      
+
       const res = await fetch(API_ROUTES.AUTH.LOGIN, {
         method: "POST",
         headers: {
@@ -108,13 +111,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
         credentials: "include",
         body: JSON.stringify({ username, password })
       });
-      
+
       console.log(`Login attempt to ${API_ROUTES.AUTH.LOGIN}, status: ${res.status}`);
-      
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => null);
         const errorMessage = errorData?.message || errorData?.error;
-        
+
         // Provide more specific error messages based on status
         if (res.status === 401) {
           throw new Error('Invalid username or password');
@@ -123,17 +126,17 @@ function AuthProvider({ children }: { children: ReactNode }) {
         } else if (res.status === 429) {
           throw new Error('Too many login attempts. Please try again later');
         }
-        
+
         throw new Error(errorMessage || `Login failed with status ${res.status}`);
       }
-      
+
       const data = await res.json();
       console.log("Login response:", { status: res.status, data });
-      
+
       if (!data.user) {
         throw new Error("Server returned no user data");
       }
-      
+
       setIsAuthenticated(true);
       setUser(data.user);
       setRole(data.role);
@@ -152,17 +155,17 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     setIsLoading(true);
-    
+
     try {
       const res = await fetch(API_ROUTES.AUTH.LOGOUT, {
         method: "POST",
         credentials: "include"
       });
-      
+
       if (!res.ok) {
         console.error(`Logout failed with status ${res.status}`);
       }
-      
+
       setIsAuthenticated(false);
       setUser(null);
       setRole(null);

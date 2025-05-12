@@ -28,14 +28,15 @@ app.use(express.urlencoded({ extended: false }));
 
 // Set up session middleware
 app.use(session({
-  secret: SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: true,
+  saveUninitialized: true,
   cookie: { 
-    secure: process.env.NODE_ENV === "production", 
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  },
-  store: storage.sessionStore
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    httpOnly: true,
+    sameSite: 'lax'
+  }
 }));
 
 // Apply session authentication check middleware
