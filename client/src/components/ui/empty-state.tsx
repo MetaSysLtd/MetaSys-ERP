@@ -15,8 +15,10 @@ import {
   Inbox, 
   Settings, 
   Ticket,
-  Bell
+  Bell,
+  LineChart
 } from "lucide-react";
+import { typography, placeholderChartStyles } from "@/lib/style-utils";
 
 type IconType = 
   | "data" 
@@ -81,7 +83,7 @@ export function EmptyState({
       case "data": return <FileQuestion {...iconProps} />;
       case "users": return <Users {...iconProps} />;
       case "finance": return <DollarSign {...iconProps} />;
-      case "chart": return <BarChart2 {...iconProps} />;
+      case "chart": return <LineChart {...iconProps} />;
       case "calendar": return <Calendar {...iconProps} />;
       case "clock": return <Clock {...iconProps} />;
       case "invoice": return <FileText {...iconProps} />;
@@ -95,6 +97,20 @@ export function EmptyState({
     }
   };
   
+  // Generate placeholder chart for data visualizations
+  const getPlaceholderChart = () => {
+    if (iconType === 'chart' || iconType === 'finance') {
+      return (
+        <div className={`${placeholderChartStyles.base} ${placeholderChartStyles.height} mb-4`}>
+          <LineChart className="h-12 w-12 text-gray-300 mb-2" />
+          <div className={placeholderChartStyles.text}>No performance data yet</div>
+          <div className={placeholderChartStyles.subtext}>Add loads to generate this metric</div>
+        </div>
+      );
+    }
+    return null;
+  };
+  
   return (
     <div 
       className={cn(
@@ -104,7 +120,11 @@ export function EmptyState({
         className
       )}
     >
-      {(icon || iconType) && (
+      {/* Placeholder chart if appropriate for this empty state */}
+      {!minimal && !icon && !placeholderData && (iconType === 'chart' || iconType === 'finance') && getPlaceholderChart()}
+      
+      {/* Standard icon display */}
+      {(icon || iconType) && !minimal && (
         <div className={cn(
           "mb-4",
           iconBackground ? 
@@ -115,23 +135,30 @@ export function EmptyState({
         </div>
       )}
       
+      {/* Small icon for minimal mode */}
+      {(icon || iconType) && minimal && (
+        <div className="mb-2 text-gray-400">
+          {getIcon()}
+        </div>
+      )}
+      
       <h3 className={cn(
-        "font-medium", 
-        minimal ? "text-base" : "text-lg"
+        minimal ? typography.h5 : typography.h4
       )}>
         {title}
       </h3>
       
       <p className={cn(
-        "text-muted-foreground mt-1", 
-        minimal ? "text-sm" : "text-base",
+        "mt-1", 
+        minimal ? typography.small : typography.body,
+        "text-muted-foreground",
         align === 'center' ? "max-w-md mx-auto" : ""
       )}>
         {message}
       </p>
       
       {description && (
-        <p className="text-sm text-gray-500 mt-2">
+        <p className={typography.tiny + " mt-2"}>
           {description}
         </p>
       )}
@@ -153,6 +180,7 @@ export function EmptyState({
               variant="default" 
               onClick={onAction}
               size={minimal ? "sm" : "default"}
+              className={minimal ? "" : "px-4 py-2"}
             >
               {actionLabel}
             </Button>
@@ -163,6 +191,7 @@ export function EmptyState({
               variant="outline" 
               onClick={onSecondaryAction}
               size={minimal ? "sm" : "default"}
+              className={minimal ? "" : "px-4 py-2"}
             >
               {secondaryActionLabel}
             </Button>

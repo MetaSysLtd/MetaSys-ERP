@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { MetricCard } from './MetricCard';
 import { useQuery } from '@tanstack/react-query';
 import { formatCurrency } from '@/lib/utils';
+import { metricCardStyles } from '@/lib/style-utils';
 
 // Define the metrics interface
 interface DashboardMetrics {
