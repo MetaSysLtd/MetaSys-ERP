@@ -167,27 +167,7 @@ export default function Dashboard() {
           <KPISection />
         </MotionWrapper>
 
-        {/* Show error message if one is set */}
-        {hasError && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{errorMsg || "Failed to load dashboard data"}</AlertDescription>
-          </Alert>
-        )}
-        
-        {/* Show error message if query has error */}
-        {dashboardQuery.error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>
-              {dashboardQuery.error instanceof Error 
-                ? dashboardQuery.error.message 
-                : "Failed to load dashboard data"}
-            </AlertDescription>
-          </Alert>
-        )}
+        {/* No visible error alerts - all components will handle errors gracefully */}
   
         {/* Even with errors, continue showing components with safe fallbacks */}
           <MotionWrapper animation="scale-up" delay={0.4}>
