@@ -139,6 +139,17 @@ router.put('/:id', createAuthMiddleware(1), async (req, res, next) => {
       });
     }
 
+    // Check if username is being updated
+    if (updates.username) {
+      // Check if username is already taken
+      const existingUser = await storage.getUserByUsername(updates.username);
+      if (existingUser && existingUser.id !== id) {
+        return res.status(409).json({ 
+          error: 'Username is already taken' 
+        });
+      }
+    }
+
     // Sanitize updates
     delete updates.id; // Prevent ID changes
     delete updates.role; // Prevent role changes via this endpoint
