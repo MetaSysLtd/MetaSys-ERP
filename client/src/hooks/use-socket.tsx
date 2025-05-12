@@ -85,3 +85,9 @@ export function useSocket() {
   }
   return context;
 }
+
+// Hook to check socket connection status
+export function useSocketConnectionStatus() {
+  const { connected } = useSocket();
+  return connected;
+}

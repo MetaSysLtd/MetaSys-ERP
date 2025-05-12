@@ -54,6 +54,7 @@ import {
   Sparkles,
   DollarSign,
   Palette,
+  Plus,
 } from "lucide-react";
 import ThemeCustomizer from "@/components/ui/theme-customizer";
 import {

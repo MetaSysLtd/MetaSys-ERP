@@ -295,7 +295,7 @@ export async function updateNotificationPreferences(preferences: any) {
   return res.json();
 }
 
-export async function apiRequest(method: string, endpoint: string, data?: any, retries = 3) {
+export async function apiClientRequest(method: string, endpoint: string, data?: any, retries = 3) {
   try {
     const response = await retryFetch(endpoint, {
       method,
@@ -322,7 +322,7 @@ export async function apiRequest(method: string, endpoint: string, data?: any, r
           // Clear any cached queries
           queryClient.clear();
           // Retry original request after token refresh
-          return apiRequest(method, endpoint, data, 1);
+          return apiClientRequest(method, endpoint, data, 1);
         } else {
           // Handle failed refresh
           queryClient.clear();
@@ -377,6 +377,6 @@ export default {
   generateQueryKey,
   invalidateQueriesByPrefix,
   validateApiResponse,
-  apiRequest,
+  apiClientRequest,
   retryFetch
 };

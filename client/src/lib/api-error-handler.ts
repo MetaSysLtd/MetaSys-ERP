@@ -1,6 +1,16 @@
 import { showToastError } from '@/components/ui/toast-error';
 import { isErrorSuppressed } from '@/lib/global-error-handler';
 
+export enum NetworkErrorType {
+  TIMEOUT = 'timeout',
+  CONNECTION_LOST = 'connection_lost',
+  SERVER_ERROR = 'server_error',
+  AUTHENTICATION = 'authentication',
+  PERMISSION = 'permission',
+  NOT_FOUND = 'not_found',
+  UNKNOWN = 'unknown'
+}
+
 interface FetchRetryOptions extends RequestInit {
   maxRetries?: number;
   initialDelay?: number;
