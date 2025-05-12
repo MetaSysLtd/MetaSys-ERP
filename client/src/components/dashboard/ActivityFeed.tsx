@@ -4,8 +4,18 @@ import { formatDate } from "@/lib/formatters";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bell, Users, FileText, TrendingUp, Clipboard, ClipboardCheck, Truck, PenTool, DollarSign } from "lucide-react";
 
+// Extended Activity type to account for dashboard activity data which may include user info
+interface ExtendedActivity extends Activity {
+  user?: {
+    firstName?: string;
+    lastName?: string;
+    name?: string;
+  };
+  createdAt?: string | Date;
+}
+
 interface ActivityFeedProps {
-  activities?: Activity[];
+  activities?: ExtendedActivity[];
   title?: string;
   maxItems?: number;
   showHeader?: boolean;
@@ -101,14 +111,14 @@ export function ActivityFeed({
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <div className="text-sm font-medium">
-                        {/* Access user data safely using optional chaining */}
-                        {activity.user?.firstName || activity.user?.name || 'User'} {activity.user?.lastName || ''}
+                        {/* Display user name if available, otherwise show User ID */}
+                        {activity.user?.firstName || activity.user?.name || `User ${activity.userId}`}
+                        {activity.user?.lastName ? ` ${activity.user.lastName}` : ''}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {/* Use timestamp or createdAt safely with optional chaining */}
-                        {(activity.createdAt || activity.timestamp) && 
-                         !isNaN(new Date(activity.createdAt || activity.timestamp).getTime()) 
-                          ? formatDate(new Date(activity.createdAt || activity.timestamp), "MMM D, YYYY") 
+                        {/* Use timestamp which is always present in the Activity schema */}
+                        {activity.timestamp && !isNaN(new Date(activity.timestamp).getTime())
+                          ? formatDate(new Date(activity.timestamp), "MMM D, YYYY")
                           : "Unknown date"}
                       </div>
                     </div>

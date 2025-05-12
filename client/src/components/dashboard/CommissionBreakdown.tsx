@@ -303,17 +303,24 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
           </div>
         </CardHeader>
         <CardContent className="pt-6">
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <div className="w-16 h-16 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="flex flex-col items-center justify-center h-80 text-center">
+            <div className="w-20 h-20 mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium">No Commission Data</h3>
-            <p className="text-muted-foreground mt-2 max-w-md">
-              No commission data available for {format(selectedDate || new Date(), 'MMMM yyyy')}. 
+            <h3 className="text-xl font-medium">No Commission Data</h3>
+            <p className="text-muted-foreground mt-2 max-w-md mx-auto">
+              No commission data available for <span className="font-medium">{format(selectedDate || new Date(), 'MMMM yyyy')}</span>. 
               Commissions are calculated based on completed sales and dispatch activities.
             </p>
+            <div className="mt-3 text-sm text-gray-500">
+              <ul className="list-disc pl-5 text-left mx-auto inline-block">
+                <li>Complete sales transactions</li>
+                <li>Process dispatch activities</li>
+                <li>Achieve performance metrics</li>
+              </ul>
+            </div>
             {isAdmin && (
               <Button 
                 variant="outline" 
