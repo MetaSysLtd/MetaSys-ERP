@@ -103,3 +103,39 @@ export function isAuthenticated(req: Request, res: Response, next: NextFunction)
   }
   return next();
 }
+
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Check session validity
+    if (!req.session?.userId) {
+      return res.status(401).json({ 
+        status: 'error',
+        message: 'Unauthorized: Please log in to access this resource',
+        authenticated: false,
+        code: 'SESSION_MISSING'
+      });
+    }
+
+    // Check session expiration
+    const sessionExpiry = req.session?.cookie?.expires;
+    if (sessionExpiry && new Date(sessionExpiry) < new Date()) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Session expired: Please log in again',
+        authenticated: false,
+        code: 'SESSION_EXPIRED'
+      });
+    }
+
+    // Add user info to request for subsequent middleware
+    req.user = {
+      id: req.session.userId,
+      organizationId: req.session.organizationId
+    };
+
+    next();
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    next(error);
+  }
+};

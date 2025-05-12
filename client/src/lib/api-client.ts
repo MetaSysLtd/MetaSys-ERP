@@ -281,28 +281,43 @@ export async function apiRequest(method: string, endpoint: string, data?: any, r
       credentials: 'include'
     }, retries);
 
-    // Handle 401 with retry mechanism for token refresh
+    // Enhanced 401 handling with retry mechanism
     if (response.status === 401) {
       try {
+        // Try to refresh the token
         const refreshResponse = await fetch('/api/auth/refresh', {
           method: 'POST',
-          credentials: 'include'
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
 
         if (refreshResponse.ok) {
+          // Clear any cached queries
+          queryClient.clear();
           // Retry original request after token refresh
           return apiRequest(method, endpoint, data, 1);
         } else {
-          // Dispatch auth error event
+          // Handle failed refresh
+          queryClient.clear();
           window.dispatchEvent(new CustomEvent('auth:expired', { 
-            detail: { redirect: true, message: 'Session expired. Please log in again.' }
+            detail: { 
+              redirect: true, 
+              message: 'Your session has expired. Please log in again.',
+              returnUrl: window.location.pathname
+            }
           }));
           throw new ApiError('Session expired', 401, 'AUTH_EXPIRED');
         }
       } catch (refreshError) {
-        // Force reauth on refresh failure
+        console.error('Token refresh failed:', refreshError);
+        queryClient.clear();
         window.dispatchEvent(new CustomEvent('auth:required', {
-          detail: { redirect: true }
+          detail: { 
+            redirect: true,
+            returnUrl: window.location.pathname
+          }
         }));
         throw new ApiError('Authentication required', 401, 'AUTH_REQUIRED');
       }
