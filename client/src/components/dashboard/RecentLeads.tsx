@@ -102,8 +102,18 @@ export function RecentLeads({ leads = [] }: LeadsTableProps) {
           <TableBody>
             {!leads || leads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-4 text-gray-500">
-                  No recent leads
+                <TableCell colSpan={4} className="h-48 p-0">
+                  <div className="flex flex-col items-center justify-center h-full py-8 text-center">
+                    <div className="w-14 h-14 mb-3 rounded-full bg-gray-100 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-base font-medium">No Leads Yet</h3>
+                    <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">
+                      This table will display your most recent leads as they're added to the CRM system
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (

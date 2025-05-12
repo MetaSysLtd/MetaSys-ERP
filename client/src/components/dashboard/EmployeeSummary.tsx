@@ -73,8 +73,19 @@ export function EmployeeSummary({ data, employeeData }: EmployeeSummaryProps) {
             Employee Summary
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-5 flex justify-center items-center h-64">
-          <p className="text-gray-500">No employee data available</p>
+        <CardContent className="p-5">
+          <div className="flex flex-col items-center justify-center text-center h-64">
+            <div className="w-16 h-16 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium">No Employee Data Yet</h3>
+            <p className="text-gray-500 mt-2 max-w-md">
+              Employee data will appear here once staff information is added to the system.
+              This section will display attendance statistics, department breakdowns, and top performers.
+            </p>
+          </div>
         </CardContent>
       </Card>
     );

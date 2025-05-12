@@ -81,9 +81,15 @@ export function ActivityFeed({
       <CardContent>
         <ScrollArea className="h-[400px]">
           {activities.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10">
-              <Bell className="h-8 w-8 text-gray-400 mb-3" />
-              <p className="text-sm text-gray-400">No activities yet</p>
+            <div className="flex flex-col items-center justify-center py-10 h-full text-center">
+              <div className="w-16 h-16 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                <Bell className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-base font-medium">No Activities Yet</h3>
+              <p className="text-sm text-gray-500 mt-2 max-w-md">
+                Activity updates will appear here once users start interacting with the system.
+                You'll see a chronological feed of important actions across all modules.
+              </p>
             </div>
           ) : (
             <ul className="space-y-4">
@@ -95,11 +101,14 @@ export function ActivityFeed({
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <div className="text-sm font-medium">
-                        {activity.user?.firstName} {activity.user?.lastName}
+                        {/* Access user data safely using optional chaining */}
+                        {activity.user?.firstName || activity.user?.name || 'User'} {activity.user?.lastName || ''}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {activity.createdAt && !isNaN(new Date(activity.createdAt).getTime()) 
-                          ? formatDate(new Date(activity.createdAt), "MMM D, YYYY") 
+                        {/* Use timestamp or createdAt safely with optional chaining */}
+                        {(activity.createdAt || activity.timestamp) && 
+                         !isNaN(new Date(activity.createdAt || activity.timestamp).getTime()) 
+                          ? formatDate(new Date(activity.createdAt || activity.timestamp), "MMM D, YYYY") 
                           : "Unknown date"}
                       </div>
                     </div>
