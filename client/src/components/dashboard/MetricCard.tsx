@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Link } from "wouter";
 import { TrendingDown, TrendingUp, ArrowRight, PieChart, BarChart4, ShoppingCart, CreditCard } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export interface MetricCardProps {
   title: string;
@@ -118,8 +119,33 @@ export function CommissionBreakdown({ data }: { data?: any }) {
   if (!data) {
     return (
       <Card accent={true} accentPosition="top" className="shadow rounded-lg group">
-        <CardContent className="p-5 flex justify-center items-center h-32">
-          <p className="text-gray-500">No commission data available</p>
+        <CardContent className="p-5">
+          <h3 className="text-lg font-medium mb-2 text-[#025E73]">Commission Breakdown</h3>
+          <EmptyState
+            iconType="finance"
+            iconSize={24}
+            title="No Commission Data"
+            message="No commission data available for the current period."
+            description="Commission data will appear once sales and dispatch activities are completed."
+            minimal={true}
+            align="left"
+            placeholderData={
+              <div className="grid grid-cols-3 gap-2 mt-3">
+                <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded text-center">
+                  <div className="text-sm text-gray-400">PKR 0</div>
+                  <div className="text-xs text-gray-500">Total</div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded text-center">
+                  <div className="text-sm text-gray-400">PKR 0</div>
+                  <div className="text-xs text-gray-500">Base</div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded text-center">
+                  <div className="text-sm text-gray-400">PKR 0</div>
+                  <div className="text-xs text-gray-500">Bonus</div>
+                </div>
+              </div>
+            }
+          />
         </CardContent>
       </Card>
     );
