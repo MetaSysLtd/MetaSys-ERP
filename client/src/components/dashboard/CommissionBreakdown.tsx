@@ -572,10 +572,29 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-40">
-                  <InfoIcon className="h-10 w-10 text-muted-foreground mb-2" />
-                  <p className="text-muted-foreground">No historical commission data available</p>
-                </div>
+                <EmptyState
+                  iconType="finance"
+                  iconSize={28}
+                  title="No Historical Data"
+                  message="No historical commission data available for this period"
+                  description="Historical data will appear here as commissions are processed over time"
+                  placeholderData={
+                    <div className="grid grid-cols-3 gap-3 mt-2">
+                      <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded text-center">
+                        <div className="text-sm text-gray-400">PKR 0</div>
+                        <div className="text-xs text-gray-500">Jan</div>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded text-center">
+                        <div className="text-sm text-gray-400">PKR 0</div>
+                        <div className="text-xs text-gray-500">Feb</div>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded text-center">
+                        <div className="text-sm text-gray-400">PKR 0</div>
+                        <div className="text-xs text-gray-500">Mar</div>
+                      </div>
+                    </div>
+                  }
+                />
               )}
 
               {historicalCommissions && historicalCommissions.length > 0 && (

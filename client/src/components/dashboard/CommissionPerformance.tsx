@@ -18,6 +18,7 @@ import { InfoIcon, TrendingUpIcon, TrendingDownIcon, WifiIcon } from "lucide-rea
 import { useAuth } from "@/hooks/use-auth";
 import { useSocket } from "@/hooks/use-socket";
 import { useEffect } from "react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface CommissionPerformanceProps {
   userId?: number;
@@ -147,6 +148,72 @@ export default function CommissionPerformance({ userId, type = 'sales' }: Commis
           <div className="flex justify-center items-center h-40">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" aria-label="Loading"/>
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  if (!currentCommission && !isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Commission Performance</CardTitle>
+          <CardDescription>
+            {type === 'sales' ? 'Sales' : 'Dispatch'} commission progress
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EmptyState
+            iconType="finance"
+            iconSize={28}
+            title="No Commission Data"
+            message={`No ${type} commission data is available for the current period.`}
+            description="Performance metrics will appear once commission data is generated."
+            placeholderData={
+              <div className="space-y-4 mt-3">
+                <div className="flex flex-col items-center space-y-2 max-w-md mx-auto">
+                  <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg w-full">
+                    <p className="text-sm text-gray-500">Current Month</p>
+                    <p className="text-2xl font-bold text-gray-400">PKR 0</p>
+                    <div className="bg-gray-200 dark:bg-gray-700 h-2 rounded-full mt-2"></div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+                    {type === 'sales' ? (
+                      <>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                          <p className="text-sm text-gray-500">Active Leads</p>
+                          <p className="font-medium text-gray-400">0</p>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                          <p className="text-sm text-gray-500">Inbound Status</p>
+                          <p className="font-medium text-gray-400">0 leads</p>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                          <p className="text-sm text-gray-500">Team Target</p>
+                          <Badge variant="outline" className="bg-transparent text-gray-400">Not Met</Badge>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                          <p className="text-sm text-gray-500">Invoice Total</p>
+                          <p className="font-medium text-gray-400">PKR 0</p>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                          <p className="text-sm text-gray-500">Completed Loads</p>
+                          <p className="font-medium text-gray-400">0</p>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                          <p className="text-sm text-gray-500">Active Leads</p>
+                          <p className="font-medium text-gray-400">0</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            }
+          />
         </CardContent>
       </Card>
     );
