@@ -1177,30 +1177,41 @@ export default function SettingsPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-6">
-                        <div className="flex">
-                          <div className="flex-shrink-0">
-                            <AlertTriangle className="h-5 w-5 text-yellow-400" />
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <div className="space-x-2">
+                            <Button 
+                              variant="outline"
+                              onClick={() => setActiveFilter('all')}
+                              className={activeFilter === 'all' ? 'bg-[#025E73] text-white' : ''}
+                            >
+                              All
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => setActiveFilter('sales')}
+                              className={activeFilter === 'sales' ? 'bg-[#025E73] text-white' : ''}
+                            >
+                              Sales
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => setActiveFilter('dispatch')}
+                              className={activeFilter === 'dispatch' ? 'bg-[#025E73] text-white' : ''}
+                            >
+                              Dispatch
+                            </Button>
                           </div>
-                          <div className="ml-3">
-                            <h3 className="text-sm font-medium text-yellow-800">
-                              Go to the Commission Policies Page
-                            </h3>
-                            <div className="mt-2 text-sm text-yellow-700">
-                              <p>
-                                Commission policies configuration has been moved to a dedicated page for better management.
-                              </p>
-                            </div>
-                            <div className="mt-4">
-                              <Button
-                                onClick={() => navigate("/settings/commission-policies")}
-                                size="sm"
-                              >
-                                Go to Commission Policies
-                              </Button>
-                            </div>
-                          </div>
+                          <Button 
+                            onClick={() => setShowCreatePolicy(true)}
+                            className="bg-[#025E73] hover:bg-[#011F26] text-white"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Create Policy
+                          </Button>
                         </div>
+                        
+                        <CommissionPolicyEditor />
                       </div>
                     </CardContent>
                   </Card>
