@@ -35,11 +35,14 @@ pgPool.on('error', (err) => {
   console.error('Unexpected error on idle pg client', err);
 });
 
-// For Drizzle ORM using postgres.js
+// For Drizzle ORM using postgres.js with improved connection handling
 const queryClient = postgres(process.env.DATABASE_URL, { 
   max: 10,
-  connect_timeout: 10,
-  idle_timeout: 20,
+  connect_timeout: 30,
+  idle_timeout: 60,
+  max_lifetime: 60 * 30, // 30 minutes
+  connection_retry: true,
+  connection_retry_delay: 5000,
 });
 
 // Set up an uncaughtException handler as a fallback
