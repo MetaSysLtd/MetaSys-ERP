@@ -35,13 +35,77 @@ import { NotificationDropdown } from "@/components/notification/NotificationDrop
 import { MessageDropdown } from "@/components/message/MessageDropdown";
 import { OrganizationSwitcher } from "@/components/OrganizationSwitcher";
 import { AnimationSettingsCompact } from "@/components/ui/animation-settings-compact";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface HeaderProps {
   setSidebarOpen: (open: boolean) => void;
 }
 
+function HelpCenterDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Help Center</DialogTitle>
+          <DialogDescription>
+            This is where you can find FAQs, help documents, and report bugs.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          {/* Add Help Center content here */}
+          <div>
+            <h3 className="text-lg font-semibold">FAQs</h3>
+            <p>Here are some frequently asked questions:</p>
+            {/* Add FAQ items here */}
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">Help Documents</h3>
+            <p>Browse our help documents to find solutions to common problems.</p>
+            {/* Add links to help documents here */}
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">Report a Bug</h3>
+            <p>If you encounter a bug, please report it to us.</p>
+            {/* Add bug reporting form or link here */}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CalendarDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Calendar</DialogTitle>
+          <DialogDescription>
+            View your calendar and upcoming events.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          {/* Add Calendar content here */}
+          <p>Your calendar will be displayed here.</p>
+          {/* Integrate with a calendar library or API */}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function Header({ setSidebarOpen }: HeaderProps) {
-  const { user, logout } = useAuth();
+  const { user, role } = useAuth();
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const { toast } = useToast();
   const [_, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -108,23 +172,29 @@ export function Header({ setSidebarOpen }: HeaderProps) {
             </div>
           </div>
 
-          {/* Help button */}
-          <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-            <span className="sr-only">Get help</span>
-            <HelpCircle className="h-5 w-5" />
-          </button>
+          <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          onClick={() => setCalendarOpen(true)}
+        >
+          <Calendar className="h-5 w-5 text-[#025E73]" />
+        </Button>
 
-          {/* Calendar button */}
-          <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-            <span className="sr-only">View calendar</span>
-            <Calendar className="h-5 w-5" />
-          </button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          onClick={() => setHelpOpen(true)}
+        >
+          <HelpCircle className="h-5 w-5 text-[#025E73]" />
+        </Button>
 
-          {/* Messages Dropdown */}
-          <MessageDropdown />
-          
-          {/* Notifications Dropdown */}
-          <NotificationDropdown />
+        <NotificationDropdown />
+        <MessageDropdown />
+
+        <HelpCenterDialog open={helpOpen} onOpenChange={setHelpOpen} />
+        <CalendarDialog open={calendarOpen} onOpenChange={setCalendarOpen} />
 
           {/* Profile dropdown */}
           <div className="relative">
@@ -177,14 +247,14 @@ export function Header({ setSidebarOpen }: HeaderProps) {
                     </div>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
-                
+
                 {/* Organization section - visible only on mobile/smaller screens */}
                 <DropdownMenuSeparator className="lg:hidden" />
                 <DropdownMenuLabel className="lg:hidden">Organization</DropdownMenuLabel>
                 <div className="lg:hidden px-2 py-2">
                   <OrganizationSwitcher />
                 </div>
-                
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
