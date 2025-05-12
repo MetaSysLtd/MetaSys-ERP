@@ -8,25 +8,20 @@ interface ErrorStateProps {
   error?: any;
 }
 
-export function ErrorState({ title, message, onRetry, error }: ErrorStateProps) {
+export function ErrorState({ error, onRetry }: Props) {
   return (
-    <div className="text-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-      <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{title}</h3>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{message}</p>
+    <div className="flex flex-col items-center justify-center p-8 rounded-lg border border-destructive/10 bg-destructive/5">
+      <ExclamationTriangleIcon className="h-12 w-12 text-destructive" />
+      <h3 className="mt-4 text-lg font-semibold text-destructive">Error loading data</h3>
+      <p className="text-muted-foreground text-center mt-2">{error?.message || 'Failed to load data. Please try again.'}</p>
       {onRetry && (
-        <button 
+        <Button 
           onClick={onRetry} 
-          className="mt-4 bg-[#025E73] hover:bg-[#025E73]/90 text-white rounded-md px-4 py-2 transition-all duration-200"
+          className="mt-6 bg-[#025E73] hover:bg-[#011F26] text-white rounded-md transition-all duration-200"
         >
-          <RefreshCw className="h-4 w-4 inline mr-2" />
-          Try Again
-        </button>
-      )}
-      {error && process.env.NODE_ENV === 'development' && (
-        <pre className="mt-4 text-xs text-left text-red-500 bg-red-50 dark:bg-red-900/10 p-2 rounded">
-          {error.message}
-        </pre>
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Retry
+        </Button>
       )}
     </div>
   );

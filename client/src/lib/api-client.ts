@@ -250,9 +250,17 @@ export async function validateApiResponse(response: Response): Promise<Response>
 
   try {
     const errorData = await response.json();
+    const errorMessage = errorData.message || errorData.error || response.statusText;
+    const enhancedMessage = response.status === 401 
+      ? 'Session expired. Please login again.'
+      : response.status === 403
+      ? 'You do not have permission to access this resource'
+      : response.status === 404
+      ? 'The requested resource was not found'
+      : `Failed to load data: ${errorMessage}`;
 
     throw new ApiError(
-      errorData.message || response.statusText,
+      enhancedMessage,
       response.status,
       errorData.error,
       errorData
@@ -262,10 +270,10 @@ export async function validateApiResponse(response: Response): Promise<Response>
       throw e;
     }
 
-    // If we couldn't parse the error JSON
+    // Network or parsing error
     throw new ApiError(
-      response.statusText,
-      response.status
+      'Network error occurred. Please check your connection.',
+      response.status || 500
     );
   }
 }
