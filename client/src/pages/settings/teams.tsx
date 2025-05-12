@@ -714,8 +714,8 @@ const TeamHierarchy = () => {
   );
 };
 
-// Team Hierarchy Component
-const TeamHierarchy = () => {
+// Team Hierarchy Component (Enhanced version)
+const TeamHierarchyEnhanced = () => {
   const { data: allMembers, isLoading, error } = useQuery({
     queryKey: ["/api/teams/all-members"],
   });

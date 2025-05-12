@@ -1311,8 +1311,9 @@ export default function SettingsPage() {
                       <Button >
                         Add Team Member
                       </Button>
-                    </Card>
-                  </TabsContent>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
               )}
 
               {role.level >= 5 && (
