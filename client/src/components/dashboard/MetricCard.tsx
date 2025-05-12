@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Link } from "wouter";
 import { TrendingDown, TrendingUp, ArrowRight, PieChart, BarChart4, ShoppingCart, CreditCard } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { getCardClass } from "@/lib/style-utils";
 
 export interface MetricCardProps {
   title: string;
@@ -71,7 +72,7 @@ export function MetricCard({
     <Card 
       accent={true} 
       accentPosition="left" 
-      className={`bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-all group ${className}`}
+      className={`${getCardClass({ withAccent: true })} overflow-hidden group ${className}`}
     >
       <CardContent className="p-5">
         <div className="flex items-center">
@@ -80,17 +81,17 @@ export function MetricCard({
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
-              <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
+              <dt className="text-sm font-medium text-gray-500 whitespace-normal break-words">{title}</dt>
               <dd>
                 <div className="text-lg font-medium text-gray-900">{value}</div>
                 {isEmptyState && emptyStateMessage ? (
-                  <div className="text-xs text-amber-600 mt-1 max-w-[180px]">
+                  <div className="text-xs text-amber-600 mt-1">
                     {emptyStateMessage}
                   </div>
                 ) : description && (
                   <div className={`flex items-center text-sm ${trendStyles.textColor}`}>
                     {trendStyles.icon}
-                    <span className="ml-1">{description}</span>
+                    <span className="ml-1 whitespace-normal break-words">{description}</span>
                   </div>
                 )}
               </dd>
@@ -118,7 +119,7 @@ export function MetricCard({
 export function CommissionBreakdown({ data }: { data?: any }) {
   if (!data) {
     return (
-      <Card accent={true} accentPosition="top" className="shadow rounded-lg group">
+      <Card accent={true} accentPosition="top" className={getCardClass({ withHover: false })}>
         <CardContent className="p-5">
           <h3 className="text-lg font-medium mb-2 text-[#025E73]">Commission Breakdown</h3>
           <EmptyState
@@ -152,7 +153,7 @@ export function CommissionBreakdown({ data }: { data?: any }) {
   }
   
   return (
-    <Card accent={true} accentPosition="top" className="shadow rounded-lg transition-all hover:shadow-md group">
+    <Card accent={true} accentPosition="top" className={getCardClass()}>
       <CardContent className="p-5">
         <h3 className="text-lg font-medium mb-4 text-[#025E73] group-hover:text-[#011F26] transition-colors">Commission Breakdown</h3>
         {/* Commission data would be rendered here */}
