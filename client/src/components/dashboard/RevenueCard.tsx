@@ -34,8 +34,18 @@ export function RevenueCard({ data }: RevenueCardProps) {
             Revenue Overview
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-5 flex justify-center items-center h-80">
-          <p className="text-gray-500">No revenue data available</p>
+        <CardContent className="p-5">
+          <div className="flex justify-center items-center h-72">
+            <div className="text-center">
+              <h3 className="text-lg font-medium mb-1">No Revenue Data Yet</h3>
+              <p className="text-muted-foreground">
+                Revenue data will appear here once sales activities begin
+              </p>
+              <div className="mt-4 text-2xl font-semibold">
+                {formatCurrency(0)}
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );

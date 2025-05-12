@@ -1,96 +1,52 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
-import { FileQuestion } from 'lucide-react';
+import React from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
-  /**
-   * The title text for the empty state
-   */
-  title: string;
-  
-  /**
-   * The description text that provides more detail
-   */
-  description?: string;
-  
-  /**
-   * Icon to display at the top of the empty state
-   */
   icon?: React.ReactNode;
-  
-  /**
-   * Optional action element (e.g., a button) to display below description
-   */
-  action?: React.ReactNode;
-  
-  /**
-   * Additional CSS classes
-   */
+  title: string;
+  message: string;
+  actionLabel?: string;
+  onAction?: () => void;
   className?: string;
-  
-  /**
-   * Additional CSS classes for the container
-   */
-  containerClassName?: string;
+  minimal?: boolean;
 }
 
-/**
- * EmptyState - A consistent UI component for displaying empty states, no data, or errors
- * 
- * This component provides a standardized way to inform users when:
- * - There is no data to display
- * - An error has occurred
- * - A search returned no results
- * - Content is loading
- * 
- * It supports an icon, title, description, and a custom action.
- * 
- * @example
- * ```tsx
- * <EmptyState 
- *   icon={<FileQuestion className="h-16 w-16 text-muted-foreground" />}
- *   title="No invoices found"
- *   description="We couldn't find any invoices matching your criteria."
- *   action={<Button>Create New Invoice</Button>}
- * />
- * ```
- */
-export function EmptyState({ 
-  title, 
-  description, 
-  icon, 
-  action,
+export function EmptyState({
+  icon,
+  title,
+  message,
+  actionLabel,
+  onAction,
   className,
-  containerClassName,
+  minimal = false
 }: EmptyStateProps) {
   return (
-    <div className={cn("w-full py-6", containerClassName)}>
-      <Card className={cn(
-        "flex flex-col items-center justify-center text-center py-10 px-6",
-        "border-dashed bg-muted/20 shadow-sm",
+    <div 
+      className={cn(
+        "flex flex-col items-center justify-center text-center p-6",
+        minimal ? "h-auto py-6" : "h-[240px]",
         className
-      )}>
-        <CardContent className="flex flex-col items-center space-y-4 pt-6">
-          <div className="text-muted-foreground mb-2">
-            {icon || <FileQuestion className="h-14 w-14 text-muted-foreground/60" />}
-          </div>
-          
-          <h3 className="text-xl font-semibold tracking-tight">{title}</h3>
-          
-          {description && (
-            <p className="text-muted-foreground max-w-md">
-              {description}
-            </p>
-          )}
-          
-          {action && (
-            <div className="mt-6">
-              {action}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      )}
+    >
+      {icon && (
+        <div className="mb-4 text-muted-foreground">
+          {icon}
+        </div>
+      )}
+      <h3 className={cn("font-medium", minimal ? "text-base" : "text-lg")}>{title}</h3>
+      <p className={cn("text-muted-foreground mt-1", minimal ? "text-sm" : "text-base")}>{message}</p>
+      
+      {actionLabel && onAction && (
+        <Button 
+          variant="outline" 
+          className="mt-4"
+          onClick={onAction}
+          size={minimal ? "sm" : "default"}
+        >
+          {actionLabel}
+        </Button>
+      )}
     </div>
   );
 }
