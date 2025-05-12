@@ -142,7 +142,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
       queryClient.invalidateQueries({ queryKey: ['/api/commissions/policy'] });
       // Also invalidate monthly commission data since it may depend on active policies
       queryClient.invalidateQueries({ queryKey: ['/api/commissions/monthly'] });
-      
+
       toast({
         title: "Policy created",
         description: "Commission policy has been created successfully.",
@@ -173,7 +173,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
       queryClient.invalidateQueries({ queryKey: ['/api/commissions/policy', policyId] });
       // Also invalidate monthly commission data since it may depend on active policies
       queryClient.invalidateQueries({ queryKey: ['/api/commissions/monthly'] });
-      
+
       toast({
         title: "Policy updated",
         description: "Commission policy has been updated successfully.",
@@ -187,7 +187,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
       });
     },
   });
-  
+
   // Archive commission policy mutation
   const archivePolicyMutation = useMutation({
     mutationFn: async () => {
@@ -205,7 +205,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
       queryClient.invalidateQueries({ queryKey: ['/api/commissions/policy', policyId] });
       // Also invalidate monthly commission data since it may depend on active policies
       queryClient.invalidateQueries({ queryKey: ['/api/commissions/monthly'] });
-      
+
       toast({
         title: "Policy archived",
         description: "Commission policy has been archived successfully.",
@@ -230,7 +230,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
       });
       return;
     }
-    
+
     // Save form values
     if (policyId) {
       updatePolicyMutation.mutate(values);
@@ -244,7 +244,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
     const lastTier = fields[fields.length - 1];
     const newActiveLeadsValue = lastTier ? lastTier.activeleads + 5 : 0;
     const newAmountValue = lastTier ? lastTier.amount + 5000 : 15000;
-    
+
     append({
       activeleads: newActiveLeadsValue,
       amount: newAmountValue
@@ -276,9 +276,9 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
           <Settings2 className="h-5 w-5 text-muted-foreground" />
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="max-h-[calc(100vh-12rem)] overflow-y-auto">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-5xl mx-auto">
             <Tabs value={activeTab} onValueChange={(value) => {
               setActiveTab(value);
               form.setValue("type", value);
@@ -298,6 +298,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
                         variant="outline" 
                         size="sm" 
                         onClick={addTier}
+                        className="bg-[#025E73] text-white hover:bg-[#011F26] transition-all duration-200"
                       >
                         <Plus className="h-4 w-4 mr-1" />
                         Add Tier
@@ -310,29 +311,29 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
                         <div className="col-span-2"></div>
                       </div>
                       {fields.map((field, index) => (
-                        <div key={field.id} className="grid grid-cols-12 gap-4 mb-3">
-                          <div className="col-span-5">
+                        <div key={field.id} className="grid grid-cols-12 sm:gap-4 gap-2 mb-3">
+                          <div className="col-span-12 sm:col-span-5">
                             <FormField
                               control={form.control}
                               name={`rules.activeLeadTable.${index}.activeleads`}
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
-                                    <Input type="number" {...field} min={0} />
+                                    <Input type="number" {...field} min={0} className="w-full" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
                           </div>
-                          <div className="col-span-5">
+                          <div className="col-span-12 sm:col-span-5">
                             <FormField
                               control={form.control}
                               name={`rules.activeLeadTable.${index}.amount`}
                               render={({ field }) => (
                                 <FormItem>
                                   <FormControl>
-                                    <Input type="number" {...field} min={0} />
+                                    <Input type="number" {...field} min={0} className="w-full" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -362,7 +363,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
                   {/* Role-based Commission Splits */}
                   <div>
                     <h3 className="text-lg font-medium mb-3">Role-based Commission Splits</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                       <FormField
                         control={form.control}
                         name="rules.starterSplit"
@@ -565,7 +566,7 @@ export default function CommissionPolicyEditor({ policyId }: { policyId?: number
                   )}
                 </Button>
               )}
-              
+
               {/* Save Button */}
               <Button
                 type="submit"
