@@ -71,6 +71,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
+import TeamManagementPage from "@/pages/settings/teams";
 
 // Import the MetaSys logo
 import metaSysLogo from "@/assets/logos/MetaSys.png";
@@ -135,7 +136,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/crm/clients">
         {() => (
           <AppLayout>
@@ -143,7 +144,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/crm/commissions">
         {() => (
           <AppLayout>
@@ -151,7 +152,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/crm/accounts">
         {() => (
           <AppLayout>
@@ -159,7 +160,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/crm/surveys">
         {() => (
           <AppLayout>
@@ -167,7 +168,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/crm/activities">
         {() => (
           <AppLayout>
@@ -175,7 +176,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/crm/:id">
         {(params) => (
           <AppLayout>
@@ -199,7 +200,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/dispatch/loads">
         {() => (
           <AppLayout>
@@ -207,7 +208,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/dispatch/new-load">
         {() => (
           <AppLayout>
@@ -215,7 +216,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/dispatch/tracking">
         {() => (
           <AppLayout>
@@ -223,7 +224,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/dispatch/tasks">
         {() => (
           <AppLayout>
@@ -231,7 +232,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/dispatch/reports">
         {() => (
           <AppLayout>
@@ -239,7 +240,7 @@ function Router() {
           </AppLayout>
         )}
       </Route>
-      
+
       <Route path="/dispatch/targets">
         {() => (
           <AppLayout>
@@ -487,6 +488,13 @@ function Router() {
           </AppLayout>
         )}
       </Route>
+       <Route path="/settings/teams">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={TeamManagementPage} />
+          </AppLayout>
+        )}
+      </Route>
 
       <Route component={NotFound} />
     </Switch>
@@ -503,11 +511,11 @@ function App() {
   useEffect(() => {
     // Initialize global error handlers for uncaught exceptions and unhandled rejections
     initializeGlobalErrorHandlers();
-    
+
     // Log that error handlers were initialized
     console.log('MetaSys ERP global error handling initialized');
   }, []);
-  
+
   // No need for these listeners as they're now handled by the global error handler
 
   return (
@@ -572,17 +580,17 @@ function AppContent() {
       const unsubscribeUiPrefs = subscribe('uiPrefsUpdated', (prefs: any) => {
         dispatch(setPreferences(prefs));
       });
-      
+
       // Subscribe to notifications through the real-time system
       const unsubscribeNotifications = subscribe('notification:created', () => {
         // Invalidate notifications query to refresh notification data
         queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       });
-      
+
       // Subscribe to general data updates
       const unsubscribeDataUpdates = subscribe('data:updated', (data: any) => {
         console.log('Real-time data update received:', data);
-        
+
         // If this is a dashboard-related update, refresh dashboard data
         if (data.entityType === 'dashboard' || 
             data.entityType === 'lead' || 
@@ -591,7 +599,7 @@ function AppContent() {
           queryClient.invalidateQueries({ queryKey: ['/api/dashboard'] });
           queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
         }
-        
+
         // If this is a report-related update, refresh report data
         if (data.entityType === 'report' || 
             data.entityType === 'dispatch' || 
@@ -599,7 +607,7 @@ function AppContent() {
           queryClient.invalidateQueries({ queryKey: ['/api/reports'] });
         }
       });
-      
+
       return () => {
         unsubscribeUiPrefs();
         unsubscribeNotifications();

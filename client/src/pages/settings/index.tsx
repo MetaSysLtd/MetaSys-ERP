@@ -702,23 +702,7 @@ export default function SettingsPage() {
                 </Card>
               </TabsContent>
               
-              <TabsContent value="teams" className="m-0">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Team Management</CardTitle>
-                    <CardDescription>
-                      Manage your team structure and members
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex justify-center py-8">
-                      <Button onClick={() => navigate("/settings/teams")}>
-                        Go to Team Management
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              
 
               <TabsContent value="design-system" className="m-0">
                 <Card>
@@ -1229,12 +1213,25 @@ export default function SettingsPage() {
                     <CardHeader>
                       <CardTitle>Team Management</CardTitle>
                       <CardDescription>
-                        Manage your team members and their permissions
+                        Manage your team structure and members
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-6">
-                        <div className="flex">
+                      <div className="flex flex-col gap-4">
+                        <p className="text-sm text-muted-foreground">
+                          Configure teams, manage members, and set permissions in your organization.
+                        </p>
+                        <Button 
+                          onClick={() => navigate("/settings/teams")}
+                          className="w-fit"
+                          style={{ 
+                            backgroundColor: "#025E73",
+                            color: "white"
+                          }}
+                        >
+                          Go to Team Management
+                        </Button>
+                      </div>
                           <div className="flex-shrink-0">
                             <AlertTriangle className="h-5 w-5 text-yellow-400" />
                           </div>
