@@ -132,12 +132,13 @@ export default function NewLoadPage() {
     },
   });
   
-  // Calculate service charge based on freight amount
-  const calculateServiceCharge = (freightAmount: number): number => {
-    // Default calculation: 10% of freight amount with minimum of $100
-    const calculatedCharge = Math.max(freightAmount * 0.1, 100);
-    return parseFloat(calculatedCharge.toFixed(2));
-  };
+  // Get sales agent closing rate for a lead
+  const { data: leadDetails } = useQuery({
+    queryKey: ["/api/leads", form.watch("leadId")],
+    enabled: !!form.watch("leadId"),
+  });
+
+  const salesClosingRate = leadDetails?.salesClosingRate || 0;
   
   // Calculate commission based on service charge and freight amount
   const calculateCommission = (freightAmount: number, serviceCharge: number): number => {
@@ -358,34 +359,53 @@ export default function NewLoadPage() {
                       )}
                     />
                     
-                    <FormField
-                      control={form.control}
-                      name="serviceCharge"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Service Charge*</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <DollarSign className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                              <Input 
-                                type="number" 
-                                step="0.01" 
-                                min="0" 
-                                className="pl-10" 
-                                {...field} 
-                                onChange={(e) => {
-                                  field.onChange(e.target.valueAsNumber || 0);
-                                }}
-                              />
-                            </div>
-                          </FormControl>
-                          <FormDescription>
-                            Auto-calculated at 10% of freight (min $100)
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="serviceCharge"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Service Charge*</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <DollarSign className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                                <Input 
+                                  type="number" 
+                                  step="0.01" 
+                                  min="0" 
+                                  className="pl-10" 
+                                  {...field}
+                                  onChange={(e) => {
+                                    field.onChange(e.target.valueAsNumber || 0);
+                                  }}
+                                />
+                              </div>
+                            </FormControl>
+                            <FormDescription>
+                              Enter negotiated service charge
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormItem>
+                        <FormLabel>Sales Closing Rate</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input 
+                              type="text"
+                              value={`${salesClosingRate}%`}
+                              className="bg-gray-50 dark:bg-gray-800"
+                              disabled
+                            />
+                          </div>
+                        </FormControl>
+                        <FormDescription>
+                          Historical closing rate for this client
+                        </FormDescription>
+                      </FormItem>
+                    </div>
                   </div>
                   
                   <FormField
