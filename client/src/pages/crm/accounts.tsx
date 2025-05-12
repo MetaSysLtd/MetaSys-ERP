@@ -1,6 +1,14 @@
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/toast';
+import { useQueryErrorHandler } from '@/hooks/use-query-error-handler';
+import { Alert } from '@/components/ui/alert';
+import { motion } from 'framer-motion';
+import { generateQueryKey } from '@/lib/api-client';
 import { useState, useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import {
   ColumnDef,
@@ -15,7 +23,6 @@ import {
 } from '@tanstack/react-table';
 
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -101,18 +108,20 @@ const accountFormSchema = z.object({
 type AccountFormValues = z.infer<typeof accountFormSchema>;
 
 export default function AccountsPage() {
+  const handleError = useQueryErrorHandler();
+
+  const { data: accounts, error, isLoading, refetch } = useQuery({
+    queryKey: generateQueryKey('/api/accounts'),
+    retry: 3,
+    onError: handleError
+  });
+
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
-
-  // Query to fetch all accounts
-  const { data: accounts, isLoading, isError } = useQuery({
-    queryKey: ['/api/accounts'],
-    retry: 1,
-  });
 
   // Mutation for creating a new account
   const createAccountMutation = useMutation({
@@ -408,44 +417,43 @@ export default function AccountsPage() {
     setIsCreateDialogOpen(true);
   };
 
-  // Render account loading state
   if (isLoading) {
     return (
-      <PageLayout title="Accounts" description="Manage your client and vendor accounts">
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <Skeleton className="h-10 w-[250px]" />
-            <Skeleton className="h-10 w-[100px]" />
-          </div>
-          <div className="border rounded-md">
-            <div className="h-12 px-4 border-b flex items-center">
-              <Skeleton className="h-4 w-full" />
-            </div>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-16 px-4 flex items-center">
-                <Skeleton className="h-4 w-full" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </PageLayout>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="loading-spinner" />
+      </div>
     );
   }
 
-  // Render error state
-  if (isError) {
+  if (error) {
     return (
-      <PageLayout title="Accounts" description="Manage your client and vendor accounts">
-        <div className="flex flex-col items-center justify-center h-full p-4">
-          <div className="text-destructive text-xl font-semibold mb-2">Error Loading Accounts</div>
-          <p className="text-muted-foreground mb-4">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="p-4"
+      >
+        <Alert variant="destructive" className="mb-4">
+          <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">
+            Error Loading Accounts
+          </h3>
+          <p className="text-sm">
             There was a problem loading your accounts. Please try again later.
           </p>
-          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/crm/accounts'] })}>
-            Retry
-          </Button>
-        </div>
-      </PageLayout>
+        </Alert>
+        <Button
+          onClick={() => {
+            refetch();
+            toast({
+              title: "Retrying...",
+              description: "Attempting to reload accounts",
+              variant: "default"
+            });
+          }}
+          className="bg-[#025E73] hover:bg-[#011F26] text-white rounded-md transition-all duration-200"
+        >
+          Retry
+        </Button>
+      </motion.div>
     );
   }
 

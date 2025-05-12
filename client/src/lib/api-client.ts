@@ -270,16 +270,16 @@ export async function validateApiResponse(response: Response): Promise<Response>
   }
 }
 
-export async function apiRequest(method: string, endpoint: string, data?: any) {
+export async function apiRequest(method: string, endpoint: string, data?: any, retries = 3) {
   try {
-    const response = await fetch(endpoint, {
+    const response = await retryFetch(endpoint, {
       method,
       headers: {
         'Content-Type': 'application/json',
       },
       body: data ? JSON.stringify(data) : undefined,
       credentials: 'include'
-    });
+    }, retries);
 
     // Handle 401 specifically
     if (response.status === 401) {
@@ -290,13 +290,21 @@ export async function apiRequest(method: string, endpoint: string, data?: any) {
     // Handle other errors
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'API request failed');
+      throw new ApiError(
+        error.message || 'API request failed',
+        response.status,
+        error.code,
+        error.data
+      );
     }
 
     return response;
   } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
     console.error('API request failed:', error);
-    throw error;
+    throw new ApiError('Network error occurred', 500);
   }
 }
 

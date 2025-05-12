@@ -10,10 +10,16 @@ const router = express.Router();
  */
 router.get('/', createAuthMiddleware(1), async (req, res, next) => {
   try {
-    // Get client accounts
-    res.json([]);
+    const accounts = await storage.getAccounts();
+
+    // Emit socket event for real-time updates
+    req.io?.emit('accounts:updated', {
+      type: 'FETCH',
+      data: accounts
+    });
+
+    res.json(accounts);
   } catch (error) {
-    logger.error('Error in accounts route:', error);
     next(error);
   }
 });
@@ -52,11 +58,11 @@ router.get('/:id', createAuthMiddleware(1), async (req, res, next) => {
   try {
     // Get a specific client account
     const id = parseInt(req.params.id, 10);
-    
+
     if (isNaN(id)) {
       return res.status(400).json({ error: 'Invalid ID format' });
     }
-    
+
     res.json({
       id,
       name: 'Example Account',
@@ -84,11 +90,11 @@ router.put('/:id', createAuthMiddleware(1), async (req, res, next) => {
   try {
     // Update a client account
     const id = parseInt(req.params.id, 10);
-    
+
     if (isNaN(id)) {
       return res.status(400).json({ error: 'Invalid ID format' });
     }
-    
+
     res.json({
       id,
       name: req.body.name,
