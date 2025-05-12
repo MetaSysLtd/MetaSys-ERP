@@ -11,50 +11,50 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Create a pg Pool for session store and direct queries
+// Create a new pool with more conservative settings to prevent connection issues
 export const pgPool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 20,
-  idleTimeoutMillis: 60000,
+  max: 10, // Reduced to prevent connection overload
+  idleTimeoutMillis: 30000, // Reduced to 30 seconds
   connectionTimeoutMillis: 10000,
-  allowExitOnIdle: true,
+  allowExitOnIdle: false, // Don't allow connections to exit on idle
   keepAlive: true,
   keepAliveInitialDelayMillis: 5000,
   statement_timeout: 30000,
   query_timeout: 30000
 });
 
-// Add health check query
-pgPool.on('connect', (client) => {
-  client.query('SELECT 1')
-    .catch(err => {
-      console.error('Error during connection health check:', err);
-      client.release(true); // Release with error
-    });
-});
-
+// Skip the health check during connection to prevent double release
 pgPool.on('error', (err) => {
   console.error('Unexpected error on idle pg client', err);
+  // Don't crash on connection errors - let the app handle gracefully
 });
 
-// For Drizzle ORM using postgres.js with improved connection handling
+// For Drizzle ORM using postgres.js with more conservative settings
 const queryClient = postgres(process.env.DATABASE_URL, { 
-  max: 10,
-  connect_timeout: 30,
-  idle_timeout: 60,
-  max_lifetime: 60 * 30, // 30 minutes
-  connection_retry: true,
-  connection_retry_delay: 5000,
+  max: 5, // Smaller pool size for better stability
+  idle_timeout: 20, // Shorter idle timeout
+  max_lifetime: 60 * 10, // 10 minute max lifetime
+  connect_timeout: 15, // Shorter connect timeout (15 seconds)
+  // Safe configuration to prevent connection issues
+  debug: true, // Enable debug logging for connection issues
 });
 
-// Set up an uncaughtException handler as a fallback
-process.on('uncaughtException', (err) => {
-  if (err.message.includes('database')) {
-    console.error('Database connection error:', err);
-  } else {
-    throw err;
+// Global error handling for database connections
+const handleDatabaseError = (err) => {
+  if (err && (
+    err.message.includes('database') || 
+    err.message.includes('connection') ||
+    err.message.includes('pool')
+  )) {
+    console.error('[DATABASE] Connection error:', err.message);
+    return; // Don't rethrow - allow app to continue with degraded service
   }
-});
+  throw err; // Rethrow non-database errors
+};
+
+process.on('uncaughtException', handleDatabaseError);
+process.on('unhandledRejection', handleDatabaseError);
 
 export const db = drizzle(queryClient, { schema });
 export const pool = pgPool; // Export the pg Pool for connect-pg-simple
