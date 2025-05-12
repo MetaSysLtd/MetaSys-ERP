@@ -107,7 +107,7 @@ export default function SettingsPage() {
   const search = useSearch();
   const searchParams = new URLSearchParams(search);
   const activeTab = searchParams.get("tab") || "profile";
-  
+
   // Profile form
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -118,7 +118,7 @@ export default function SettingsPage() {
       phoneNumber: "",
     },
   });
-  
+
   // Password form
   const passwordForm = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordFormSchema),
@@ -128,7 +128,7 @@ export default function SettingsPage() {
       confirmPassword: "",
     },
   });
-  
+
   // Notification settings form
   const notificationForm = useForm<NotificationFormValues>({
     resolver: zodResolver(notificationFormSchema),
@@ -142,7 +142,7 @@ export default function SettingsPage() {
       weeklySummary: true,
     },
   });
-  
+
   // Set default values for profile form when user data is loaded
   useEffect(() => {
     if (user) {
@@ -154,7 +154,7 @@ export default function SettingsPage() {
       });
     }
   }, [user, profileForm]);
-  
+
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (values: ProfileFormValues) => {
@@ -176,7 +176,7 @@ export default function SettingsPage() {
       });
     },
   });
-  
+
   // Update password mutation
   const updatePasswordMutation = useMutation({
     mutationFn: async (values: PasswordFormValues) => {
@@ -201,7 +201,7 @@ export default function SettingsPage() {
       });
     },
   });
-  
+
   // Update notification settings mutation
   const updateNotificationsMutation = useMutation({
     mutationFn: async (values: NotificationFormValues) => {
@@ -222,26 +222,26 @@ export default function SettingsPage() {
       });
     },
   });
-  
+
   const onProfileSubmit = (data: ProfileFormValues) => {
     updateProfileMutation.mutate(data);
   };
-  
+
   const onPasswordSubmit = (data: PasswordFormValues) => {
     updatePasswordMutation.mutate(data);
   };
-  
+
   const onNotificationSubmit = (data: NotificationFormValues) => {
     updateNotificationsMutation.mutate(data);
   };
-  
+
   const handleTabChange = (value: string) => {
     // Update URL without triggering a navigation
     const params = new URLSearchParams(search);
     params.set("tab", value);
     navigate(`?${params.toString()}`, { replace: true });
   };
-  
+
   if (!user || !role) {
     return (
       <div className="flex h-full items-center justify-center p-8">
@@ -261,7 +261,7 @@ export default function SettingsPage() {
       </div>
     );
   }
-  
+
   return (
     <div className="min-h-screen flex flex-col overflow-hidden">
       {/* Page header */}
@@ -274,7 +274,7 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Page content */}
       <div className="px-3 sm:px-6 lg:px-8 py-4 md:py-6 flex-grow overflow-y-auto overflow-x-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
@@ -292,7 +292,7 @@ export default function SettingsPage() {
                   </p>
                 </div>
               </div>
-              
+
               {/* Mobile menu button - visible on smaller screens */}
               <div className="block lg:hidden">
                 <Button 
@@ -305,7 +305,7 @@ export default function SettingsPage() {
                     if (sidebar) {
                       sidebar.classList.toggle('hidden');
                       sidebar.classList.toggle('block');
-                      
+
                       // Add fixed overlay to prevent page scrolling when menu is open
                       const overlay = document.getElementById('mobile-menu-overlay');
                       if (overlay) {
@@ -331,7 +331,7 @@ export default function SettingsPage() {
                 </Button>
               </div>
             </CardHeader>
-            
+
             {/* Mobile overlay */}
             <div id="mobile-menu-overlay" className="fixed inset-0 bg-black/30 z-40 hidden lg:hidden" onClick={() => {
               const sidebar = document.getElementById('settings-sidebar');
@@ -339,7 +339,7 @@ export default function SettingsPage() {
               if (sidebar) sidebar.classList.add('hidden');
               if (overlay) overlay.classList.add('hidden');
             }}></div>
-            
+
             <CardContent className="p-0 relative">
               <div id="settings-sidebar" className="hidden lg:block lg:static fixed top-[4.5rem] left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg lg:shadow-none lg:border-t-0 max-h-[calc(100vh-4.5rem)] overflow-y-auto lg:max-h-none">
                 <Tabs 
@@ -496,7 +496,7 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Settings content */}
           <div className="lg:col-span-9 w-full">
             <Tabs 
@@ -530,7 +530,7 @@ export default function SettingsPage() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={profileForm.control}
                             name="lastName"
@@ -545,7 +545,7 @@ export default function SettingsPage() {
                             )}
                           />
                         </div>
-                        
+
                         <FormField
                           control={profileForm.control}
                           name="email"
@@ -559,7 +559,7 @@ export default function SettingsPage() {
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={profileForm.control}
                           name="phoneNumber"
@@ -573,7 +573,7 @@ export default function SettingsPage() {
                             </FormItem>
                           )}
                         />
-                        
+
                         <Button 
                           type="submit" 
                           disabled={updateProfileMutation.isPending}
@@ -585,7 +585,7 @@ export default function SettingsPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="account" className="m-0 space-y-6">
                 <Card>
                   <CardHeader>
@@ -610,7 +610,7 @@ export default function SettingsPage() {
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={passwordForm.control}
                           name="newPassword"
@@ -627,7 +627,7 @@ export default function SettingsPage() {
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={passwordForm.control}
                           name="confirmPassword"
@@ -641,7 +641,7 @@ export default function SettingsPage() {
                             </FormItem>
                           )}
                         />
-                        
+
                         <Button 
                           type="submit" 
                           disabled={updatePasswordMutation.isPending}
@@ -652,7 +652,7 @@ export default function SettingsPage() {
                     </Form>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle>Account Information</CardTitle>
@@ -668,7 +668,7 @@ export default function SettingsPage() {
                         <Badge variant="outline" className="text-xs">Cannot change</Badge>
                       </div>
                     </div>
-                    
+
                     <div>
                       <Label>Role</Label>
                       <div className="mt-1 flex items-center space-x-2">
@@ -678,7 +678,7 @@ export default function SettingsPage() {
                         </Badge>
                       </div>
                     </div>
-                    
+
                     <div>
                       <Label>Account Status</Label>
                       <div className="mt-1 flex items-center space-x-2">
@@ -687,7 +687,7 @@ export default function SettingsPage() {
                         </Badge>
                       </div>
                     </div>
-                    
+
                     <div>
                       <Label>Permissions</Label>
                       <div className="mt-1 flex flex-wrap gap-1">
@@ -701,8 +701,8 @@ export default function SettingsPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
-              
+
+
 
               <TabsContent value="design-system" className="m-0">
                 <Card>
@@ -720,7 +720,7 @@ export default function SettingsPage() {
                         <TabsTrigger value="colors">Colors</TabsTrigger>
                         <TabsTrigger value="components">Components</TabsTrigger>
                       </TabsList>
-                      
+
                       <TabsContent value="theme">
                         <ThemeCustomizer 
                           currentTheme={{
@@ -742,7 +742,7 @@ export default function SettingsPage() {
                           isAdmin={role.level >= 5}
                         />
                       </TabsContent>
-                      
+
                       <TabsContent value="typography">
                         <Card>
                           <CardHeader>
@@ -757,32 +757,32 @@ export default function SettingsPage() {
                                 <h1 className="text-4xl font-bold mb-2">Heading 1 (32px/40px)</h1>
                                 <p className="text-gray-500">Font weight: 700 (Bold)</p>
                               </div>
-                              
+
                               <div>
                                 <h2 className="text-3xl font-bold mb-2">Heading 2 (28px/36px)</h2>
                                 <p className="text-gray-500">Font weight: 700 (Bold)</p>
                               </div>
-                              
+
                               <div>
                                 <h3 className="text-2xl font-semibold mb-2">Heading 3 (24px/32px)</h3>
                                 <p className="text-gray-500">Font weight: 600 (Semibold)</p>
                               </div>
-                              
+
                               <div>
                                 <h4 className="text-xl font-semibold mb-2">Heading 4 (20px/28px)</h4>
                                 <p className="text-gray-500">Font weight: 600 (Semibold)</p>
                               </div>
-                              
+
                               <div>
                                 <h5 className="text-lg font-medium mb-2">Heading 5 (18px/24px)</h5>
                                 <p className="text-gray-500">Font weight: 500 (Medium)</p>
                               </div>
-                              
+
                               <div>
                                 <p className="text-base mb-2">Body text (16px/24px)</p>
                                 <p className="text-gray-500">Font weight: 400 (Regular)</p>
                               </div>
-                              
+
                               <div>
                                 <p className="text-sm mb-2">Small text (14px/20px)</p>
                                 <p className="text-gray-500">Font weight: 400 (Regular)</p>
@@ -791,7 +791,7 @@ export default function SettingsPage() {
                           </CardContent>
                         </Card>
                       </TabsContent>
-                      
+
                       <TabsContent value="colors">
                         <Card>
                           <CardHeader>
@@ -804,7 +804,7 @@ export default function SettingsPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div className="space-y-4">
                                 <h3 className="text-lg font-medium">Primary Colors</h3>
-                                
+
                                 <div className="space-y-3">
                                   <div>
                                     <div className="h-12 rounded-md bg-[#1D3557]"></div>
@@ -813,7 +813,7 @@ export default function SettingsPage() {
                                       <p className="text-sm text-gray-500">#1D3557</p>
                                     </div>
                                   </div>
-                                  
+
                                   <div>
                                     <div className="h-12 rounded-md bg-[#457B9D]"></div>
                                     <div className="mt-1">
@@ -823,10 +823,10 @@ export default function SettingsPage() {
                                   </div>
                                 </div>
                               </div>
-                              
+
                               <div className="space-y-4">
                                 <h3 className="text-lg font-medium">Accent Colors</h3>
-                                
+
                                 <div className="space-y-3">
                                   <div>
                                     <div className="h-12 rounded-md bg-[#2EC4B6]"></div>
@@ -835,7 +835,7 @@ export default function SettingsPage() {
                                       <p className="text-sm text-gray-500">#2EC4B6</p>
                                     </div>
                                   </div>
-                                  
+
                                   <div>
                                     <div className="h-12 rounded-md bg-[#FFDD57]"></div>
                                     <div className="mt-1">
@@ -846,7 +846,7 @@ export default function SettingsPage() {
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                               <div>
                                 <h3 className="text-lg font-medium mb-3">Background</h3>
@@ -856,7 +856,7 @@ export default function SettingsPage() {
                                   <p className="text-sm text-gray-500">#F1FAFB</p>
                                 </div>
                               </div>
-                              
+
                               <div>
                                 <h3 className="text-lg font-medium mb-3">Border</h3>
                                 <div className="h-12 rounded-md border-4 border-[#D6D6D6]"></div>
@@ -865,7 +865,7 @@ export default function SettingsPage() {
                                   <p className="text-sm text-gray-500">#D6D6D6</p>
                                 </div>
                               </div>
-                              
+
                               <div>
                                 <h3 className="text-lg font-medium mb-3">Text</h3>
                                 <div className="h-12 rounded-md bg-[#333333]"></div>
@@ -878,7 +878,7 @@ export default function SettingsPage() {
                           </CardContent>
                         </Card>
                       </TabsContent>
-                      
+
                       <TabsContent value="components">
                         <Card>
                           <CardHeader>
@@ -900,7 +900,7 @@ export default function SettingsPage() {
                                   <Button disabled>Disabled</Button>
                                 </div>
                               </div>
-                              
+
                               <div>
                                 <h3 className="text-lg font-medium mb-4">Inputs</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -923,7 +923,7 @@ export default function SettingsPage() {
                                   </div>
                                 </div>
                               </div>
-                              
+
                               <div>
                                 <h3 className="text-lg font-medium mb-4">Cards</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -936,7 +936,7 @@ export default function SettingsPage() {
                                       <p>This is a basic card component used for displaying content in a contained format.</p>
                                     </CardContent>
                                   </Card>
-                                  
+
                                   <Card>
                                     <CardHeader>
                                       <CardTitle>Interactive Card</CardTitle>
@@ -960,7 +960,7 @@ export default function SettingsPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="notifications" className="m-0">
                 <Card>
                   <CardHeader>
@@ -974,7 +974,7 @@ export default function SettingsPage() {
                       <form onSubmit={notificationForm.handleSubmit(onNotificationSubmit)} className="space-y-6">
                         <div className="space-y-4">
                           <h3 className="text-sm font-medium">Notification Channels</h3>
-                          
+
                           <FormField
                             control={notificationForm.control}
                             name="emailNotifications"
@@ -995,7 +995,7 @@ export default function SettingsPage() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={notificationForm.control}
                             name="slackNotifications"
@@ -1017,12 +1017,12 @@ export default function SettingsPage() {
                             )}
                           />
                         </div>
-                        
+
                         <Separator />
-                        
+
                         <div className="space-y-4">
                           <h3 className="text-sm font-medium">Notification Types</h3>
-                          
+
                           <FormField
                             control={notificationForm.control}
                             name="leadUpdates"
@@ -1043,7 +1043,7 @@ export default function SettingsPage() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={notificationForm.control}
                             name="loadUpdates"
@@ -1064,7 +1064,7 @@ export default function SettingsPage() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={notificationForm.control}
                             name="invoiceUpdates"
@@ -1086,12 +1086,12 @@ export default function SettingsPage() {
                             )}
                           />
                         </div>
-                        
+
                         <Separator />
-                        
+
                         <div className="space-y-4">
                           <h3 className="text-sm font-medium">Summary Reports</h3>
-                          
+
                           <FormField
                             control={notificationForm.control}
                             name="dailySummary"
@@ -1112,7 +1112,7 @@ export default function SettingsPage() {
                               </FormItem>
                             )}
                           />
-                          
+
                           <FormField
                             control={notificationForm.control}
                             name="weeklySummary"
@@ -1134,7 +1134,7 @@ export default function SettingsPage() {
                             )}
                           />
                         </div>
-                        
+
                         <Button 
                           type="submit" 
                           disabled={updateNotificationsMutation.isPending}
@@ -1146,7 +1146,7 @@ export default function SettingsPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               <TabsContent value="animations" className="m-0">
                 <Card>
                   <CardHeader>
@@ -1163,7 +1163,7 @@ export default function SettingsPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               {role.level >= 3 && (
                 <TabsContent value="commission-policies" className="m-0">
                   <Card>
@@ -1210,14 +1210,14 @@ export default function SettingsPage() {
                             Create Policy
                           </Button>
                         </div>
-                        
+
                         <CommissionPolicyEditor />
                       </div>
                     </CardContent>
                   </Card>
                 </TabsContent>
               )}
-              
+
               {role.level >= 4 && (
                 <TabsContent value="teams" className="m-0">
                   <Card>
@@ -1258,9 +1258,9 @@ export default function SettingsPage() {
                               </div>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
+                        
                       
+
                       <div className="space-y-4">
                         <div className="flex items-center justify-between p-4 border rounded-lg">
                           <div className="flex items-center space-x-4">
@@ -1276,7 +1276,7 @@ export default function SettingsPage() {
                             Active
                           </Badge>
                         </div>
-                        
+
                         <div className="flex items-center justify-between p-4 border rounded-lg">
                           <div className="flex items-center space-x-4">
                             <div className="bg-gray-200 rounded-full h-10 w-10 flex items-center justify-center text-sm font-medium text-gray-700">
@@ -1291,7 +1291,7 @@ export default function SettingsPage() {
                             Active
                           </Badge>
                         </div>
-                        
+
                         <div className="flex items-center justify-between p-4 border rounded-lg">
                           <div className="flex items-center space-x-4">
                             <div className="bg-gray-200 rounded-full h-10 w-10 flex items-center justify-center text-sm font-medium text-gray-700">
@@ -1307,16 +1307,14 @@ export default function SettingsPage() {
                           </Badge>
                         </div>
                       </div>
-                      
-                      <Button className="mt-6" disabled>
-                        <UserCheck className="h-4 w-4 mr-2" />
+
+                      <Button >
                         Add Team Member
                       </Button>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+                    </Card>
+                  </TabsContent>
               )}
-              
+
               {role.level >= 5 && (
                 <TabsContent value="admin" className="m-0 space-y-6">
                   <Card>
@@ -1344,18 +1342,18 @@ export default function SettingsPage() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-4">
                         <div className="flex flex-col space-y-2">
                           <Label htmlFor="company-name">Company Name</Label>
                           <Input id="company-name" defaultValue="MetaSys Limited" />
                         </div>
-                        
+
                         <div className="flex flex-col space-y-2">
                           <Label htmlFor="system-email">System Email</Label>
                           <Input id="system-email" defaultValue="system@metasys.com" />
                         </div>
-                        
+
                         <div className="flex items-center justify-between space-x-2">
                           <div className="space-y-0.5">
                             <Label>Maintenance Mode</Label>
@@ -1365,7 +1363,7 @@ export default function SettingsPage() {
                           </div>
                           <Switch disabled />
                         </div>
-                        
+
                         <div className="flex items-center justify-between space-x-2">
                           <div className="space-y-0.5">
                             <Label>Debug Mode</Label>
@@ -1384,7 +1382,7 @@ export default function SettingsPage() {
                       </Button>
                     </CardFooter>
                   </Card>
-                  
+
                   <Card>
                     <CardHeader>
                       <CardTitle>API Keys & Integrations</CardTitle>
@@ -1418,7 +1416,7 @@ export default function SettingsPage() {
                             </Button>
                           </div>
                         </div>
-                        
+
                         <div className="p-4 border rounded-lg">
                           <div className="flex justify-between">
                             <div>
@@ -1435,7 +1433,7 @@ export default function SettingsPage() {
                             Configure
                           </Button>
                         </div>
-                        
+
                         <div className="p-4 border rounded-lg">
                           <div className="flex justify-between">
                             <div>
