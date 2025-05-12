@@ -86,6 +86,44 @@ router.get('/:id', createAuthMiddleware(1), async (req, res, next) => {
  * PUT /api/accounts/:id
  * Update a client account
  */
+router.post('/:id/change-password', createAuthMiddleware(1), async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { currentPassword, newPassword } = req.body;
+
+    // Validate request
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Check if user has permission
+    const isAdmin = req.user?.role?.level >= 5;
+    const isSelf = req.user?.id === id;
+    
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ error: 'Insufficient permissions' });
+    }
+
+    // Verify current password and update
+    const success = await storage.updateUserPassword(id, currentPassword, newPassword);
+    
+    if (!success) {
+      return res.status(400).json({ error: 'Current password is incorrect' });
+    }
+
+    // Emit socket event for real-time updates
+    req.io?.emit('user:updated', {
+      type: 'PASSWORD_CHANGED',
+      userId: id
+    });
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Password update error:', error);
+    next(error);
+  }
+});
+
 router.put('/:id', createAuthMiddleware(1), async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);

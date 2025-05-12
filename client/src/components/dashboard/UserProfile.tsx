@@ -180,7 +180,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
   // Change password mutation
   const changePasswordMutation = useMutation({
     mutationFn: async (passwordData: z.infer<typeof securityFormSchema>) => {
-      const res = await apiRequest('POST', `/api/users/${user.id}/change-password`, {
+      const res = await apiRequest('POST', `/api/accounts/${user.id}/change-password`, {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       });
