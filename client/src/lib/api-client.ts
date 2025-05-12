@@ -69,19 +69,19 @@ export function useSystemStatus() {
     try {
       // Use retryFetch to automatically retry failed requests
       const response = await retryFetch(API_ROUTES.SYSTEM.HEALTH);
-      
+
       if (!response.ok) {
         throw new Error(`Server returned ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       // Update connection status
       const wasDisconnected = !isBackendConnected;
       setIsBackendConnected(true);
       setErrorMessage(null);
       setLastHealthCheck(new Date());
-      
+
       // Show reconnected toast if we were disconnected before
       if (wasDisconnected) {
         toast({
@@ -91,7 +91,7 @@ export function useSystemStatus() {
           duration: 3000,
         });
       }
-      
+
       return data;
     } catch (error) {
       // Handle the error
@@ -99,7 +99,7 @@ export function useSystemStatus() {
       setIsBackendConnected(false);
       setErrorMessage(createUserFriendlyErrorMessage(error));
       setLastHealthCheck(new Date());
-      
+
       // Show disconnected toast if we were connected before
       if (wasConnected) {
         toast({
@@ -109,10 +109,10 @@ export function useSystemStatus() {
           duration: 5000,
         });
       }
-      
+
       // Log the error
       handleApiError(error, false);
-      
+
       return null;
     } finally {
       setIsHealthCheckPending(false);
@@ -123,7 +123,7 @@ export function useSystemStatus() {
   useEffect(() => {
     // Initial health check
     checkServerHealth();
-    
+
     // Set up interval for periodic health checks
     const healthInterval = setInterval(() => {
       // Only check if we're not already checking
@@ -131,7 +131,7 @@ export function useSystemStatus() {
         checkServerHealth();
       }
     }, 30000); // Check every 30 seconds
-    
+
     return () => {
       clearInterval(healthInterval);
     };
@@ -228,7 +228,7 @@ export class ApiError extends Error {
   status: number;
   data: any;
   errorCode?: string;
-  
+
   constructor(message: string, status: number, errorCode?: string, data?: any) {
     super(message);
     this.name = 'ApiError';
@@ -247,10 +247,10 @@ export async function validateApiResponse(response: Response): Promise<Response>
   if (response.ok) {
     return response;
   }
-  
+
   try {
     const errorData = await response.json();
-    
+
     throw new ApiError(
       errorData.message || response.statusText,
       response.status,
@@ -261,12 +261,42 @@ export async function validateApiResponse(response: Response): Promise<Response>
     if (e instanceof ApiError) {
       throw e;
     }
-    
+
     // If we couldn't parse the error JSON
     throw new ApiError(
       response.statusText,
       response.status
     );
+  }
+}
+
+export async function apiRequest(method: string, endpoint: string, data?: any) {
+  try {
+    const response = await fetch(endpoint, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: 'include'
+    });
+
+    // Handle 401 specifically
+    if (response.status === 401) {
+      window.location.href = '/auth/login';
+      throw new Error('Authentication required');
+    }
+
+    // Handle other errors
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'API request failed');
+    }
+
+    return response;
+  } catch (error) {
+    console.error('API request failed:', error);
+    throw error;
   }
 }
 

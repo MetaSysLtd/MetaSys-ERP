@@ -22,10 +22,9 @@ let manuallyDisconnected = false;
 /**
  * Initialize the socket connection
  */
-export function initializeSocket() {
+export const initializeSocket = () => {
   if (socket) return socket;
 
-  // Create socket instance
   socket = io({
     transports: ['websocket', 'polling'],
     reconnection: true,
@@ -96,6 +95,9 @@ export function initializeSocket() {
   socket.on('connect_error', (error) => {
     console.error('Socket connection error:', error);
     updateStatus('error');
+    if (error.message.includes('Authentication failed')) {
+      window.location.href = '/auth/login';
+    }
   });
 
   return socket;

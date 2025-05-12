@@ -42,12 +42,17 @@ const AuthContext = createContext<AuthContextType>({
   error: null,
 });
 
-function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<Role | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [role, setRole] = useState<Role | null>(null);
+  
 
   useEffect(() => {
     const checkAuth = async () => {

@@ -31,15 +31,33 @@ declare global {
 // Middleware for checking authentication and minimum role level
 export function auth(minimumLevel: number = 1) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    // Check if user is authenticated
-    if (!req.session || !req.isAuthenticated || !req.isAuthenticated()) {
-      if (req.session) {
-        req.session.destroy((err) => {
-          if (err) console.error('Session destruction error:', err);
+    try {
+      // Check if session exists
+      if (!req.session) {
+        return res.status(401).json({ 
+          status: "error",
+          message: "No session found",
+          authenticated: false 
         });
       }
-      return res.status(401).json({ error: "Unauthorized: Please log in to access this resource" });
-    }
+
+      // Check if user is authenticated
+      if (!req.isAuthenticated || !req.isAuthenticated()) {
+        return res.status(401).json({ 
+          status: "error",
+          message: "Unauthorized: Please log in to access this resource",
+          authenticated: false 
+        });
+      }
+
+      // Add user info to request
+      if (!req.user) {
+        return res.status(401).json({
+          status: "error", 
+          message: "User data not found",
+          authenticated: false
+        });
+      }
 
     // If no minimum level is required or user is admin, proceed
     if (minimumLevel <= 0) {
