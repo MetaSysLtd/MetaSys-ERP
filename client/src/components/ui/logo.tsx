@@ -1,3 +1,4 @@
+
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -6,28 +7,28 @@ export function Logo() {
   
   // Determine the appropriate dashboard path based on user role
   const getDashboardPath = () => {
-    if (!isAuthenticated || !user) return "/auth"; // Not logged in, go to auth page
-    
-    // Default dashboard is the main dashboard
-    let dashboardPath = "/";
-    
-    // Redirect based on role
-    if (role) {
-      // Admin users go to admin dashboard
-      if (role.department === "admin" && role.level >= 5) {
-        dashboardPath = "/admin";
-      } 
-      // Sales users go to CRM
-      else if (role.department === "sales") {
-        dashboardPath = "/crm";
-      }
-      // Dispatch users go to dispatch
-      else if (role.department === "dispatch") {
-        dashboardPath = "/dispatch";
-      }
+    if (!isAuthenticated || !user) return "/auth";
+
+    // Admin users with level 5+ go to admin dashboard
+    if (role?.department === "admin" && role.level >= 5) {
+      return "/admin";
     }
     
-    return dashboardPath;
+    // Department-specific dashboards
+    switch (role?.department) {
+      case "sales":
+        return "/crm";
+      case "dispatch":
+        return "/dispatch";
+      case "finance":
+        return "/finance";
+      case "hr":
+        return "/hr";
+      case "marketing":
+        return "/marketing";
+      default:
+        return "/"; // Default dashboard
+    }
   };
   
   return (
