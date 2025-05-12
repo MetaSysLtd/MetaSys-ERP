@@ -1243,21 +1243,23 @@ export default function SettingsPage() {
                           Go to Team Management
                         </Button>
                       </div>
-                          <div className="flex-shrink-0">
-                            <AlertTriangle className="h-5 w-5 text-yellow-400" />
-                          </div>
-                          <div className="ml-3">
-                            <h3 className="text-sm font-medium text-yellow-800">
-                              Feature in development
-                            </h3>
-                            <div className="mt-2 text-sm text-yellow-700">
-                              <p>
-                                Team management functionality is currently being developed. This feature will allow you to add, edit, and remove team members, as well as manage their roles and permissions.
-                              </p>
+                          <div className="flex">
+                            <div className="flex-shrink-0">
+                              <AlertTriangle className="h-5 w-5 text-yellow-400" />
+                            </div>
+                            <div className="ml-3">
+                              <h3 className="text-sm font-medium text-yellow-800">
+                                Feature in development
+                              </h3>
+                              <div className="mt-2 text-sm text-yellow-700">
+                                <p>
+                                  Team management functionality is currently being developed. This feature will allow you to add, edit, and remove team members, as well as manage their roles and permissions.
+                                </p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
+                        </CardContent>
+                      </Card>
                       
                       <div className="space-y-4">
                         <div className="flex items-center justify-between p-4 border rounded-lg">
