@@ -288,7 +288,7 @@ export async function apiRequest(method: string, endpoint: string, data?: any, r
           method: 'POST',
           credentials: 'include'
         });
-        
+
         if (refreshResponse.ok) {
           // Retry original request after token refresh
           return apiRequest(method, endpoint, data, 1);
