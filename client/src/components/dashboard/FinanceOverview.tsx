@@ -44,8 +44,19 @@ export function FinanceOverview({ data }: FinanceOverviewProps) {
             Finance Overview
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-5 flex justify-center items-center h-64">
-          <p className="text-gray-500">No financial data available</p>
+        <CardContent className="p-5">
+          <div className="flex flex-col items-center justify-center text-center h-64">
+            <div className="w-16 h-16 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium">No Financial Data Yet</h3>
+            <p className="text-gray-500 mt-2 max-w-md">
+              Financial data will appear here once revenue and expense information is recorded in the system. 
+              This overview will show revenue trends, expense breakdown, and profitability metrics.
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
