@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 // Original lead interface (from database)
 interface DbLead {
@@ -103,17 +104,33 @@ export function RecentLeads({ leads = [] }: LeadsTableProps) {
             {!leads || leads.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="h-48 p-0">
-                  <div className="flex flex-col items-center justify-center h-full py-8 text-center">
-                    <div className="w-14 h-14 mb-3 rounded-full bg-gray-100 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-base font-medium">No Leads Yet</h3>
-                    <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">
-                      This table will display your most recent leads as they're added to the CRM system
-                    </p>
-                  </div>
+                  <EmptyState
+                    iconType="users"
+                    iconSize={28}
+                    title="No Leads Yet"
+                    message="This table will display your most recent leads as they're added to the CRM system"
+                    description="Leads will appear here as they are created and qualified through the sales process"
+                    placeholderData={
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded text-center">
+                          <div className="text-lg font-medium text-gray-400">0</div>
+                          <div className="text-xs text-gray-500">New</div>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded text-center">
+                          <div className="text-lg font-medium text-gray-400">0</div>
+                          <div className="text-xs text-gray-500">In Progress</div>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded text-center">
+                          <div className="text-lg font-medium text-gray-400">0</div>
+                          <div className="text-xs text-gray-500">Qualified</div>
+                        </div>
+                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded text-center">
+                          <div className="text-lg font-medium text-gray-400">0</div>
+                          <div className="text-xs text-gray-500">Converted</div>
+                        </div>
+                      </div>
+                    }
+                  />
                 </TableCell>
               </TableRow>
             ) : (
