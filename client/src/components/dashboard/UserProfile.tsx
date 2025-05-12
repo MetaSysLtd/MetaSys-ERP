@@ -102,7 +102,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // Profile edit form
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
@@ -119,7 +119,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
       bio: user.bio || "",
     }
   });
-  
+
   // Password change form
   const securityForm = useForm<z.infer<typeof securityFormSchema>>({
     resolver: zodResolver(securityFormSchema),
@@ -129,7 +129,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
       confirmPassword: "",
     }
   });
-  
+
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: z.infer<typeof profileFormSchema>) => {
@@ -147,21 +147,21 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
         },
         bio: profileData.bio,
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || 'Failed to update profile');
       }
-      
+
       return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/users', user.id] });
-      
+
       if (isCurrentUser) {
         queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       }
-      
+
       setIsEditingProfile(false);
       toast({
         title: "Profile updated",
@@ -176,7 +176,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
       });
     }
   });
-  
+
   // Change password mutation
   const changePasswordMutation = useMutation({
     mutationFn: async (passwordData: z.infer<typeof securityFormSchema>) => {
@@ -184,12 +184,12 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || 'Failed to change password');
       }
-      
+
       return await res.json();
     },
     onSuccess: () => {
@@ -208,15 +208,15 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
       });
     }
   });
-  
+
   const onSubmitProfile = (data: z.infer<typeof profileFormSchema>) => {
     updateProfileMutation.mutate(data);
   };
-  
+
   const onSubmitPasswordChange = (data: z.infer<typeof securityFormSchema>) => {
     changePasswordMutation.mutate(data);
   };
-  
+
   const getDepartmentColor = (department: string) => {
     switch (department.toLowerCase()) {
       case 'sales': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
@@ -229,7 +229,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
     }
   };
-  
+
   const getRoleLevelName = (level: number) => {
     switch (level) {
       case 1: return 'Representative';
@@ -240,19 +240,19 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
       default: return 'Unknown';
     }
   };
-  
+
   const getPermissionName = (permission: string) => {
     const [action, resource] = permission.split(':');
     const formattedAction = action.charAt(0).toUpperCase() + action.slice(1);
     const formattedResource = resource ? resource.charAt(0).toUpperCase() + resource.slice(1) + 's' : 'All';
-    
+
     return `${formattedAction} ${formattedResource}`;
   };
-  
+
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
-  
+
   return (
     <div className="space-y-6">
       <Card className="shadow-md">
@@ -267,14 +267,14 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                 )}
               </Avatar>
             </div>
-            
+
             <div className="flex-1">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                 <div>
                   <h2 className="text-2xl font-bold">{user.firstName} {user.lastName}</h2>
                   <p className="text-muted-foreground">@{user.username}</p>
                 </div>
-                
+
                 {canEdit && (
                   <div className="flex gap-2">
                     <Button
@@ -295,7 +295,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   </div>
                 )}
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
@@ -337,7 +337,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   </div>
                 )}
               </div>
-              
+
               {user.bio && (
                 <div className="mt-4">
                   <Label className="text-sm text-muted-foreground">Bio</Label>
@@ -348,7 +348,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
           </div>
         </CardContent>
       </Card>
-      
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6">
           <TabsTrigger value="overview">
@@ -364,7 +364,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
             <Briefcase className="h-4 w-4 mr-2" /> Activity
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="overview" className="space-y-4">
           <Card>
             <CardHeader>
@@ -405,9 +405,9 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   </div>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <div>
                 <h3 className="text-lg font-semibold mb-2">Permissions</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
@@ -421,7 +421,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="security" className="space-y-4">
           <Card>
             <CardHeader>
@@ -446,9 +446,9 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   )}
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <div>
@@ -460,9 +460,9 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   </Badge>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <div>
@@ -481,7 +481,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="address" className="space-y-4">
           <Card>
             <CardHeader>
@@ -542,7 +542,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="activity" className="space-y-4">
           <Card>
             <CardHeader>
@@ -557,7 +557,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       {/* Edit Profile Dialog */}
       <Dialog open={isEditingProfile} onOpenChange={setIsEditingProfile}>
         <DialogContent className="sm:max-w-[500px]">
@@ -567,7 +567,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
               Update your personal information and profile details
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...profileForm}>
             <form onSubmit={profileForm.handleSubmit(onSubmitProfile)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -584,7 +584,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={profileForm.control}
                   name="lastName"
@@ -599,7 +599,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={profileForm.control}
                 name="email"
@@ -613,7 +613,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={profileForm.control}
                 name="phoneNumber"
@@ -627,7 +627,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={profileForm.control}
                 name="bio"
@@ -645,9 +645,9 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   </FormItem>
                 )}
               />
-              
+
               <h3 className="text-base font-semibold pt-2">Address Information</h3>
-              
+
               <FormField
                 control={profileForm.control}
                 name="street"
@@ -661,7 +661,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   </FormItem>
                 )}
               />
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={profileForm.control}
@@ -676,7 +676,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={profileForm.control}
                   name="state"
@@ -691,7 +691,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   )}
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={profileForm.control}
@@ -706,7 +706,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={profileForm.control}
                   name="country"
@@ -721,7 +721,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   )}
                 />
               </div>
-              
+
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsEditingProfile(false)}>
                   Cancel
@@ -734,7 +734,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
           </Form>
         </DialogContent>
       </Dialog>
-      
+
       {/* Change Password Dialog */}
       <Dialog open={isChangingPassword} onOpenChange={setIsChangingPassword}>
         <DialogContent className="sm:max-w-[500px]">
@@ -744,7 +744,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
               Enter your current password and a new password
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...securityForm}>
             <form onSubmit={securityForm.handleSubmit(onSubmitPasswordChange)} className="space-y-4">
               <FormField
@@ -760,7 +760,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={securityForm.control}
                 name="newPassword"
@@ -777,7 +777,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={securityForm.control}
                 name="confirmPassword"
@@ -791,7 +791,7 @@ export function UserProfile({ user, isCurrentUser, canEdit }: UserProfileProps) 
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsChangingPassword(false)}>
                   Cancel

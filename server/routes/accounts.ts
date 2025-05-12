@@ -88,28 +88,39 @@ router.get('/:id', createAuthMiddleware(1), async (req, res, next) => {
  */
 router.put('/:id', createAuthMiddleware(1), async (req, res, next) => {
   try {
-    // Update a client account
     const id = parseInt(req.params.id, 10);
+    const updates = { ...req.body };
 
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid ID format' });
+    // Check if user has permission to update
+    const isAdmin = req.user?.role?.level >= 5;
+    const isSelf = req.user?.id === id;
+
+    if (!isAdmin && !isSelf) {
+      return res.status(403).json({ 
+        error: 'Insufficient permissions to update user profile' 
+      });
     }
 
-    res.json({
-      id,
-      name: req.body.name,
-      email: req.body.email,
-      phone: req.body.phone,
-      company: req.body.company,
-      industry: req.body.industry,
-      status: req.body.status,
-      assignedTo: req.body.assignedTo || req.user?.id,
-      createdBy: req.user?.id,
-      createdAt: new Date(),
-      updatedAt: new Date()
+    // Sanitize updates
+    delete updates.id; // Prevent ID changes
+    delete updates.role; // Prevent role changes via this endpoint
+
+    const updatedUser = await storage.updateUser(id, updates);
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Emit socket event for real-time updates
+    req.io?.emit('user:updated', {
+      type: 'UPDATE',
+      data: updatedUser
     });
+
+    const { password, ...safeUser } = updatedUser;
+    res.json(safeUser);
   } catch (error) {
-    logger.error('Error updating client account:', error);
+    console.error('Profile update error:', error);
     next(error);
   }
 });
