@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface TeamMetricProps {
   title: string;
@@ -87,21 +88,46 @@ export function TeamPerformance({ data, type, title, className }: TeamPerformanc
           </CardTitle>
         </CardHeader>
         <CardContent className="p-5">
-          <div className="flex flex-col justify-center items-center h-64 text-center">
-            <div className="w-16 h-16 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium">No Performance Data Yet</h3>
-            <p className="text-gray-500 mt-2 max-w-md">
-              {type === 'sales' 
-                ? "Performance metrics will appear here once sales activities begin. This card will show lead generation and conversion rates."
+          <EmptyState
+            iconType="chart"
+            iconSize={30}
+            title="No Performance Data Yet"
+            message={
+              type === 'sales' 
+                ? "Performance metrics will appear here once sales activities begin."
                 : type === 'dispatch'
-                ? "Performance metrics will appear here once dispatch activities begin. This card will track loads, routes, and delivery efficiency."
-                : "Team performance data will be displayed here once team activities are recorded in the system."}
-            </p>
-          </div>
+                ? "Performance metrics will appear here once dispatch activities begin."
+                : "Team performance data will be displayed here once team activities are recorded."
+            }
+            description={
+              type === 'sales' 
+                ? "This card will show lead generation and conversion rates."
+                : type === 'dispatch'
+                ? "This card will track loads, routes, and delivery efficiency."
+                : "You'll see metrics like call rates, conversion rates, and progress toward targets."
+            }
+            placeholderData={
+              <div className="space-y-3 mt-3 max-w-lg mx-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-center">
+                    <div className="text-sm text-gray-500">Average Calls/Day</div>
+                    <div className="text-lg font-medium text-gray-400">0</div>
+                  </div>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-center">
+                    <div className="text-sm text-gray-500">Conversion Rate</div>
+                    <div className="text-lg font-medium text-gray-400">0%</div>
+                  </div>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-center">
+                    <div className="text-sm text-gray-500">Team Target</div>
+                    <div className="text-lg font-medium text-gray-400">0%</div>
+                  </div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg h-24 w-full flex items-center justify-center">
+                  <div className="text-sm text-gray-400">Performance chart will appear here</div>
+                </div>
+              </div>
+            }
+          />
         </CardContent>
       </Card>
     );
