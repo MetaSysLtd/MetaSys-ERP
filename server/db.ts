@@ -15,11 +15,13 @@ if (!process.env.DATABASE_URL) {
 export const pgPool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  idleTimeoutMillis: 60000,
+  connectionTimeoutMillis: 10000,
   allowExitOnIdle: true,
   keepAlive: true,
-  keepAliveInitialDelayMillis: 10000
+  keepAliveInitialDelayMillis: 5000,
+  statement_timeout: 30000,
+  query_timeout: 30000
 });
 
 // Add health check query
