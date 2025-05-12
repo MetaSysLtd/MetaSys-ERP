@@ -50,6 +50,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ErrorState } from "@/components/ui/error-state";
 
 // Define the Account interface to match the backend schema
 interface Account {
@@ -304,7 +305,7 @@ export default function AccountsPage() {
         cell: ({ row }) => {
           const status = row.getValue('status') as string;
           let colorClass = 'bg-gray-500';
-          
+
           switch (status) {
             case 'active':
               colorClass = 'bg-green-500';
@@ -322,7 +323,7 @@ export default function AccountsPage() {
               colorClass = 'bg-red-500';
               break;
           }
-          
+
           return (
             <Badge variant="outline" className="capitalize">
               <div className={`h-2 w-2 rounded-full ${colorClass} mr-2`} />
@@ -365,7 +366,7 @@ export default function AccountsPage() {
         id: 'actions',
         cell: ({ row }) => {
           const account = row.original;
-          
+
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -432,27 +433,12 @@ export default function AccountsPage() {
         animate={{ opacity: 1 }}
         className="p-4"
       >
-        <Alert variant="destructive" className="mb-4">
-          <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">
-            Error Loading Accounts
-          </h3>
-          <p className="text-sm">
-            There was a problem loading your accounts. Please try again later.
-          </p>
-        </Alert>
-        <Button
-          onClick={() => {
-            refetch();
-            toast({
-              title: "Retrying...",
-              description: "Attempting to reload accounts",
-              variant: "default"
-            });
-          }}
-          className="bg-[#025E73] hover:bg-[#011F26] text-white rounded-md transition-all duration-200"
-        >
-          Retry
-        </Button>
+        <ErrorState
+          title="Error Loading Accounts"
+          message={error.message || "There was a problem loading the accounts. Please try again."}
+          onRetry={refetch}
+          error={error}
+        />
       </motion.div>
     );
   }
@@ -474,7 +460,7 @@ export default function AccountsPage() {
           />
           <Search className="h-4 w-4 absolute ml-3 text-muted-foreground" />
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"

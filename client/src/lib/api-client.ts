@@ -281,10 +281,26 @@ export async function apiRequest(method: string, endpoint: string, data?: any, r
       credentials: 'include'
     }, retries);
 
-    // Handle 401 specifically
+    // Handle 401 with retry mechanism for token refresh
     if (response.status === 401) {
-      window.location.href = '/auth/login';
-      throw new Error('Authentication required');
+      try {
+        const refreshResponse = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        
+        if (refreshResponse.ok) {
+          // Retry original request after token refresh
+          return apiRequest(method, endpoint, data, 1);
+        } else {
+          // Only redirect if refresh fails
+          window.location.href = '/auth/login';
+          throw new Error('Session expired. Please log in again.');
+        }
+      } catch (refreshError) {
+        window.location.href = '/auth/login';
+        throw new Error('Authentication required');
+      }
     }
 
     // Handle other errors
