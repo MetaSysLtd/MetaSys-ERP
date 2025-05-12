@@ -6,6 +6,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useSearch } from "wouter";
 import { useAnimationContext } from "@/contexts/AnimationContext";
 import { AnimationSettings } from "@/components/ui/animation-settings";
+import CommissionPolicyEditor from "@/components/settings/CommissionPolicyEditor";
 
 import {
   Tabs,
@@ -108,6 +109,10 @@ export default function SettingsPage() {
   const search = useSearch();
   const searchParams = new URLSearchParams(search);
   const activeTab = searchParams.get("tab") || "profile";
+  
+  // Commission policy states
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [showCreatePolicy, setShowCreatePolicy] = useState(false);
 
   // Profile form
   const profileForm = useForm<ProfileFormValues>({
