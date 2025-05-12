@@ -293,13 +293,18 @@ export async function apiRequest(method: string, endpoint: string, data?: any, r
           // Retry original request after token refresh
           return apiRequest(method, endpoint, data, 1);
         } else {
-          // Only redirect if refresh fails
-          window.location.href = '/auth/login';
-          throw new Error('Session expired. Please log in again.');
+          // Dispatch auth error event
+          window.dispatchEvent(new CustomEvent('auth:expired', { 
+            detail: { redirect: true, message: 'Session expired. Please log in again.' }
+          }));
+          throw new ApiError('Session expired', 401, 'AUTH_EXPIRED');
         }
       } catch (refreshError) {
-        window.location.href = '/auth/login';
-        throw new Error('Authentication required');
+        // Force reauth on refresh failure
+        window.dispatchEvent(new CustomEvent('auth:required', {
+          detail: { redirect: true }
+        }));
+        throw new ApiError('Authentication required', 401, 'AUTH_REQUIRED');
       }
     }
 
