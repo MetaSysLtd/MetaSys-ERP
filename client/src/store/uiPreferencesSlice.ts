@@ -17,10 +17,10 @@ const initialState: UiPreferences = {
   sidebarPinned: true,
   sidebarCollapsed: false,
   expandedDropdown: null,
-  // Animation defaults
-  animationsEnabled: true,
+  // Animation defaults - animations disabled by default to ensure content renders
+  animationsEnabled: false,
   transitionSpeed: 'normal',
-  pageTransition: 'gradient',
+  pageTransition: 'fade',
   reducedMotion: false
 };
 
