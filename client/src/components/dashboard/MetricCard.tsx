@@ -13,6 +13,8 @@ export interface MetricCardProps {
   iconColor?: string;
   href?: string;
   className?: string;
+  emptyStateMessage?: string | null;
+  isEmptyState?: boolean;
 }
 
 export function MetricCard({
@@ -24,7 +26,9 @@ export function MetricCard({
   iconBgColor = "bg-blue-50",
   iconColor = "text-blue-600",
   href,
-  className = ""
+  className = "",
+  emptyStateMessage,
+  isEmptyState = value === 0 || value === "0"
 }: MetricCardProps) {
   // Default icons based on title if not provided
   const getDefaultIcon = () => {
@@ -78,7 +82,11 @@ export function MetricCard({
               <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
               <dd>
                 <div className="text-lg font-medium text-gray-900">{value}</div>
-                {description && (
+                {isEmptyState && emptyStateMessage ? (
+                  <div className="text-xs text-amber-600 mt-1 max-w-[180px]">
+                    {emptyStateMessage}
+                  </div>
+                ) : description && (
                   <div className={`flex items-center text-sm ${trendStyles.textColor}`}>
                     {trendStyles.icon}
                     <span className="ml-1">{description}</span>
