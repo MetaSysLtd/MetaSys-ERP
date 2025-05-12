@@ -84,7 +84,7 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
   const getTrend = (change: number = 0) => change > 0 ? 'up' : change < 0 ? 'down' : 'neutral';
 
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+    <div className={metricCardStyles.grid}>
       <MetricCard
         title="Total Leads"
         value={metrics.totalLeads?.toString() || '0'}
@@ -93,6 +93,8 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         href="/leads"
         emptyStateMessage={emptyStateMessages.leads}
         isEmptyState={metrics.totalLeads === 0}
+        iconBgColor="bg-blue-50"
+        iconColor="text-blue-600"
       />
       <MetricCard
         title="Active Loads"
@@ -102,6 +104,8 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         href="/dispatch"
         emptyStateMessage={emptyStateMessages.loads}
         isEmptyState={metrics.activeLoads === 0}
+        iconBgColor="bg-amber-50"
+        iconColor="text-amber-600"
       />
       <MetricCard
         title="Active Clients"
@@ -122,6 +126,8 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         href="/finance"
         emptyStateMessage={emptyStateMessages.revenue}
         isEmptyState={metrics.totalRevenue === 0}
+        iconBgColor="bg-purple-50" 
+        iconColor="text-purple-600"
       />
       <MetricCard
         title="Pending Invoices"
@@ -132,6 +138,8 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         className="lg:col-span-2 xl:col-span-1"
         emptyStateMessage={emptyStateMessages.invoices}
         isEmptyState={metrics.invoicesPending === 0}
+        iconBgColor="bg-indigo-50"
+        iconColor="text-indigo-600"
       />
     </div>
   );

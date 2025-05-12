@@ -16,7 +16,9 @@ import {
   Settings, 
   Ticket,
   Bell,
-  LineChart
+  LineChart,
+  LayoutDashboard,
+  AreaChart
 } from "lucide-react";
 import { typography, placeholderChartStyles } from "@/lib/style-utils";
 
@@ -33,7 +35,8 @@ type IconType =
   | "ticket" 
   | "notification" 
   | "search" 
-  | "cart";
+  | "cart"
+  | "dashboard";
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -83,7 +86,7 @@ export function EmptyState({
       case "data": return <FileQuestion {...iconProps} />;
       case "users": return <Users {...iconProps} />;
       case "finance": return <DollarSign {...iconProps} />;
-      case "chart": return <LineChart {...iconProps} />;
+      case "chart": return <AreaChart {...iconProps} />;
       case "calendar": return <Calendar {...iconProps} />;
       case "clock": return <Clock {...iconProps} />;
       case "invoice": return <FileText {...iconProps} />;
@@ -93,6 +96,7 @@ export function EmptyState({
       case "notification": return <Bell {...iconProps} />;
       case "search": return <Search {...iconProps} />;
       case "cart": return <ShoppingCart {...iconProps} />;
+      case "dashboard": return <LayoutDashboard {...iconProps} />;
       default: return <AlertCircle {...iconProps} />;
     }
   };
@@ -102,9 +106,19 @@ export function EmptyState({
     if (iconType === 'chart' || iconType === 'finance') {
       return (
         <div className={`${placeholderChartStyles.base} ${placeholderChartStyles.height} mb-4`}>
-          <LineChart className="h-12 w-12 text-gray-300 mb-2" />
-          <div className={placeholderChartStyles.text}>No performance data yet</div>
-          <div className={placeholderChartStyles.subtext}>Add loads to generate this metric</div>
+          {iconType === 'finance' 
+            ? <AreaChart className="h-12 w-12 text-gray-300 mb-2" />
+            : <LineChart className="h-12 w-12 text-gray-300 mb-2" />
+          }
+          <div className={placeholderChartStyles.text}>
+            {iconType === 'finance' ? 'No financial data yet' : 'No performance data yet'}
+          </div>
+          <div className={placeholderChartStyles.subtext}>
+            {iconType === 'finance' 
+              ? 'Financial charts will appear once revenue is recorded' 
+              : 'Add loads to generate this metric'
+            }
+          </div>
         </div>
       );
     }

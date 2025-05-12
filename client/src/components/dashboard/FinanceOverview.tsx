@@ -14,6 +14,7 @@ import {
 import { formatCurrency } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getCardClass, typography, placeholderChartStyles } from "@/lib/style-utils";
+import { BarChart2, LineChart } from "lucide-react";
 
 interface FinanceSummary {
   totalRevenue: number;
@@ -79,7 +80,7 @@ export function FinanceOverview({ data }: FinanceOverviewProps) {
                   <div>
                     <h3 className={typography.h5 + " mb-3"}>Revenue & Expenses</h3>
                     <div className={placeholderChartStyles.base + " " + placeholderChartStyles.height}>
-                      <AreaChart className="h-12 w-12 text-gray-300 mb-2" />
+                      <LineChart className="h-12 w-12 text-gray-300 mb-2" />
                       <div className={placeholderChartStyles.text}>No revenue data yet</div>
                       <div className={placeholderChartStyles.subtext}>Revenue charts will appear once financial data is recorded</div>
                     </div>
@@ -89,7 +90,7 @@ export function FinanceOverview({ data }: FinanceOverviewProps) {
                   <div>
                     <h3 className={typography.h5 + " mb-3"}>Expense Breakdown</h3>
                     <div className={placeholderChartStyles.base + " " + placeholderChartStyles.height}>
-                      <Bar className="h-12 w-12 text-gray-300 mb-2" />
+                      <BarChart2 className="h-12 w-12 text-gray-300 mb-2" />
                       <div className={placeholderChartStyles.text}>No expense data yet</div>
                       <div className={placeholderChartStyles.subtext}>Expense breakdown will appear once expenses are recorded</div>
                     </div>
