@@ -31,17 +31,48 @@ export function OnboardingRatio({ data }: OnboardingRatioProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-5">
-          <div className="flex flex-col items-center justify-center text-center h-64">
-            <div className="w-16 h-16 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium">No Onboarding Data Yet</h3>
-            <p className="text-gray-500 mt-2 max-w-md">
-              Client onboarding statistics will appear here once client onboarding processes begin. This chart will track completed, in-progress, and stalled onboardings.
-            </p>
-          </div>
+          <EmptyState
+            iconType="users"
+            iconSize={28}
+            title="No Onboarding Data Yet"
+            message="Client onboarding statistics will appear here once client onboarding processes begin."
+            description="This chart will track completed, in-progress, and stalled onboardings."
+            placeholderData={
+              <div className="space-y-4 mt-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-lg mx-auto">
+                  <div className="flex justify-center">
+                    <div className="w-32 h-32 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                      <div className="text-sm text-gray-400">Onboarding chart</div>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Total Clients</p>
+                      <p className="text-2xl font-semibold text-gray-400">0</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Conversion Rate</p>
+                      <p className="text-2xl font-semibold text-gray-400">0%</p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <div className="text-sm font-medium text-blue-400">0</div>
+                        <div className="text-xs text-gray-500">Completed</div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-yellow-400">0</div>
+                        <div className="text-xs text-gray-500">In Progress</div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-red-400">0</div>
+                        <div className="text-xs text-gray-500">Stalled</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          />
         </CardContent>
       </Card>
     );

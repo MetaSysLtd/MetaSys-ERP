@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   LineChart,
   Line,
@@ -35,17 +36,38 @@ export function RevenueCard({ data }: RevenueCardProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-5">
-          <div className="flex justify-center items-center h-72">
-            <div className="text-center">
-              <h3 className="text-lg font-medium mb-1">No Revenue Data Yet</h3>
-              <p className="text-muted-foreground">
-                Revenue data will appear here once sales activities begin
-              </p>
-              <div className="mt-4 text-2xl font-semibold">
-                {formatCurrency(0)}
+          <EmptyState
+            iconType="finance"
+            iconSize={28}
+            title="No Revenue Data Yet"
+            message="Revenue data will appear here once sales activities begin."
+            description="This chart will show actual revenue against targets over time."
+            placeholderData={
+              <div className="space-y-4 mt-3">
+                <div className="text-center mb-4">
+                  <div className="text-2xl font-semibold text-gray-400">{formatCurrency(0)}</div>
+                  <div className="text-sm text-gray-500">Total Revenue</div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg h-40 flex items-center justify-center">
+                  <div className="text-sm text-gray-400">Revenue chart will appear here</div>
+                </div>
+                <div className="grid grid-cols-3 gap-4 max-w-md mx-auto text-center">
+                  <div>
+                    <div className="text-sm font-medium text-gray-400">{formatCurrency(0)}</div>
+                    <div className="text-xs text-gray-500">This Month</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-400">{formatCurrency(0)}</div>
+                    <div className="text-xs text-gray-500">Last Month</div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-400">0%</div>
+                    <div className="text-xs text-gray-500">Growth</div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            }
+          />
         </CardContent>
       </Card>
     );
