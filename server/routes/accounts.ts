@@ -124,6 +124,31 @@ router.post('/:id/change-password', createAuthMiddleware(1), async (req, res, ne
   }
 });
 
+// Update notification preferences
+router.put('/notifications', createAuthMiddleware(1), async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = req.user.id;
+    const preferences = req.body;
+
+    const updatedPrefs = await storage.updateUserNotificationPreferences(userId, preferences);
+
+    // Emit socket event for real-time updates
+    req.io?.emit('user:updated', {
+      type: 'NOTIFICATION_PREFS_UPDATED',
+      userId,
+      data: updatedPrefs
+    });
+
+    res.json(updatedPrefs);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.put('/:id', createAuthMiddleware(1), async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);

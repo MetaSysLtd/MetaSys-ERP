@@ -278,6 +278,23 @@ export async function validateApiResponse(response: Response): Promise<Response>
   }
 }
 
+export async function updateNotificationPreferences(preferences: any) {
+  const res = await fetch('/api/accounts/notifications', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include',
+    body: JSON.stringify(preferences)
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to update notification preferences');
+  }
+
+  return res.json();
+}
+
 export async function apiRequest(method: string, endpoint: string, data?: any, retries = 3) {
   try {
     const response = await retryFetch(endpoint, {
