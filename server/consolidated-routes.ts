@@ -1350,8 +1350,13 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         });
       }
 
-      // Store user in session
+      // Store user in session with improved persistence
       req.session.userId = user.id;
+      req.session.orgId = user.orgId;
+      req.session.roleId = user.roleId;
+      
+      // Explicitly save session to ensure it's properly stored
+      req.session.save();
       
       try {
         // Try to get role information, but handle any errors
@@ -1385,10 +1390,28 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     }
   });
 
-  // Logout route
+  // Logout route with proper session handling
   authRouter.post("/logout", (req, res) => {
-    req.session.destroy(() => {
-      res.status(200).json({ message: "Logged out successfully" });
+    // Capture session ID for destruction
+    const sessionID = req.session.id;
+    
+    // Clear session data first
+    req.session.userId = undefined;
+    req.session.orgId = undefined;
+    req.session.roleId = undefined;
+    
+    // Save the cleared session then destroy it
+    req.session.save(() => {
+      req.session.destroy(() => {
+        // Set cookie expiration
+        if (req.cookies['connect.sid']) {
+          res.clearCookie('connect.sid');
+        }
+        res.status(200).json({ 
+          message: "Logged out successfully",
+          success: true
+        });
+      });
     });
   });
 
