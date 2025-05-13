@@ -7,13 +7,18 @@ import session from "express-session";
 import { storage } from "./storage";
 import { sessionHandler } from "./middleware/error-handler";
 
-// JSON error handler middleware
+// JSON error handler middleware with proper type handling
 function jsonErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
-  if (err instanceof SyntaxError && 'body' in err && err.type === 'entity.parse.failed') {
-    return res.status(400).json({ 
-      status: 'error', 
-      message: 'Invalid JSON payload'
-    });
+  if (err instanceof SyntaxError && 'body' in err) {
+    // Type-safe check for SyntaxError in JSON parsing
+    const syntaxError = err as unknown as { type?: string };
+    if (syntaxError.type === 'entity.parse.failed') {
+      console.error("JSON parse error:", err.message);
+      return res.status(400).json({ 
+        status: 'error', 
+        message: 'Invalid JSON payload'
+      });
+    }
   }
   next(err);
 }
