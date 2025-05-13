@@ -26,16 +26,21 @@ app.use(express.json());
 app.use(jsonErrorHandler);
 app.use(express.urlencoded({ extended: false }));
 
-// Set up session middleware
+// Improved session middleware with persistent configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: true,
-  saveUninitialized: true,
+  secret: SESSION_SECRET,
+  // Only save session when we put something in it
+  resave: false,
+  // Don't save empty uninitialized sessions
+  saveUninitialized: false,
+  // Store sessions in PostgreSQL for better persistence
+  store: storage.sessionStore,
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - longer persistence
     httpOnly: true,
-    sameSite: 'lax'
+    sameSite: 'lax',
+    path: '/'
   }
 }));
 
