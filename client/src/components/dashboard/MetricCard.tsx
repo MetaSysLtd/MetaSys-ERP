@@ -12,6 +12,16 @@ import {
   brandColors
 } from "@/lib/style-utils";
 
+// Helper function to format currency values
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'PKR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value);
+};
+
 export interface MetricCardProps {
   title: string;
   value: string | number;
@@ -165,9 +175,23 @@ export function CommissionBreakdown({ data }: { data?: any }) {
         accentPosition: "top" 
       })}>
         <CardContent className="p-5">
-          <h3 className={typography.cardTitle}>Commission Breakdown</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className={typography.cardTitle}>Commission Breakdown</h3>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex text-gray-400 hover:text-gray-600 cursor-help">
+                    <Info size={14} />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className={typography.tiny}>Monthly commission breakdown based on your sales performance</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <EmptyState
-            iconType="finance"
+            iconType="commission"
             iconSize={24}
             title="No Commission Data"
             message="No commission data available for the current period."
@@ -192,6 +216,16 @@ export function CommissionBreakdown({ data }: { data?: any }) {
             }
           />
         </CardContent>
+        <CardFooter className="bg-gray-50 dark:bg-gray-800 px-5 py-3">
+          <div className="text-sm w-full">
+            <Link href="/finance/commissions">
+              <span className={`${typography.small} font-medium text-primary hover:text-primary/80 flex items-center justify-between w-full cursor-pointer transition-colors`}>
+                <span>View all commission history</span>
+                <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </Link>
+          </div>
+        </CardFooter>
       </Card>
     );
   }
@@ -199,13 +233,72 @@ export function CommissionBreakdown({ data }: { data?: any }) {
   return (
     <Card accent={true} accentPosition="top" className={getCardClass({
       minHeight: true,
+      withHover: true,
       accentPosition: "top"
     })}>
       <CardContent className="p-5">
-        <h3 className={`${typography.cardTitle} mb-4 group-hover:text-[${brandColors.navy}] transition-colors`}>Commission Breakdown</h3>
-        {/* Commission data would be rendered here */}
-        <p className={typography.body}>Commission data visualization would go here</p>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className={typography.cardTitle}>Commission Breakdown</h3>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex text-gray-400 hover:text-gray-600 cursor-help">
+                  <Info size={14} />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className={typography.tiny}>Monthly commission breakdown based on your sales performance</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="bg-primary/5 p-3 rounded">
+            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {data?.total ? formatCurrency(data.total) : 'PKR 0'}
+            </div>
+            <div className="text-xs text-gray-500">Total Commission</div>
+          </div>
+          
+          <div className="bg-primary/5 p-3 rounded">
+            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {data?.base ? formatCurrency(data.base) : 'PKR 0'}
+            </div>
+            <div className="text-xs text-gray-500">Base Commission</div>
+          </div>
+          
+          <div className="bg-primary/5 p-3 rounded">
+            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {data?.bonus ? formatCurrency(data.bonus) : 'PKR 0'}
+            </div>
+            <div className="text-xs text-gray-500">Performance Bonus</div>
+          </div>
+        </div>
+        
+        <div className="mt-4">
+          <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <span>Commission Progress</span>
+            <span>{data?.progress || 0}% of Target</span>
+          </div>
+          <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
+            <div 
+              className="bg-primary h-2 rounded-full transition-all duration-500" 
+              style={{ width: `${data?.progress || 0}%` }}
+            ></div>
+          </div>
+        </div>
       </CardContent>
+      <CardFooter className="bg-gray-50 dark:bg-gray-800 px-5 py-3">
+        <div className="text-sm w-full">
+          <Link href="/finance/commissions">
+            <span className={`${typography.small} font-medium text-primary hover:text-primary/80 flex items-center justify-between w-full cursor-pointer transition-colors`}>
+              <span>View commission history</span>
+              <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </span>
+          </Link>
+        </div>
+      </CardFooter>
     </Card>
   );
 }

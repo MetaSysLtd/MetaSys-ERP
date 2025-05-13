@@ -120,7 +120,7 @@ export const metricCardStyles = {
   value: "text-lg font-medium text-gray-900 dark:text-gray-100",
   description: "text-sm flex items-center",
   iconContainer: "flex-shrink-0 rounded-md p-3",
-  grid: "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5"
+  grid: "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 auto-rows-fr"
 };
 
 // Button styles based on brand guidelines
