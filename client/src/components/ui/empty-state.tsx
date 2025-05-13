@@ -102,6 +102,11 @@ export function EmptyState({
       case "search": return <Search {...iconProps} />;
       case "cart": return <ShoppingCart {...iconProps} />;
       case "dashboard": return <LayoutDashboard {...iconProps} />;
+      case "leads": return <ShoppingCart {...iconProps} />;
+      case "dispatch": return <BarChart2 {...iconProps} />;
+      case "revenue": return <DollarSign {...iconProps} />;
+      case "clients": return <Users {...iconProps} />;
+      case "commission": return <DollarSign {...iconProps} />;
       default: return <AlertCircle {...iconProps} />;
     }
   };

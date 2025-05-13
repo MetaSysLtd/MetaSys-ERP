@@ -1,8 +1,9 @@
 import { ReactNode } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Link } from "wouter";
-import { TrendingDown, TrendingUp, ArrowRight, PieChart, BarChart4, ShoppingCart, CreditCard, Users, Calendar } from "lucide-react";
+import { TrendingDown, TrendingUp, ArrowRight, PieChart, BarChart4, ShoppingCart, CreditCard, Users, Calendar, Info, DollarSign, BarChart3, ChevronRight } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   getCardClass,
   typography,
@@ -23,6 +24,8 @@ export interface MetricCardProps {
   className?: string;
   emptyStateMessage?: string | null;
   isEmptyState?: boolean;
+  timeframe?: string;
+  tooltip?: string;
 }
 
 export function MetricCard({
@@ -36,7 +39,9 @@ export function MetricCard({
   href,
   className = "",
   emptyStateMessage,
-  isEmptyState = value === 0 || value === "0"
+  isEmptyState = value === 0 || value === "0",
+  timeframe,
+  tooltip
 }: MetricCardProps) {
   // Default icons based on title if not provided
   const getDefaultIcon = () => {
@@ -95,7 +100,28 @@ export function MetricCard({
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
-              <dt className={metricCardStyles.title}>{title}</dt>
+              <dt className="flex items-center">
+                <span className={metricCardStyles.title}>{title}</span>
+                {tooltip && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex ml-1 text-gray-400 hover:text-gray-600 cursor-help">
+                          <Info size={14} />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className={typography.tiny}>{tooltip}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+                {timeframe && (
+                  <span className={`${typography.tiny} ml-2 text-gray-500 font-normal`}>
+                    {timeframe}
+                  </span>
+                )}
+              </dt>
               <dd>
                 <div className={metricCardStyles.value}>{value}</div>
                 {isEmptyState && emptyStateMessage ? (
@@ -114,12 +140,12 @@ export function MetricCard({
         </div>
       </CardContent>
       {href && (
-        <CardFooter className="bg-gray-50 px-5 py-3">
-          <div className="text-sm">
+        <CardFooter className="bg-gray-50 dark:bg-gray-800 px-5 py-3">
+          <div className="text-sm w-full">
             <Link href={href}>
-              <span className={`${typography.small} font-medium text-[${brandColors.primary}] hover:text-[${brandColors.secondary}] flex items-center cursor-pointer transition-colors`}>
-                View details
-                <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              <span className={`${typography.small} font-medium text-primary hover:text-primary/80 flex items-center justify-between w-full cursor-pointer transition-colors`}>
+                <span>View {title.toLowerCase()} details</span>
+                <ChevronRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
           </div>
