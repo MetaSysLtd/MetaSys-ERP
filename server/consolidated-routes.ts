@@ -1356,7 +1356,16 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       req.session.roleId = user.roleId;
       
       // Explicitly save session to ensure it's properly stored
-      req.session.save();
+      await new Promise<void>((resolve, reject) => {
+        req.session.save(err => {
+          if (err) {
+            console.error("Session save error:", err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
       
       try {
         // Try to get role information, but handle any errors
@@ -1366,7 +1375,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         const { password: _, ...userInfo } = user;
         
         // Log successful login
-        console.log(`User ${username} logged in successfully`);
+        console.log(`User ${username} logged in successfully with session ID: ${req.sessionID}`);
         
         return res.status(200).json({ 
           user: userInfo,
@@ -1386,6 +1395,17 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       }
     } catch (error) {
       console.error("Login error:", error);
+      
+      // Handle session errors more specifically
+      if (error.message && error.message.includes('session')) {
+        console.error("Session error during login:", error);
+        return res.status(500).json({
+          error: "Authentication failed due to session error",
+          details: "There was a problem storing your session. Please try again.",
+          missing: ["session_store"]
+        });
+      }
+      
       next(error);
     }
   });
