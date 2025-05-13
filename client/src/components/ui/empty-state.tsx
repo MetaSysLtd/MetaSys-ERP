@@ -36,7 +36,12 @@ type IconType =
   | "notification" 
   | "search" 
   | "cart"
-  | "dashboard";
+  | "dashboard"
+  | "leads"
+  | "dispatch"
+  | "revenue"
+  | "clients"
+  | "commission";
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
