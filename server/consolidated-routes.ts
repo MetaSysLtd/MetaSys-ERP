@@ -1457,10 +1457,23 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         });
       });
       
-      // Set cookie expiration
-      if (req.cookies['connect.sid']) {
-        res.clearCookie('connect.sid');
-        console.log("Cleared session cookie");
+      // Set cookie expiration - safely clear cookie if it exists
+      try {
+        // Check if cookies object exists before trying to access properties
+        if (req.cookies && 'connect.sid' in req.cookies) {
+          res.clearCookie('connect.sid', {
+            path: '/',
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+          });
+          console.log("Cleared session cookie");
+        } else {
+          console.log("No session cookie found to clear");
+        }
+      } catch (cookieErr) {
+        console.error("Error clearing cookie:", cookieErr);
+        // Continue with logout process even if cookie clearing fails
       }
       
       console.log("Logout successful");

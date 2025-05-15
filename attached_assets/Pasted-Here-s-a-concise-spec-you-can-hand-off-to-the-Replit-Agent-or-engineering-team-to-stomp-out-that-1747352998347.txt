@@ -1,0 +1,79 @@
+Here’s a concise spec you can hand off to the Replit “Agent” (or engineering team) to stomp out that perpetual loading state after login:
+
+---
+
+## 🔄 Symptom
+
+After a successful login you see:
+
+* **Left panel:** “Loading user data…” spinner
+* **Main panel:** MetaSys logo + “Redirecting…” spinner
+  …and you never actually land on your dashboard.
+
+---
+
+## 🎯 Goal
+
+Users should log in, see the dashboard load **once**, and stay there—no infinite spinners, no redirect loops.
+
+---
+
+## 📋 Step-by-Step Fix Plan
+
+1. **Guard Against Infinite Fetch Loops**
+
+   * Audit the client’s `useEffect` or data-fetch hook that runs on mount.
+   * Ensure it only calls `GET /api/auth/me` or `GET /api/user` **once**—not on every render or state change.
+   * Debounce or add a `loaded` flag so that after the first successful fetch, it doesn’t re-fire.
+
+2. **Streamline Auth Flow**
+
+   * On login POST success:
+
+     1. **Save** the session token/cookie.
+     2. **Update** your AuthContext/store with the new user.
+     3. **Then** navigate to `/dashboard`—not before.
+   * Verify the router push happens **after** AuthContext updates, so your protected‐route guard sees you as authenticated immediately.
+
+3. **Improve ProtectedRoute Logic**
+
+   * Add three distinct states:
+
+     * **`loading`** (while checking auth)
+     * **`authorized`** (you have a valid session)
+     * **`unauthorized`** (no session)
+   * **Only** redirect to `/login` once the status is explicitly `unauthorized`.
+   * While `loading`, show a **single** spinner (ideally over the full page) until that check resolves.
+
+4. **Network & API Stability**
+
+   * Confirm `/api/auth/me` is returning a 200 + user payload **within 200 ms** under normal conditions.
+   * If it’s slow, add a client‐side timeout (e.g. abort after 3 s) and fail gracefully with an error message, rather than spin forever.
+
+5. **Error Handling & Feedback**
+
+   * If the auth check fails (network error or 500), display a one-time error banner:
+
+     > “We’re having trouble loading your session. Please try refreshing or contacting support.”
+   * Do **not** immediately redirect back to login on a transient server error.
+
+6. **Acceptance Criteria**
+
+   * ✅ Login → dashboard transition happens **only once**, no repeated fetch loops.
+   * ✅ Reloading `/dashboard` with a valid session keeps you on that page (no bounce).
+   * ✅ On logout, you go cleanly to `/login` and any subsequent `/dashboard` reload sends you back to `/login` (single redirect).
+
+---
+
+### How to Verify
+
+1. **Dev tools > Network**: watch the calls to `/api/auth/me`—there should be one on page load, then none more.
+2. **Dev tools > Application > Cookies/LocalStorage**: ensure token persists, isn’t being wiped.
+3. **Manual Test**:
+
+   * Login with valid creds → observe dashboard appear and stay.
+   * Hard-reload dashboard URL → you remain signed in.
+   * Logout → redirect to login.
+   * Hard-reload login → stays at login.
+
+If you follow that checklist—ensuring fetches only run once, routing waits for auth, and errors are surfaced instead of silent loops—you’ll eliminate the endless spinners and broken redirect dance. Good luck!

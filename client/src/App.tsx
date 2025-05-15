@@ -141,9 +141,13 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
       
       // Add a small delay before redirecting to avoid race conditions
       const redirectTimer = setTimeout(() => {
-        // Use wouter navigation instead of window.location for cleaner transitions
+        // Always redirect to /auth which is our main auth page
         window.location.href = "/auth";
-      }, 150);
+        
+        // Clear any cached auth data to ensure a clean logout state
+        sessionStorage.removeItem("lastAuthCheck");
+        localStorage.removeItem("metasys_ui_prefs");
+      }, 100);
       
       return () => clearTimeout(redirectTimer);
     }

@@ -245,24 +245,38 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
+    console.log("Logout requested");
     setIsLoading(true);
 
     try {
-      const res = await fetch(API_ROUTES.AUTH.LOGOUT, {
-        method: "POST",
-        credentials: "include"
-      });
-
-      if (!res.ok) {
-        console.error(`Logout failed with status ${res.status}`);
-      }
-
+      // First clear client-side auth state immediately to prevent flashing of protected content
       setIsAuthenticated(false);
       setUser(null);
       setRole(null);
-      window.location.href = '/login';
+      
+      // Then make the server request to clear the session
+      const res = await fetch(API_ROUTES.AUTH.LOGOUT, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache"
+        }
+      });
+
+      if (!res.ok) {
+        console.error(`Logout API call failed with status ${res.status}`);
+        // Even if the server call fails, we still want to clear local state and redirect
+      }
+      
+      console.log("Logout API call completed, redirecting to auth page");
+      
+      // Use consistent redirect to /auth which is the main authentication page
+      window.location.href = '/auth';
     } catch (err) {
       console.error("Logout error:", err);
+      // Even if there's an error, clear state and redirect to login
+      window.location.href = '/auth';
     } finally {
       setIsLoading(false);
     }
