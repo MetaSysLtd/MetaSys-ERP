@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useOrganization } from "@/hooks/use-organization";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { Loader2 } from "lucide-react";
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { LeadNotificationContainer } from "@/components/dispatch/lead-notification-container";
 import { useLeadNotifications } from "@/hooks/use-lead-notifications";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useSocket } from "@/hooks/use-socket";
 import { MotionWrapper } from "@/components/ui/motion-wrapper-fixed";
 import { useLocation } from "wouter";

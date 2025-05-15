@@ -1,6 +1,6 @@
 
 import { Link } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Logo() {
   const { user, role, isAuthenticated } = useAuth();

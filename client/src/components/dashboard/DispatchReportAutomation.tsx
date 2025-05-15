@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { CalendarIcon, Share2Icon, RefreshCwIcon, TrendingUpIcon, AlertTriangleIcon, CheckCircleIcon } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function DispatchReportAutomation() {
   const { user } = useAuth();

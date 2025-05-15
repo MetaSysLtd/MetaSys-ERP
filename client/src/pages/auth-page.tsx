@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -21,8 +21,9 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function AuthPage() {
-  const { user, isLoading, loginMutation } = useAuth();
+  const { user, isLoading, login, error: authError } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Create form
   const form = useForm<FormValues>({
@@ -40,14 +41,23 @@ export default function AuthPage() {
     }
   }, [user]);
 
+  // Update error state when auth error changes
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError]);
+
   // Submit handler
   const onSubmit = async (data: FormValues) => {
     setSubmitting(true);
+    setError(null);
     try {
-      await loginMutation.mutateAsync(data);
-    } catch (error) {
-      // Error already handled in the mutation
-      console.error("Login error in form submit", error);
+      await login(data.username, data.password);
+      // Successful login will redirect via the useEffect above
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setError(err.message || "Failed to login");
     } finally {
       setSubmitting(false);
     }
@@ -110,12 +120,18 @@ export default function AuthPage() {
                     )}
                   />
                   
+                  {error && (
+                    <div className="text-destructive text-sm mb-2">
+                      {error}
+                    </div>
+                  )}
+                  
                   <Button 
                     type="submit" 
                     className="w-full"
-                    disabled={submitting || loginMutation.isPending}
+                    disabled={submitting}
                   >
-                    {(submitting || loginMutation.isPending) ? (
+                    {submitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Signing in...

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { getInitials } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";

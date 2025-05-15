@@ -17,7 +17,5 @@ console.error = function() {
 console.log("Global error handlers initialized");
 
 createRoot(document.getElementById("root")!).render(
-  <RealTimeProvider>
-    <App />
-  </RealTimeProvider>
+  <App />
 );

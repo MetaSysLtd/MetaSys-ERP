@@ -10,7 +10,7 @@ import { useDispatch } from 'react-redux';
 import { setPreferences, fetchPreferences } from './store/uiPreferencesSlice';
 import { useRealTime } from './hooks/use-real-time';
 import { useToast } from '@/hooks/use-toast';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import ForgotPassword from "@/pages/auth/forgot-password";
@@ -69,7 +69,6 @@ import { MessageProvider } from "@/contexts/MessageContext";
 import { AnimationProvider } from "@/contexts/AnimationContext";
 import { OrganizationProvider } from "@/hooks/use-organization";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import TeamManagementPage from "@/pages/settings/teams";
@@ -525,7 +524,6 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary>
           <AuthProvider>
-            {/* The RealTimeProvider is already added at the root level in main.tsx */}
             <SocketProvider>
               <NotificationProvider>
                 <MessageProvider>
@@ -550,7 +548,7 @@ function App() {
 function AppContent() {
   const dispatch = useDispatch<any>();
   const { socket } = useSocket();
-  const { user } = useAuth();
+  const { user } = useAuth(); // Using the AuthContext's hook
   const { toast } = useToast();
   const { subscribe, isConnected } = useRealTime({
     onReconnect: (data) => {

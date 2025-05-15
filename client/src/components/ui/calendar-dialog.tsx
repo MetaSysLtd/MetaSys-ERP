@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./dialog";
 import { Calendar } from "./calendar";
 import { ScrollArea } from "./scroll-area";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "./badge";
 
 export function CalendarDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {

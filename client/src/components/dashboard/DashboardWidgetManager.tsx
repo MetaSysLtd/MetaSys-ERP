@@ -18,7 +18,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { LayoutGrid, Plus, Settings, X, GripVertical, Edit } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Extended User interface with orgId
 interface ExtendedUser {

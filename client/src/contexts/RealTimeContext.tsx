@@ -91,8 +91,9 @@ export const RealTimeProvider: React.FC<RealTimeProviderProps> = ({ children }) 
   // Authenticate when user changes
   useEffect(() => {
     if (user && user.id && isConnected && !isAuthenticated) {
-      // Use organizationId instead of orgId for compatibility
-      socketService.authenticate(user.id, user.organizationId || null);
+      // Use orgId for compatibility with the original AuthContext
+      const orgId = (user as any).orgId || null;
+      socketService.authenticate(user.id, orgId);
     }
   }, [user, isConnected, isAuthenticated]);
 

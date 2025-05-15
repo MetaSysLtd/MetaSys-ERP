@@ -28,7 +28,7 @@ import { MotionWrapper } from "@/components/ui/motion-wrapper-fixed";
 import { AnimationSettings } from "@/components/ui/animation-settings";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
