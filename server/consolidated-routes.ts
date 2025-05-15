@@ -1410,7 +1410,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     }
   });
 
-  // Logout route with proper session handling using async/await pattern
+  // Enhanced logout route with comprehensive session and cookie handling
   authRouter.post("/logout", async (req, res) => {
     try {
       // Log the session info for debugging
@@ -1419,9 +1419,25 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         userId: req.session?.userId
       });
       
-      // If no session exists, still return success
+      // If no session exists, still return success but clear cookies
       if (!req.session) {
         console.log("No session found during logout");
+        
+        // Clear all possible cookies just to be safe
+        res.clearCookie('metasys.sid', {
+          path: '/',
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax'
+        });
+        
+        res.clearCookie('connect.sid', {
+          path: '/',
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production', 
+          sameSite: 'lax'
+        });
+        
         return res.status(200).json({
           message: "Already logged out",
           success: true
@@ -1431,7 +1447,6 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       // Clear session data first
       req.session.userId = undefined;
       req.session.orgId = undefined;
-      req.session.roleId = undefined;
       
       // Save the cleared session then destroy it using promises
       await new Promise<void>((resolve, reject) => {
@@ -1452,41 +1467,51 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
             console.error("Error destroying session during logout:", err);
             reject(err);
           } else {
+            console.log("Session successfully destroyed");
             resolve();
           }
         });
       });
       
-      // Set cookie expiration - safely clear cookie if it exists
-      try {
-        // Check if cookies object exists before trying to access properties
-        if (req.cookies && 'connect.sid' in req.cookies) {
-          res.clearCookie('connect.sid', {
-            path: '/',
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax'
-          });
-          console.log("Cleared session cookie");
-        } else {
-          console.log("No session cookie found to clear");
-        }
-      } catch (cookieErr) {
-        console.error("Error clearing cookie:", cookieErr);
-        // Continue with logout process even if cookie clearing fails
-      }
+      // Clear all possible session cookies with various options
+      // Clear the custom named cookie
+      res.clearCookie('metasys.sid', {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
       
-      console.log("Logout successful");
-      return res.status(200).json({ 
-        message: "Logged out successfully",
+      // Also clear the default connect.sid cookie as a fallback
+      res.clearCookie('connect.sid', {
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
+      
+      console.log(`Successfully logged out user and cleared session cookies`);
+      
+      // Return success response
+      return res.status(200).json({
+        message: "Successfully logged out",
         success: true
       });
+      
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Error during logout process:", error);
+      
+      // Even if there's an error, still try to clear cookies as best effort
+      try {
+        res.clearCookie('metasys.sid', { path: '/' });
+        res.clearCookie('connect.sid', { path: '/' });
+      } catch (cookieError) {
+        console.error("Error clearing cookies:", cookieError);
+      }
+      
       return res.status(500).json({
-        message: "Error during logout process",
-        success: false,
-        error: error.message
+        message: "Error during logout",
+        success: false
       });
     }
   });
