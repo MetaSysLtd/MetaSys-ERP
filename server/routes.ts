@@ -1370,6 +1370,32 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
       // Add verbose logging to debug the issue
       console.log(`Login attempt for username: ${username}`);
       
+      // If there's an existing session with user ID, reset it before login
+      if (req.session && req.session.userId) {
+        console.log(`Found existing session for user ID ${req.session.userId}, clearing before new login`);
+        
+        // Clear all session data but keep the session ID
+        await new Promise<void>((resolve) => {
+          // Save old session ID for debugging
+          const oldSessionId = req.sessionID;
+          
+          Object.keys(req.session).forEach(key => {
+            if (key !== 'cookie') {
+              delete req.session[key];
+            }
+          });
+          
+          req.session.save((err) => {
+            if (err) {
+              console.error("Error clearing session before login:", err);
+            } else {
+              console.log(`Session ${oldSessionId} cleared successfully`);
+            }
+            resolve();
+          });
+        });
+      }
+      
       let user;
       // Check database connectivity before querying
       try {
@@ -1484,10 +1510,58 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         });
       }
       
-      // Verify session was properly set with a test
+      // Perform thorough session verification
       if (!req.session.userId) {
         console.error("Session verification failed - userId missing after save attempt");
-      }
+        
+        // Try one more time with a regenerate + session save
+        try {
+          await new Promise<void>((resolve, reject) => {
+            req.session.regenerate(async (err) => {
+              if (err) {
+                console.error("Final session regeneration failed:", err);
+                reject(new Error("Failed to regenerate session during verification"));
+              } else {
+                // Set session data again after regeneration
+                req.session.userId = user.id;
+                req.session.username = user.username;
+                req.session.roleId = user.roleId;
+                req.session.authenticated = true;
+                req.session.loginTime = new Date().toISOString();
+                if (user.orgId) {
+                  req.session.orgId = user.orgId;
+                }
+                
+                // Force save with promise
+                await new Promise<void>((saveResolve, saveReject) => {
+                  req.session.save((saveErr) => {
+                    if (saveErr) {
+                      console.error("Final session save failed:", saveErr);
+                      saveReject(new Error("Failed to save session after regeneration"));
+                    } else {
+                      console.log("Final session recovery succeeded with ID:", req.sessionID);
+                      saveResolve();
+                    }
+                  });
+                });
+                
+                resolve();
+              }
+            });
+          });
+        } catch (finalError) {
+          console.error("Final session recovery failed:", finalError);
+          // Continue anyway, the client will need to try again
+        }
+      } 
+      
+      // Double-check the session was set
+      console.log("Final session state:", {
+        sessionId: req.sessionID,
+        userId: req.session.userId,
+        username: req.session.username,
+        authenticated: req.session.authenticated
+      });
       
       try {
         // Try to get role information, but handle any errors
@@ -1503,7 +1577,13 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
           user: userInfo,
           role: role ? role : null,
           sessionId: req.sessionID,
-          sessionValid: !!req.session.userId
+          sessionValid: !!req.session.userId,
+          sessionData: {
+            id: req.sessionID,
+            userId: req.session.userId,
+            authenticated: req.session.authenticated,
+            loginTime: req.session.loginTime
+          }
         });
       } catch (roleError) {
         console.error(`Error fetching role for user ${username}:`, roleError);
@@ -1516,6 +1596,12 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
           role: null,
           sessionId: req.sessionID,
           sessionValid: !!req.session.userId,
+          sessionData: {
+            id: req.sessionID,
+            userId: req.session.userId,
+            authenticated: req.session.authenticated,
+            loginTime: req.session.loginTime
+          },
           message: "Authentication successful but role data is unavailable"
         });
       }
