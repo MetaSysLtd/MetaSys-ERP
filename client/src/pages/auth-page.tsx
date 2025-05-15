@@ -42,7 +42,22 @@ class LoginForm extends React.Component<LoginFormProps, LoginFormState> {
     this.setState({ submitting: true, error: null });
     
     try {
+      // Attempt to login
       await this.props.login(this.state.username, this.state.password);
+      
+      // If login is successful, keep the submitting state true
+      // The parent component will handle redirects based on user state
+      console.log("Login successful, waiting for redirect");
+      
+      // If we're still here after 5 seconds, something might be wrong with the redirect
+      // This is a fallback to ensure users don't get stuck on submitting state
+      setTimeout(() => {
+        // Only reset if we're still mounted and haven't redirected
+        if (this && !this._unmounted) {
+          this.setState({ submitting: false });
+        }
+      }, 5000);
+      
     } catch (err: any) {
       console.error("Login error:", err);
       this.setState({ 
@@ -51,6 +66,17 @@ class LoginForm extends React.Component<LoginFormProps, LoginFormState> {
       });
     }
   };
+  
+  // Track component mount state to avoid setState on unmounted component
+  private _unmounted = false;
+  
+  componentDidMount() {
+    this._unmounted = false;
+  }
+  
+  componentWillUnmount() {
+    this._unmounted = true;
+  }
 
   render(): React.ReactNode {
     return (
@@ -146,7 +172,10 @@ const AuthPage: React.FC = () => {
 
   // Redirect if already logged in
   React.useEffect(() => {
+    // Check if the user is authenticated, and only redirect when we have a user object
     if (user) {
+      console.log('User is authenticated, redirecting to dashboard');
+      // Use window.location to ensure a full page refresh which re-initializes everything
       window.location.href = "/";
     }
   }, [user]);

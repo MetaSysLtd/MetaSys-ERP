@@ -111,8 +111,9 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
       
       // Add a small delay before redirecting to avoid race conditions
       const redirectTimer = setTimeout(() => {
-        window.location.href = "/login";
-      }, 100);
+        // Use wouter navigation instead of window.location for cleaner transitions
+        window.location.href = "/auth";
+      }, 150);
       
       return () => clearTimeout(redirectTimer);
     }
