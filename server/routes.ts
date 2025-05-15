@@ -1555,7 +1555,7 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
     });
   });
 
-  // Check current user session with enhanced debugging
+  // Check current user session with enhanced debugging and session recovery
   authRouter.get("/me", async (req, res, next) => {
     try {
       // Log session info for debugging purposes
@@ -1563,36 +1563,104 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         hasSession: !!req.session,
         sessionData: {
           userId: req.session?.userId,
-          orgId: req.session?.orgId
+          orgId: req.session?.orgId,
+          username: req.session?.username,
+          authenticated: req.session?.authenticated
         }
       });
       
-      if (!req.session || !req.session.userId) {
-        console.log("No valid session or userId found");
-        return res.status(401).json({ authenticated: false });
-      }
-
-      const user = await storage.getUser(req.session.userId);
-      if (!user) {
-        console.log(`User with id ${req.session.userId} not found in database`);
+      // Check if cookie exists but session data is missing
+      if (req.sessionID && (!req.session || !req.session.userId)) {
+        console.log(`Session ID exists (${req.sessionID}) but session data is missing or invalid`);
         
-        // Save and then destroy the session to ensure proper cleanup
-        await new Promise<void>((resolve) => {
-          req.session.userId = undefined;
-          req.session.orgId = undefined;
-          req.session.save(() => {
-            req.session.destroy(() => {
+        // Try to regenerate the session to fix potential issues
+        if (req.session) {
+          await new Promise<void>((resolve) => {
+            req.session.regenerate((err) => {
+              if (err) {
+                console.error("Session regeneration failed:", err);
+              } else {
+                console.log("Session regenerated with ID:", req.sessionID);
+              }
               resolve();
             });
           });
-        });
+        }
         
-        return res.status(401).json({ authenticated: false });
+        return res.status(401).json({ 
+          authenticated: false,
+          error: "Session expired or invalid",
+          sessionId: req.sessionID
+        });
+      }
+
+      try {
+        const user = await storage.getUser(req.session.userId);
+        if (!user) {
+          console.log(`User with id ${req.session.userId} not found in database`);
+          
+          // Save and then destroy the session to ensure proper cleanup
+          await new Promise<void>((resolve) => {
+            req.session.userId = undefined;
+            req.session.orgId = undefined;
+            req.session.authenticated = false;
+            req.session.save((saveErr) => {
+              if (saveErr) {
+                console.error("Error saving session before destroy:", saveErr);
+              }
+              
+              req.session.destroy((destroyErr) => {
+                if (destroyErr) {
+                  console.error("Error destroying invalid session:", destroyErr);
+                } else {
+                  console.log("Session destroyed successfully after user not found");
+                }
+                resolve();
+              });
+            });
+          });
+          
+          return res.status(401).json({ 
+            authenticated: false,
+            error: "User not found",
+            sessionReset: true
+          });
+        }
+      } catch (userError) {
+        console.error("Error fetching user:", userError);
+        return res.status(500).json({ 
+          authenticated: false,
+          error: "Database error while authenticating user",
+          details: process.env.NODE_ENV === 'development' ? userError.message : undefined
+        });
       }
       
       // Touch the session to extend its lifetime
       req.session.touch();
 
+      // Ensure user is a valid object before proceeding
+      if (!user || !user.id) {
+        console.error("User object is invalid:", user);
+        return res.status(401).json({
+          authenticated: false,
+          error: "Invalid user record"
+        });
+      }
+      
+      // Update session with complete user data if needed
+      if (!req.session.authenticated) {
+        req.session.authenticated = true;
+        req.session.username = user.username;
+        await new Promise<void>((resolve) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error("Error updating session after auth check:", err);
+            }
+            resolve();
+          });
+        });
+      }
+      
       // Try to get role information but handle errors gracefully
       try {
         const role = await storage.getRole(user.roleId);
@@ -1602,7 +1670,9 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         return res.status(200).json({ 
           authenticated: true,
           user: userInfo,
-          role
+          role,
+          sessionId: req.sessionID,
+          sessionValid: true
         });
       } catch (roleError) {
         console.error(`Error fetching role for user ${user.username}:`, roleError);
@@ -1613,6 +1683,8 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
           authenticated: true,
           user: userInfo,
           role: null,
+          sessionId: req.sessionID,
+          sessionValid: true,
           message: "Authentication successful but role data is unavailable"
         });
       }
