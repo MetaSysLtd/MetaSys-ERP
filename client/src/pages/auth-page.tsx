@@ -42,10 +42,10 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden font-[Inter] relative">
-      {/* Full-screen background image for mobile */}
+    <div className="h-screen w-full overflow-hidden font-[Inter] flex items-center justify-center relative">
+      {/* Full-screen background image */}
       <div 
-        className="absolute inset-0 bg-cover bg-center md:hidden"
+        className="absolute inset-0 bg-cover bg-center"
         style={{ 
           backgroundImage: `url('/assets/images/login/banner-mobile.png')`,
           backgroundSize: 'cover',
@@ -53,87 +53,86 @@ const AuthPage = () => {
         }}
       />
       
-      <div className="flex w-full max-w-[1600px] mx-auto shadow-xl relative z-10">
-        {/* Left side - Banner Image */}
-        <div className="hidden md:block w-1/2 h-screen relative order-1">
-          <div 
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ 
-              backgroundImage: `url('/assets/images/login/banner-15.png')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          />
-        </div>
+      {/* Desktop-only banner on left */}
+      <div className="hidden md:block absolute left-0 top-0 w-1/2 h-full z-0">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ 
+            backgroundImage: `url('/assets/images/login/banner-15.png')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        />
+      </div>
 
-        {/* Right side - Login Form */}
-        <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-16 order-2 bg-white bg-opacity-95 md:bg-opacity-100">
-          <div className="w-full max-w-md">
-            <div className="text-center mb-8">
-              <img
-                src="/assets/images/login/logo-dark.png"
-                alt="MetaSys Logo"
-                className="mx-auto h-16 mb-6"
+      {/* Login Card */}
+      <div className="w-full max-w-md mx-auto px-4 z-10">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="text-center mb-6">
+            {/* Logo */}
+            <img
+              src="/assets/images/login/logo-dark.png"
+              alt="MetaSys Logo"
+              className="mx-auto h-12 mb-4"
+            />
+            <h2 className="text-xl font-bold text-gray-800">
+              Welcome to MetaSys ERP
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Please sign in with your account credentials.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Username
+              </label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#025E73] focus:border-transparent"
+                placeholder="Enter your username"
+                required
               />
-              <h2 className="text-2xl font-bold text-gray-800">
-                Welcome to MetaSys ERP
-              </h2>
-              <p className="text-sm text-gray-500 mt-2">
-                Please sign in with your account credentials.
-              </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#025E73] focus:border-transparent"
-                  placeholder="Enter your username"
-                  required
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#025E73] focus:border-transparent"
+                placeholder="Enter your password"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#025E73] focus:border-transparent"
-                  placeholder="Enter your password"
-                  required
-                />
+            {error && (
+              <div className="text-red-500 text-sm bg-red-50 p-2 rounded-md">
+                {error}
               </div>
+            )}
 
-              {error && (
-                <div className="text-red-500 text-sm bg-red-50 p-2 rounded-md">
-                  {error}
-                </div>
+            <Button
+              type="submit"
+              className="w-full bg-[#025E73] hover:bg-[#011F26] text-white font-medium rounded-md py-2 transition-all duration-200"
+              disabled={submitting}
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In"
               )}
-
-              <Button
-                type="submit"
-                className="w-full bg-[#025E73] hover:bg-[#011F26] text-white font-medium rounded-md py-2.5 transition-all duration-200"
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign In"
-                )}
-              </Button>
-            </form>
-          </div>
+            </Button>
+          </form>
         </div>
       </div>
     </div>
