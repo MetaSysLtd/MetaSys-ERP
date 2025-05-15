@@ -25,9 +25,10 @@ export const RealTimeProvider: React.FC<RealTimeProviderProps> = ({ children }) 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
 
-  // Initialize socket connection when the provider mounts
+  // Use deferred socket initialization for better performance
   useEffect(() => {
-    socketService.initSocket();
+    // Setup deferred initialization instead of immediate connection
+    socketService.setupDeferredInit();
 
     // Set up event listeners for connection state
     const connectListener = () => setIsConnected(true);

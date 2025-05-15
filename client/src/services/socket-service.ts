@@ -299,6 +299,57 @@ class SocketService {
 }
 
 // Create singleton instance
-const socketService = new SocketService();
+/**
+ * Socket service with delayed initialization
+ * This allows the UI to render before establishing socket connections
+ */
+class DeferredSocketService extends SocketService {
+  private _initializeOnNextUserInteraction = false;
+  private _initialized = false;
+
+  /**
+   * Sets up deferred socket initialization that waits for user interaction
+   * This improves initial page load performance
+   */
+  setupDeferredInit() {
+    if (this._initialized || this._initializeOnNextUserInteraction) return;
+
+    this._initializeOnNextUserInteraction = true;
+    
+    // Initialize socket on next user interaction or after initial render
+    const initOnInteraction = () => {
+      if (!this._initialized) {
+        console.log("Initializing socket connection after user interaction");
+        this.initSocket();
+        this._initialized = true;
+      }
+      
+      // Clean up event listeners after initialization
+      window.removeEventListener('click', initOnInteraction);
+      window.removeEventListener('keydown', initOnInteraction);
+      window.removeEventListener('mousemove', initOnInteraction);
+      window.removeEventListener('touchstart', initOnInteraction);
+    };
+
+    // Wait for user interaction or timeout
+    window.addEventListener('click', initOnInteraction, { once: true, passive: true });
+    window.addEventListener('keydown', initOnInteraction, { once: true, passive: true });
+    window.addEventListener('mousemove', initOnInteraction, { once: true, passive: true });
+    window.addEventListener('touchstart', initOnInteraction, { once: true, passive: true });
+
+    // Fallback - initialize after 2s regardless of interaction
+    setTimeout(initOnInteraction, 2000);
+  }
+
+  /**
+   * Overrides the default initSocket to track initialization
+   */
+  override initSocket(): void {
+    super.initSocket();
+    this._initialized = true;
+  }
+}
+
+const socketService = new DeferredSocketService();
 
 export default socketService;

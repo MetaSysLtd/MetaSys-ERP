@@ -1,3 +1,4 @@
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Provider } from 'react-redux';
@@ -5,7 +6,6 @@ import { store } from './store/store';
 import { queryClient } from "./lib/queryClient";
 import { useSocket, SocketProvider } from './hooks/use-socket';
 import { LeadNotificationProvider } from './hooks/use-lead-notifications';
-import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { setPreferences, fetchPreferences } from './store/uiPreferencesSlice';
 import { useRealTime } from './hooks/use-real-time';
@@ -76,10 +76,24 @@ import TeamManagementPage from "@/pages/settings/teams";
 // Import the MetaSys logo
 import metaSysLogo from "@/assets/logos/MetaSys.png";
 
+// Improved ProtectedRoute with quick skeleton rendering
 function ProtectedRoute({ component: Component, ...rest }: any) {
   const { isAuthenticated, isLoading } = useAuth();
+  const [showSkeleton, setShowSkeleton] = useState(true);
+  
+  // Always show skeleton UI immediately for perceived performance
+  useEffect(() => {
+    // Remove skeleton after component renders or 300ms, whichever is longer
+    // This prevents jarring flash of loading screen for quick responses
+    const timer = setTimeout(() => {
+      setShowSkeleton(false);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
-  if (isLoading) {
+  // If still loading auth state after skeleton period, show full loading screen
+  if (isLoading && !showSkeleton) {
     return (
       <div className="flex h-screen w-full items-center justify-center flex-col bg-[#F1FAFB]">
         <img src={metaSysLogo} alt="MetaSys" className="w-40 mb-4 animate-pulse" />
@@ -92,14 +106,70 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
   }
 
   // Check authentication status
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isLoading) {
     // Use window.location for more reliable redirection
     window.location.href = "/login";
     return null;
   }
 
+  // Show skeleton while auth is loading, but give immediate visual feedback
+  if (showSkeleton || isLoading) {
+    return (
+      <div className="w-full min-h-screen bg-background">
+        {/* App header skeleton */}
+        <header className="w-full h-16 border-b px-4 flex items-center justify-between bg-white">
+          <div className="h-8 w-36 bg-gray-200 animate-pulse rounded-md"></div>
+          <div className="h-8 w-8 bg-gray-200 animate-pulse rounded-full"></div>
+        </header>
+        
+        {/* Main content skeleton */}
+        <div className="flex w-full">
+          {/* Left sidebar skeleton */}
+          <div className="hidden md:block w-64 h-screen border-r bg-white">
+            <div className="p-4 space-y-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-10 bg-gray-200 rounded-md animate-pulse" 
+                  style={{ animationDelay: `${i * 0.1}s` }}></div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Main content area skeleton */}
+          <div className="flex-1 p-6 space-y-6">
+            <div className="h-8 w-1/3 bg-gray-200 animate-pulse rounded-md"></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-32 bg-gray-200 rounded-md animate-pulse" 
+                  style={{ animationDelay: `${i * 0.1}s` }}></div>
+              ))}
+            </div>
+            <div className="h-64 bg-gray-200 animate-pulse rounded-md"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Finally render the actual component
   return <Component {...rest} />;
 }
+
+// Lazy load page components for code splitting
+// This dramatically reduces initial bundle size
+const LazyDashboard = lazy(() => import("@/pages/dashboard"));
+const LazyCRMPage = lazy(() => import("@/pages/crm"));
+const LazyCRMLeadsPage = lazy(() => import("@/pages/crm/leads"));
+const LazyCRMClientsPage = lazy(() => import("@/pages/crm/clients"));
+const LazyCRMCommissionsPage = lazy(() => import("@/pages/crm/commissions"));
+const LazyCRMAccountsPage = lazy(() => import("@/pages/crm/accounts"));
+const LazyCRMSurveysPage = lazy(() => import("@/pages/crm/surveys"));
+
+// Simple route-level loading component
+const RouteLoadingFallback = () => (
+  <div className="flex items-center justify-center h-[calc(100vh-64px)] w-full">
+    <Loader2 className="h-8 w-8 animate-spin opacity-70" />
+  </div>
+);
 
 function Router() {
   return (
@@ -117,7 +187,9 @@ function Router() {
       <Route path="/">
         {() => (
           <AppLayout>
-            <ProtectedRoute component={Dashboard} />
+            <Suspense fallback={<RouteLoadingFallback />}>
+              <ProtectedRoute component={LazyDashboard} />
+            </Suspense>
           </AppLayout>
         )}
       </Route>
@@ -125,7 +197,9 @@ function Router() {
       <Route path="/crm">
         {() => (
           <AppLayout>
-            <ProtectedRoute component={CRMPage} />
+            <Suspense fallback={<RouteLoadingFallback />}>
+              <ProtectedRoute component={LazyCRMPage} />
+            </Suspense>
           </AppLayout>
         )}
       </Route>
@@ -133,7 +207,9 @@ function Router() {
       <Route path="/crm/leads">
         {() => (
           <AppLayout>
-            <ProtectedRoute component={CRMLeadsPage} />
+            <Suspense fallback={<RouteLoadingFallback />}>
+              <ProtectedRoute component={LazyCRMLeadsPage} />
+            </Suspense>
           </AppLayout>
         )}
       </Route>
