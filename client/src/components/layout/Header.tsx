@@ -103,7 +103,7 @@ function CalendarDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (
 }
 
 export function Header({ setSidebarOpen }: HeaderProps) {
-  const { user, role } = useAuth();
+  const { user, role, logout } = useAuth();
   const [helpOpen, setHelpOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const { toast } = useToast();
@@ -113,10 +113,21 @@ export function Header({ setSidebarOpen }: HeaderProps) {
 
   const handleLogout = async () => {
     try {
+      console.log("Logging out...");
       await logout();
-      window.location.href = "/login";
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully",
+      });
+      // Use navigate instead of directly setting window location
+      navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
