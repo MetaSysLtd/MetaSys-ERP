@@ -154,22 +154,8 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
   return <Component {...rest} />;
 }
 
-// Lazy load page components for code splitting
-// This dramatically reduces initial bundle size
-const LazyDashboard = lazy(() => import("@/pages/dashboard"));
-const LazyCRMPage = lazy(() => import("@/pages/crm"));
-const LazyCRMLeadsPage = lazy(() => import("@/pages/crm/leads"));
-const LazyCRMClientsPage = lazy(() => import("@/pages/crm/clients"));
-const LazyCRMCommissionsPage = lazy(() => import("@/pages/crm/commissions"));
-const LazyCRMAccountsPage = lazy(() => import("@/pages/crm/accounts"));
-const LazyCRMSurveysPage = lazy(() => import("@/pages/crm/surveys"));
-
-// Simple route-level loading component
-const RouteLoadingFallback = () => (
-  <div className="flex items-center justify-center h-[calc(100vh-64px)] w-full">
-    <Loader2 className="h-8 w-8 animate-spin opacity-70" />
-  </div>
-);
+// We'll use direct imports for now until we establish a solid lazy loading setup
+// This will be revisited in a future optimization
 
 function Router() {
   return (
@@ -187,9 +173,7 @@ function Router() {
       <Route path="/">
         {() => (
           <AppLayout>
-            <Suspense fallback={<RouteLoadingFallback />}>
-              <ProtectedRoute component={LazyDashboard} />
-            </Suspense>
+            <ProtectedRoute component={Dashboard} />
           </AppLayout>
         )}
       </Route>
@@ -197,9 +181,7 @@ function Router() {
       <Route path="/crm">
         {() => (
           <AppLayout>
-            <Suspense fallback={<RouteLoadingFallback />}>
-              <ProtectedRoute component={LazyCRMPage} />
-            </Suspense>
+            <ProtectedRoute component={CRMPage} />
           </AppLayout>
         )}
       </Route>
@@ -207,9 +189,7 @@ function Router() {
       <Route path="/crm/leads">
         {() => (
           <AppLayout>
-            <Suspense fallback={<RouteLoadingFallback />}>
-              <ProtectedRoute component={LazyCRMLeadsPage} />
-            </Suspense>
+            <ProtectedRoute component={CRMLeadsPage} />
           </AppLayout>
         )}
       </Route>

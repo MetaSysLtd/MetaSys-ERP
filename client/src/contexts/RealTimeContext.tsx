@@ -50,7 +50,7 @@ export const RealTimeProvider: React.FC<RealTimeProviderProps> = ({ children }) 
     socketService.on('authenticated', authenticatedListener);
     
     // Setup system message handler
-    socketService.on(RealTimeEvents.SYSTEM_MESSAGE, (data) => {
+    socketService.on(RealTimeEvents.SYSTEM_MESSAGE, (data: { title?: string; message?: string; variant?: string }) => {
       toast({
         title: data.title || 'System Message',
         description: data.message || 'A system message was received.',
@@ -59,7 +59,7 @@ export const RealTimeProvider: React.FC<RealTimeProviderProps> = ({ children }) 
     });
     
     // Setup error handler
-    socketService.on(RealTimeEvents.ERROR, (error) => {
+    socketService.on(RealTimeEvents.ERROR, (error: { message?: string }) => {
       console.error('Socket error:', error);
       toast({
         title: 'Connection Error',
@@ -69,7 +69,7 @@ export const RealTimeProvider: React.FC<RealTimeProviderProps> = ({ children }) 
     });
     
     // Handle generic data updates for cache invalidation
-    socketService.on(RealTimeEvents.DATA_UPDATED, (data) => {
+    socketService.on(RealTimeEvents.DATA_UPDATED, (data: { entityType?: string; queryKey?: string | string[] }) => {
       if (data.entityType) {
         // Invalidate queries related to the entity
         queryClient.invalidateQueries({ queryKey: [`/api/${data.entityType}s`] });
