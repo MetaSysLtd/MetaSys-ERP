@@ -42,8 +42,18 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden font-[Inter]">
-      <div className="flex w-full max-w-[1600px] mx-auto bg-white shadow-xl">
+    <div className="flex h-screen w-full overflow-hidden font-[Inter] relative">
+      {/* Full-screen background image for mobile */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center md:hidden"
+        style={{ 
+          backgroundImage: `url('/assets/images/login/banner-mobile.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      />
+      
+      <div className="flex w-full max-w-[1600px] mx-auto shadow-xl relative z-10">
         {/* Left side - Banner Image */}
         <div className="hidden md:block w-1/2 h-screen relative order-1">
           <div 
@@ -57,7 +67,7 @@ const AuthPage = () => {
         </div>
 
         {/* Right side - Login Form */}
-        <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-16 order-2 bg-white">
+        <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-16 order-2 bg-white bg-opacity-95 md:bg-opacity-100">
           <div className="w-full max-w-md">
             <div className="text-center mb-8">
               <img
@@ -123,24 +133,9 @@ const AuthPage = () => {
                 )}
               </Button>
             </form>
-
-            <p className="text-xs text-center text-gray-400 mt-6">
-              Default login: username <b>"admin"</b>, password <b>"admin123"</b>
-            </p>
           </div>
         </div>
       </div>
-      
-      {/* Mobile specific background for small screens */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center -z-10 md:hidden"
-        style={{ 
-          backgroundImage: `url('/assets/images/login/banner-mobile.png')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: 0.2
-        }}
-      />
     </div>
   );
 };
