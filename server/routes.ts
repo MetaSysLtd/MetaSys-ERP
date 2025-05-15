@@ -1429,10 +1429,20 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         });
       }
 
-      // Store user in session
+      // Enhanced session data with more user context
       req.session.userId = user.id;
+      req.session.username = user.username;
+      req.session.roleId = user.roleId;
+      req.session.authenticated = true;
+      req.session.loginTime = new Date().toISOString();
+      
       if (user.orgId) {
         req.session.orgId = user.orgId;
+      }
+      
+      // Set session cookie options to improve persistence
+      if (req.session.cookie) {
+        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
       }
       
       // Explicitly save the session to ensure it's stored properly
@@ -1440,6 +1450,8 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         req.session.save((err) => {
           if (err) {
             console.error("Session save error during login:", err);
+          } else {
+            console.log(`Session saved successfully for ${user.username}, session ID: ${req.sessionID}`);
           }
           resolve();
         });

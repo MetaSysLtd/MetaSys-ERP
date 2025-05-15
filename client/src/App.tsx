@@ -11,7 +11,7 @@ import { setPreferences, fetchPreferences } from './store/uiPreferencesSlice';
 import { useRealTime } from './hooks/use-real-time';
 import { useToast } from '@/hooks/use-toast';
 import NotFound from "@/pages/not-found";
-import Login from "@/pages/auth/login";
+import AuthPage from "@/pages/auth-page";
 import ForgotPassword from "@/pages/auth/forgot-password";
 // Use original dashboard with enhanced error handling
 import Dashboard from "@/pages/dashboard";
@@ -91,12 +91,10 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
     );
   }
 
-  // Use wouter's navigate functionality for proper routing
-  const [, navigate] = useLocation();
-  
+  // Check authentication status
   if (!isAuthenticated) {
-    // No need to manually redirect - useEffect will handle this better
-    navigate("/login");
+    // Use window.location for more reliable redirection
+    window.location.href = "/login";
     return null;
   }
 
@@ -106,11 +104,11 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
 function Router() {
   return (
     <Switch>
-      <Route path="/auth/login">
-        <Login />
+      <Route path="/auth">
+        <AuthPage />
       </Route>
       <Route path="/login">
-        <Login />
+        <AuthPage />
       </Route>
       <Route path="/auth/forgot-password">
         <ForgotPassword />

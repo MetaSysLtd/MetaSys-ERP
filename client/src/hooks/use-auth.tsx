@@ -1,146 +1,91 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { createContext, ReactNode, useContext, useEffect } from "react";
+import {
+  useQuery,
+  useMutation,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { User } from "@shared/schema";
+import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 
-interface User {
-  id: number;
+type LoginData = {
   username: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  roleId: number;
-  active: boolean;
-  orgId: number | null;
-}
+  password: string;
+};
 
-interface Role {
-  id: number;
-  name: string;
-  department: string;
-  level: number;
-  permissions: string[];
-}
-
-interface AuthContextType {
+type AuthContextType = {
   user: User | null;
-  role: Role | null;
   isLoading: boolean;
-  isAuthenticated: boolean;
   error: Error | null;
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
+  isAuthenticated: boolean;
+  loginMutation: UseMutationResult<User, Error, LoginData>;
+  logoutMutation: UseMutationResult<void, Error, void>;
   checkAuth: () => void;
-}
+};
 
-const AuthContext = createContext<AuthContextType | null>(null);
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   
   const {
-    data,
-    isLoading,
+    data: user,
     error,
-    refetch: checkAuth,
-  } = useQuery({
-    queryKey: ["/api/auth/me"],
-    queryFn: async () => {
-      try {
-        console.log("Checking authentication status...");
-        const res = await apiRequest("GET", "/api/auth/me");
-        
-        if (!res.ok) {
-          if (res.status === 401) {
-            console.log("User not authenticated");
-            setIsAuthenticated(false);
-            return { user: null, role: null };
-          }
-          throw new Error("Failed to fetch authentication status");
-        }
-        
-        const data = await res.json();
-        console.log("Auth data received:", data);
-        
-        if (data && data.user) {
-          setIsAuthenticated(true);
-          return data;
-        } else {
-          setIsAuthenticated(false);
-          return { user: null, role: null };
-        }
-      } catch (err) {
-        console.error("Auth check error:", err);
-        setIsAuthenticated(false);
-        throw err;
-      }
-    },
-    retry: 0,
-    refetchOnWindowFocus: true,
-    refetchInterval: 5 * 60 * 1000, // Refresh auth status every 5 minutes
+    isLoading,
+    refetch,
+  } = useQuery<User | null, Error>({
+    queryKey: ["/api/user"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: false,
   });
-  
-  const login = async (username: string, password: string) => {
-    try {
-      console.log("Attempting login...");
-      const res = await apiRequest("POST", "/api/auth/login", { username, password });
-      
+
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: LoginData) => {
+      console.log("Attempting login with credentials:", credentials.username);
+      const res = await apiRequest("POST", "/api/login", credentials);
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || "Invalid username or password");
-      }
-      
-      const authData = await res.json();
-      console.log("Login successful:", authData);
-      
-      // Update authentication state immediately
-      queryClient.setQueryData(["/api/auth/me"], authData);
-      setIsAuthenticated(true);
-      
-      // Redirect to dashboard
-      setLocation("/");
-      
-      return authData;
-    } catch (err: any) {
-      console.error("Login error:", err);
-      toast({
-        title: "Login failed",
-        description: err.message || "Failed to login",
-        variant: "destructive",
-      });
-      throw err;
-    }
-  };
-  
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      console.log("Attempting logout...");
-      const res = await apiRequest("POST", "/api/auth/logout");
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to logout");
+        throw new Error(errorData.message || "Login failed");
       }
       return await res.json();
     },
+    onSuccess: (userData: User) => {
+      console.log("Login successful, updating user data");
+      queryClient.setQueryData(["/api/user"], userData);
+      toast({
+        title: "Login successful",
+        description: `Welcome back, ${userData.firstName}!`,
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Login error:", error);
+      toast({
+        title: "Login failed",
+        description: error.message || "Please check your credentials and try again",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/logout");
+      if (!res.ok) {
+        throw new Error("Logout failed");
+      }
+    },
     onSuccess: () => {
-      // Clear auth data
-      queryClient.setQueryData(["/api/auth/me"], { user: null, role: null });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      
-      // Update state
-      setIsAuthenticated(false);
-      
-      // Redirect to login
-      setLocation("/login");
-      
+      console.log("Logout successful, clearing user data");
+      queryClient.setQueryData(["/api/user"], null);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       toast({
         title: "Logged out",
         description: "You have been successfully logged out",
       });
+      
+      // Force redirect to login page
+      window.location.href = "/login";
     },
     onError: (error: Error) => {
       console.error("Logout error:", error);
@@ -151,27 +96,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     },
   });
-  
-  const logout = async () => {
-    await logoutMutation.mutateAsync();
+
+  const checkAuth = () => {
+    console.log("Checking authentication status");
+    refetch();
   };
-  
-  // Effect to handle initial auth check when the app loads
+
+  // Check authentication on initial load
   useEffect(() => {
-    // This will trigger the auth check query
+    console.log("Auth provider mounted, checking initial auth status");
     checkAuth();
   }, []);
-  
+
   return (
     <AuthContext.Provider
       value={{
-        user: data?.user || null,
-        role: data?.role || null,
+        user,
         isLoading,
-        isAuthenticated,
-        error: error as Error | null,
-        login,
-        logout,
+        error,
+        isAuthenticated: !!user,
+        loginMutation,
+        logoutMutation,
         checkAuth,
       }}
     >
