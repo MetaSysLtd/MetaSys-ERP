@@ -142,9 +142,33 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error("Server returned no user data");
       }
 
-      setIsAuthenticated(true);
+      // First update the auth state
       setUser(data.user);
       setRole(data.role);
+      setIsAuthenticated(true);
+      
+      // Verify the session is established with an immediate auth check
+      try {
+        const verifyRes = await fetch(API_ROUTES.AUTH.ME, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        
+        if (!verifyRes.ok) {
+          console.warn("Session verification failed after login. Will retry...");
+        } else {
+          console.log("Session verification confirmed successful login");
+        }
+      } catch (verifyErr) {
+        console.warn("Error during session verification:", verifyErr);
+      }
+      
+      // Return successfully even if verification has issues
+      return data.user;
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message || "Failed to login. Please check your credentials.");

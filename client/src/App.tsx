@@ -78,22 +78,61 @@ import metaSysLogo from "@/assets/logos/MetaSys.png";
 
 // Improved ProtectedRoute with quick skeleton rendering
 function ProtectedRoute({ component: Component, ...rest }: any) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const [showSkeleton, setShowSkeleton] = useState(true);
+  const [authValidated, setAuthValidated] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+  
+  // Track whether we've completed an auth check
+  useEffect(() => {
+    // Only consider auth validated once loading is complete
+    if (!isLoading) {
+      setAuthValidated(true);
+    }
+  }, [isLoading]);
   
   // Always show skeleton UI immediately for perceived performance
   useEffect(() => {
-    // Remove skeleton after component renders or 300ms, whichever is longer
+    // Remove skeleton after component renders or 400ms, whichever is longer
     // This prevents jarring flash of loading screen for quick responses
     const timer = setTimeout(() => {
       setShowSkeleton(false);
-    }, 300);
+    }, 400);
     
     return () => clearTimeout(timer);
   }, []);
 
-  // If still loading auth state after skeleton period, show full loading screen
-  if (isLoading && !showSkeleton) {
+  // Handle session check and redirection with a separate effect
+  useEffect(() => {
+    // Only run this logic when we know the auth state is settled
+    if (authValidated && !isLoading && !isAuthenticated && !redirecting) {
+      console.log("Auth validation complete, not authenticated, redirecting to login");
+      setRedirecting(true);
+      
+      // Add a small delay before redirecting to avoid race conditions
+      const redirectTimer = setTimeout(() => {
+        window.location.href = "/login";
+      }, 100);
+      
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [authValidated, isLoading, isAuthenticated, redirecting]);
+
+  // If we're redirecting, keep showing the loading state
+  if (redirecting) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center flex-col bg-[#F1FAFB]">
+        <img src={metaSysLogo} alt="MetaSys" className="w-40 mb-4 animate-pulse" />
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-5 w-5 animate-spin text-[#1D3557]" />
+          <span className="text-[#1D3557] font-medium">Redirecting...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // If auth is loading or we haven't validated yet, show full loading screen
+  if ((isLoading && !showSkeleton) || !authValidated) {
     return (
       <div className="flex h-screen w-full items-center justify-center flex-col bg-[#F1FAFB]">
         <img src={metaSysLogo} alt="MetaSys" className="w-40 mb-4 animate-pulse" />
@@ -105,15 +144,8 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
     );
   }
 
-  // Check authentication status
-  if (!isAuthenticated && !isLoading) {
-    // Use window.location for more reliable redirection
-    window.location.href = "/login";
-    return null;
-  }
-
-  // Show skeleton while auth is loading, but give immediate visual feedback
-  if (showSkeleton || isLoading) {
+  // Show skeleton initially while everything loads
+  if (showSkeleton) {
     return (
       <div className="w-full min-h-screen bg-background">
         {/* App header skeleton */}
