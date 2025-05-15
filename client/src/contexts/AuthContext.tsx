@@ -57,43 +57,79 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Create an AbortController for timeout handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          controller.abort();
+        }, 5000); // 5 second timeout
+        
+        console.log("Initiating auth check with /me endpoint");
+        
+        // Try to fetch with timeout
         const res = await fetch(API_ROUTES.AUTH.ME, {
           method: "GET",
           credentials: "include",
           headers: {
             'Cache-Control': 'no-cache',
             'Pragma': 'no-cache'
+          },
+          signal: controller.signal
+        }).catch(err => {
+          if (err.name === 'AbortError') {
+            throw new Error('Session check timed out after 5 seconds');
           }
+          throw err;
         });
+        
+        // Clear the timeout as we got a response
+        clearTimeout(timeoutId);
+        
+        console.log(`Auth check response received with status: ${res.status}`);
 
         if (res.status === 401) {
+          console.log("Auth check returned 401 Unauthorized");
           setIsAuthenticated(false);
           setUser(null);
           setRole(null);
+          setError("Please log in to continue");
           return;
         }
 
         if (!res.ok) {
-          throw new Error(`${res.status}: ${await res.text() || res.statusText}`);
+          const errorText = await res.text().catch(() => res.statusText);
+          throw new Error(`${res.status}: ${errorText}`);
         }
 
         const data = await res.json();
+        console.log("Auth check data:", data);
 
-        if (data.authenticated) {
+        if (data.authenticated === true || data.user) {
+          console.log("Auth check: User is authenticated");
           setIsAuthenticated(true);
           setUser(data.user);
           setRole(data.role);
+          setError(null);
         } else {
+          console.log("Auth check: User is not authenticated");
           setIsAuthenticated(false);
           setUser(null);
           setRole(null);
+          setError("Authentication status unknown");
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Auth check error:", err);
         setIsAuthenticated(false);
         setUser(null);
         setRole(null);
+        
+        // Set a user-friendly error message
+        if (err.message?.includes('timed out')) {
+          setError("Session check timed out. Please refresh the page or try again later.");
+        } else {
+          setError(`Authentication error: ${err.message || "Unknown error"}`);
+        }
       } finally {
+        console.log("Auth check complete, setting isLoading to false");
         setIsLoading(false);
       }
     };
@@ -147,21 +183,47 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setRole(data.role);
       setIsAuthenticated(true);
       
-      // Verify the session is established with an immediate auth check
+      // Verify the session is established with an immediate auth check (with timeout)
       try {
+        console.log("Verifying session is established after login...");
+        
+        // Create an AbortController for timeout handling on verification
+        const verifyController = new AbortController();
+        const verifyTimeoutId = setTimeout(() => {
+          verifyController.abort();
+        }, 5000); // 5 second timeout
+        
         const verifyRes = await fetch(API_ROUTES.AUTH.ME, {
           method: "GET",
           credentials: "include",
           headers: {
             'Cache-Control': 'no-cache',
             'Pragma': 'no-cache'
+          },
+          signal: verifyController.signal
+        }).catch(err => {
+          if (err.name === 'AbortError') {
+            console.warn("Session verification timed out. Session may not be properly established.");
+            return null;
           }
+          throw err;
         });
         
-        if (!verifyRes.ok) {
-          console.warn("Session verification failed after login. Will retry...");
+        clearTimeout(verifyTimeoutId);
+        
+        if (!verifyRes) {
+          console.warn("Session verification timeout - but proceeding with login");
+        } else if (!verifyRes.ok) {
+          console.warn(`Session verification failed after login with status: ${verifyRes.status}`);
         } else {
           console.log("Session verification confirmed successful login");
+          // Parse the verification data for extra confidence
+          try {
+            const verifyData = await verifyRes.json();
+            console.log("Session verification data:", verifyData);
+          } catch (parseErr) {
+            console.warn("Error parsing verification response:", parseErr);
+          }
         }
       } catch (verifyErr) {
         console.warn("Error during session verification:", verifyErr);
