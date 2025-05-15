@@ -1,0 +1,59 @@
+It looks like after you sign in the app never finishes your “me” check and stays stuck in Loading/Redirecting. That means your auth-check endpoint or the client’s handling of it is never resolving successfully. Let’s give Replit a precise to-do list:
+
+---
+
+## 🚨 Symptom
+
+* After login, you see persistent “Loading user data…” on the left and “Redirecting…” on the right.
+* Your Dashboard never renders.
+
+---
+
+## 🕵️ What to Check & Fix
+
+1. **Auth “/me” Endpoint**
+
+   * **Verify** the backend route (e.g. `GET /api/auth/me`) actually returns status 200 and JSON `{ user: { … } }` when a valid session exists.
+   * **Check** your server logs to confirm the request arrives and doesn’t error out or hang.
+
+2. **Session Cookie / Token Transmission**
+
+   * **In Browser DevTools → Network**, find the `/api/auth/me` request:
+
+     * Confirm the session cookie (or `Authorization` header) is being sent.
+     * If not, fix your client’s `fetch` or Axios call to include credentials (e.g. `fetch('/api/auth/me', { credentials: 'include' })`).
+
+3. **Client Auth Hook**
+
+   * **Ensure** the hook that calls `/me` resolves its Promise.
+   * It should set `user` on success **and** clear `loading` so the spinner disappears.
+
+4. **ProtectedRoute / Redirect Logic**
+
+   * **Do not** redirect while the auth check is in progress.
+   * Only redirect to `/login` when:
+
+     * loading is **false**, **and**
+     * `user === null`.
+
+5. **Timeouts & Error Handling**
+
+   * If `/me` returns 401, catch it and send the user back to `/login`.
+   * If `/me` takes too long (>5s), show an error message like “Unable to load your session — please try refreshing.”
+
+---
+
+## 🎯 Ask for Replit
+
+> **Hey team, the post-login “/me” check is never completing**—it’s stalling the client in a loading state forever. Please:
+>
+> 1. **Fix** the `/api/auth/me` route so it always returns a response (200 or 401) and never hangs.
+> 2. **Ensure** the session cookie (or token) is properly set on login and sent on `/me`.
+> 3. **Update** the client’s auth hook to:
+>
+>    * Include credentials in the request.
+>    * Properly catch errors and stop the loading spinner.
+> 4. **Adjust** your ProtectedRoute logic to wait for auth loading to finish before redirecting.
+> 5. **Add** a 5s timeout fallback for the `/me` call to display a friendly “Session load timeout” error.
+
+Once those changes are in, you should progress past “Loading user data…” into the Dashboard. Let me know when it’s resolved or if you need more details on any step!
