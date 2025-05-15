@@ -74,14 +74,30 @@ export interface IStorage {
   getRole(id: number): Promise<Role | undefined>;
   getRoles(): Promise<Role[]>;
   getDefaultRole(): Promise<Role | undefined>;
+  getUserRole(userId: number): Promise<Role | undefined>;
   
   // Organization operations
   getOrganizations(): Promise<Organization[]>;
   getOrganization(id: number): Promise<Organization | undefined>;
+  getOrganizationByCode(code: string): Promise<Organization | undefined>;
+  createOrganization(org: InsertOrganization): Promise<Organization>;
+  updateOrganization(id: number, org: Partial<Organization>): Promise<Organization | undefined>;
+  
+  // User-Organization operations
+  getUserOrganizations(userId: number): Promise<Organization[]>;
+  getUserOrganizationIds(userId: number): Promise<number[]>;
   
   // Auth operations
   checkPassword(username: string, password: string): Promise<User | undefined>;
   getUserIdFromSession(sessionId: string): Promise<number | undefined>;
+  
+  // Preferences operations
+  getUserPreferences(userId: number): Promise<UiPreferences | undefined>;
+  
+  // Notifications operations
+  getUserNotifications(userId: number): Promise<Notification[]>;
+  getUserNotificationsByType(userId: number, type: string): Promise<Notification[]>;
+  sendNotification(notification: InsertNotification): Promise<Notification>;
   
   // Lead operations
   getLeads(): Promise<Lead[]>;
@@ -90,6 +106,12 @@ export interface IStorage {
   updateLead(id: number, lead: Partial<Lead>): Promise<Lead | undefined>;
   getLeadsByStatus(status: string): Promise<Lead[]>;
   getLeadsByAssignee(userId: number): Promise<Lead[]>;
+  
+  // Dashboard operations
+  getDashboardWidgets(userId: number, orgId: number): Promise<DashboardWidget[]>;
+  
+  // Dispatch client operations
+  createDispatchClient(client: InsertDispatchClient): Promise<DispatchClient>;
   
   // Session management
   createErrorLog?(errorData: any): Promise<any>;
@@ -157,6 +179,186 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error in getOrganization:", error);
       return undefined;
+    }
+  }
+  
+  async getOrganizationByCode(code: string): Promise<Organization | undefined> {
+    try {
+      const [org] = await db.select().from(organizations).where(eq(organizations.code, code));
+      return org;
+    } catch (error) {
+      console.error("Error in getOrganizationByCode:", error);
+      return undefined;
+    }
+  }
+  
+  async createOrganization(org: InsertOrganization): Promise<Organization> {
+    try {
+      const [newOrg] = await db.insert(organizations).values(org).returning();
+      return newOrg;
+    } catch (error) {
+      console.error("Error in createOrganization:", error);
+      throw error;
+    }
+  }
+  
+  async updateOrganization(id: number, org: Partial<Organization>): Promise<Organization | undefined> {
+    try {
+      const [updatedOrg] = await db
+        .update(organizations)
+        .set(org)
+        .where(eq(organizations.id, id))
+        .returning();
+      return updatedOrg;
+    } catch (error) {
+      console.error("Error in updateOrganization:", error);
+      return undefined;
+    }
+  }
+  
+  async getUserOrganizations(userId: number): Promise<Organization[]> {
+    try {
+      const userOrgs = await db
+        .select()
+        .from(userOrganizations)
+        .where(eq(userOrganizations.userId, userId));
+      
+      if (!userOrgs.length) {
+        return [];
+      }
+      
+      const orgIds = userOrgs.map(uo => uo.orgId);
+      const orgs = await db
+        .select()
+        .from(organizations)
+        .where(inArray(organizations.id, orgIds));
+      
+      return orgs;
+    } catch (error) {
+      console.error("Error in getUserOrganizations:", error);
+      return [];
+    }
+  }
+  
+  async getUserOrganizationIds(userId: number): Promise<number[]> {
+    try {
+      const userOrgs = await db
+        .select()
+        .from(userOrganizations)
+        .where(eq(userOrganizations.userId, userId));
+      
+      return userOrgs.map(uo => uo.orgId);
+    } catch (error) {
+      console.error("Error in getUserOrganizationIds:", error);
+      return [];
+    }
+  }
+  
+  async getUserRole(userId: number): Promise<Role | undefined> {
+    try {
+      const user = await this.getUser(userId);
+      if (!user) {
+        return undefined;
+      }
+      
+      return this.getRole(user.roleId);
+    } catch (error) {
+      console.error("Error in getUserRole:", error);
+      return undefined;
+    }
+  }
+  
+  async getUserPreferences(userId: number): Promise<UiPreferences | undefined> {
+    try {
+      const [prefs] = await db
+        .select()
+        .from(uiPreferences)
+        .where(eq(uiPreferences.userId, userId));
+      
+      return prefs;
+    } catch (error) {
+      console.error("Error in getUserPreferences:", error);
+      return undefined;
+    }
+  }
+  
+  async getUserNotifications(userId: number): Promise<Notification[]> {
+    try {
+      const userNotifications = await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, userId))
+        .orderBy(desc(notifications.createdAt))
+        .limit(50);
+      
+      return userNotifications;
+    } catch (error) {
+      console.error("Error in getUserNotifications:", error);
+      return [];
+    }
+  }
+  
+  async getUserNotificationsByType(userId: number, type: string): Promise<Notification[]> {
+    try {
+      const userNotifications = await db
+        .select()
+        .from(notifications)
+        .where(and(
+          eq(notifications.userId, userId),
+          eq(notifications.type, type)
+        ))
+        .orderBy(desc(notifications.createdAt))
+        .limit(20);
+      
+      return userNotifications;
+    } catch (error) {
+      console.error("Error in getUserNotificationsByType:", error);
+      return [];
+    }
+  }
+  
+  async sendNotification(notification: InsertNotification): Promise<Notification> {
+    try {
+      const [newNotification] = await db
+        .insert(notifications)
+        .values(notification)
+        .returning();
+      
+      return newNotification;
+    } catch (error) {
+      console.error("Error in sendNotification:", error);
+      throw error;
+    }
+  }
+  
+  async getDashboardWidgets(userId: number, orgId: number): Promise<DashboardWidget[]> {
+    try {
+      const widgets = await db
+        .select()
+        .from(dashboardWidgets)
+        .where(and(
+          eq(dashboardWidgets.userId, userId),
+          eq(dashboardWidgets.orgId, orgId)
+        ));
+      
+      return widgets;
+    } catch (error) {
+      console.error("Error in getDashboardWidgets:", error);
+      return [];
+    }
+  }
+  
+  async createDispatchClient(client: InsertDispatchClient): Promise<DispatchClient> {
+    try {
+      const [newClient] = await db
+        .insert(dispatch_clients)
+        .values(client)
+        .returning();
+      
+      return newClient;
+    } catch (error) {
+      console.error("Error in createDispatchClient:", error);
+      throw error;
     }
   }
   
