@@ -1431,6 +1431,19 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
 
       // Store user in session
       req.session.userId = user.id;
+      if (user.orgId) {
+        req.session.orgId = user.orgId;
+      }
+      
+      // Explicitly save the session to ensure it's stored properly
+      await new Promise<void>((resolve) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("Session save error during login:", err);
+          }
+          resolve();
+        });
+      });
       
       try {
         // Try to get role information, but handle any errors
@@ -1440,7 +1453,7 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         const { password: _, ...userInfo } = user;
         
         // Log successful login
-        console.log(`User ${username} logged in successfully`);
+        console.log(`User ${username} logged in successfully with session ID: ${req.sessionID}`);
         
         return res.status(200).json({ 
           user: userInfo,
@@ -1464,27 +1477,73 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
     }
   });
 
-  // Logout route
+  // Logout route with proper session cleanup
   authRouter.post("/logout", (req, res) => {
-    req.session.destroy(() => {
-      res.status(200).json({ message: "Logged out successfully" });
+    // Log session status before logout
+    console.log(`Logout attempt with session ID: ${req.sessionID}, userId: ${req.session.userId}`);
+    
+    if (!req.session.userId) {
+      return res.status(200).json({ message: "Already logged out" });
+    }
+    
+    // First save any pending changes, then destroy the session
+    req.session.save((saveErr) => {
+      if (saveErr) {
+        console.error("Error saving session before logout:", saveErr);
+      }
+      
+      req.session.destroy((destroyErr) => {
+        if (destroyErr) {
+          console.error("Error destroying session during logout:", destroyErr);
+          return res.status(500).json({ message: "Error during logout" });
+        }
+        
+        // Clear session cookie
+        res.clearCookie('connect.sid');
+        console.log("User successfully logged out");
+        
+        return res.status(200).json({ message: "Logged out successfully" });
+      });
     });
   });
 
-  // Check current user session
+  // Check current user session with enhanced debugging
   authRouter.get("/me", async (req, res, next) => {
     try {
-      if (!req.session.userId) {
-        console.log("No userId in session");
+      // Log session info for debugging purposes
+      console.log(`Auth check for session: ${req.sessionID}`, {
+        hasSession: !!req.session,
+        sessionData: {
+          userId: req.session?.userId,
+          orgId: req.session?.orgId
+        }
+      });
+      
+      if (!req.session || !req.session.userId) {
+        console.log("No valid session or userId found");
         return res.status(401).json({ authenticated: false });
       }
 
       const user = await storage.getUser(req.session.userId);
       if (!user) {
-        console.log(`User with id ${req.session.userId} not found`);
-        req.session.destroy(() => {});
+        console.log(`User with id ${req.session.userId} not found in database`);
+        
+        // Save and then destroy the session to ensure proper cleanup
+        await new Promise<void>((resolve) => {
+          req.session.userId = undefined;
+          req.session.orgId = undefined;
+          req.session.save(() => {
+            req.session.destroy(() => {
+              resolve();
+            });
+          });
+        });
+        
         return res.status(401).json({ authenticated: false });
       }
+      
+      // Touch the session to extend its lifetime
+      req.session.touch();
 
       // Try to get role information but handle errors gracefully
       try {

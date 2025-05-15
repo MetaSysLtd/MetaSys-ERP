@@ -31,18 +31,19 @@ app.use(express.json());
 app.use(jsonErrorHandler);
 app.use(express.urlencoded({ extended: false }));
 
-// Improved session middleware with persistent configuration
+// Enhanced session middleware with robust persistence configuration
 app.use(session({
   secret: SESSION_SECRET,
-  // Only save session when we put something in it
-  resave: false,
+  // Save session for any changes to ensure consistency
+  resave: true,
   // Don't save empty uninitialized sessions
   saveUninitialized: false,
   // Store sessions in PostgreSQL for better persistence
   store: storage.sessionStore,
+  name: 'metasys.sid', // Custom cookie name to avoid collisions
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - longer persistence
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days - longer persistence
     httpOnly: true,
     sameSite: 'lax',
     path: '/'
