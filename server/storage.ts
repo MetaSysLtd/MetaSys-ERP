@@ -73,9 +73,26 @@ export interface IStorage {
   // Role operations
   getRole(id: number): Promise<Role | undefined>;
   getRoles(): Promise<Role[]>;
+  getDefaultRole(): Promise<Role | undefined>;
+  
+  // Organization operations
+  getOrganizations(): Promise<Organization[]>;
+  getOrganization(id: number): Promise<Organization | undefined>;
   
   // Auth operations
   checkPassword(username: string, password: string): Promise<User | undefined>;
+  getUserIdFromSession(sessionId: string): Promise<number | undefined>;
+  
+  // Lead operations
+  getLeads(): Promise<Lead[]>;
+  getLead(id: number): Promise<Lead | undefined>;
+  createLead(lead: InsertLead): Promise<Lead>;
+  updateLead(id: number, lead: Partial<Lead>): Promise<Lead | undefined>;
+  getLeadsByStatus(status: string): Promise<Lead[]>;
+  getLeadsByAssignee(userId: number): Promise<Lead[]>;
+  
+  // Session management
+  createErrorLog?(errorData: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -93,13 +110,144 @@ export class DatabaseStorage implements IStorage {
   
   // User operations
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+      return user;
+    } catch (error) {
+      console.error("Error in getUser:", error);
+      return undefined;
+    }
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.username, username));
+      return user;
+    } catch (error) {
+      console.error("Error in getUserByUsername:", error);
+      return undefined;
+    }
+  }
+  
+  async getDefaultRole(): Promise<Role | undefined> {
+    try {
+      // Get the role with level 1 (standard user)
+      const [role] = await db.select().from(roles).where(eq(roles.level, 1));
+      return role;
+    } catch (error) {
+      console.error("Error in getDefaultRole:", error);
+      return undefined;
+    }
+  }
+  
+  async getOrganizations(): Promise<Organization[]> {
+    try {
+      const orgs = await db.select().from(organizations);
+      return orgs;
+    } catch (error) {
+      console.error("Error in getOrganizations:", error);
+      return [];
+    }
+  }
+  
+  async getOrganization(id: number): Promise<Organization | undefined> {
+    try {
+      const [org] = await db.select().from(organizations).where(eq(organizations.id, id));
+      return org;
+    } catch (error) {
+      console.error("Error in getOrganization:", error);
+      return undefined;
+    }
+  }
+  
+  async getUserIdFromSession(sessionId: string): Promise<number | undefined> {
+    try {
+      // This requires a direct query to the session table
+      const result = await pool.query(
+        'SELECT sess FROM session WHERE sid = $1',
+        [sessionId]
+      );
+      
+      if (result.rows.length === 0) return undefined;
+      
+      const sessionData = result.rows[0].sess;
+      return sessionData?.userId;
+    } catch (error) {
+      console.error("Error in getUserIdFromSession:", error);
+      return undefined;
+    }
+  }
+  
+  async getLeads(): Promise<Lead[]> {
+    try {
+      return await getAllLeads();
+    } catch (error) {
+      console.error("Error in getLeads:", error);
+      return [];
+    }
+  }
+  
+  async getLead(id: number): Promise<Lead | undefined> {
+    try {
+      return await getLeadById(id);
+    } catch (error) {
+      console.error("Error in getLead:", error);
+      return undefined;
+    }
+  }
+  
+  async createLead(lead: InsertLead): Promise<Lead> {
+    try {
+      const [newLead] = await db.insert(leads).values(lead).returning();
+      return newLead;
+    } catch (error) {
+      console.error("Error in createLead:", error);
+      throw error;
+    }
+  }
+  
+  async updateLead(id: number, lead: Partial<Lead>): Promise<Lead | undefined> {
+    try {
+      const [updatedLead] = await db
+        .update(leads)
+        .set(lead)
+        .where(eq(leads.id, id))
+        .returning();
+      return updatedLead;
+    } catch (error) {
+      console.error("Error in updateLead:", error);
+      return undefined;
+    }
+  }
+  
+  async getLeadsByStatus(status: string): Promise<Lead[]> {
+    try {
+      return await getLeadsByStatusApi(status);
+    } catch (error) {
+      console.error("Error in getLeadsByStatus:", error);
+      return [];
+    }
+  }
+  
+  async getLeadsByAssignee(userId: number): Promise<Lead[]> {
+    try {
+      return await getLeadsByAssigneeApi(userId);
+    } catch (error) {
+      console.error("Error in getLeadsByAssignee:", error);
+      return [];
+    }
+  }
+  
+  async createErrorLog(errorData: any): Promise<any> {
+    try {
+      // Log error to console for now
+      console.error("Error log:", errorData);
+      // In a real implementation, this would be saved to a database table
+      return { logged: true, timestamp: new Date() };
+    } catch (error) {
+      console.error("Error in createErrorLog:", error);
+      return { logged: false };
+    }
   }
 
   async createUser(user: InsertUser): Promise<User> {
@@ -149,6 +297,12 @@ export class MemStorage implements IStorage {
   sessionStore: session.Store;
   private users: Map<number, User>;
   private roles: Map<number, Role>;
+  private organizations: Map<number, Organization>;
+  private leads: Map<number, Lead>;
+  private nextUserId: number = 1;
+  private nextRoleId: number = 1;
+  private nextLeadId: number = 1;
+  private nextOrgId: number = 1;
   
   constructor() {
     // Initialize the memory session store
@@ -160,6 +314,8 @@ export class MemStorage implements IStorage {
     
     this.users = new Map();
     this.roles = new Map();
+    this.organizations = new Map();
+    this.leads = new Map();
     
     // Initialize with default data
     this.initializeDefaultData();
