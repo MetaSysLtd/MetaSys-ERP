@@ -1,6 +1,7 @@
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { getInitials } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 import { 
   HomeIcon, 
   Users, 
@@ -110,12 +111,13 @@ type NavItem = {
 
 export function Sidebar({ mobile, collapsed }: SidebarProps) {
   const [location] = useLocation();
-  const { user, role } = useAuth();
+  const { user, role, logout } = useAuth();
   const dispatch = useDispatch();
   const preferences = useSelector((state: RootState) => state.uiPreferences);
   const [isMounted, setIsMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const { toast } = useToast();
 
   // Initialize the expandedDropdown state from localStorage on first render
   useEffect(() => {
@@ -156,15 +158,23 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
 
   const handleLogout = useCallback(async () => {
     try {
-      await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include"
+      console.log("Logging out from sidebar...");
+      await logout();
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully",
       });
+      // Navigate to login page
       window.location.href = "/auth";
     } catch (err) {
       console.error("Logout error:", err);
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging out. Please try again.",
+        variant: "destructive",
+      });
     }
-  }, []);
+  }, [logout, toast]);
 
   const handleLinkClick = useCallback(() => {
     if (mobile) {

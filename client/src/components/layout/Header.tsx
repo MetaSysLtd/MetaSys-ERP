@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getInitials } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -111,7 +111,7 @@ export function Header({ setSidebarOpen }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       console.log("Logging out...");
       await logout();
@@ -129,7 +129,7 @@ export function Header({ setSidebarOpen }: HeaderProps) {
         variant: "destructive",
       });
     }
-  };
+  }, [logout, toast, navigate]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
