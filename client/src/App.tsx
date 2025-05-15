@@ -62,7 +62,7 @@ import DesignSystemPage from "@/pages/design-system";
 // Team pages
 import SalesTeamPage from "@/pages/teams/sales";
 import DispatchTeamPage from "@/pages/teams/dispatch";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/hooks/use-auth";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { MessageProvider } from "@/contexts/MessageContext";
 import { AnimationProvider } from "@/contexts/AnimationContext";
@@ -91,9 +91,12 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
     );
   }
 
-  // Fix for proper routing by using Wouter's Route instead of window.location
+  // Use wouter's navigate functionality for proper routing
+  const [, navigate] = useLocation();
+  
   if (!isAuthenticated) {
-    window.location.href = "/login";
+    // No need to manually redirect - useEffect will handle this better
+    navigate("/login");
     return null;
   }
 
