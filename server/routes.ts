@@ -1341,7 +1341,7 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   const authRouter = express.Router();
   app.use("/api/auth", authRouter); // Using the full path to match frontend expectations
 
-  // Login route with enhanced error handling
+  // Login route with enhanced error handling and session management
   authRouter.post("/login", express.json(), async (req, res, next) => {
     try {
       // Explicitly set JSON content type
@@ -1353,7 +1353,8 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         method: req.method,
         path: req.path,
         url: req.url,
-        originalUrl: req.originalUrl
+        originalUrl: req.originalUrl,
+        sessionID: req.sessionID
       });
       
       const { username, password } = req.body;
@@ -1446,16 +1447,47 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
       }
       
       // Explicitly save the session to ensure it's stored properly
-      await new Promise<void>((resolve) => {
-        req.session.save((err) => {
-          if (err) {
-            console.error("Session save error during login:", err);
-          } else {
-            console.log(`Session saved successfully for ${user.username}, session ID: ${req.sessionID}`);
-          }
-          resolve();
+      try {
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error("Session save error during login:", err);
+              reject(err);
+            } else {
+              console.log(`Session saved successfully for ${user.username}, session ID: ${req.sessionID}`);
+              resolve();
+            }
+          });
         });
-      });
+      } catch (sessionError) {
+        console.error("Failed to save session:", sessionError);
+        
+        // Try to regenerate session as recovery
+        await new Promise<void>((resolve) => {
+          req.session.regenerate((err) => {
+            if (err) {
+              console.error("Session regeneration failed:", err);
+            } else {
+              req.session.userId = user.id;
+              req.session.username = user.username;
+              req.session.roleId = user.roleId;
+              req.session.authenticated = true;
+              req.session.loginTime = new Date().toISOString();
+              if (user.orgId) {
+                req.session.orgId = user.orgId;
+              }
+              req.session.save();
+              console.log("Regenerated session with ID:", req.sessionID);
+            }
+            resolve();
+          });
+        });
+      }
+      
+      // Verify session was properly set with a test
+      if (!req.session.userId) {
+        console.error("Session verification failed - userId missing after save attempt");
+      }
       
       try {
         // Try to get role information, but handle any errors
@@ -1469,7 +1501,9 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         
         return res.status(200).json({ 
           user: userInfo,
-          role: role ? role : null
+          role: role ? role : null,
+          sessionId: req.sessionID,
+          sessionValid: !!req.session.userId
         });
       } catch (roleError) {
         console.error(`Error fetching role for user ${username}:`, roleError);
@@ -1480,6 +1514,8 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         return res.status(200).json({ 
           user: userInfo,
           role: null,
+          sessionId: req.sessionID,
+          sessionValid: !!req.session.userId,
           message: "Authentication successful but role data is unavailable"
         });
       }
