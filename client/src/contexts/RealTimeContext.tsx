@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/contexts/AuthContext';
 import socketService, { RealTimeEvents } from '@/services/socket-service';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -91,7 +91,8 @@ export const RealTimeProvider: React.FC<RealTimeProviderProps> = ({ children }) 
   // Authenticate when user changes
   useEffect(() => {
     if (user && user.id && isConnected && !isAuthenticated) {
-      socketService.authenticate(user.id, user.orgId || null);
+      // Use organizationId instead of orgId for compatibility
+      socketService.authenticate(user.id, user.organizationId || null);
     }
   }, [user, isConnected, isAuthenticated]);
 
