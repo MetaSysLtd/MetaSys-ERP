@@ -10,7 +10,6 @@ import { useDispatch } from 'react-redux';
 import { setPreferences, fetchPreferences } from './store/uiPreferencesSlice';
 import { useRealTime } from './hooks/use-real-time';
 import { useToast } from '@/hooks/use-toast';
-import { AuthProvider } from './hooks/use-auth';
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import ForgotPassword from "@/pages/auth/forgot-password";
@@ -63,7 +62,7 @@ import DesignSystemPage from "@/pages/design-system";
 // Team pages
 import SalesTeamPage from "@/pages/teams/sales";
 import DispatchTeamPage from "@/pages/teams/dispatch";
-import { AuthProvider } from "@/hooks/use-auth";
+
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import { MessageProvider } from "@/contexts/MessageContext";
 import { AnimationProvider } from "@/contexts/AnimationContext";
