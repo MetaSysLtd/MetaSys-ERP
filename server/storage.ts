@@ -227,7 +227,7 @@ export class DatabaseStorage implements IStorage {
         return [];
       }
       
-      const orgIds = userOrgs.map(uo => uo.orgId);
+      const orgIds = userOrgs.map(uo => uo.organizationId);
       const orgs = await db
         .select()
         .from(organizations)
@@ -247,7 +247,7 @@ export class DatabaseStorage implements IStorage {
         .from(userOrganizations)
         .where(eq(userOrganizations.userId, userId));
       
-      return userOrgs.map(uo => uo.orgId);
+      return userOrgs.map(uo => uo.organizationId);
     } catch (error) {
       console.error("Error in getUserOrganizationIds:", error);
       return [];
