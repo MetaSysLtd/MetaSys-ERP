@@ -44,44 +44,60 @@ const AuthPage = () => {
   return (
     <div className="flex h-screen items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-6xl bg-white rounded-lg shadow-lg p-8 grid grid-cols-1 md:grid-cols-2 gap-8 font-[Inter]">
-        {/* Left side - ERP Features */}
+        {/* Left side - Logo & ERP Features */}
         <div className="flex flex-col justify-center px-4 order-2 md:order-1">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">
-            Enterprise Resource Planning
-          </h3>
-          <p className="text-sm text-gray-600 mb-6">
-            Discover the power of synergy between innovation and technology.
-            MetaSys equips you with purpose-driven consulting and robust agile
-            development to turn vision into digital success.
-          </p>
-          <ul className="space-y-2 text-sm text-gray-700">
-            <li>
-              <b>CRM Management</b> – Advanced lead qualification system.
-            </li>
-            <li>
-              <b>Dispatch System</b> – Real-time tracking and automation.
-            </li>
-            <li>
-              <b>HR & Finance</b> – Tools to optimize internal processes.
-            </li>
-            <li>
-              <b>Reporting & Analytics</b> – Make data-driven decisions.
-            </li>
-          </ul>
+          <div className="mb-6">
+            <img
+              src="/logo.svg" 
+              alt="MetaSys Logo"
+              className="w-16 h-16 mb-6"
+            />
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">
+              Enterprise Resource Planning
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Discover the power of synergy between innovation and technology. MetaSys equips you with purpose-driven consulting and robust agile development to turn vision into digital success.
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-1">CRM Management</h4>
+              <p className="text-sm text-gray-600">
+                Manage your customer relationships efficiently with our advanced lead qualification system.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-1">Dispatch System</h4>
+              <p className="text-sm text-gray-600">
+                Streamline your dispatch operations with real-time tracking and automated reporting.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-1">HR & Finance</h4>
+              <p className="text-sm text-gray-600">
+                Comprehensive HR and financial management tools to optimize your business processes.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-1">Reporting & Analytics</h4>
+              <p className="text-sm text-gray-600">
+                Make data-driven decisions with detailed reports and analytics dashboards.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Right side - Login Form */}
-        <div className="space-y-6 order-1 md:order-2">
-          <div className="text-center">
-            <img
-              src="/logo.svg"
-              alt="MetaSys ERP Logo"
-              className="mx-auto h-16 w-16"
-            />
-            <h2 className="mt-4 text-2xl font-bold text-gray-800">
+        <div className="bg-white rounded-lg p-6 shadow-md order-1 md:order-2">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">
               Welcome to MetaSys ERP
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 mt-2">
               Please sign in with your account credentials.
             </p>
           </div>
@@ -96,6 +112,7 @@ const AuthPage = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#025E73]"
+                placeholder="username"
                 required
               />
             </div>
@@ -109,6 +126,7 @@ const AuthPage = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full mt-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#025E73]"
+                placeholder="password"
                 required
               />
             </div>
@@ -119,7 +137,7 @@ const AuthPage = () => {
 
             <Button
               type="submit"
-              className="w-full bg-[#025E73] text-white rounded-md transition-all duration-200 hover:bg-[#011F26]"
+              className="w-full bg-[#025E73] text-white rounded-md py-2 transition-all duration-200 hover:bg-[#011F26]"
               disabled={submitting}
             >
               {submitting ? (
