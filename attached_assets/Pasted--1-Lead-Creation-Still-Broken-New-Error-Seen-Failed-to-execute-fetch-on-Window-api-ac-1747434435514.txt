@@ -1,0 +1,44 @@
+🔴 1. Lead Creation Still Broken
+	• New Error Seen:Failed to execute 'fetch' on 'Window': '/api/activities' is not a valid HTTP method.
+	• What’s likely happening:
+		○ After clicking Create Lead, the system attempts to either:
+			§ Log an activity in /api/activities (e.g., “New Lead Created”),
+			§ Or automatically generate related entries like lead timeline/log history.
+	• What to check:
+		○ Ensure fetch() or equivalent API utility is explicitly calling the correct method (POST, GET, etc.)
+		○ Confirm that the route /api/activities exists and is registered on the backend.
+		○ Verify client/src/pages/crm/leads.tsx or equivalent isn't calling the endpoint with fetch('/api/activities') without a method definition.
+
+🟡 2. Missing Lead After Creation
+	• Issue: No lead was added—even after the system pretended it was created.
+	• Check:
+		○ Confirm the backend response after the lead is submitted. It may be failing silently.
+		○ Also verify if the socket event (likely lead_created) is being emitted.
+		○ Confirm the new lead is being persisted in the database and returned to the UI for rendering.
+
+🟠 3. Button Styling Still Not Fixed
+	• Problems Persist:
+		○ Inconsistent button styling and color contrast.
+		○ Icon padding/placement is off.
+		○ See example in the “List / Kanban” toggle — icon padding is misaligned.
+	• Fix Instructions:
+		○ Button color should match MetaSys primary: #025E73
+		○ Font = Inter
+		○ Border radius = rounded-md
+		○ Remove awkward icon spacing or manually define icon+label alignment.
+	• Where to Fix:
+		○ Likely located in client/components/Button.tsx or a global UI wrapper. Audit the component for misaligned flex layout.
+
+🟢 4. Sidebar Hover/Selected State Broken Again
+	• Issue: The yellow left-border indicator and hover effect for CRM submodules (e.g., Leads) is no longer visible or reliable.
+	• Previously Discussed Fix Was:
+		○ Add a clear background change or bold text to the active module.
+		○ Keep the yellow border (#FFDD57) as the selection cue for continuity.
+	• Where to look: Sidebar component logic—client/components/Sidebar.tsx or wherever navigation state is tracked.
+
+✅ Summary for Replit:
+	• Do not remove or strip any intended features.
+	• Fix the POST logic for /api/leads and /api/activities.
+	• Standardize button visuals globally.
+	• Reinstate or complete the sidebar active/hover state styling.
+	• Continue logging user activity/sockets if implemented earlier.
