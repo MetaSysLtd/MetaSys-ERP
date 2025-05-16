@@ -266,16 +266,16 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
             <div 
               className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer transition-all relative nav-item
                 ${isActiveRoute(item.href)
-                  ? 'bg-[#F2A71B]/20 text-[#025E73] font-semibold relative before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#F2A71B] before:rounded-r'
-                  : isParentActive(item.href)
-                    ? 'bg-[#F2A71B]/10 text-[#025E73] font-semibold relative before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#F2A71B] before:rounded-r'
-                    : 'text-gray-800 bg-white/40 hover:bg-gray-100 hover:text-[#025E73]'}`}
+                  ? 'bg-[#F2A71B]/20 text-[#025E73] font-semibold relative before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#FFDD57] before:rounded-r'
+                  : isParentActive(item.href) || hasActiveChild
+                    ? 'bg-[#F2A71B]/10 text-[#025E73] font-semibold relative before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#FFDD57] before:rounded-r'
+                    : 'text-gray-800 bg-white/40 hover:bg-[#F2A71B]/10 hover:text-[#025E73] hover:relative hover:before:content-[""] hover:before:absolute hover:before:left-0 hover:before:top-1/2 hover:before:-translate-y-1/2 hover:before:h-[70%] hover:before:w-1 hover:before:bg-[#FFDD57] hover:before:rounded-r hover:before:opacity-50'}`}
               onClick={(e) => handleDropdownToggle(item.name, e)}
             >
-              <item.icon className={`h-[18px] w-[18px] nav-icon ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
+              <item.icon className={`h-[18px] w-[18px] nav-icon ${isActiveRoute(item.href) || isParentActive(item.href) || hasActiveChild ? 'text-[#025E73]' : 'text-gray-600'}`} />
               {!collapsed || window.innerWidth < 992 ? (
                 <>
-                  <span className="nav-item-text">{item.name}</span>
+                  <span className={`nav-item-text ${isActiveRoute(item.href) || isParentActive(item.href) || hasActiveChild ? 'font-semibold' : ''}`}>{item.name}</span>
                   <ChevronDown 
                     className={`w-4 h-4 ml-auto transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
                   />
@@ -298,8 +298,8 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
                   <Link key={subItem.href} href={subItem.href} onClick={handleLinkClick}>
                     <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-all
                       ${location === subItem.href || (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
-                        ? 'bg-[#F2A71B]/20 text-[#025E73] font-semibold relative pl-3 before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#F2A71B] before:rounded-r' 
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-[#025E73]'}`}
+                        ? 'bg-[#F2A71B]/20 text-[#025E73] font-semibold relative pl-3 before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#FFDD57] before:rounded-r' 
+                        : 'text-gray-700 hover:bg-[#F2A71B]/10 hover:text-[#025E73] hover:relative hover:pl-3 hover:before:content-[""] hover:before:absolute hover:before:left-0 hover:before:top-1/2 hover:before:-translate-y-1/2 hover:before:h-[70%] hover:before:w-1 hover:before:bg-[#FFDD57] hover:before:rounded-r hover:before:opacity-50'}`}
                     >
                       <span>{subItem.name}</span>
                     </div>
@@ -314,17 +314,17 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
             <div 
               className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all relative nav-item
                 ${isActiveRoute(item.href)
-                  ? 'bg-[#F2A71B]/20 text-[#025E73] font-semibold relative before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#F2A71B] before:rounded-r'
+                  ? 'bg-[#F2A71B]/20 text-[#025E73] font-semibold relative before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#FFDD57] before:rounded-r'
                   : isParentActive(item.href)
-                    ? 'bg-[#F2A71B]/10 text-[#025E73] font-semibold relative before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#F2A71B] before:rounded-r'
-                    : 'text-gray-800 bg-white/40 hover:bg-gray-100 hover:text-[#025E73]'}`}
+                    ? 'bg-[#F2A71B]/10 text-[#025E73] font-semibold relative before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#FFDD57] before:rounded-r'
+                    : 'text-gray-800 bg-white/40 hover:bg-[#F2A71B]/10 hover:text-[#025E73] hover:relative hover:before:content-[""] hover:before:absolute hover:before:left-0 hover:before:top-1/2 hover:before:-translate-y-1/2 hover:before:h-[70%] hover:before:w-1 hover:before:bg-[#FFDD57] hover:before:rounded-r hover:before:opacity-50'}`}
             >
-              <item.icon className={`h-[18px] w-[18px] nav-icon ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
+              <item.icon className={`h-[18px] w-[18px] nav-icon ${isActiveRoute(item.href) || isParentActive(item.href) ? 'text-[#025E73]' : 'text-gray-600'}`} />
               {!collapsed || window.innerWidth < 992 ? (
                 <>
-                  <span className="nav-item-text">{item.name}</span>
+                  <span className={`nav-item-text ${isActiveRoute(item.href) || isParentActive(item.href) ? 'font-semibold' : ''}`}>{item.name}</span>
                   {isActiveRoute(item.href) && (
-                    <ChevronRight className="w-4 h-4 ml-auto" />
+                    <ChevronRight className="w-4 h-4 ml-auto text-[#025E73]" />
                   )}
                 </>
               ) : null}
