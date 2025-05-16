@@ -66,16 +66,24 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
   // Create lead mutation
   const createLeadMutation = useMutation({
     mutationFn: async (data: any) => {
-      // CRITICAL FIX: Ensure method is correctly specified as first parameter
-      // and data as third parameter according to apiRequest function signature
-      const res = await apiRequest("/api/leads", "POST", {
+      // Prepare data for submission
+      const submissionData = {
         ...data,
         serviceCharges: Number(data.serviceCharges),
         assignedTo: Number(data.assignedTo),
         orgId: 1, // Set default organization ID
         createdBy: user?.id,
         status: "New", // Always start with New status
-      });
+      };
+      
+      // If equipment type is "Other", include the custom value in the main equipment type field
+      if (data.equipmentType === "Other" && data.customEquipmentType) {
+        submissionData.equipmentType = `Other: ${data.customEquipmentType}`;
+      }
+      
+      // CRITICAL FIX: Ensure method is correctly specified as first parameter
+      // and data as third parameter according to apiRequest function signature
+      const res = await apiRequest("/api/leads", "POST", submissionData);
       
       if (!res.ok) {
         const errorData = await res.json();
@@ -116,6 +124,7 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
         category: "Carrier",
         currentAvailability: "Unknown",
         equipmentType: "",
+        customEquipmentType: "", // Include custom equipment type field
         truckCategory: "",
         factoringStatus: "",
         phoneNumber: "",
@@ -521,6 +530,22 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
+                
+                {formData.equipmentType === "Other" && (
+                  <div className="mt-2">
+                    <Label htmlFor="customEquipmentType">
+                      Custom Equipment Type
+                    </Label>
+                    <Input
+                      id="customEquipmentType"
+                      name="customEquipmentType"
+                      value={formData.customEquipmentType}
+                      onChange={handleChange}
+                      placeholder="Specify equipment type"
+                      className="mt-1"
+                    />
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
