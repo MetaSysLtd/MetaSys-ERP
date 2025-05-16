@@ -3,10 +3,10 @@ import { useState, useEffect } from 'react';
 
 export function useTheme() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    // CRITICAL FIX: Always default to light mode unless explicitly set to dark
+    // This ensures new users and incognito sessions always start in light mode
     const stored = localStorage.getItem('theme');
-    return (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) 
-      ? 'dark' 
-      : 'light';
+    return stored === 'dark' ? 'dark' : 'light';
   });
 
   useEffect(() => {

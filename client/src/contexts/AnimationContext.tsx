@@ -25,14 +25,16 @@ interface AnimationContextType {
 }
 
 const defaultContext: AnimationContextType = {
-  animationsEnabled: true,
+  // CRITICAL FIX: Set animations off by default for performance
+  animationsEnabled: false,
   toggleAnimations: () => {},
   reducedMotion: false,
   toggleReducedMotion: () => {},
   transitionSpeed: 'normal',
   setTransitionSpeed: () => {},
   getDuration: (type: AnimationDurationType | number) => typeof type === 'number' ? type : 0.3,
-  pageTransition: 'gradient',
+  // Use simpler transition for better performance
+  pageTransition: 'fade',
   setPageTransition: () => {},
   currentPath: '/',
   previousPath: null,
