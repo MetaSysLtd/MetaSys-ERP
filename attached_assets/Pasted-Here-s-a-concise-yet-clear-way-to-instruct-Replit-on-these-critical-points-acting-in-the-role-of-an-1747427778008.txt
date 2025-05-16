@@ -1,0 +1,44 @@
+Here's a concise yet clear way to instruct Replit on these critical points, acting in the role of an Expert Product Manager:
+
+---
+
+**Replit, here are four critical UI/UX and functionality points to fix:**
+
+### 1. **Default Mode (Light Mode)**
+
+* **Issue:** The default mode is incorrectly set to Dark Mode for new users or incognito sessions.
+* **Required Fix:** Set the default mode explicitly to **Light Mode** for all new or incognito users. Dark Mode should only activate when users explicitly select it from the menu (user preference).
+
+### 2. **Animation Default State (Off)**
+
+* **Issue:** Animations are turned on by default, causing loading and rendering performance issues.
+* **Required Fix:** Set animation settings default to **off** for every user. Users should manually enable it only if desired, from their profile menu.
+
+### 3. **Settings Button (404 Error)**
+
+* **Issue:** Clicking "Settings" in the user dropdown menu returns a 404 page.
+* **Likely Cause:** Routing or linking issue in the frontend router file.
+* **Required Fix:** Ensure the "Settings" option in the profile dropdown is properly linked and routed to the correct settings page. Check routing files (likely `routes.tsx` or `App.tsx`) to validate and correct this path.
+
+### 4. **Button UI Issues (Icon Spacing & Contrast)**
+
+* **Issue:** Buttons across the platform show unexpected empty space on the left side and icons only on hover. Buttons’ colors and UI contrast are inconsistent with the brand guidelines.
+* **Analysis:**
+
+  * The hover state is showing icons hidden by default, causing strange spacing.
+  * Button color contrast isn't matching brand color (see the correct brand color used for "Sign In" button screenshot provided).
+* **Required Fixes:**
+
+  * Ensure icons in buttons either remain visible or eliminate the unnecessary gap if they are meant to be hidden.
+  * Match the exact brand button style already used on the Sign-In page across the entire platform (color: `#025E73` and proper spacing).
+
+---
+
+**Guidance for Execution:**
+
+* Focus on consistency with the Sign-in button's color and style.
+* Avoid breaking existing functionality or animations permanently (just default them off).
+* Verify all routing explicitly in `routes.tsx`, `App.tsx`, or any router middleware handling pages or profile menus.
+* Cross-check the default dark-mode state handling in the `AuthContext` or local storage/state persistence methods to ensure correct initial state.
+
+Implement these carefully to maintain existing features and enhance platform stability and visual consistency.
