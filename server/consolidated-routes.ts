@@ -1439,11 +1439,22 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
           sameSite: 'lax'
         });
         
+        // Also try clearing with different paths
+        res.clearCookie('metasys.sid', {
+          path: '/api',
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production', 
+          sameSite: 'lax'
+        });
+        
         return res.status(200).json({
           message: "Already logged out",
           success: true
         });
       }
+      
+      // Store session ID for logging
+      const sessionId = req.sessionID;
       
       // Clear session data first
       req.session.userId = undefined;
@@ -1457,6 +1468,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
             console.error("Error saving session during logout:", err);
             reject(err);
           } else {
+            console.log(`Session ${sessionId} saved with cleared data`);
             resolve();
           }
         });
@@ -1469,16 +1481,24 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
             console.error("Error destroying session during logout:", err);
             reject(err);
           } else {
-            console.log("Session successfully destroyed");
+            console.log(`Session ${sessionId} successfully destroyed`);
             resolve();
           }
         });
       });
       
       // Clear all possible session cookies with various options
-      // Clear the main custom cookie
+      // Clear the main custom cookie with multiple path options to ensure complete cleanup
       res.clearCookie('metasys.sid', {
         path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      });
+      
+      // Also try with /api path just to be thorough
+      res.clearCookie('metasys.sid', {
+        path: '/api',
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax'
@@ -1494,10 +1514,11 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       
       console.log(`Successfully logged out user and cleared session cookies`);
       
-      // Return success response
+      // Return success response with explicit redirect instruction
       return res.status(200).json({
         message: "Successfully logged out",
-        success: true
+        success: true,
+        redirect: "/auth"
       });
       
     } catch (error) {

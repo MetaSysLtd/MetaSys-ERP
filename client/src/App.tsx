@@ -79,7 +79,7 @@ import TeamManagementPage from "@/pages/settings/teams";
 // Import the MetaSys logo
 import metaSysLogo from "@/assets/logos/MetaSys.png";
 
-// Enhanced ProtectedRoute with consistent redirect behavior and better state management
+// Enhanced ProtectedRoute with bullet-proof redirect behavior and robust state management
 function ProtectedRoute({ component: Component, ...rest }: any) {
   const { isAuthenticated, isLoading, user, error } = useAuth();
   const [showSkeleton, setShowSkeleton] = useState(true);
@@ -87,27 +87,28 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
   const [redirecting, setRedirecting] = useState(false);
   const [authTimeout, setAuthTimeout] = useState(false);
   const [timeoutMessage, setTimeoutMessage] = useState("");
+  const currentPath = window.location.pathname;
   
   // Set a timeout for the auth check
   useEffect(() => {
-    // If auth is taking too long (10s), show a timeout message
+    // If auth is taking too long (8s), show a timeout message
     const timeoutTimer = setTimeout(() => {
       if (isLoading) {
-        console.warn("Auth check taking too long (10s timeout reached)");
+        console.warn("Auth check taking too long (8s timeout reached)");
         setAuthTimeout(true);
         setTimeoutMessage("Authentication is taking longer than expected");
       }
-    }, 10000);
+    }, 8000);
     
-    // A final backstop timeout (30s) - force an auth failure path if it's really stuck
+    // A final backstop timeout (20s) - force an auth failure path if it's really stuck
     const criticalTimeoutTimer = setTimeout(() => {
       if (isLoading) {
-        console.error("Critical auth timeout reached (30s) - forcing route resolution");
+        console.error("Critical auth timeout reached (20s) - forcing route resolution");
         setAuthTimeout(true);
         setAuthValidated(true); // Force validation to move forward with routing
         setTimeoutMessage("Session authentication has timed out. Please try refreshing the page.");
       }
-    }, 30000);
+    }, 20000);
     
     return () => {
       clearTimeout(timeoutTimer);
@@ -126,11 +127,11 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
   
   // Always show skeleton UI immediately for perceived performance
   useEffect(() => {
-    // Remove skeleton after component renders or 400ms, whichever is longer
+    // Remove skeleton after component renders or 300ms, whichever is longer
     // This prevents jarring flash of loading screen for quick responses
     const timer = setTimeout(() => {
       setShowSkeleton(false);
-    }, 400);
+    }, 300);
     
     return () => clearTimeout(timer);
   }, []);
@@ -142,17 +143,26 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
       console.log("Auth validation complete, not authenticated, redirecting to login");
       setRedirecting(true);
       
-      // Prevent redirect loops by checking if we're already on the auth page
-      if (window.location.pathname !== "/auth") {
+      // Prevent redirect loops by checking if we're already on the auth page or login page
+      const isAuthPage = currentPath === "/auth" || currentPath === "/login";
+      
+      if (!isAuthPage) {
         // Add a small delay before redirecting to avoid race conditions
         const redirectTimer = setTimeout(() => {
           // Always redirect to /auth which is our main auth page
+          // Use hard navigation instead of router navigation to ensure state reset
           window.location.href = "/auth";
           
           // Clear any cached auth data to ensure a clean logout state
-          sessionStorage.clear();
-          localStorage.removeItem("metasys_ui_prefs");
-        }, 100);
+          try {
+            sessionStorage.removeItem(AUTH_USER_CACHE_KEY);
+            sessionStorage.removeItem(AUTH_ROLE_CACHE_KEY);
+            sessionStorage.removeItem(AUTH_TIMESTAMP_KEY);
+            localStorage.removeItem("metasys_ui_prefs");
+          } catch (e) {
+            console.error("Failed to clear storage during redirect:", e);
+          }
+        }, 50);
         
         return () => clearTimeout(redirectTimer);
       } else {
@@ -160,7 +170,7 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
         setRedirecting(false);
       }
     }
-  }, [authValidated, isLoading, isAuthenticated, redirecting]);
+  }, [authValidated, isLoading, isAuthenticated, redirecting, currentPath]);
 
   // If we're redirecting, keep showing the loading state
   if (redirecting) {
