@@ -2,6 +2,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
 import { storage } from './storage';
 import { logger } from './logger';
+import { SOCKET_EVENTS } from '@shared/constants';
 
 let io: SocketIOServer;
 
@@ -40,7 +41,11 @@ export function initSocketIO(server: HttpServer): SocketIOServer {
     cors: {
       origin: '*',
       methods: ['GET', 'POST'],
-    }
+    },
+    path: '/ws', // Ensure consistent path with the client
+    transports: ['websocket', 'polling'],
+    pingInterval: 25000,
+    pingTimeout: 20000
   });
 
   // Set up middleware for authentication

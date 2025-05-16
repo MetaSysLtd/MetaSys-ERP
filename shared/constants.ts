@@ -1,4 +1,16 @@
 /**
+ * Socket events for socket.io room management
+ */
+export enum SOCKET_EVENTS {
+  JOIN_ROOM = 'join_room',
+  LEAVE_ROOM = 'leave_room',
+  SYSTEM_ALERT = 'system:alert',
+  DATA_REFRESH = 'data:refresh',
+  ERROR = 'error',
+  SYSTEM_MESSAGE = 'system:message'
+}
+
+/**
  * Real-time event names for socket.io communication
  */
 export enum RealTimeEvents {
