@@ -1391,11 +1391,18 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         // Try to get role information, but handle any errors
         const role = await storage.getRole(user.roleId);
         
-        // Return user info (except password)
+        // Return user info (except password) in the expected format
         const { password: _, ...userInfo } = user;
         
         // Log successful login
         console.log(`User ${username} logged in successfully with session ID: ${req.sessionID}`);
+        
+        // Prepare response with user and role data to match client expectations
+        const responseData = {
+          user: userInfo,
+          role: role || null,
+          authenticated: true
+        };
         
         // Set a cookie to help with session persistence
         res.cookie('metasys_auth', 'true', {
@@ -1405,19 +1412,18 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
           sameSite: 'lax'
         });
         
-        return res.status(200).json({ 
-          user: userInfo,
-          role: role ? role : null
-        });
+        return res.status(200).json(responseData);
       } catch (roleError) {
         console.error(`Error fetching role for user ${username}:`, roleError);
         
         // Return user info without role if there's an error getting role
         const { password: _, ...userInfo } = user;
         
+        // Match the expected response format
         return res.status(200).json({ 
           user: userInfo,
           role: null,
+          authenticated: true,
           message: "Authentication successful but role data is unavailable"
         });
       }
