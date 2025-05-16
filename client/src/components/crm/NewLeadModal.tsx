@@ -43,6 +43,7 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
     category: "Carrier",
     currentAvailability: "Unknown",
     equipmentType: "",
+    customEquipmentType: "", // Added for "Other" equipment type
     truckCategory: "",
     factoringStatus: "",
     phoneNumber: "",
@@ -65,7 +66,9 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
   // Create lead mutation
   const createLeadMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await apiRequest("POST", "/api/leads", {
+      // CRITICAL FIX: Ensure method is correctly specified as first parameter
+      // and data as third parameter according to apiRequest function signature
+      const res = await apiRequest("/api/leads", "POST", {
         ...data,
         serviceCharges: Number(data.serviceCharges),
         assignedTo: Number(data.assignedTo),
@@ -480,11 +483,14 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
                     <SelectValue placeholder="Select truck category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Class 8">Class 8</SelectItem>
-                    <SelectItem value="Class 7">Class 7</SelectItem>
-                    <SelectItem value="Class 6">Class 6</SelectItem>
-                    <SelectItem value="Class 5">Class 5</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    <SelectItem value="Class 1">Class 1 – Small pickup/SUV (up to 6,000 lbs)</SelectItem>
+                    <SelectItem value="Class 2">Class 2 – Light commercial (6,001–10,000 lbs)</SelectItem>
+                    <SelectItem value="Class 3">Class 3 – Medium pickup/commercial van (10,001–14,000 lbs)</SelectItem>
+                    <SelectItem value="Class 4">Class 4 – Box truck/light dump (14,001–16,000 lbs)</SelectItem>
+                    <SelectItem value="Class 5">Class 5 – Larger box/dump (16,001–19,500 lbs)</SelectItem>
+                    <SelectItem value="Class 6">Class 6 – City delivery truck (19,501–26,000 lbs)</SelectItem>
+                    <SelectItem value="Class 7">Class 7 – Large dump/semi (26,001–33,000 lbs)</SelectItem>
+                    <SelectItem value="Class 8">Class 8 – Heavy-duty trucks (33,001+ lbs)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -503,12 +509,16 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
                     <SelectValue placeholder="Select equipment type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="flatbed">Flatbed</SelectItem>
-                    <SelectItem value="dry-van">Dry Van</SelectItem>
-                    <SelectItem value="reefer">Reefer</SelectItem>
-                    <SelectItem value="step-deck">Step Deck</SelectItem>
-                    <SelectItem value="lowboy">Lowboy</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="Dry Van">Dry Van</SelectItem>
+                    <SelectItem value="Reefer">Reefer</SelectItem>
+                    <SelectItem value="Flatbed">Flatbed</SelectItem>
+                    <SelectItem value="Box Truck">Box Truck</SelectItem>
+                    <SelectItem value="Hotshot">Hotshot</SelectItem>
+                    <SelectItem value="RGN">RGN</SelectItem>
+                    <SelectItem value="Power Only">Power Only</SelectItem>
+                    <SelectItem value="Step Deck">Step Deck</SelectItem>
+                    <SelectItem value="Lowboy">Lowboy</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

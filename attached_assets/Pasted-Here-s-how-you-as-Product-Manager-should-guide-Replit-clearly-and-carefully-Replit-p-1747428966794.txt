@@ -1,0 +1,79 @@
+Here’s how you (as Product Manager) should guide Replit clearly and carefully:
+
+---
+
+**Replit, please address the following critical issues and enhancements in the CRM > Leads module:**
+
+---
+
+### 🔴 **1. Critical Bug: Lead Creation Fails**
+
+* **Issue:** When clicking **"Create Lead"**, a red error shows:
+
+  > `Failed to execute 'fetch' on 'Window': '/api/leads' is not a valid HTTP method.`
+
+* **Likely Cause:**
+
+  * The fetch or axios call may be malformed—likely a `GET` or `HEAD` request is being made instead of a `POST`.
+  * Or, a missing method declaration (`method: 'POST'`) or incorrect function signature may exist.
+
+* **What to Fix:**
+
+  * Ensure the **createLead function** in the frontend properly calls the **POST** route to `/api/leads` (or whatever the route is in your backend).
+  * Check the **backend route definition** in `server/routes/leads.ts` or similar, and ensure it allows POST.
+  * Review any centralized fetch wrapper or API utility—this may be misinterpreting the request method.
+
+---
+
+### 🟡 **2. Improve: Truck Category Dropdown Options**
+
+* **Current Field:** "Truck Category" has vague or incomplete options.
+* **Required Fix:** Replace existing options with the simplified list below:
+
+```text
+Class 1 – Small pickup/SUV (up to 6,000 lbs)
+Class 2 – Light commercial (6,001–10,000 lbs)
+Class 3 – Medium pickup/commercial van (10,001–14,000 lbs)
+Class 4 – Box truck/light dump (14,001–16,000 lbs)
+Class 5 – Larger box/dump (16,001–19,500 lbs)
+Class 6 – City delivery truck (19,501–26,000 lbs)
+Class 7 – Large dump/semi (26,001–33,000 lbs)
+Class 8 – Heavy-duty trucks (33,001+ lbs)
+```
+
+* **Where to Fix:** This dropdown is likely in `client/src/pages/crm/leads.tsx` or similar form component. Find the `TruckCategoryOptions` or equivalent.
+
+---
+
+### 🟢 **3. Improve: Equipment Type Dropdown**
+
+* **Current Field:** Limited options; needs more coverage of real dispatcher-used trucks.
+* **Required Fix:** Add more relevant truck types:
+
+```text
+Dry Van
+Reefer
+Flatbed
+Box Truck
+Hotshot
+RGN
+Power Only
+Step Deck
+Lowboy
+Other (with conditional text field to input custom type)
+```
+
+* **Additional Logic:**
+
+  * When user selects **"Other"**, show a conditional input field for custom entry (e.g., `Custom Equipment Type`).
+* **Where to Fix:** This is likely in the same leads form (CRM > Leads page). Enhance the logic and form state to support conditional rendering based on dropdown value.
+
+---
+
+**Caution:**
+
+* Do not break existing CRM features.
+* Maintain the socket event for lead creation (`emit("lead_created", data)`) so dashboards update in real-time.
+* Ensure validations and role-based access control are preserved when modifying these forms.
+
+Let me know when it’s updated so I can run another QA cycle.
