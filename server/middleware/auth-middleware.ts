@@ -160,8 +160,10 @@ export const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
 export function sessionAuthMiddleware(req: Request, res: Response, next: NextFunction) {
   // Skip auth for public routes
   if (req.path.startsWith('/api/public/') || 
-      req.path.startsWith('/api/auth/login') || 
-      req.path.startsWith('/api/auth/register')) {
+      req.path === '/api/auth/login' || 
+      req.path === '/api/auth/me' ||
+      req.path === '/api/auth/register') {
+    console.log(`Skipping auth check for public route: ${req.path}`);
     return next();
   }
   
