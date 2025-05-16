@@ -112,8 +112,9 @@ router.post('/', createAuthMiddleware(1), async (req, res, next) => {
     // In a real implementation, this would save to database
     // For now, just return the created lead
     
-    // Import event emitter service
+    // Import event emitter service and socket service
     const eventEmitter = await import('../services/event-emitter');
+    const socketService = await import('../services/socket');
     
     // Emit standardized lead created event for real-time updates
     eventEmitter.emitLeadCreated(
@@ -121,6 +122,25 @@ router.post('/', createAuthMiddleware(1), async (req, res, next) => {
       req.user?.id || 0,
       newLead.orgId || 1
     );
+    
+    // Also directly emit to socket rooms for redundancy
+    const io = socketService.getSocketServer();
+    if (io) {
+      logger.debug('Emitting lead:created socket event');
+      io.emit('lead:created', newLead);
+      
+      // Emit to organization room
+      const orgRoom = socketService.formatRoomName(socketService.RoomType.ORG, newLead.orgId || 1);
+      io.to(orgRoom).emit('lead:created', newLead);
+      
+      // Emit to user room (assigned user)
+      if (newLead.assignedTo) {
+        const userRoom = socketService.formatRoomName(socketService.RoomType.USER, newLead.assignedTo);
+        io.to(userRoom).emit('lead:created', newLead);
+      }
+    } else {
+      logger.error('Socket server not initialized, could not emit lead:created event');
+    }
     
     res.status(201).json(newLead);
   } catch (error) {
