@@ -1271,11 +1271,11 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       cookies: req.cookies
     });
     
-    // Special case for admin login - hardcoded test credentials
+    // Hard-coded admin login for debugging and development
     if (req.body.username === 'admin' && req.body.password === 'admin123') {
-      console.log("Admin credentials detected, applying special authentication");
+      console.log("ADMIN CREDENTIALS DETECTED - DIRECT AUTHENTICATION");
       
-      // Create hardcoded admin user
+      // Create hardcoded admin user that matches the expected structure
       const adminUser = {
         id: 1,
         username: 'admin',
@@ -1304,17 +1304,24 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         permissions: ['all']
       };
       
-      // Set session
+      // Set proper session values
       req.session.userId = adminUser.id;
       req.session.orgId = adminUser.orgId || null;
       req.session.roleId = adminUser.roleId;
       
-      // Save session
+      // Save session synchronously to ensure it's stored
       await new Promise<void>((resolve) => {
-        req.session.save(() => resolve());
+        req.session.save((err) => {
+          if (err) {
+            console.error("Session save error:", err);
+          } else {
+            console.log("Admin session saved successfully, sessionID:", req.sessionID);
+          }
+          resolve();
+        });
       });
       
-      // Set cookie
+      // Set client cookies for additional auth verification
       res.cookie('metasys_auth', 'true', {
         path: '/',
         httpOnly: false,
@@ -1322,7 +1329,9 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         sameSite: 'lax'
       });
       
-      // Return success response with user and role data
+      console.log("ADMIN LOGIN SUCCESS - Sending admin user data");
+      
+      // Return success in EXACTLY the expected format for client compatibility
       return res.status(200).json({
         user: adminUser,
         role: adminRole,
