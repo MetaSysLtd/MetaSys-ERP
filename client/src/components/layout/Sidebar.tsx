@@ -76,7 +76,7 @@ const NavItemComponent = ({ item }: { item: NavItem }) => {
               ? 'bg-[#F2A71B] text-white'
               : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}
       >
-        <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
+        <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) || isParentActive(item.href) ? 'text-[#025E73]' : 'text-gray-500'}`} />
         <span>{item.name}</span>
         {isActiveRoute(item.href) && (
           <ChevronRight className="w-4 h-4 ml-auto" />

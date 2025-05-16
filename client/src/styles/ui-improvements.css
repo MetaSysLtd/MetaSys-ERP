@@ -130,16 +130,35 @@ button.bg-secondary:active {
 /* Icon consistency for active states */
 .nav-icon,
 .sidebar-icon {
-  color: #025E73;
+  color: #757575 !important;
   transition: color 0.2s ease;
 }
 
+/* Override any existing sidebar icon colors */
+.nav-item .nav-icon,
+.sidebar-item .sidebar-icon,
+[class*="nav-"] svg,
+[class*="sidebar-"] svg {
+  color: #757575 !important;
+}
+
+/* Set active state icon colors */
 .active .nav-icon,
-.active .sidebar-icon {
+.active .sidebar-icon,
+[data-active=true] .nav-icon,
+[data-active=true] .sidebar-icon,
+[data-state=open] .nav-icon,
+[data-state=open] .sidebar-icon,
+.nav-item.active svg,
+.sidebar-item.active svg,
+[class*="text-white"] svg {
   color: #025E73 !important;
 }
 
+/* Style parent active icons */
 .parent-active .nav-icon,
-.parent-active .sidebar-icon {
+.parent-active .sidebar-icon,
+.nav-item.parent-active svg,
+.sidebar-item.parent-active svg {
   color: #025E73 !important;
 }
