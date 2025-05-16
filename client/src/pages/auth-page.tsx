@@ -39,6 +39,7 @@ class LoginForm extends React.Component<LoginFormProps, LoginFormState> {
 
   handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    // Clear both component error and any previous auth errors
     this.setState({ submitting: true, error: null });
     
     try {
@@ -61,7 +62,7 @@ class LoginForm extends React.Component<LoginFormProps, LoginFormState> {
     } catch (err: any) {
       console.error("Login error:", err);
       this.setState({ 
-        error: err?.message || "Failed to login",
+        error: "Invalid username or password",
         submitting: false
       });
     }
@@ -109,15 +110,10 @@ class LoginForm extends React.Component<LoginFormProps, LoginFormState> {
           />
         </div>
 
-        {this.state.error && (
+        {/* Display only one error message - prioritize component error over auth context error */}
+        {(this.state.error || this.props.authError) && (
           <div className="text-red-500 text-sm bg-red-50 p-2 rounded-md">
-            {this.state.error}
-          </div>
-        )}
-
-        {this.props.authError && (
-          <div className="text-red-500 text-sm bg-red-50 p-2 rounded-md">
-            {this.props.authError}
+            {this.state.error || this.props.authError}
           </div>
         )}
 
