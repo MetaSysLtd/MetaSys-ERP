@@ -55,7 +55,10 @@ class LoginForm extends React.Component<LoginFormProps, LoginFormState> {
       setTimeout(() => {
         // Only reset if we're still mounted and haven't redirected
         if (this && !this._unmounted) {
+          console.log("Redirect timeout reached - manually redirecting to dashboard");
           this.setState({ submitting: false });
+          // Force redirect to dashboard
+          window.location.href = "/";
         }
       }, 5000);
       

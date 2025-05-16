@@ -222,6 +222,11 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       console.log(`Attempting to login with username: ${username}`);
+      
+      // First make sure we're not mixing up credentials
+      if (!username || !password) {
+        throw new Error('Username and password are required');
+      }
 
       const res = await fetch(API_ROUTES.AUTH.LOGIN, {
         method: "POST",
@@ -234,26 +239,33 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       console.log(`Login attempt to ${API_ROUTES.AUTH.LOGIN}, status: ${res.status}`);
 
+      // Parse response data regardless of status
+      let data;
+      try {
+        data = await res.json();
+        console.log("Login response received:", { hasData: !!data, hasUser: !!data?.user });
+      } catch (err) {
+        console.error("Failed to parse response JSON:", err);
+        data = null;
+      }
+
       if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
-        const errorMessage = errorData?.message || errorData?.error;
+        const errorMessage = data?.error || data?.message || data?.details;
 
         // Provide more specific error messages based on status
         if (res.status === 401) {
-          throw new Error('Invalid username or password');
+          throw new Error(errorMessage || 'Invalid username or password');
         } else if (res.status === 403) {
-          throw new Error('Account is locked or inactive');
+          throw new Error(errorMessage || 'Account is locked or inactive');
         } else if (res.status === 429) {
-          throw new Error('Too many login attempts. Please try again later');
+          throw new Error(errorMessage || 'Too many login attempts. Please try again later');
         }
 
         throw new Error(errorMessage || `Login failed with status ${res.status}`);
       }
 
-      const data = await res.json();
-      console.log("Login response:", { status: res.status });
-
-      if (!data.user) {
+      if (!data || !data.user) {
+        console.error("Server returned invalid response structure:", data);
         throw new Error("Server returned no user data");
       }
 
@@ -262,10 +274,22 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setRole(data.role);
       setIsAuthenticated(true);
       
+      // Add additional logging for debugging
+      console.log("Login success - storing auth data in session storage", {
+        user: data.user.id,
+        role: data.role?.name || 'no role'
+      });
+      
       // Cache successful login in session storage
       sessionStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(data.user));
       sessionStorage.setItem(AUTH_ROLE_CACHE_KEY, JSON.stringify(data.role));
       sessionStorage.setItem(AUTH_TIMESTAMP_KEY, Date.now().toString());
+      
+      // Force redirect to dashboard after successful login for better reliability
+      setTimeout(() => {
+        console.log("Redirecting to dashboard after successful login");
+        window.location.href = "/";
+      }, 500);
       
       return data.user;
     } catch (err: any) {
