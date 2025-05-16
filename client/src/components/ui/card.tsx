@@ -4,23 +4,34 @@ import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { accent?: boolean, accentPosition?: 'left' | 'top' }
->(({ className, accent = false, accentPosition = 'left', ...props }, ref) => {
+  React.HTMLAttributes<HTMLDivElement> & { 
+    accent?: boolean, 
+    accentPosition?: 'left' | 'top',
+    interactive?: boolean
+  }
+>(({ className, accent = false, accentPosition = 'left', interactive = false, ...props }, ref) => {
   // Define accent border styling based on position
   const accentStyle = accent 
     ? accentPosition === 'left' 
       ? 'border-l-4 border-l-[#F2A71B]' 
       : 'border-t-4 border-t-[#F2A71B]'
     : '';
+  
+  // Define interactive card styling with hover and focus states
+  const interactiveStyle = interactive 
+    ? 'transition-all duration-200 hover:border-[#025E73]/70 hover:shadow-md focus:border-[#025E73] focus:shadow-md focus:outline-none focus:ring-1 focus:ring-[#025E73] focus:ring-offset-1'
+    : '';
     
   return (
     <div
       ref={ref}
       className={cn(
-        "rounded-lg border bg-card text-card-foreground shadow-sm",
+        "rounded-lg border border-[#D6D6D6] bg-card text-card-foreground shadow-sm",
         accent && accentStyle,
+        interactive && interactiveStyle,
         className
       )}
+      tabIndex={interactive ? 0 : undefined}
       {...props}
     />
   );
