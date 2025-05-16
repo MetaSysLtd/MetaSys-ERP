@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/use-auth';
 import socketService, { RealTimeEvents } from '@/services/socket-service';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -25,10 +25,9 @@ export const RealTimeProvider: React.FC<RealTimeProviderProps> = ({ children }) 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
 
-  // Use deferred socket initialization for better performance
+  // Initialize socket connection when the provider mounts
   useEffect(() => {
-    // Setup deferred initialization instead of immediate connection
-    socketService.setupDeferredInit();
+    socketService.initSocket();
 
     // Set up event listeners for connection state
     const connectListener = () => setIsConnected(true);
@@ -50,7 +49,7 @@ export const RealTimeProvider: React.FC<RealTimeProviderProps> = ({ children }) 
     socketService.on('authenticated', authenticatedListener);
     
     // Setup system message handler
-    socketService.on(RealTimeEvents.SYSTEM_MESSAGE, (data: { title?: string; message?: string; variant?: string }) => {
+    socketService.on(RealTimeEvents.SYSTEM_MESSAGE, (data) => {
       toast({
         title: data.title || 'System Message',
         description: data.message || 'A system message was received.',
@@ -59,7 +58,7 @@ export const RealTimeProvider: React.FC<RealTimeProviderProps> = ({ children }) 
     });
     
     // Setup error handler
-    socketService.on(RealTimeEvents.ERROR, (error: { message?: string }) => {
+    socketService.on(RealTimeEvents.ERROR, (error) => {
       console.error('Socket error:', error);
       toast({
         title: 'Connection Error',
@@ -69,7 +68,7 @@ export const RealTimeProvider: React.FC<RealTimeProviderProps> = ({ children }) 
     });
     
     // Handle generic data updates for cache invalidation
-    socketService.on(RealTimeEvents.DATA_UPDATED, (data: { entityType?: string; queryKey?: string | string[] }) => {
+    socketService.on(RealTimeEvents.DATA_UPDATED, (data) => {
       if (data.entityType) {
         // Invalidate queries related to the entity
         queryClient.invalidateQueries({ queryKey: [`/api/${data.entityType}s`] });
@@ -92,9 +91,7 @@ export const RealTimeProvider: React.FC<RealTimeProviderProps> = ({ children }) 
   // Authenticate when user changes
   useEffect(() => {
     if (user && user.id && isConnected && !isAuthenticated) {
-      // Use orgId for compatibility with the original AuthContext
-      const orgId = (user as any).orgId || null;
-      socketService.authenticate(user.id, orgId);
+      socketService.authenticate(user.id, user.orgId || null);
     }
   }, [user, isConnected, isAuthenticated]);
 

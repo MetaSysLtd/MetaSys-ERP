@@ -17,8 +17,7 @@ const initialState: UiPreferences = {
   sidebarPinned: true,
   sidebarCollapsed: false,
   expandedDropdown: null,
-  // Animation defaults - animations disabled by default to ensure content always renders
-  // This prevents the bug where toggling animations ON breaks dashboard components
+  // Animation defaults - animations disabled by default to ensure content renders
   animationsEnabled: false,
   transitionSpeed: 'normal',
   pageTransition: 'fade',

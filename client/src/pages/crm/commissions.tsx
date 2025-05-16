@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
@@ -133,7 +133,7 @@ const CommissionSummaryItem = ({ title, amount, growth, period }: {
   const growthIcon = growth === undefined ? null : 
                      growth >= 0 ? <TrendingUp className="h-3 w-3" /> : 
                      <TrendingUp className="h-3 w-3 transform rotate-180" />;
-
+  
   return (
     <div className="p-4 border rounded-md bg-white shadow-sm">
       <h3 className="text-sm font-medium text-gray-500">{title}</h3>
@@ -161,7 +161,7 @@ export default function CommissionsPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
   const [viewMode, setViewMode] = useState<'personal' | 'team'>('personal');
   const [selectedUserId, setSelectedUserId] = useState<number>(user?.id || 1);
-
+  
   // Get all commission data for the user
   const { data: userCommissions, isLoading: isLoadingUserCommissions, error: userCommissionsError } = useQuery({
     queryKey: ["/api/commissions/monthly/user", user?.id],
@@ -198,7 +198,7 @@ export default function CommissionsPage() {
     },
     enabled: !!user?.id
   });
-
+  
   // Get commission data for the specific month
   const { data: monthlyCommission, isLoading: isLoadingMonthly, error: monthlyError } = useQuery({
     queryKey: ["/api/commissions/monthly/user", user?.id, selectedMonth],
@@ -220,7 +220,7 @@ export default function CommissionsPage() {
     },
     enabled: !!user?.id && !!selectedMonth
   });
-
+  
   // Get commission data for the previous month (for comparison)
   const previousMonth = getPreviousMonth(selectedMonth);
   const { data: prevMonthCommission } = useQuery({
@@ -261,13 +261,13 @@ export default function CommissionsPage() {
     },
     enabled: viewMode === 'team' && role && (role.level >= 3 || role.isAdmin)
   });
-
+  
   // Calculate growth percentage
   const calculateGrowth = (current: number, previous: number): number => {
     if (previous === 0) return current > 0 ? 100 : 0;
     return Math.round(((current - previous) / previous) * 100);
   };
-
+  
   // Helper to get the previous month string in YYYY-MM format
   function getPreviousMonth(dateString: string): string {
     const [year, month] = dateString.split('-').map(Number);
@@ -275,32 +275,32 @@ export default function CommissionsPage() {
     date.setMonth(date.getMonth() - 1);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   }
-
+  
   // Format month for display
   const formatMonth = (monthString: string): string => {
     const [year, month] = monthString.split('-').map(Number);
     return new Date(year, month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
-
+  
   // Determine if user can export commissions
   const canExportCommissions = 
     role?.department === "admin" || 
     (role?.level ?? 0) >= 3 ||
     (role?.permissions && typeof role.permissions === 'object' && 'canExportCommissions' in role.permissions && role.permissions.canExportCommissions);
-
+  
   // Check if user can view team data
   const canViewTeamData = 
     role?.isAdmin || 
     (role?.level ?? 0) >= 3 || 
     (role?.permissions && typeof role.permissions === 'object' && 'canViewTeamCommissions' in role.permissions && role.permissions.canViewTeamCommissions);
-
+  
   // Handle loading state for all queries
   const isLoading = isLoadingUserCommissions || isLoadingMonthly || (viewMode === 'team' && isLoadingSalesReps);
-
+  
   // Handle error state
   const error = userCommissionsError || monthlyError;
   const isError = Boolean(error);
-
+  
   // Render loading skeleton
   if (isLoading) {
     return (
@@ -318,7 +318,7 @@ export default function CommissionsPage() {
       </div>
     );
   }
-
+  
   // Render error state with a clean fallback view
   if (isError) {
     return (
@@ -353,7 +353,7 @@ export default function CommissionsPage() {
       </div>
     );
   }
-
+  
   // If no commission data found, show empty state
   if (!userCommissions || userCommissions.length === 0) {
     return (
@@ -363,7 +363,7 @@ export default function CommissionsPage() {
             CRM Commissions
           </h1>
         </div>
-
+        
         <Card className="border-blue-200 bg-blue-50 shadow-sm">
           <CardHeader>
             <CardTitle className="text-blue-700">No Commission Data Available</CardTitle>
@@ -377,19 +377,19 @@ export default function CommissionsPage() {
       </div>
     );
   }
-
+  
   // Calculate growth rates for personal view
   const currentMonthData = monthlyCommission || { total: 0, leads: 0, clients: 0, items: [] };
   const prevMonthData = prevMonthCommission || { total: 0, leads: 0, clients: 0, items: [] };
   const totalGrowth = calculateGrowth(currentMonthData.total, prevMonthData.total);
-
+  
   return (
     <div className="container mx-auto py-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <h1 className="text-2xl font-semibold mb-2 md:mb-0">
           Commission Details: {formatMonth(selectedMonth)}
         </h1>
-
+        
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
           <div className="relative">
             <Input
@@ -401,7 +401,7 @@ export default function CommissionsPage() {
             />
             <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-gray-500 pointer-events-none" />
           </div>
-
+          
           {/* View toggle - only show if user has permission */}
           {canViewTeamData && (
             <Select
@@ -417,7 +417,7 @@ export default function CommissionsPage() {
               </SelectContent>
             </Select>
           )}
-
+          
           {canExportCommissions && (
             <Button variant="outline" onClick={() => {
               toast({
@@ -431,7 +431,7 @@ export default function CommissionsPage() {
           )}
         </div>
       </div>
-
+      
       {/* Personal view shows current user's commission data */}
       {viewMode === 'personal' && (
         <>
@@ -443,7 +443,7 @@ export default function CommissionsPage() {
                 period={formatMonth(selectedMonth)}
               />
             </MotionWrapper>
-
+            
             <MotionWrapper animation="fade-up" delay={0.2}>
               <CommissionSummaryItem
                 title="Previous Month"
@@ -451,7 +451,7 @@ export default function CommissionsPage() {
                 period={formatMonth(previousMonth)}
               />
             </MotionWrapper>
-
+            
             <MotionWrapper animation="fade-up" delay={0.3}>
               <CommissionSummaryItem
                 title="Monthly Growth"
@@ -461,7 +461,7 @@ export default function CommissionsPage() {
               />
             </MotionWrapper>
           </div>
-
+          
           <MotionWrapper animation="fade-up" delay={0.4}>
             {user && (
               <SalesRepCommissionDetails userId={user.id} month={selectedMonth} />
@@ -469,7 +469,7 @@ export default function CommissionsPage() {
           </MotionWrapper>
         </>
       )}
-
+      
       {/* Team view shows leaderboard and individual details */}
       {viewMode === 'team' && (
         <>
@@ -478,7 +478,7 @@ export default function CommissionsPage() {
               <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
               <TabsTrigger value="individual">Individual Performance</TabsTrigger>
             </TabsList>
-
+            
             <TabsContent value="leaderboard">
               <MotionWrapper animation="fade-up" delay={0.1}>
                 <Card>
@@ -520,7 +520,7 @@ export default function CommissionsPage() {
                 </Card>
               </MotionWrapper>
             </TabsContent>
-
+            
             <TabsContent value="individual">
               {salesReps && salesReps.length > 0 && (
                 <div className="mb-4">
@@ -541,7 +541,7 @@ export default function CommissionsPage() {
                   </Select>
                 </div>
               )}
-
+              
               <MotionWrapper animation="fade-up" delay={0.2}>
                 {selectedUserId && (
                   <SalesRepCommissionDetails userId={selectedUserId} month={selectedMonth} />

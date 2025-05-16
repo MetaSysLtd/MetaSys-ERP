@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import socketService, { RealTimeEvents } from '../services/socket-service';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from './use-auth';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from './use-toast';
 
@@ -38,9 +38,7 @@ export function useRealTime(config?: RealtimeConfig) {
   // Authenticate when user changes
   useEffect(() => {
     if (user && user.id) {
-      // Original AuthContext doesn't have organizationId, use null as fallback
-      const orgId = (user as any).orgId || null;
-      socketService.authenticate(user.id, orgId);
+      socketService.authenticate(user.id, user.orgId || null);
     }
   }, [user]);
 

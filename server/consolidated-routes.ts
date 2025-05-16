@@ -1261,137 +1261,12 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   // Authentication routes
   const authRouter = express.Router();
   apiRouter.use("/auth", authRouter);
-  
-  // Dedicated login route for handling all authentication
-  authRouter.post("/login", express.json(), async (req, res, next) => {
-    try {
-      console.log("LOGIN ATTEMPT:", {
-        username: req.body?.username || "not provided",
-        sessionID: req.sessionID
-      });
 
-      // Admin authentication bypass for development access
-      if (req.body && req.body.username === 'admin' && req.body.password === 'admin123') {
-        console.log("ADMIN LOGIN SUCCESSFUL");
-        
-        const adminUser = {
-          id: 1,
-          username: 'admin',
-          firstName: 'Admin',
-          lastName: 'User',
-          email: 'admin@example.com',
-          phoneNumber: null,
-          roleId: 1,
-          active: true,
-          orgId: 1,
-          profileImageUrl: null,
-          isSystemAdmin: true,
-          department: 'Administration',
-          position: 'Administrator',
-          canEditLeads: true,
-          canViewReports: true,
-          canManageUsers: true
-        };
-        
-        const adminRole = {
-          id: 1,
-          name: 'Admin',
-          department: 'Administration',
-          level: 5,
-          permissions: ['all']
-        };
-        
-        // Set session values
-        req.session.userId = 1;
-        req.session.orgId = 1;
-        
-        // Save session
-        await new Promise<void>((resolve) => {
-          req.session.save((err) => {
-            if (err) {
-              console.error("Session save error:", err);
-            } else {
-              console.log("Session saved successfully, ID:", req.sessionID);
-            }
-            resolve(); // Always resolve to continue
-          });
-        });
-        
-        // Set client-side cookies
-        res.cookie('metasys_auth', 'true', {
-          path: '/',
-          httpOnly: false,
-          maxAge: 24 * 60 * 60 * 1000,
-          sameSite: 'lax'
-        });
-        
-        // Return authentication response
-        return res.status(200).json({
-          user: adminUser,
-          role: adminRole,
-          authenticated: true
-        });
-      }
-      
-      // For non-admin users - currently only admin is supported
-      console.log("LOGIN FAILED:", req.body?.username);
-      return res.status(401).json({
-        authenticated: false,
-        message: "Invalid credentials"
-      });
-    } catch (error) {
-      console.error("Login error:", error);
-      return res.status(500).json({
-        authenticated: false,
-        message: "Internal server error during login"
-      });
-    }
-  });
-  
-  // Check user session status
-  authRouter.get("/me", async (req, res) => {
+  // Login route with enhanced error handling
+  authRouter.post("/login", express.json(), async (req, res, next) => {
     try {
       // Explicitly set JSON content type
       res.setHeader('Content-Type', 'application/json');
-      
-      // Check for special direct admin session
-      if (req.session.userId === 1) {
-        console.log("ADMIN SESSION DETECTED:", req.sessionID);
-        
-        // Return admin user data
-        const adminUser = {
-          id: 1,
-          username: 'admin',
-          firstName: 'Admin',
-          lastName: 'User',
-          email: 'admin@example.com',
-          phoneNumber: null,
-          roleId: 1,
-          active: true,
-          orgId: 1,
-          profileImageUrl: null,
-          isSystemAdmin: true,
-          department: 'Administration',
-          position: 'Administrator',
-          canEditLeads: true,
-          canViewReports: true,
-          canManageUsers: true
-        };
-        
-        const adminRole = {
-          id: 1,
-          name: 'Admin',
-          department: 'Administration',
-          level: 5,
-          permissions: ['all']
-        };
-        
-        return res.status(200).json({
-          authenticated: true,
-          user: adminUser,
-          role: adminRole
-        });
-      }
       
       console.log("Login attempt received:", { 
         body: req.body,
@@ -1429,13 +1304,8 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
           });
         }
         
-        // Special handling for admin test user
-        if (username === 'admin' && password === 'admin123') {
-          console.log('Admin test credentials validated successfully');
-          // Allow the login to proceed
-        } 
-        // Regular password check for non-admin users
-        else if (user.password !== password) {
+        // Simple password comparison - in a real app, use bcrypt
+        if (user.password !== password) {
           console.log(`Invalid password for user: ${username}`);
           return res.status(401).json({ 
             error: "Authentication failed", 
@@ -1480,306 +1350,84 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         });
       }
 
-      // Store user in session with improved persistence
-      // Ensure session data is properly set and use proper TypeScript typing
+      // Store user in session
       req.session.userId = user.id;
-      req.session.orgId = user.orgId || null;
-      req.session.roleId = user.roleId; // Using roleId to match the middleware expectations
-      
-      // Add debug information
-      console.log(`Setting session data for user ${user.id}: sessionID=${req.sessionID}`, {
-        userId: user.id,
-        orgId: user.orgId,
-        roleId: user.roleId
-      });
-      
-      // Explicitly save session to ensure it's properly stored
-      await new Promise<void>((resolve, reject) => {
-        req.session.save(err => {
-          if (err) {
-            console.error("Session save error:", err);
-            reject(err);
-          } else {
-            console.log(`Session saved successfully for ${user.id}, sessionID: ${req.sessionID}`);
-            resolve();
-          }
-        });
-      });
       
       try {
         // Try to get role information, but handle any errors
         const role = await storage.getRole(user.roleId);
         
-        // Return user info (except password) in the expected format
+        // Return user info (except password)
         const { password: _, ...userInfo } = user;
         
         // Log successful login
-        console.log(`User ${username} logged in successfully with session ID: ${req.sessionID}`);
+        console.log(`User ${username} logged in successfully`);
         
-        // Prepare response with user and role data to match client expectations
-        const responseData = {
+        return res.status(200).json({ 
           user: userInfo,
-          role: role || null,
-          authenticated: true
-        };
-        
-        // Set a cookie to help with session persistence
-        res.cookie('metasys_auth', 'true', {
-          path: '/',
-          httpOnly: false, // Allow JS access for client-side checks
-          maxAge: 24 * 60 * 60 * 1000, // 24 hours
-          sameSite: 'lax'
+          role: role ? role : null
         });
-        
-        return res.status(200).json(responseData);
       } catch (roleError) {
         console.error(`Error fetching role for user ${username}:`, roleError);
         
         // Return user info without role if there's an error getting role
         const { password: _, ...userInfo } = user;
         
-        // Match the expected response format
         return res.status(200).json({ 
           user: userInfo,
           role: null,
-          authenticated: true,
           message: "Authentication successful but role data is unavailable"
         });
       }
     } catch (error) {
       console.error("Login error:", error);
-      
-      // Handle session errors more specifically
-      if (error.message && error.message.includes('session')) {
-        console.error("Session error during login:", error);
-        return res.status(500).json({
-          error: "Authentication failed due to session error",
-          details: "There was a problem storing your session. Please try again.",
-          missing: ["session_store"]
-        });
-      }
-      
       next(error);
     }
   });
 
-  // Enhanced logout route with comprehensive session and cookie handling
-  // No middleware to ensure it always works even if auth is broken
-  authRouter.post("/logout", async (req, res) => {
-    try {
-      // Log the session info for debugging
-      console.log(`Logout requested for session: ${req.sessionID}`, { 
-        hasSession: !!req.session,
-        userId: req.session?.userId
-      });
-      
-      // If no session exists, still return success but clear cookies
-      if (!req.session) {
-        console.log("No session found during logout");
-        
-        // Clear all possible cookies just to be safe
-        res.clearCookie('metasys.sid', {
-          path: '/',
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax'
-        });
-        
-        res.clearCookie('connect.sid', {
-          path: '/',
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production', 
-          sameSite: 'lax'
-        });
-        
-        // Also try clearing with different paths
-        res.clearCookie('metasys.sid', {
-          path: '/api',
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production', 
-          sameSite: 'lax'
-        });
-        
-        return res.status(200).json({
-          message: "Already logged out",
-          success: true
-        });
-      }
-      
-      // Store session ID for logging
-      const sessionId = req.sessionID;
-      
-      // Clear session data first
-      req.session.userId = undefined;
-      req.session.orgId = undefined;
-      req.session.roleId = undefined;
-      
-      // Save the cleared session first before destroying
-      await new Promise<void>((resolve, reject) => {
-        req.session.save(err => {
-          if (err) {
-            console.error("Error saving session during logout:", err);
-            reject(err);
-          } else {
-            console.log(`Session ${sessionId} saved with cleared data`);
-            resolve();
-          }
-        });
-      });
-      
-      // After saving, destroy the session
-      await new Promise<void>((resolve, reject) => {
-        req.session.destroy(err => {
-          if (err) {
-            console.error("Error destroying session during logout:", err);
-            reject(err);
-          } else {
-            console.log(`Session ${sessionId} successfully destroyed`);
-            resolve();
-          }
-        });
-      });
-      
-      // Clear all possible session cookies with various options
-      // Clear the main custom cookie with multiple path options to ensure complete cleanup
-      res.clearCookie('metasys.sid', {
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-      });
-      
-      // Also try with /api path just to be thorough
-      res.clearCookie('metasys.sid', {
-        path: '/api',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-      });
-      
-      // Also clear the default connect.sid cookie as a fallback
-      res.clearCookie('connect.sid', {
-        path: '/',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-      });
-      
-      console.log(`Successfully logged out user and cleared session cookies`);
-      
-      // Return success response with explicit redirect instruction
-      return res.status(200).json({
-        message: "Successfully logged out",
-        success: true,
-        redirect: "/auth"
-      });
-      
-    } catch (error) {
-      console.error("Error during logout process:", error);
-      
-      // Even if there's an error, still try to clear cookies as best effort
-      try {
-        res.clearCookie('metasys.sid', { path: '/' });
-        res.clearCookie('connect.sid', { path: '/' });
-      } catch (cookieError) {
-        console.error("Error clearing cookies:", cookieError);
-      }
-      
-      return res.status(500).json({
-        message: "Error during logout",
-        success: false
-      });
-    }
+  // Logout route
+  authRouter.post("/logout", (req, res) => {
+    req.session.destroy(() => {
+      res.status(200).json({ message: "Logged out successfully" });
+    });
   });
 
-  // Check current user session with improved session handling
-  // This endpoint needs to work regardless of middleware
+  // Check current user session
   authRouter.get("/me", async (req, res, next) => {
     try {
-      // Log the session for debugging
-      console.log(`Auth check for session: ${req.sessionID}`, {
-        hasSession: !!req.session,
-        sessionData: req.session ? {
-          userId: req.session.userId,
-          orgId: req.session.orgId,
-          userRoleId: req.session.userRoleId
-        } : null
-      });
-      
-      if (!req.session) {
-        console.log("No session object found during /me check");
-        return res.status(401).json({ 
-          authenticated: false,
-          message: "No session found"
-        });
-      }
-      
       if (!req.session.userId) {
-        console.log("Session exists but no userId found in it:", req.sessionID);
-        return res.status(401).json({ 
-          authenticated: false,
-          message: "No active session found"
-        });
+        console.log("No userId in session");
+        return res.status(401).json({ authenticated: false });
       }
 
-      // Use a try-catch here specifically for database errors
-      try {
-        const user = await storage.getUser(req.session.userId);
-        
-        if (!user) {
-          console.log(`User with id ${req.session.userId} not found, destroying invalid session`);
-          
-          // Use promise for proper async session destruction
-          await new Promise<void>((resolve) => {
-            req.session.destroy((err) => {
-              if (err) console.error("Error destroying invalid session:", err);
-              resolve();
-            });
-          });
-          
-          return res.status(401).json({ 
-            authenticated: false,
-            message: "User not found"
-          });
-        }
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        console.log(`User with id ${req.session.userId} not found`);
+        req.session.destroy(() => {});
+        return res.status(401).json({ authenticated: false });
+      }
 
-        // Try to get role information but handle errors gracefully
-        try {
-          const role = await storage.getRole(user.roleId);
-          
-          // Return user info (except password)
-          const { password: _, ...userInfo } = user;
-          
-          // Log successful authentication
-          console.log(`User ${user.username} (ID: ${user.id}) authenticated via session`);
-          
-          return res.status(200).json({ 
-            authenticated: true,
-            user: userInfo,
-            role
-          });
-        } catch (roleError) {
-          console.error(`Error fetching role for user ${user.username}:`, roleError);
-          
-          // Return user info without role
-          const { password: _, ...userInfo } = user;
-          
-          // Still a successful auth, just missing role data
-          console.log(`User ${user.username} (ID: ${user.id}) authenticated without role data`);
-          
-          return res.status(200).json({ 
-            authenticated: true,
-            user: userInfo,
-            role: null,
-            message: "Authentication successful but role data is unavailable"
-          });
-        }
-      } catch (dbError) {
-        console.error("Database error during auth check:", dbError);
-        return res.status(500).json({
-          authenticated: false,
-          error: "Database error during authentication check",
-          message: "Please try again later"
+      // Try to get role information but handle errors gracefully
+      try {
+        const role = await storage.getRole(user.roleId);
+        
+        // Return user info (except password)
+        const { password: _, ...userInfo } = user;
+        return res.status(200).json({ 
+          authenticated: true,
+          user: userInfo,
+          role
+        });
+      } catch (roleError) {
+        console.error(`Error fetching role for user ${user.username}:`, roleError);
+        
+        // Return user info without role
+        const { password: _, ...userInfo } = user;
+        return res.status(200).json({ 
+          authenticated: true,
+          user: userInfo,
+          role: null,
+          message: "Authentication successful but role data is unavailable"
         });
       }
     } catch (error) {

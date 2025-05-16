@@ -8,7 +8,7 @@ import {
 } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useSocket } from './use-socket';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';

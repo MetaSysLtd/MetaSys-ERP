@@ -10,16 +10,10 @@ const router = express.Router();
  */
 router.get('/', createAuthMiddleware(1), async (req, res, next) => {
   try {
-    const accounts = await storage.getAccounts();
-
-    // Emit socket event for real-time updates
-    req.io?.emit('accounts:updated', {
-      type: 'FETCH',
-      data: accounts
-    });
-
-    res.json(accounts);
+    // Get client accounts
+    res.json([]);
   } catch (error) {
+    logger.error('Error in accounts route:', error);
     next(error);
   }
 });
@@ -58,11 +52,11 @@ router.get('/:id', createAuthMiddleware(1), async (req, res, next) => {
   try {
     // Get a specific client account
     const id = parseInt(req.params.id, 10);
-
+    
     if (isNaN(id)) {
       return res.status(400).json({ error: 'Invalid ID format' });
     }
-
+    
     res.json({
       id,
       name: 'Example Account',
@@ -86,115 +80,30 @@ router.get('/:id', createAuthMiddleware(1), async (req, res, next) => {
  * PUT /api/accounts/:id
  * Update a client account
  */
-router.post('/:id/change-password', createAuthMiddleware(1), async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    const { currentPassword, newPassword } = req.body;
-
-    // Validate request
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    // Check if user has permission
-    const isAdmin = req.user?.role?.level >= 5;
-    const isSelf = req.user?.id === id;
-    
-    if (!isAdmin && !isSelf) {
-      return res.status(403).json({ error: 'Insufficient permissions' });
-    }
-
-    // Verify current password and update
-    const success = await storage.updateUserPassword(id, currentPassword, newPassword);
-    
-    if (!success) {
-      return res.status(400).json({ error: 'Current password is incorrect' });
-    }
-
-    // Emit socket event for real-time updates
-    req.io?.emit('user:updated', {
-      type: 'PASSWORD_CHANGED',
-      userId: id
-    });
-
-    res.json({ message: 'Password updated successfully' });
-  } catch (error) {
-    console.error('Password update error:', error);
-    next(error);
-  }
-});
-
-// Update notification preferences
-router.put('/notifications', createAuthMiddleware(1), async (req, res, next) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const userId = req.user.id;
-    const preferences = req.body;
-
-    const updatedPrefs = await storage.updateUserNotificationPreferences(userId, preferences);
-
-    // Emit socket event for real-time updates
-    req.io?.emit('user:updated', {
-      type: 'NOTIFICATION_PREFS_UPDATED',
-      userId,
-      data: updatedPrefs
-    });
-
-    res.json(updatedPrefs);
-  } catch (error) {
-    next(error);
-  }
-});
-
 router.put('/:id', createAuthMiddleware(1), async (req, res, next) => {
   try {
+    // Update a client account
     const id = parseInt(req.params.id, 10);
-    const updates = { ...req.body };
-
-    // Check if user has permission to update
-    const isAdmin = req.user?.role?.level >= 5;
-    const isSelf = req.user?.id === id;
-
-    if (!isAdmin && !isSelf) {
-      return res.status(403).json({ 
-        error: 'Insufficient permissions to update user profile' 
-      });
+    
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
     }
-
-    // Check if username is being updated
-    if (updates.username) {
-      // Check if username is already taken
-      const existingUser = await storage.getUserByUsername(updates.username);
-      if (existingUser && existingUser.id !== id) {
-        return res.status(409).json({ 
-          error: 'Username is already taken' 
-        });
-      }
-    }
-
-    // Sanitize updates
-    delete updates.id; // Prevent ID changes
-    delete updates.role; // Prevent role changes via this endpoint
-
-    const updatedUser = await storage.updateUser(id, updates);
-
-    if (!updatedUser) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Emit socket event for real-time updates
-    req.io?.emit('user:updated', {
-      type: 'UPDATE',
-      data: updatedUser
+    
+    res.json({
+      id,
+      name: req.body.name,
+      email: req.body.email,
+      phone: req.body.phone,
+      company: req.body.company,
+      industry: req.body.industry,
+      status: req.body.status,
+      assignedTo: req.body.assignedTo || req.user?.id,
+      createdBy: req.user?.id,
+      createdAt: new Date(),
+      updatedAt: new Date()
     });
-
-    const { password, ...safeUser } = updatedUser;
-    res.json(safeUser);
   } catch (error) {
-    console.error('Profile update error:', error);
+    logger.error('Error updating client account:', error);
     next(error);
   }
 });

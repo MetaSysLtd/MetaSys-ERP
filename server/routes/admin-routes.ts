@@ -112,35 +112,35 @@ router.put('/:module/:id', async (req, res) => {
         }
         updatedEntity = await storage.updateUser(numericId, updates);
         break;
-
+        
       case 'invoices':
         updatedEntity = await storage.updateInvoice(numericId, updates);
         break;
-
+        
       case 'teams':
         updatedEntity = await storage.updateTeam(numericId, updates);
         break;
-
+        
       case 'commissions':
         updatedEntity = await storage.updateCommission(numericId, updates);
         break;
-
+        
       case 'bugs':
         updatedEntity = await storage.updateBug(numericId, updates);
         break;
-
+        
       case 'tasks':
         updatedEntity = await storage.updateTask(numericId, updates);
         break;
-
+        
       case 'organizations':
         updatedEntity = await storage.updateOrganization(numericId, updates);
         break;
-
+        
       case 'roles':
         updatedEntity = await storage.updateRole(numericId, updates);
         break;
-
+        
       default:
         return res.status(404).json({ message: 'Module not found' });
     }
@@ -213,7 +213,7 @@ router.delete('/:module/:id', async (req, res) => {
           success = true;
         }
         break;
-
+        
       case 'users':
         // Prevent deletion of the only system admin
         const user = await storage.getUser(numericId);
@@ -224,7 +224,7 @@ router.delete('/:module/:id', async (req, res) => {
           success = true;
         }
         break;
-
+        
       case 'invoices':
         if (typeof storage.deleteInvoice === 'function') {
           success = await storage.deleteInvoice(numericId);
@@ -232,7 +232,7 @@ router.delete('/:module/:id', async (req, res) => {
           success = true;
         }
         break;
-
+        
       case 'teams':
         // Handle team deletion specific logic here
         if (typeof storage.deleteTeam === 'function') {
@@ -241,7 +241,7 @@ router.delete('/:module/:id', async (req, res) => {
           success = true;
         }
         break;
-
+        
       case 'commissions':
         if (typeof storage.deleteCommission === 'function') {
           success = await storage.deleteCommission(numericId);
@@ -249,7 +249,7 @@ router.delete('/:module/:id', async (req, res) => {
           success = true;
         }
         break;
-
+        
       case 'bugs':
         if (typeof storage.deleteBug === 'function') {
           success = await storage.deleteBug(numericId);
@@ -257,7 +257,7 @@ router.delete('/:module/:id', async (req, res) => {
           success = true;
         }
         break;
-
+        
       case 'tasks':
         if (typeof storage.deleteTask === 'function') {
           success = await storage.deleteTask(numericId);
@@ -265,7 +265,7 @@ router.delete('/:module/:id', async (req, res) => {
           success = true;
         }
         break;
-
+        
       case 'organizations':
         // Prevent deletion of the default organization
         if (numericId === 1) {
@@ -279,7 +279,7 @@ router.delete('/:module/:id', async (req, res) => {
           success = true;
         }
         break;
-
+        
       case 'roles':
         // Prevent deletion of the admin role
         if (numericId === 1) {
@@ -293,7 +293,7 @@ router.delete('/:module/:id', async (req, res) => {
           success = true;
         }
         break;
-
+        
       default:
         return res.status(404).json({ message: 'Module not found' });
     }
@@ -366,7 +366,7 @@ router.get('/:module/fields', async (req, res) => {
           { name: 'notes', label: 'Notes', type: 'textarea' }
         ];
         break;
-
+        
       case 'users':
         fields = [
           { name: 'firstName', label: 'First Name', type: 'text', required: true },
@@ -381,7 +381,7 @@ router.get('/:module/fields', async (req, res) => {
           { name: 'canAccessAllOrgs', label: 'Can Access All Orgs', type: 'boolean' }
         ];
         break;
-
+        
       // Add field configurations for other modules...
       case 'invoices':
         fields = [
@@ -401,7 +401,7 @@ router.get('/:module/fields', async (req, res) => {
           { name: 'description', label: 'Description', type: 'textarea' }
         ];
         break;
-
+        
       case 'teams':
         fields = [
           { name: 'name', label: 'Team Name', type: 'text', required: true },
@@ -418,7 +418,7 @@ router.get('/:module/fields', async (req, res) => {
           { name: 'teamLeadId', label: 'Team Lead ID', type: 'number' }
         ];
         break;
-
+        
       default:
         return res.status(404).json({ message: 'Module field configuration not found' });
     }

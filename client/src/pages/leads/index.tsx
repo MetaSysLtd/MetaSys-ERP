@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { useLocation, useSearch } from "wouter";
 import { formatDate, getStatusColor, formatPhone } from "@/lib/utils";
 import { NewContactModal } from "@/components/modals/NewContactModal";

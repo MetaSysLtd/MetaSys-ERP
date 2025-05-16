@@ -36,7 +36,7 @@ import {
   YAxis 
 } from "recharts";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { EmptyState } from "@/components/ui/empty-state";
 
 interface CommissionBreakdownProps {

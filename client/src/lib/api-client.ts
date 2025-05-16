@@ -69,19 +69,19 @@ export function useSystemStatus() {
     try {
       // Use retryFetch to automatically retry failed requests
       const response = await retryFetch(API_ROUTES.SYSTEM.HEALTH);
-
+      
       if (!response.ok) {
         throw new Error(`Server returned ${response.status}`);
       }
-
+      
       const data = await response.json();
-
+      
       // Update connection status
       const wasDisconnected = !isBackendConnected;
       setIsBackendConnected(true);
       setErrorMessage(null);
       setLastHealthCheck(new Date());
-
+      
       // Show reconnected toast if we were disconnected before
       if (wasDisconnected) {
         toast({
@@ -91,7 +91,7 @@ export function useSystemStatus() {
           duration: 3000,
         });
       }
-
+      
       return data;
     } catch (error) {
       // Handle the error
@@ -99,7 +99,7 @@ export function useSystemStatus() {
       setIsBackendConnected(false);
       setErrorMessage(createUserFriendlyErrorMessage(error));
       setLastHealthCheck(new Date());
-
+      
       // Show disconnected toast if we were connected before
       if (wasConnected) {
         toast({
@@ -109,10 +109,10 @@ export function useSystemStatus() {
           duration: 5000,
         });
       }
-
+      
       // Log the error
       handleApiError(error, false);
-
+      
       return null;
     } finally {
       setIsHealthCheckPending(false);
@@ -123,7 +123,7 @@ export function useSystemStatus() {
   useEffect(() => {
     // Initial health check
     checkServerHealth();
-
+    
     // Set up interval for periodic health checks
     const healthInterval = setInterval(() => {
       // Only check if we're not already checking
@@ -131,7 +131,7 @@ export function useSystemStatus() {
         checkServerHealth();
       }
     }, 30000); // Check every 30 seconds
-
+    
     return () => {
       clearInterval(healthInterval);
     };
@@ -228,7 +228,7 @@ export class ApiError extends Error {
   status: number;
   data: any;
   errorCode?: string;
-
+  
   constructor(message: string, status: number, errorCode?: string, data?: any) {
     super(message);
     this.name = 'ApiError';
@@ -247,20 +247,12 @@ export async function validateApiResponse(response: Response): Promise<Response>
   if (response.ok) {
     return response;
   }
-
+  
   try {
     const errorData = await response.json();
-    const errorMessage = errorData.message || errorData.error || response.statusText;
-    const enhancedMessage = response.status === 401 
-      ? 'Session expired. Please login again.'
-      : response.status === 403
-      ? 'You do not have permission to access this resource'
-      : response.status === 404
-      ? 'The requested resource was not found'
-      : `Failed to load data: ${errorMessage}`;
-
+    
     throw new ApiError(
-      enhancedMessage,
+      errorData.message || response.statusText,
       response.status,
       errorData.error,
       errorData
@@ -269,103 +261,12 @@ export async function validateApiResponse(response: Response): Promise<Response>
     if (e instanceof ApiError) {
       throw e;
     }
-
-    // Network or parsing error
+    
+    // If we couldn't parse the error JSON
     throw new ApiError(
-      'Network error occurred. Please check your connection.',
-      response.status || 500
+      response.statusText,
+      response.status
     );
-  }
-}
-
-export async function updateNotificationPreferences(preferences: any) {
-  const res = await fetch('/api/accounts/notifications', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    credentials: 'include',
-    body: JSON.stringify(preferences)
-  });
-
-  if (!res.ok) {
-    throw new Error('Failed to update notification preferences');
-  }
-
-  return res.json();
-}
-
-export async function apiClientRequest(method: string, endpoint: string, data?: any, retries = 3) {
-  try {
-    const response = await retryFetch(endpoint, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: data ? JSON.stringify(data) : undefined,
-      credentials: 'include'
-    }, retries);
-
-    // Enhanced 401 handling with retry mechanism
-    if (response.status === 401) {
-      try {
-        // Try to refresh the token
-        const refreshResponse = await fetch('/api/auth/refresh', {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (refreshResponse.ok) {
-          // Clear any cached queries
-          queryClient.clear();
-          // Retry original request after token refresh
-          return apiClientRequest(method, endpoint, data, 1);
-        } else {
-          // Handle failed refresh
-          queryClient.clear();
-          window.dispatchEvent(new CustomEvent('auth:expired', { 
-            detail: { 
-              redirect: true, 
-              message: 'Your session has expired. Please log in again.',
-              returnUrl: window.location.pathname
-            }
-          }));
-          throw new ApiError('Session expired', 401, 'AUTH_EXPIRED');
-        }
-      } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
-        queryClient.clear();
-        window.dispatchEvent(new CustomEvent('auth:required', {
-          detail: { 
-            redirect: true,
-            returnUrl: window.location.pathname
-          }
-        }));
-        throw new ApiError('Authentication required', 401, 'AUTH_REQUIRED');
-      }
-    }
-
-    // Handle other errors
-    if (!response.ok) {
-      const error = await response.json();
-      throw new ApiError(
-        error.message || 'API request failed',
-        response.status,
-        error.code,
-        error.data
-      );
-    }
-
-    return response;
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-    console.error('API request failed:', error);
-    throw new ApiError('Network error occurred', 500);
   }
 }
 
@@ -377,6 +278,6 @@ export default {
   generateQueryKey,
   invalidateQueriesByPrefix,
   validateApiResponse,
-  apiClientRequest,
+  apiRequest,
   retryFetch
 };

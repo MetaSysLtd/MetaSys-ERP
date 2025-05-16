@@ -53,11 +53,11 @@ router.get('/:id', createAuthMiddleware(1), async (req, res, next) => {
   try {
     // Get a specific commission
     const id = parseInt(req.params.id, 10);
-
+    
     if (isNaN(id)) {
       return res.status(400).json({ error: 'Invalid ID format' });
     }
-
+    
     res.json({
       id,
       userId: 1,
@@ -86,11 +86,11 @@ router.put('/:id', createAuthMiddleware(2), async (req, res, next) => {
   try {
     // Update a commission
     const id = parseInt(req.params.id, 10);
-
+    
     if (isNaN(id)) {
       return res.status(400).json({ error: 'Invalid ID format' });
     }
-
+    
     res.json({
       id,
       userId: req.body.userId,
@@ -119,23 +119,23 @@ router.get('/user/:userId', createAuthMiddleware(1), async (req, res, next) => {
   try {
     // Get commissions for a specific user
     const userId = parseInt(req.params.userId, 10);
-
+    
     if (isNaN(userId)) {
       return res.status(400).json({ error: 'Invalid User ID format' });
     }
-
+    
     // Check if the requesting user has permission to view commissions for this user
     const requestingUserId = req.user?.id;
     const isOwnCommissions = requestingUserId === userId;
     const userRole = req.user?.roleId || 0;
     const hasAdminAccess = userRole >= 3; // Admin role level and above
-
+    
     if (!isOwnCommissions && !hasAdminAccess) {
       return res.status(403).json({
         error: 'You do not have permission to view commissions for other users'
       });
     }
-
+    
     res.json([]);
   } catch (error) {
     logger.error('Error in user commissions route:', error);

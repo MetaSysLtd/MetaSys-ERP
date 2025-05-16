@@ -276,47 +276,16 @@ export async function optimizeDatabase(): Promise<void> {
 }
 
 /**
- * Perform a comprehensive health check of the database with improved error handling
+ * Perform a comprehensive health check of the database
  * @returns Promise resolving to database health information
  */
 export async function checkDatabaseHealth(): Promise<DatabaseHealthCheck> {
-  // Timeout for all Promise.all operations to prevent hanging
-  const withTimeout = <T>(promise: Promise<T>, timeoutMs: number, fallbackValue: T): Promise<T> => {
-    return Promise.race([
-      promise,
-      new Promise<T>(resolve => setTimeout(() => resolve(fallbackValue), timeoutMs))
-    ]);
-  };
-
-  // Basic database stats with timeout protection
-  const dbSizePromise = withTimeout(getDatabaseSize(), 5000, 'unknown');
-  const connectionCountPromise = withTimeout(getConnectionCount(), 5000, 0);
-  const tableCountPromise = withTimeout(getTableCount(), 5000, 0);
-  const missingTablesPromise = withTimeout(
-    checkRequiredTables(), 
-    5000, 
-    ['users', 'roles', 'organizations', 'leads', 'tasks', 'notifications', 'messages', 'sessions']
-  );
-  
-  // Execute all basic checks with individual error handling
+  // Basic database stats
   const [dbSize, connectionCount, tableCount, missingTables] = await Promise.all([
-    dbSizePromise.catch(err => {
-      logger.error('Failed to get database size in health check:', err);
-      return 'unknown';
-    }),
-    connectionCountPromise.catch(err => {
-      logger.error('Failed to get connection count in health check:', err);
-      return 0;
-    }),
-    tableCountPromise.catch(err => {
-      logger.error('Failed to get table count in health check:', err);
-      return 0;
-    }),
-    missingTablesPromise.catch(err => {
-      logger.error('Failed to check required tables in health check:', err);
-      // Return all required tables as missing on error
-      return ['users', 'roles', 'organizations', 'leads', 'tasks', 'notifications', 'messages', 'sessions'];
-    })
+    getDatabaseSize(),
+    getConnectionCount(),
+    getTableCount(),
+    checkRequiredTables()
   ]);
   
   // Log initial information
@@ -335,106 +304,54 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealthCheck> {
     missingTables: missingTables.length > 0 ? missingTables : undefined
   };
   
-  // Only continue with detailed checks if we have table access
-  if (tableCount > 0) {
+  // Only continue with detailed checks if all required tables exist
+  if (missingTables.length === 0) {
     try {
       // Get table stats for major tables
       const tableStats: Record<string, TableStats> = {};
       const mainTables = ['users', 'organizations', 'roles', 'leads'];
       
-      // Use Promise.all with timeout to avoid hanging on individual table stats
-      const statsPromises = mainTables.map(table => 
-        withTimeout(getTableStats(table), 3000, null)
-          .catch(() => null)
-      );
-      
-      const allStats = await Promise.all(statsPromises);
-      
-      // Populate tableStats from results
-      mainTables.forEach((table, i) => {
-        if (allStats[i]) {
-          tableStats[table] = allStats[i]!;
+      for (const table of mainTables) {
+        const stats = await getTableStats(table);
+        if (stats) {
+          tableStats[table] = stats;
         }
-      });
+      }
       
-      // Get indexes with timeout
-      const indexes = await withTimeout(getIndexes(), 5000, {})
-        .catch(err => {
-          logger.error('Failed to get indexes in health check:', err);
-          return {};
-        });
+      // Get indexes
+      const indexes = await getIndexes();
       
-      // Get slow queries with timeout if available
-      const slowQueries = await withTimeout(getSlowQueries(), 3000, [])
-        .catch(() => []);
+      // Get slow queries if available
+      const slowQueries = await getSlowQueries();
       
       // Add detailed information to health check
-      if (Object.keys(tableStats).length > 0) {
-        healthCheck.tableStats = tableStats;
-      }
-      
-      if (Object.keys(indexes).length > 0) {
-        healthCheck.indexes = indexes;
-      }
+      healthCheck.tableStats = tableStats;
+      healthCheck.indexes = indexes;
       
       if (slowQueries.length > 0) {
         healthCheck.slowQueries = slowQueries;
       }
     } catch (error) {
       logger.error('Error during detailed database health check:', error);
-      // Continue - don't fail the whole health check
     }
   }
   
-  // Always mark completion - enables frontend to show a degraded state instead of crash
   logger.info('Database health check completed successfully');
   return healthCheck;
 }
 
 /**
  * Function alias for checkDatabaseHealth to match expected function name in other files
- * Enhanced with better error handling and timeout protection
  * @returns Promise resolving to boolean indicating database health
  */
 export async function performDatabaseHealthCheck(): Promise<boolean> {
   try {
-    // Add timeout to prevent health check from hanging
-    const timeoutMs = 15000; // 15 seconds max for health check
+    const healthCheck = await checkDatabaseHealth();
     
-    const healthCheckPromise = checkDatabaseHealth();
-    
-    // Race the health check against a timeout
-    const healthCheck = await Promise.race([
-      healthCheckPromise,
-      new Promise<DatabaseHealthCheck>((_, reject) => 
-        setTimeout(() => reject(new Error('Database health check timed out')), timeoutMs)
-      )
-    ]).catch(err => {
-      logger.error('Database health check error or timeout:', err instanceof Error ? err.message : String(err));
-      // Return a minimal health check result on error
-      return {
-        dbSize: 'unknown',
-        connectionCount: 0,
-        tableCount: 0,
-        missingTables: ['timeout']
-      } as DatabaseHealthCheck;
-    });
-    
-    // Always log completion - this helps frontend error state handling
-    logger.info('Database health check completed successfully');
-    
-    // If we have any tables at all, consider the database at least partially functional
-    // This allows the application to run in a degraded state if some tables are missing
-    if (healthCheck.tableCount > 0) {
-      return true;
-    }
-    
-    // Stricter check: Consider the database healthy only if there are no missing required tables
+    // Consider the database healthy if there are no missing tables
     return !healthCheck.missingTables || healthCheck.missingTables.length === 0;
   } catch (error) {
-    // Handle any uncaught errors
-    logger.error('Unexpected error in database health check:', 
-      error instanceof Error ? error.message : String(error));
+    logger.error('Database health check failed:', error);
     return false;
   }
 }

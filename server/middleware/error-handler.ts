@@ -208,18 +208,8 @@ export function notFoundHandler(req: Request, res: Response, next: NextFunction)
   next();
 }
 
-// Session expired handler with improved login endpoint handling
+// Session expired handler
 export function sessionHandler(req: Request, res: Response, next: NextFunction) {
-  // Always log session check for debugging
-  console.log(`DEBUG: Session check for ${req.method} ${req.path}`);
-  
-  // Skip authentication check for login and public routes
-  if (req.path === '/api/auth/login' || 
-      req.path === '/api/auth/register') {
-    console.log(`DEBUG: Skipping session check for login/register endpoint: ${req.path}`);
-    return next();
-  }
-  
   if (req.path.startsWith('/api/') && 
       !req.path.startsWith('/api/auth') && 
       !req.path.startsWith('/api/status') && 

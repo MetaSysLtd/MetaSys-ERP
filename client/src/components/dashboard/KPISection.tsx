@@ -95,8 +95,6 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         isEmptyState={metrics.totalLeads === 0}
         iconBgColor="bg-blue-50"
         iconColor="text-blue-600"
-        timeframe="MTD"
-        tooltip="Total number of leads in the current month"
       />
       <MetricCard
         title="Active Loads"
@@ -108,8 +106,6 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         isEmptyState={metrics.activeLoads === 0}
         iconBgColor="bg-amber-50"
         iconColor="text-amber-600"
-        timeframe="Current"
-        tooltip="Number of active loads currently in progress"
       />
       <MetricCard
         title="Active Clients"
@@ -121,8 +117,6 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         iconColor="text-green-600"
         emptyStateMessage={emptyStateMessages.clients}
         isEmptyState={metrics.activeDispatchClients === 0}
-        timeframe="Active"
-        tooltip="Number of clients with active loads or recent activity"
       />
       <MetricCard
         title="Total Revenue"
@@ -134,8 +128,6 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         isEmptyState={metrics.totalRevenue === 0}
         iconBgColor="bg-purple-50" 
         iconColor="text-purple-600"
-        timeframe="MTD"
-        tooltip="Total revenue for the current month to date"
       />
       <MetricCard
         title="Pending Invoices"
@@ -148,8 +140,6 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         isEmptyState={metrics.invoicesPending === 0}
         iconBgColor="bg-indigo-50"
         iconColor="text-indigo-600"
-        timeframe="Unpaid"
-        tooltip="Number of invoices awaiting payment"
       />
     </div>
   );

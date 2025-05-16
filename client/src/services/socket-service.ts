@@ -175,23 +175,14 @@ class SocketService {
   
   // Authenticate the socket connection with user ID
   public authenticate(userId: number, orgId: number | null = null): void {
-    // Always store user credentials for future reconnects
+    if (!this.socket || !this.isConnected) {
+      console.warn('Cannot authenticate: Socket not connected');
+      return;
+    }
+    
     this.userId = userId;
     this.orgId = orgId;
     
-    // If socket isn't connected yet, initialize it first
-    if (!this.socket || !this.isConnected) {
-      // Don't warn as this is handled gracefully
-      this.initSocket();
-      
-      // Socket might still not be connected after init
-      if (!this.socket || !this.isConnected) {
-        console.log('Socket not yet connected, authentication will happen after connection');
-        return;
-      }
-    }
-    
-    // If we're here, socket is connected, so authenticate
     this.socket.emit('authenticate', { userId, orgId });
   }
   
@@ -308,80 +299,6 @@ class SocketService {
 }
 
 // Create singleton instance
-/**
- * Socket service with delayed initialization
- * This allows the UI to render before establishing socket connections
- */
-class DeferredSocketService extends SocketService {
-  private _initializeOnNextUserInteraction = false;
-  private _initialized = false;
-  private _pendingAuth: { userId: number; orgId: number | null } | null = null;
-
-  /**
-   * Sets up deferred socket initialization that waits for user interaction
-   * This improves initial page load performance
-   */
-  setupDeferredInit() {
-    if (this._initialized || this._initializeOnNextUserInteraction) return;
-
-    this._initializeOnNextUserInteraction = true;
-    
-    // Initialize socket on next user interaction or after initial render
-    const initOnInteraction = () => {
-      if (!this._initialized) {
-        console.log("Initializing socket connection after user interaction");
-        this.initSocket();
-        this._initialized = true;
-        
-        // Apply any pending authentication that might have been requested before socket was ready
-        if (this._pendingAuth) {
-          console.log("Applying pending authentication after socket initialization");
-          super.authenticate(this._pendingAuth.userId, this._pendingAuth.orgId);
-          this._pendingAuth = null;
-        }
-      }
-      
-      // Clean up event listeners after initialization
-      window.removeEventListener('click', initOnInteraction);
-      window.removeEventListener('keydown', initOnInteraction);
-      window.removeEventListener('mousemove', initOnInteraction);
-      window.removeEventListener('touchstart', initOnInteraction);
-    };
-
-    // Wait for user interaction or timeout
-    window.addEventListener('click', initOnInteraction, { once: true, passive: true });
-    window.addEventListener('keydown', initOnInteraction, { once: true, passive: true });
-    window.addEventListener('mousemove', initOnInteraction, { once: true, passive: true });
-    window.addEventListener('touchstart', initOnInteraction, { once: true, passive: true });
-
-    // Fallback - initialize after 1s regardless of interaction for better performance in authenticated state
-    setTimeout(initOnInteraction, 1000);
-  }
-
-  /**
-   * Overrides the default initSocket to track initialization
-   */
-  override initSocket(): void {
-    super.initSocket();
-    this._initialized = true;
-  }
-  
-  /**
-   * Overrides authenticate to handle cases where socket isn't initialized yet
-   */
-  override authenticate(userId: number, orgId: number | null = null): void {
-    // If not initialized, store the auth credentials and initialize
-    if (!this._initialized) {
-      this._pendingAuth = { userId, orgId };
-      this.initSocket(); // Try to init immediately on auth request
-      return;
-    }
-    
-    // Otherwise use the parent implementation
-    super.authenticate(userId, orgId);
-  }
-}
-
-const socketService = new DeferredSocketService();
+const socketService = new SocketService();
 
 export default socketService;

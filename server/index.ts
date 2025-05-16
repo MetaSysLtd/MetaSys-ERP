@@ -5,20 +5,15 @@ import { setupVite, serveStatic, log } from "./vite";
 import * as notificationService from "./notifications";
 import session from "express-session";
 import { storage } from "./storage";
-import { sessionAuthMiddleware } from "./middleware/auth-middleware";
+import { sessionHandler } from "./middleware/error-handler";
 
-// JSON error handler middleware with proper type handling
+// JSON error handler middleware
 function jsonErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
-  if (err instanceof SyntaxError && 'body' in err) {
-    // Type-safe check for SyntaxError in JSON parsing
-    const syntaxError = err as unknown as { type?: string };
-    if (syntaxError.type === 'entity.parse.failed') {
-      console.error("JSON parse error:", err.message);
-      return res.status(400).json({ 
-        status: 'error', 
-        message: 'Invalid JSON payload'
-      });
-    }
+  if (err instanceof SyntaxError && 'body' in err && err.type === 'entity.parse.failed') {
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'Invalid JSON payload'
+    });
   }
   next(err);
 }
@@ -31,108 +26,21 @@ app.use(express.json());
 app.use(jsonErrorHandler);
 app.use(express.urlencoded({ extended: false }));
 
-// Enhanced session middleware with robust persistence configuration
+// Set up session middleware
 app.use(session({
-  secret: SESSION_SECRET,
-  // Don't save unmodified sessions to reduce DB writes
-  resave: false,
-  // Initialize sessions only when needed
-  saveUninitialized: false,
-  // Store sessions in PostgreSQL for better persistence
-  store: storage.sessionStore,
-  name: 'metasys.sid', // Custom cookie name to avoid collisions
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: true,
+  saveUninitialized: true,
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days - longer persistence
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
-    sameSite: 'lax',
-    path: '/'
+    sameSite: 'lax'
   }
 }));
 
-// Direct admin login endpoint (registered BEFORE auth middleware)
-app.post('/api/auth/login', express.json(), async (req, res) => {
-  console.log('ADMIN LOGIN ATTEMPT:', {
-    username: req.body?.username || 'not provided',
-    sessionID: req.sessionID
-  });
-  
-  // Hard-coded admin authentication
-  if (req.body?.username === 'admin' && req.body?.password === 'admin123') {
-    console.log('ADMIN LOGIN SUCCESS');
-    
-    // Create admin user
-    const adminUser = {
-      id: 1,
-      username: 'admin',
-      firstName: 'Admin',
-      lastName: 'User',
-      email: 'admin@example.com',
-      phoneNumber: null,
-      roleId: 1,
-      active: true,
-      orgId: 1,
-      profileImageUrl: null,
-      isSystemAdmin: true,
-      department: 'Administration',
-      position: 'Administrator',
-      canEditLeads: true,
-      canViewReports: true,
-      canManageUsers: true
-    };
-    
-    // Create admin role
-    const adminRole = {
-      id: 1,
-      name: 'Admin',
-      department: 'Administration',
-      level: 5,
-      permissions: ['all']
-    };
-    
-    // Set session data
-    req.session.userId = 1;
-    req.session.orgId = 1;
-    
-    // Force session save
-    await new Promise<void>((resolve) => {
-      req.session.save((err) => {
-        if (err) {
-          console.error('Session save error:', err);
-        } else {
-          console.log('Session saved successfully:', req.sessionID);
-        }
-        resolve();
-      });
-    });
-    
-    // Set browser cookie as backup auth method
-    res.cookie('metasys_auth', 'true', {
-      maxAge: 24 * 60 * 60 * 1000,
-      httpOnly: false,
-      path: '/',
-      sameSite: 'lax'
-    });
-    
-    // Return successful authentication
-    return res.status(200).json({
-      authenticated: true,
-      user: adminUser,
-      role: adminRole
-    });
-  }
-  
-  // Invalid credentials
-  console.log('LOGIN FAILED:', req.body?.username);
-  return res.status(401).json({
-    authenticated: false,
-    message: 'Invalid username or password'
-  });
-});
-
-// Apply lightweight session check middleware to API routes
-// This allows public routes to bypass auth
-app.use('/api', sessionAuthMiddleware);
+// Apply session authentication check middleware
+app.use(sessionHandler);
 
 // Add a special middleware to handle API routes specifically
 // This ensures API routes are handled correctly

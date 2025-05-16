@@ -15,7 +15,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { InfoIcon, TrendingUpIcon, TrendingDownIcon, WifiIcon } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { useSocket } from "@/hooks/use-socket";
 import { useEffect } from "react";
 import { EmptyState } from "@/components/ui/empty-state";

@@ -1,7 +1,6 @@
 import { useLocation, Link } from "wouter";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { getInitials } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
 import { 
   HomeIcon, 
   Users, 
@@ -72,15 +71,15 @@ const NavItemComponent = ({ item }: { item: NavItem }) => {
       <div 
         className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
           ${isActiveRoute(item.href)
-            ? 'bg-[#F2A71B]/10 text-[#025E73] border-l-4 border-l-[#F2A71B] font-semibold pl-2'
+            ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
             : isParentActive(item.href)
-              ? 'bg-[#F2A71B]/10 text-[#025E73] border-l-4 border-l-[#F2A71B] font-semibold pl-2'
-              : 'text-gray-800 bg-white/40 hover:bg-gray-100 hover:text-[#025E73]'}`}
+              ? 'bg-[#F2A71B] text-white'
+              : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}
       >
-        <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) || isParentActive(item.href) ? 'text-[#025E73]' : 'text-[#025E73]/80'}`} />
+        <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
         <span>{item.name}</span>
         {isActiveRoute(item.href) && (
-          <ChevronRight className="w-4 h-4 ml-auto text-[#025E73]" />
+          <ChevronRight className="w-4 h-4 ml-auto" />
         )}
       </div>
     </Link>
@@ -111,13 +110,12 @@ type NavItem = {
 
 export function Sidebar({ mobile, collapsed }: SidebarProps) {
   const [location] = useLocation();
-  const { user, role, logout } = useAuth();
+  const { user, role } = useAuth();
   const dispatch = useDispatch();
   const preferences = useSelector((state: RootState) => state.uiPreferences);
   const [isMounted, setIsMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const { toast } = useToast();
 
   // Initialize the expandedDropdown state from localStorage on first render
   useEffect(() => {
@@ -142,15 +140,6 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   const isParentActive = useCallback((parentRoute: string) => {
     return location.startsWith(parentRoute) && location !== parentRoute;
   }, [location]);
-  
-  // Helper to check if any child route is active (for auto-expanding parent)
-  const hasActiveChild = useCallback((subItems?: SubItem[]) => {
-    if (!subItems) return false;
-    return subItems.some(subItem => 
-      location === subItem.href || 
-      (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
-    );
-  }, [location]);
 
   // Handle window resize for mobile breakpoint
   const handleResize = useCallback(() => {
@@ -167,23 +156,15 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
 
   const handleLogout = useCallback(async () => {
     try {
-      console.log("Logging out from sidebar...");
-      await logout();
-      toast({
-        title: "Logged out",
-        description: "You have been logged out successfully",
+      await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include"
       });
-      // Navigate to login page
       window.location.href = "/auth";
     } catch (err) {
       console.error("Logout error:", err);
-      toast({
-        title: "Logout failed",
-        description: "There was an error logging out. Please try again.",
-        variant: "destructive",
-      });
     }
-  }, [logout, toast]);
+  }, []);
 
   const handleLinkClick = useCallback(() => {
     if (mobile) {
@@ -266,37 +247,16 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
     }
   }, [dispatch, preferences.expandedDropdown]);
 
-  // Effect to auto-expand parent menu when child is active
-  useEffect(() => {
-    if (!mainNavItems || !secondaryNavItems) return;
-    
-    // Check all items with children after they've been defined
-    const checkForActiveChildren = () => {
-      const allNavItems = [...mainNavItems, ...secondaryNavItems];
-      const itemWithActiveChild = allNavItems
-        .find(item => item.subItems && hasActiveChild(item.subItems));
-      
-      if (itemWithActiveChild && preferences.expandedDropdown !== itemWithActiveChild.name) {
-        dispatch(setPreferences({ ...preferences, expandedDropdown: itemWithActiveChild.name }));
-        
-        // Save to localStorage
-        try {
-          localStorage.setItem('metasys_expanded_dropdown', itemWithActiveChild.name);
-        } catch (error) {
-          console.error('Failed to save dropdown state to localStorage:', error);
-        }
-      }
-    };
-    
-    // Run after navigation items are defined
-    checkForActiveChildren();
-  }, [location, dispatch, hasActiveChild, preferences]);
-
   // Navigation item renderer function (not a React component with hooks)
   const renderNavItem = (item: NavItem, isMain = false) => {
     const hasSubItems = item.subItems && item.subItems.length > 0;
     const isExpanded = preferences.expandedDropdown === item.name;
-    const isChildActive = hasSubItems && hasActiveChild(item.subItems);
+
+    // Determine if any children are active
+    const hasActiveChild = hasSubItems && item.subItems?.some(subItem => 
+      location === subItem.href || 
+      (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
+    );
 
     return (
       <div key={item.href}>
@@ -307,12 +267,12 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
               className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium cursor-pointer transition-all relative nav-item
                 ${isActiveRoute(item.href)
                   ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
-                  : isParentActive(item.href) || isChildActive
-                    ? 'bg-[#F2A71B]/10 text-[#025E73] border-l-4 border-l-[#F2A71B] font-semibold pl-2'
-                    : 'text-gray-800 bg-white/40 hover:bg-gray-100 hover:text-[#025E73]'}`}
+                  : isParentActive(item.href)
+                    ? 'bg-[#F2A71B] text-white'
+                    : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}
               onClick={(e) => handleDropdownToggle(item.name, e)}
             >
-              <item.icon className={`h-[18px] w-[18px] nav-icon ${isActiveRoute(item.href) ? 'text-white' : isParentActive(item.href) || isChildActive ? 'text-[#025E73]' : 'text-[#025E73]/80'}`} />
+              <item.icon className={`h-[18px] w-[18px] nav-icon ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
               {!collapsed || window.innerWidth < 992 ? (
                 <>
                   <span className="nav-item-text">{item.name}</span>
@@ -333,13 +293,13 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
                 maxHeight: isExpanded ? '500px' : '0px',
               }}
             >
-              <div className="mt-1 ml-7 space-y-1 py-1 bg-[#012F3E]/5 rounded-md pl-2">
+              <div className="mt-1 ml-7 space-y-1 py-1 bg-[#012F3E]/10 rounded-md pl-6">
                 {item.subItems?.map((subItem) => (
                   <Link key={subItem.href} href={subItem.href} onClick={handleLinkClick}>
-                    <div className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-all
+                    <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-all
                       ${location === subItem.href || (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
-                        ? 'bg-[#F2A71B]/10 text-[#025E73] font-semibold border-l-4 border-l-[#F2A71B]' 
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-[#025E73]'}`}
+                        ? 'bg-[#F2A71B]/80 text-white' 
+                        : 'text-gray-700 hover:bg-[#025E73]/10 hover:text-[#025E73]'}`}
                     >
                       <span>{subItem.name}</span>
                     </div>
@@ -354,10 +314,12 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
             <div 
               className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all relative nav-item
                 ${isActiveRoute(item.href)
-                  ? 'bg-[#F2A71B]/10 text-[#025E73] border-l-4 border-l-[#F2A71B] font-semibold pl-2'
-                  : 'text-gray-800 bg-white/40 hover:bg-gray-100 hover:text-[#025E73]'}`}
+                  ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
+                  : isParentActive(item.href)
+                    ? 'bg-[#F2A71B] text-white'
+                    : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}
             >
-              <item.icon className={`h-[18px] w-[18px] nav-icon ${isActiveRoute(item.href) ? 'text-[#025E73]' : 'text-[#025E73]/80'}`} />
+              <item.icon className={`h-[18px] w-[18px] nav-icon ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
               {!collapsed || window.innerWidth < 992 ? (
                 <>
                   <span className="nav-item-text">{item.name}</span>

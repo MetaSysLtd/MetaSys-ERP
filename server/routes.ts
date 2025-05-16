@@ -1341,7 +1341,7 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   const authRouter = express.Router();
   app.use("/api/auth", authRouter); // Using the full path to match frontend expectations
 
-  // Login route with enhanced error handling and session management
+  // Login route with enhanced error handling
   authRouter.post("/login", express.json(), async (req, res, next) => {
     try {
       // Explicitly set JSON content type
@@ -1353,8 +1353,7 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         method: req.method,
         path: req.path,
         url: req.url,
-        originalUrl: req.originalUrl,
-        sessionID: req.sessionID
+        originalUrl: req.originalUrl
       });
       
       const { username, password } = req.body;
@@ -1369,32 +1368,6 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
 
       // Add verbose logging to debug the issue
       console.log(`Login attempt for username: ${username}`);
-      
-      // If there's an existing session with user ID, reset it before login
-      if (req.session && req.session.userId) {
-        console.log(`Found existing session for user ID ${req.session.userId}, clearing before new login`);
-        
-        // Clear all session data but keep the session ID
-        await new Promise<void>((resolve) => {
-          // Save old session ID for debugging
-          const oldSessionId = req.sessionID;
-          
-          Object.keys(req.session).forEach(key => {
-            if (key !== 'cookie') {
-              delete req.session[key];
-            }
-          });
-          
-          req.session.save((err) => {
-            if (err) {
-              console.error("Error clearing session before login:", err);
-            } else {
-              console.log(`Session ${oldSessionId} cleared successfully`);
-            }
-            resolve();
-          });
-        });
-      }
       
       let user;
       // Check database connectivity before querying
@@ -1456,112 +1429,8 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         });
       }
 
-      // Enhanced session data with more user context
+      // Store user in session
       req.session.userId = user.id;
-      req.session.username = user.username;
-      req.session.roleId = user.roleId;
-      req.session.authenticated = true;
-      req.session.loginTime = new Date().toISOString();
-      
-      if (user.orgId) {
-        req.session.orgId = user.orgId;
-      }
-      
-      // Set session cookie options to improve persistence
-      if (req.session.cookie) {
-        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
-      }
-      
-      // Explicitly save the session to ensure it's stored properly
-      try {
-        await new Promise<void>((resolve, reject) => {
-          req.session.save((err) => {
-            if (err) {
-              console.error("Session save error during login:", err);
-              reject(err);
-            } else {
-              console.log(`Session saved successfully for ${user.username}, session ID: ${req.sessionID}`);
-              resolve();
-            }
-          });
-        });
-      } catch (sessionError) {
-        console.error("Failed to save session:", sessionError);
-        
-        // Try to regenerate session as recovery
-        await new Promise<void>((resolve) => {
-          req.session.regenerate((err) => {
-            if (err) {
-              console.error("Session regeneration failed:", err);
-            } else {
-              req.session.userId = user.id;
-              req.session.username = user.username;
-              req.session.roleId = user.roleId;
-              req.session.authenticated = true;
-              req.session.loginTime = new Date().toISOString();
-              if (user.orgId) {
-                req.session.orgId = user.orgId;
-              }
-              req.session.save();
-              console.log("Regenerated session with ID:", req.sessionID);
-            }
-            resolve();
-          });
-        });
-      }
-      
-      // Perform thorough session verification
-      if (!req.session.userId) {
-        console.error("Session verification failed - userId missing after save attempt");
-        
-        // Try one more time with a regenerate + session save
-        try {
-          await new Promise<void>((resolve, reject) => {
-            req.session.regenerate(async (err) => {
-              if (err) {
-                console.error("Final session regeneration failed:", err);
-                reject(new Error("Failed to regenerate session during verification"));
-              } else {
-                // Set session data again after regeneration
-                req.session.userId = user.id;
-                req.session.username = user.username;
-                req.session.roleId = user.roleId;
-                req.session.authenticated = true;
-                req.session.loginTime = new Date().toISOString();
-                if (user.orgId) {
-                  req.session.orgId = user.orgId;
-                }
-                
-                // Force save with promise
-                await new Promise<void>((saveResolve, saveReject) => {
-                  req.session.save((saveErr) => {
-                    if (saveErr) {
-                      console.error("Final session save failed:", saveErr);
-                      saveReject(new Error("Failed to save session after regeneration"));
-                    } else {
-                      console.log("Final session recovery succeeded with ID:", req.sessionID);
-                      saveResolve();
-                    }
-                  });
-                });
-                
-                resolve();
-              }
-            });
-          });
-        } catch (finalError) {
-          console.error("Final session recovery failed:", finalError);
-          // Continue anyway, the client will need to try again
-        }
-      } 
-      
-      // Double-check the session was set
-      console.log("Final session state:", {
-        sessionId: req.sessionID,
-        userId: req.session.userId,
-        username: req.session.username,
-        authenticated: req.session.authenticated
-      });
       
       try {
         // Try to get role information, but handle any errors
@@ -1571,19 +1440,11 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         const { password: _, ...userInfo } = user;
         
         // Log successful login
-        console.log(`User ${username} logged in successfully with session ID: ${req.sessionID}`);
+        console.log(`User ${username} logged in successfully`);
         
         return res.status(200).json({ 
           user: userInfo,
-          role: role ? role : null,
-          sessionId: req.sessionID,
-          sessionValid: !!req.session.userId,
-          sessionData: {
-            id: req.sessionID,
-            userId: req.session.userId,
-            authenticated: req.session.authenticated,
-            loginTime: req.session.loginTime
-          }
+          role: role ? role : null
         });
       } catch (roleError) {
         console.error(`Error fetching role for user ${username}:`, roleError);
@@ -1594,14 +1455,6 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         return res.status(200).json({ 
           user: userInfo,
           role: null,
-          sessionId: req.sessionID,
-          sessionValid: !!req.session.userId,
-          sessionData: {
-            id: req.sessionID,
-            userId: req.session.userId,
-            authenticated: req.session.authenticated,
-            loginTime: req.session.loginTime
-          },
           message: "Authentication successful but role data is unavailable"
         });
       }
@@ -1611,142 +1464,28 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
     }
   });
 
-  // Logout route with proper session cleanup
+  // Logout route
   authRouter.post("/logout", (req, res) => {
-    // Log session status before logout
-    console.log(`Logout attempt with session ID: ${req.sessionID}, userId: ${req.session.userId}`);
-    
-    if (!req.session.userId) {
-      return res.status(200).json({ message: "Already logged out" });
-    }
-    
-    // First save any pending changes, then destroy the session
-    req.session.save((saveErr) => {
-      if (saveErr) {
-        console.error("Error saving session before logout:", saveErr);
-      }
-      
-      req.session.destroy((destroyErr) => {
-        if (destroyErr) {
-          console.error("Error destroying session during logout:", destroyErr);
-          return res.status(500).json({ message: "Error during logout" });
-        }
-        
-        // Clear session cookie
-        res.clearCookie('connect.sid');
-        console.log("User successfully logged out");
-        
-        return res.status(200).json({ message: "Logged out successfully" });
-      });
+    req.session.destroy(() => {
+      res.status(200).json({ message: "Logged out successfully" });
     });
   });
 
-  // Check current user session with enhanced debugging and session recovery
+  // Check current user session
   authRouter.get("/me", async (req, res, next) => {
     try {
-      // Log session info for debugging purposes
-      console.log(`Auth check for session: ${req.sessionID}`, {
-        hasSession: !!req.session,
-        sessionData: {
-          userId: req.session?.userId,
-          orgId: req.session?.orgId,
-          username: req.session?.username,
-          authenticated: req.session?.authenticated
-        }
-      });
-      
-      // Check if cookie exists but session data is missing
-      if (req.sessionID && (!req.session || !req.session.userId)) {
-        console.log(`Session ID exists (${req.sessionID}) but session data is missing or invalid`);
-        
-        // Try to regenerate the session to fix potential issues
-        if (req.session) {
-          await new Promise<void>((resolve) => {
-            req.session.regenerate((err) => {
-              if (err) {
-                console.error("Session regeneration failed:", err);
-              } else {
-                console.log("Session regenerated with ID:", req.sessionID);
-              }
-              resolve();
-            });
-          });
-        }
-        
-        return res.status(401).json({ 
-          authenticated: false,
-          error: "Session expired or invalid",
-          sessionId: req.sessionID
-        });
+      if (!req.session.userId) {
+        console.log("No userId in session");
+        return res.status(401).json({ authenticated: false });
       }
 
-      try {
-        const user = await storage.getUser(req.session.userId);
-        if (!user) {
-          console.log(`User with id ${req.session.userId} not found in database`);
-          
-          // Save and then destroy the session to ensure proper cleanup
-          await new Promise<void>((resolve) => {
-            req.session.userId = undefined;
-            req.session.orgId = undefined;
-            req.session.authenticated = false;
-            req.session.save((saveErr) => {
-              if (saveErr) {
-                console.error("Error saving session before destroy:", saveErr);
-              }
-              
-              req.session.destroy((destroyErr) => {
-                if (destroyErr) {
-                  console.error("Error destroying invalid session:", destroyErr);
-                } else {
-                  console.log("Session destroyed successfully after user not found");
-                }
-                resolve();
-              });
-            });
-          });
-          
-          return res.status(401).json({ 
-            authenticated: false,
-            error: "User not found",
-            sessionReset: true
-          });
-        }
-      } catch (userError) {
-        console.error("Error fetching user:", userError);
-        return res.status(500).json({ 
-          authenticated: false,
-          error: "Database error while authenticating user",
-          details: process.env.NODE_ENV === 'development' ? userError.message : undefined
-        });
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        console.log(`User with id ${req.session.userId} not found`);
+        req.session.destroy(() => {});
+        return res.status(401).json({ authenticated: false });
       }
-      
-      // Touch the session to extend its lifetime
-      req.session.touch();
 
-      // Ensure user is a valid object before proceeding
-      if (!user || !user.id) {
-        console.error("User object is invalid:", user);
-        return res.status(401).json({
-          authenticated: false,
-          error: "Invalid user record"
-        });
-      }
-      
-      // Update session with complete user data if needed
-      if (!req.session.authenticated) {
-        req.session.authenticated = true;
-        req.session.username = user.username;
-        await new Promise<void>((resolve) => {
-          req.session.save((err) => {
-            if (err) {
-              console.error("Error updating session after auth check:", err);
-            }
-            resolve();
-          });
-        });
-      }
-      
       // Try to get role information but handle errors gracefully
       try {
         const role = await storage.getRole(user.roleId);
@@ -1756,9 +1495,7 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
         return res.status(200).json({ 
           authenticated: true,
           user: userInfo,
-          role,
-          sessionId: req.sessionID,
-          sessionValid: true
+          role
         });
       } catch (roleError) {
         console.error(`Error fetching role for user ${user.username}:`, roleError);
@@ -1769,8 +1506,6 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
           authenticated: true,
           user: userInfo,
           role: null,
-          sessionId: req.sessionID,
-          sessionValid: true,
           message: "Authentication successful but role data is unavailable"
         });
       }

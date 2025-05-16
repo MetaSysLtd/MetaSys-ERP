@@ -12,9 +12,7 @@ const statusListeners: Set<(status: SocketStatus) => void> = new Set();
 
 // Connection config
 const MAX_RECONNECTION_ATTEMPTS = 5;
-const RECONNECTION_TIMEOUT = 5000; // 5 seconds initial timeout
-const MAX_RECONNECTION_TIMEOUT = 30000; // Max 30 seconds between attempts
-const RECONNECTION_ATTEMPTS = 5; // Max 5 reconnection attempts
+const RECONNECTION_TIMEOUT = 30000; // 30 seconds
 let reconnectTimer: NodeJS.Timeout | null = null;
 let reconnectAttempts = 0;
 let manuallyDisconnected = false;
@@ -22,9 +20,10 @@ let manuallyDisconnected = false;
 /**
  * Initialize the socket connection
  */
-export const initializeSocket = () => {
+export function initializeSocket() {
   if (socket) return socket;
 
+  // Create socket instance
   socket = io({
     transports: ['websocket', 'polling'],
     reconnection: true,
@@ -95,9 +94,6 @@ export const initializeSocket = () => {
   socket.on('connect_error', (error) => {
     console.error('Socket connection error:', error);
     updateStatus('error');
-    if (error.message.includes('Authentication failed')) {
-      window.location.href = '/auth/login';
-    }
   });
 
   return socket;

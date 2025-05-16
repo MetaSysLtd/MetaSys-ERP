@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback, memo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { 
   Select,
@@ -34,40 +34,6 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
-// Create memoized filter components to prevent unnecessary re-renders
-const MemoizedDateRangePicker = memo(({ dateRange, setDateRange }: { 
-  dateRange: { from: Date, to: Date }, 
-  setDateRange: (range: { from: Date, to: Date }) => void 
-}) => (
-  <DateRangePicker
-    from={dateRange.from}
-    to={dateRange.to}
-    onSelect={setDateRange}
-    className="w-full sm:w-auto"
-  />
-));
-
-const MemoizedDepartmentSelect = memo(({ department, setDepartment }: {
-  department: string,
-  setDepartment: (dept: string) => void
-}) => (
-  <Select value={department} onValueChange={setDepartment}>
-    <SelectTrigger className="w-full xs:w-[180px]">
-      <SelectValue placeholder="Select Department" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="all">All Departments</SelectItem>
-      <SelectItem value="sales">Sales</SelectItem>
-      <SelectItem value="dispatch">Dispatch</SelectItem>
-      <SelectItem value="hr">HR</SelectItem>
-      <SelectItem value="finance">Finance</SelectItem>
-      <SelectItem value="marketing">Marketing</SelectItem>
-      <SelectItem value="accounting">Accounting</SelectItem>
-      <SelectItem value="admin">Admin</SelectItem>
-    </SelectContent>
-  </Select>
-));
-
 export default function Dashboard() {
   const { user, role } = useAuth();
   const [dateRange, setDateRange] = useState({ from: new Date(), to: new Date() });
@@ -75,8 +41,8 @@ export default function Dashboard() {
   const [hasError, setHasError] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Memoize fallback data to prevent unnecessary object creation on renders
-  const fallbackData = useMemo(() => ({
+  // Default data to use as fallback when the API call fails
+  const fallbackData = {
     counts: {
       leads: 0,
       clients: 0,
@@ -94,81 +60,68 @@ export default function Dashboard() {
       change: 0,
       data: []
     }
-  }), []);
+  };
 
-  // Memoize the fetch function to prevent recreation on every render
-  const fetchDashboardData = useCallback(async () => {
-    try {
-      console.log("[Dashboard] Fetching dashboard data...");
-      
-      // Reset error state when trying a new fetch
-      setHasError(false);
-      setErrorMsg("");
-      
-      // Use retry fetch for resilience
-      const response = await retryFetch("/api/dashboard");
-      
-      if (!response.ok) {
-        const errorMessage = response.status === 500
-          ? "Dashboard data temporarily unavailable. Our team is working on it."
-          : "Failed to load dashboard data.";
-        
-        console.error(`[Dashboard] API Error: ${errorMessage} (${response.status})`);
-        setHasError(true);
-        setErrorMsg(errorMessage);
-        
-        // Return fallback data instead of throwing
-        return { ...fallbackData, error: errorMessage };
-      }
-      
-      try {
-        const data = await response.json();
-        
-        // Validate that we received valid data
-        if (!data || typeof data !== 'object') {
-          console.error("[Dashboard] Invalid data format received");
-          setHasError(true);
-          setErrorMsg("Invalid dashboard data received");
-          return { ...fallbackData, error: "Invalid data format" };
-        }
-        
-        console.log("[Dashboard] Data loaded successfully");
-        return data;
-      } catch (parseError) {
-        console.error("[Dashboard] JSON parse error:", parseError);
-        setHasError(true);
-        setErrorMsg("Failed to parse dashboard data");
-        return { ...fallbackData, error: "Parse error" };
-      }
-    } catch (error) {
-      console.error("[Dashboard] Error loading dashboard data:", error);
-      setHasError(true);
-      setErrorMsg("Failed to load dashboard data");
-      return { ...fallbackData, error: "Network error" };
-    }
-  }, [fallbackData]);
-
-  // Now the query uses our memoized fetch function
+  // Using proper error handling with the dashboard API
   const dashboardQuery = useQuery({
     queryKey: ["/api/dashboard", dateRange, department],
-    queryFn: fetchDashboardData,
-    // Add staleTime to prevent frequent refetches during navigation
-    staleTime: 60000, // 1 minute
+    queryFn: async () => {
+      try {
+        console.log("[Dashboard] Fetching dashboard data...");
+        
+        // Reset error state when trying a new fetch
+        setHasError(false);
+        setErrorMsg("");
+        
+        // Use retry fetch for resilience
+        const response = await retryFetch("/api/dashboard");
+        
+        if (!response.ok) {
+          const errorMessage = response.status === 500
+            ? "Dashboard data temporarily unavailable. Our team is working on it."
+            : "Failed to load dashboard data.";
+          
+          console.error(`[Dashboard] API Error: ${errorMessage} (${response.status})`);
+          setHasError(true);
+          setErrorMsg(errorMessage);
+          
+          // Return fallback data instead of throwing
+          return { ...fallbackData, error: errorMessage };
+        }
+        
+        try {
+          const data = await response.json();
+          
+          // Validate that we received valid data
+          if (!data || typeof data !== 'object') {
+            console.error("[Dashboard] Invalid data format received");
+            setHasError(true);
+            setErrorMsg("Invalid dashboard data received");
+            return { ...fallbackData, error: "Invalid data format" };
+          }
+          
+          console.log("[Dashboard] Data loaded successfully");
+          return data;
+        } catch (parseError) {
+          console.error("[Dashboard] JSON parse error:", parseError);
+          setHasError(true);
+          setErrorMsg("Failed to parse dashboard data");
+          return { ...fallbackData, error: "Parse error" };
+        }
+      } catch (error) {
+        console.error("[Dashboard] Error loading dashboard data:", error);
+        setHasError(true);
+        setErrorMsg("Failed to load dashboard data");
+        return { ...fallbackData, error: "Network error" };
+      }
+    },
+    // Reduce the frequency of refetches to avoid overwhelming the user with error messages
     refetchInterval: 30000, // 30 seconds
     refetchOnWindowFocus: false,
     retry: 3, // Retry up to 3 times
     retryDelay: 3000, // 3 seconds between retries
   });
 
-  // Memoize whether the user is an admin
-  const isAdmin = useMemo(() => role && role.level ? role.level >= 4 : false, [role]);
-  
-  // Memoize the user role type for performance component
-  const userRoleType = useMemo(() => 
-    user?.roleId === 5 || user?.roleId === 6 ? 'dispatch' : 'sales', 
-    [user?.roleId]
-  );
-  
   return (
     <ErrorBoundary moduleName="dashboard">
       <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
@@ -179,16 +132,29 @@ export default function Dashboard() {
   
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <MotionWrapper animation="fade-left" delay={0.2}>
-              <MemoizedDateRangePicker 
-                dateRange={dateRange} 
-                setDateRange={setDateRange} 
+              <DateRangePicker
+                from={dateRange.from}
+                to={dateRange.to}
+                onSelect={setDateRange}
+                className="w-full sm:w-auto"
               />
             </MotionWrapper>
             <MotionWrapper animation="fade-left" delay={0.25}>
-              <MemoizedDepartmentSelect 
-                department={department} 
-                setDepartment={setDepartment} 
-              />
+              <Select value={department} onValueChange={setDepartment}>
+                <SelectTrigger className="w-full xs:w-[180px]">
+                  <SelectValue placeholder="Select Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem value="sales">Sales</SelectItem>
+                  <SelectItem value="dispatch">Dispatch</SelectItem>
+                  <SelectItem value="hr">HR</SelectItem>
+                  <SelectItem value="finance">Finance</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="accounting">Accounting</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
             </MotionWrapper>
             <MotionWrapper animation="fade-left" delay={0.35}>
               <DashboardWidgetManager />
@@ -259,34 +225,37 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <MotionWrapper animation="fade-in" delay={0.9}>
-              <CommissionBreakdown isAdmin={isAdmin} />
+              <CommissionBreakdown 
+                isAdmin={role && role.level ? role.level >= 4 : false}
+              />
             </MotionWrapper>
             
             <MotionWrapper animation="fade-in" delay={0.95}>
-              <CommissionPerformance type={userRoleType} />
+              <CommissionPerformance 
+                type={user?.roleId === 5 || user?.roleId === 6 ? 'dispatch' : 'sales'}
+              />
             </MotionWrapper>
           </div>
           
-          {/* Memoize the dispatch performance data to prevent recreation on every render */}
-          {useMemo(() => (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              <MotionWrapper animation="fade-in" delay={1.0}>
-                <DispatchPerformance 
-                  data={[
-                    { name: 'Mike', activeLeads: 8, loadsBooked: 22, invoiceGenerated: 12500, invoiceCleared: 9800, highestLoad: 3200 },
-                    { name: 'Lisa', activeLeads: 6, loadsBooked: 18, invoiceGenerated: 10200, invoiceCleared: 8100, highestLoad: 2700 },
-                    { name: 'Carlos', activeLeads: 10, loadsBooked: 25, invoiceGenerated: 14800, invoiceCleared: 11200, highestLoad: 3700 },
-                    { name: 'Priya', activeLeads: 7, loadsBooked: 20, invoiceGenerated: 13100, invoiceCleared: 10500, highestLoad: 3300 },
-                    { name: 'Raj', activeLeads: 5, loadsBooked: 17, invoiceGenerated: 9400, invoiceCleared: 7800, highestLoad: 2500 }
-                  ]}
-                />
-              </MotionWrapper>
-              
-              <MotionWrapper animation="fade-in" delay={1.05}>
-                <CommissionPerformance type="dispatch" />
-              </MotionWrapper>
-            </div>
-          ), [])}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            <MotionWrapper animation="fade-in" delay={1.0}>
+              <DispatchPerformance 
+                data={[
+                  { name: 'Mike', activeLeads: 8, loadsBooked: 22, invoiceGenerated: 12500, invoiceCleared: 9800, highestLoad: 3200 },
+                  { name: 'Lisa', activeLeads: 6, loadsBooked: 18, invoiceGenerated: 10200, invoiceCleared: 8100, highestLoad: 2700 },
+                  { name: 'Carlos', activeLeads: 10, loadsBooked: 25, invoiceGenerated: 14800, invoiceCleared: 11200, highestLoad: 3700 },
+                  { name: 'Priya', activeLeads: 7, loadsBooked: 20, invoiceGenerated: 13100, invoiceCleared: 10500, highestLoad: 3300 },
+                  { name: 'Raj', activeLeads: 5, loadsBooked: 17, invoiceGenerated: 9400, invoiceCleared: 7800, highestLoad: 2500 }
+                ]}
+              />
+            </MotionWrapper>
+            
+            <MotionWrapper animation="fade-in" delay={1.05}>
+              <CommissionPerformance 
+                type="dispatch"
+              />
+            </MotionWrapper>
+          </div>
           
           <MotionWrapper animation="fade-in" delay={1.0}>
             <FinanceOverview data={dashboardQuery.data?.finance} />

@@ -92,8 +92,8 @@ export const typography = {
   value: "text-lg font-medium text-gray-900 dark:text-gray-100",
 };
 
-// Legacy brand colors (retained for backward compatibility)
-export const legacyBrandColors = {
+// Brand colors
+export const brandColors = {
   primary: "#025E73",
   secondary: "#F2A71B",
   navy: "#011F26",
@@ -120,86 +120,12 @@ export const metricCardStyles = {
   value: "text-lg font-medium text-gray-900 dark:text-gray-100",
   description: "text-sm flex items-center",
   iconContainer: "flex-shrink-0 rounded-md p-3",
-  grid: "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 auto-rows-fr"
-};
-
-/**
- * MetaSys Design System - Style Constants
- * Shared styles for consistent UI components
- */
-
-// Enhanced Brand Colors - Accessible through both CSS variables and direct hex values
-export const enhancedBrandColors = {
-  primary: {
-    DEFAULT: "#025E73",
-    light: "#037A96",
-    dark: "#011F26",
-    hover: "#011F26",
-    active: "#412754"
-  },
-  secondary: {
-    DEFAULT: "#F2A71B",
-    light: "#F9BD4D", 
-    dark: "#D78F0F",
-    hover: "#D78F0F",
-    active: "#412754"
-  },
-  contrast: {
-    DEFAULT: "#412754",
-    light: "#583872",
-    dark: "#2F1D3C"
-  },
-  ui: {
-    background: "#F1FAFB",
-    border: "#D6D6D6",
-    text: "#333333"
-  }
-};
-
-// Interactive element styles - For consistent form elements and interactive components
-export const interactiveStyles = {
-  // Base transition for all interactive elements
-  transition: "transition-all duration-200",
-  
-  // Focus styles for elements like inputs, select dropdowns, cards
-  focusRing: "focus-visible:outline-none focus-visible:border-[#025E73] focus-visible:ring-1 focus-visible:ring-[#025E73] focus-visible:ring-offset-1",
-  
-  // Hover states
-  hoverBorder: "hover:border-[#025E73]/70",
-  
-  // Interactive disabled states
-  disabled: "disabled:cursor-not-allowed disabled:opacity-50"
+  grid: "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5"
 };
 
 // Button styles based on brand guidelines
 export const buttonStyles = {
-  // Base button styles
-  base: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium",
-  
-  // Variants
-  primary: "bg-[#025E73] text-white hover:bg-[#011F26] active:bg-[#412754] transition-all duration-200",
-  secondary: "bg-[#F2A71B] text-white hover:bg-[#D78F0F] active:bg-[#412754] transition-all duration-200",
-  outline: "border border-[#025E73] text-[#025E73] bg-transparent hover:bg-[#025E73]/10 active:bg-[#025E73]/20 transition-all duration-200",
-  ghost: "text-foreground hover:bg-accent/30 hover:text-accent-foreground active:bg-accent/50",
-  
-  // States 
-  disabled: "disabled:opacity-50 disabled:pointer-events-none",
-  loading: "relative pointer-events-none text-transparent"
-};
-
-// Form element styles for consistent look
-export const formStyles = {
-  // Input, select trigger, textarea base styles
-  input: "rounded-md border border-[#D6D6D6] bg-background px-3 py-2 text-sm " + 
-         interactiveStyles.transition + " " + 
-         interactiveStyles.focusRing + " " + 
-         interactiveStyles.hoverBorder + " " + 
-         interactiveStyles.disabled,
-  
-  // Label styles
-  label: "text-sm font-medium text-foreground",
-  
-  // Helper text and error message styles
-  helperText: "text-xs text-muted-foreground",
-  errorText: "text-xs text-destructive"
+  primary: "bg-[#025E73] hover:bg-[#011F26] text-white rounded-md transition-all duration-200",
+  secondary: "bg-[#F2A71B] hover:bg-[#412754] text-white rounded-md transition-all duration-200",
+  outline: "border border-[#025E73] text-[#025E73] hover:bg-[#025E73] hover:text-white rounded-md transition-all duration-200"
 };

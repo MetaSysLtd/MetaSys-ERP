@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSocket } from "@/hooks/use-socket";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAlert } from "@/components/ui/toast-alert";
 

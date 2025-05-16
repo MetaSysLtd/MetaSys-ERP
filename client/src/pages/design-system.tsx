@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import ThemeCustomizer from "@/components/ui/theme-customizer";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
 import { ChevronLeft } from "lucide-react";
 
 export default function DesignSystemPage() {
