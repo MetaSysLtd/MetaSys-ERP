@@ -155,10 +155,12 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
           
           // Clear any cached auth data to ensure a clean logout state
           try {
-            sessionStorage.removeItem(AUTH_USER_CACHE_KEY);
-            sessionStorage.removeItem(AUTH_ROLE_CACHE_KEY);
-            sessionStorage.removeItem(AUTH_TIMESTAMP_KEY);
+            sessionStorage.clear(); // Clear all session storage
             localStorage.removeItem("metasys_ui_prefs");
+            
+            // Also try to clear common auth-related cookies
+            document.cookie = "metasys.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "connect.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
           } catch (e) {
             console.error("Failed to clear storage during redirect:", e);
           }
