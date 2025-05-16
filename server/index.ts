@@ -26,17 +26,20 @@ app.use(express.json());
 app.use(jsonErrorHandler);
 app.use(express.urlencoded({ extended: false }));
 
-// Set up session middleware
+// Set up session middleware with improved configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: true,
-  saveUninitialized: true,
+  secret: process.env.SESSION_SECRET || 'metasys_erp_secure_session_secret',
+  resave: false,                // Only save session if changed
+  saveUninitialized: false,     // Don't create session until something stored
+  rolling: true,                // Reset cookie expiration on each response
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days for better persistence
     httpOnly: true,
-    sameSite: 'lax'
-  }
+    sameSite: 'lax',
+    path: '/'                   // Ensure cookies are available across all paths
+  },
+  store: storage.sessionStore   // Use the configured database session store
 }));
 
 // Apply session authentication check middleware

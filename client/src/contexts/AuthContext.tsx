@@ -52,16 +52,20 @@ function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch(API_ROUTES.AUTH.ME, {
+        // Add timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        const res = await fetch(`${API_ROUTES.AUTH.ME}?_t=${timestamp}`, {
           method: "GET",
           credentials: "include",
           headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
           }
         });
 
         if (res.status === 401) {
+          console.log("Authentication check failed - not authenticated");
           setIsAuthenticated(false);
           setUser(null);
           setRole(null);
@@ -75,10 +79,23 @@ function AuthProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
 
         if (data.authenticated) {
+          console.log("Authentication check successful - user authenticated");
           setIsAuthenticated(true);
           setUser(data.user);
           setRole(data.role);
+          
+          // Set a periodic check to keep session alive
+          const intervalId = setInterval(() => {
+            fetch(`${API_ROUTES.AUTH.ME}?_t=${new Date().getTime()}`, {
+              method: "GET",
+              credentials: "include",
+              headers: { 'Cache-Control': 'no-cache' }
+            }).catch(e => console.warn("Session refresh error:", e));
+          }, 15 * 60 * 1000); // Every 15 minutes
+          
+          return () => clearInterval(intervalId);
         } else {
+          console.log("Authentication check returned not authenticated status");
           setIsAuthenticated(false);
           setUser(null);
           setRole(null);
@@ -103,10 +120,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log(`Attempting to login with username: ${username}`);
 
+      // Use better fetch options to ensure proper cookie handling
       const res = await fetch(API_ROUTES.AUTH.LOGIN, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         },
         credentials: "include",
         body: JSON.stringify({ username, password })
@@ -137,9 +157,30 @@ function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Server returned no user data");
       }
 
+      // Update authentication state
       setIsAuthenticated(true);
       setUser(data.user);
       setRole(data.role);
+      
+      // Immediately verify the session was established by making a follow-up auth check
+      // This ensures cookies were properly set
+      setTimeout(async () => {
+        try {
+          const verifyRes = await fetch(`${API_ROUTES.AUTH.ME}?_t=${new Date().getTime()}`, {
+            method: "GET",
+            credentials: "include",
+            headers: { 'Cache-Control': 'no-cache' }
+          });
+          
+          if (verifyRes.ok) {
+            console.log("Session verification successful after login");
+          } else {
+            console.warn("Session verification failed after login:", verifyRes.status);
+          }
+        } catch (verifyErr) {
+          console.warn("Error verifying session after login:", verifyErr);
+        }
+      }, 500);
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message || "Failed to login. Please check your credentials.");
