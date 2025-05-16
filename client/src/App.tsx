@@ -73,7 +73,6 @@ import { MessageProvider } from "@/contexts/MessageContext";
 import { AnimationProvider } from "@/contexts/AnimationContext";
 import { OrganizationProvider } from "@/hooks/use-organization";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import TeamManagementPage from "@/pages/settings/teams";
 
@@ -163,7 +162,7 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
       <div className="flex h-screen w-full items-center justify-center flex-col bg-[#F1FAFB]">
         <img src={metaSysLogo} alt="MetaSys" className="w-40 mb-4 animate-pulse" />
         <div className="flex items-center gap-2">
-          <Loader2 className="h-5 w-5 animate-spin text-[#1D3557]" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#1D3557] border-t-transparent"></div>
           <span className="text-[#1D3557] font-medium">Redirecting to login page...</span>
         </div>
       </div>
@@ -199,7 +198,7 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
       <div className="flex h-screen w-full items-center justify-center flex-col bg-[#F1FAFB]">
         <img src={metaSysLogo} alt="MetaSys" className="w-40 mb-4 animate-pulse" />
         <div className="flex items-center gap-2">
-          <Loader2 className="h-5 w-5 animate-spin text-[#1D3557]" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#1D3557] border-t-transparent"></div>
           <span className="text-[#1D3557] font-medium">Loading your session...</span>
         </div>
       </div>
