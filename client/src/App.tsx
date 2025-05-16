@@ -141,16 +141,17 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
     // Only run this logic when we know the auth state is settled
     if (authValidated && !isLoading && !isAuthenticated && !redirecting) {
       console.log("Auth validation complete, not authenticated, redirecting to login");
-      setRedirecting(true);
       
       // Prevent redirect loops by checking if we're already on the auth page or login page
       const isAuthPage = currentPath === "/auth" || currentPath === "/login";
       
       if (!isAuthPage) {
+        // Set redirecting state before navigation to avoid flashing states
+        setRedirecting(true);
+        
         // Add a small delay before redirecting to avoid race conditions
         const redirectTimer = setTimeout(() => {
           // Always redirect to /auth which is our main auth page
-          // Use hard navigation instead of router navigation to ensure state reset
           window.location.href = "/auth";
           
           // Clear any cached auth data to ensure a clean logout state
@@ -167,10 +168,8 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
         }, 50);
         
         return () => clearTimeout(redirectTimer);
-      } else {
-        // If we're already on the auth page, just reset redirect state
-        setRedirecting(false);
       }
+      // We don't set redirecting state if we're already on the auth page
     }
   }, [authValidated, isLoading, isAuthenticated, redirecting, currentPath]);
 
@@ -298,6 +297,10 @@ function Router() {
         <AuthPage />
       </Route>
       <Route path="/login">
+        <AuthPage />
+      </Route>
+      {/* Fallback Route: If we're at the root URL with no path, default to auth page when not authenticated */}
+      <Route path="">
         <AuthPage />
       </Route>
       <Route path="/auth/forgot-password">
