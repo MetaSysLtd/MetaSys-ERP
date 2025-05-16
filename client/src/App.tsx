@@ -548,27 +548,6 @@ function AppContent() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const [initialAuthChecked, setInitialAuthChecked] = useState(false);
-  
-  // Initial authentication check effect to prevent flash of dashboard content
-  useEffect(() => {
-    if (!isLoading) {
-      setInitialAuthChecked(true);
-    }
-  }, [isLoading]);
-  
-  // Don't render anything until initial auth check completes
-  if (!initialAuthChecked) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center flex-col bg-[#F1FAFB]">
-        <img src={metaSysLogo} alt="MetaSys" className="w-40 mb-4 animate-pulse" />
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-5 w-5 animate-spin text-[#1D3557]" />
-          <span className="text-[#1D3557] font-medium">Initializing...</span>
-        </div>
-      </div>
-    );
-  }
-  
   const { subscribe, isConnected } = useRealTime({
     onReconnect: (data) => {
       console.log('Real-time connection restored:', data);
