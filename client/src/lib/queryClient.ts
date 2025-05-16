@@ -1,5 +1,8 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Global in-flight request cache to prevent duplicate requests
+const inFlightRequests = new Map<string, Promise<any>>();
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -7,8 +10,17 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Generate a cache key for the request
+function getCacheKey(url: string, method: string = 'GET', body?: any): string {
+  if (method === 'GET') {
+    return `${method}:${url}`;
+  }
+  // For non-GET requests, include the stringified body in the cache key
+  return `${method}:${url}:${body ? JSON.stringify(body) : ''}`;
+}
+
 export async function apiRequest(
-  urlOrConfig: string | { url?: string; method: string; body?: string; headers?: Record<string, string> },
+  urlOrConfig: string | { url?: string; method: string; body?: string | object; headers?: Record<string, string> },
   methodOrOptions?: string | Record<string, unknown>,
   data?: unknown | undefined,
 ): Promise<Response> {
@@ -38,9 +50,41 @@ export async function apiRequest(
     requestData = urlOrConfig.body;
   }
   
-  // Don't modify URLs that already include the protocol or are absolute
-  // The URL is already correct as provided in the API_ROUTES constants
+  // Only deduplicate GET requests
+  if (method === 'GET') {
+    const cacheKey = getCacheKey(url, method);
+    
+    // Check if this exact request is already in flight
+    const existingRequest = inFlightRequests.get(cacheKey);
+    if (existingRequest) {
+      console.log('Using in-flight request for:', url);
+      return existingRequest;
+    }
+    
+    // Create the new request and store it in the cache
+    const requestPromise = fetch(url, {
+      method: method || 'GET',
+      headers: requestHeaders,
+      credentials: "include",
+    }).then(async (res) => {
+      // Remove from in-flight requests when done
+      inFlightRequests.delete(cacheKey);
+      
+      // Process response
+      await throwIfResNotOk(res);
+      return res;
+    }).catch(err => {
+      // Also remove on error
+      inFlightRequests.delete(cacheKey);
+      throw err;
+    });
+    
+    // Store the promise in the cache
+    inFlightRequests.set(cacheKey, requestPromise);
+    return requestPromise;
+  }
   
+  // For non-GET requests, proceed normally without caching
   console.log('Making API request to:', url, 'with method:', method);
   
   const res = await fetch(url, {
@@ -62,19 +106,50 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     // Don't modify the URL, assume it's correct as specified in API_ROUTES
     const url = queryKey[0] as string;
+    const cacheKey = getCacheKey(url, 'GET');
+    
+    // Use deduplication for GET requests
+    const existingRequest = inFlightRequests.get(cacheKey);
+    if (existingRequest) {
+      console.log('Using in-flight query for:', url);
+      const res = await existingRequest;
+      
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
+      }
+      
+      return await res.json();
+    }
     
     console.log('Making query to:', url);
     
-    const res = await fetch(url, {
+    // Create new request promise and cache it
+    const requestPromise = fetch(url, {
       credentials: "include",
+    }).then(async (res) => {
+      // Remove from cache
+      inFlightRequests.delete(cacheKey);
+      
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return { status: 401, json: async () => null };
+      }
+      
+      await throwIfResNotOk(res);
+      return res;
+    }).catch(err => {
+      // Also remove on error
+      inFlightRequests.delete(cacheKey);
+      throw err;
     });
-
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
-    }
-
-    await throwIfResNotOk(res);
-    return await res.json();
+    
+    // Store in cache
+    inFlightRequests.set(cacheKey, requestPromise);
+    
+    // Wait for the response and parse JSON
+    const res = await requestPromise;
+    return res.status === 401 && unauthorizedBehavior === "returnNull" 
+      ? null 
+      : await res.json();
   };
 
 export const queryClient = new QueryClient({
@@ -83,7 +158,7 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      staleTime: 60000, // 1 minute stale time is a better balance
       retry: false,
     },
     mutations: {

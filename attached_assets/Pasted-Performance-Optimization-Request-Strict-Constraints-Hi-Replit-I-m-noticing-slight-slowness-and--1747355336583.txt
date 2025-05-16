@@ -1,0 +1,34 @@
+Performance Optimization Request (Strict Constraints)
+Hi Replit,
+I’m noticing slight slowness and lag across the platform—especially during initial login, screen transitions, and dynamic dashboard rendering.
+I’d like you to begin carefully optimizing overall platform performance. However, please follow these non-negotiable rules while doing so:
+
+🔐 Guardrails (Do not violate these)
+	1. DO NOT remove or alter:
+		○ Any working feature, UI/UX behavior, functionality, animation, or gamification element (e.g., loading animations, socket-based real-time updates).
+		○ Any design consistency, routes, or permission logic.
+	2. DO NOT eliminate logic just to reduce load times. Optimizations must be invisible to the user.
+	3. If you find any significant or structural change, you must get my confirmation before applying it.
+
+✅ What You Can Do
+	• Optimize API response times, frontend load order, and resource usage.
+	• Check for:
+		○ Unnecessary re-renders
+		○ Duplicate network calls
+		○ Heavy third-party libraries
+		○ Blocking code on route transitions
+		○ Large payloads not being paginated or lazy-loaded
+	• Review and patch any obvious inefficiencies (but only if non-breaking).
+	• Minify JS/CSS assets or remove dead imports, only if completely safe.
+
+🔍 Proactive Review & QA
+Please also:
+	• Run a full QA pass across the platform and check internal logs, dev console, and browser warnings.
+	• Flag any deprecated methods, logic errors, or UX bugs.
+	• Share a list of any major risks or outdated implementations that may affect long-term performance.
+If anything you find seems significant or has the potential to affect flow/UI/state, pause and confirm with me first before taking action.
+
+📍End Goal
+The platform should feel snappier, lighter, and more responsive—but with zero degradation to design, logic, or real-time behavior.
+Let me know once you’ve reviewed the performance profile and logs, and please confirm if any adjustments were made and where.
+Thanks.

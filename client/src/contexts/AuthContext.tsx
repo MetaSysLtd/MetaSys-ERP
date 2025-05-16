@@ -55,6 +55,33 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   
 
   useEffect(() => {
+    // Use a flag to avoid state updates after unmount
+    let isMounted = true;
+    
+    // Try to use cached auth status for initial state
+    const cachedAuth = sessionStorage.getItem('authStatus');
+    if (cachedAuth) {
+      try {
+        const parsed = JSON.parse(cachedAuth);
+        const cacheAge = Date.now() - (parsed.timestamp || 0);
+        
+        // Only use cache if it's less than 5 minutes old
+        if (cacheAge < 5 * 60 * 1000) {
+          console.log("Using cached auth status from session storage", cacheAge/1000, "seconds old");
+          if (parsed.isAuthenticated && parsed.user) {
+            setIsAuthenticated(true);
+            setUser(parsed.user);
+            setRole(parsed.role);
+            setError(null);
+          }
+        } else {
+          console.log("Cached auth status is too old, fetching fresh data");
+        }
+      } catch (e) {
+        console.warn("Failed to parse cached auth status:", e);
+      }
+    }
+    
     const checkAuth = async () => {
       try {
         // Create an AbortController for timeout handling
@@ -88,10 +115,12 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (res.status === 401) {
           console.log("Auth check returned 401 Unauthorized");
-          setIsAuthenticated(false);
-          setUser(null);
-          setRole(null);
-          setError("Please log in to continue");
+          if (isMounted) {
+            setIsAuthenticated(false);
+            setUser(null);
+            setRole(null);
+            setError("Please log in to continue");
+          }
           return;
         }
 
@@ -101,40 +130,60 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
 
         const data = await res.json();
-        console.log("Auth check data:", data);
 
         if (data.authenticated === true || data.user) {
           console.log("Auth check: User is authenticated");
-          setIsAuthenticated(true);
-          setUser(data.user);
-          setRole(data.role);
-          setError(null);
+          if (isMounted) {
+            setIsAuthenticated(true);
+            setUser(data.user);
+            setRole(data.role);
+            setError(null);
+            
+            // Cache successful auth result in sessionStorage
+            sessionStorage.setItem('authStatus', JSON.stringify({
+              isAuthenticated: true,
+              user: data.user,
+              role: data.role,
+              timestamp: Date.now()
+            }));
+          }
         } else {
           console.log("Auth check: User is not authenticated");
-          setIsAuthenticated(false);
-          setUser(null);
-          setRole(null);
-          setError("Authentication status unknown");
+          if (isMounted) {
+            setIsAuthenticated(false);
+            setUser(null);
+            setRole(null);
+            setError("Authentication status unknown");
+          }
         }
       } catch (err: any) {
         console.error("Auth check error:", err);
-        setIsAuthenticated(false);
-        setUser(null);
-        setRole(null);
-        
-        // Set a user-friendly error message
-        if (err.message?.includes('timed out')) {
-          setError("Session check timed out. Please refresh the page or try again later.");
-        } else {
-          setError(`Authentication error: ${err.message || "Unknown error"}`);
+        if (isMounted) {
+          setIsAuthenticated(false);
+          setUser(null);
+          setRole(null);
+          
+          // Set a user-friendly error message
+          if (err.message?.includes('timed out')) {
+            setError("Session check timed out. Please refresh the page or try again later.");
+          } else {
+            setError(`Authentication error: ${err.message || "Unknown error"}`);
+          }
         }
       } finally {
         console.log("Auth check complete, setting isLoading to false");
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
+    // Always perform auth check, even if we have cached data
     checkAuth();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = async (username: string, password: string) => {
