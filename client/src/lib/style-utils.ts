@@ -92,8 +92,8 @@ export const typography = {
   value: "text-lg font-medium text-gray-900 dark:text-gray-100",
 };
 
-// Brand colors
-export const brandColors = {
+// Legacy brand colors (retained for backward compatibility)
+export const legacyBrandColors = {
   primary: "#025E73",
   secondary: "#F2A71B",
   navy: "#011F26",
@@ -128,8 +128,8 @@ export const metricCardStyles = {
  * Shared styles for consistent UI components
  */
 
-// Brand Colors - Accessible through both CSS variables and direct hex values
-export const brandColors = {
+// Enhanced Brand Colors - Accessible through both CSS variables and direct hex values
+export const enhancedBrandColors = {
   primary: {
     DEFAULT: "#025E73",
     light: "#037A96",
