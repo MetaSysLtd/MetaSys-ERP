@@ -1262,89 +1262,94 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   const authRouter = express.Router();
   apiRouter.use("/auth", authRouter);
   
-  // Direct login endpoint with guaranteed admin access
+  // Dedicated login route for handling all authentication
   authRouter.post("/login", express.json(), async (req, res, next) => {
-    // Clear debug logs to track the request
-    console.log("LOGIN REQUEST PROCESSING:", {
-      username: req.body?.username || 'missing',
-      sessionID: req.sessionID,
-      method: req.method,
-      path: req.path,
-      url: req.url
-    });
-    
-    // Hard-coded admin access for development and testing
-    if (req.body && req.body.username === 'admin' && req.body.password === 'admin123') {
-      console.log("✅ ADMIN LOGIN DETECTED - AUTHORIZING ACCESS");
-      
-      // Standard admin user object
-      const adminUser = {
-        id: 1,
-        username: 'admin',
-        firstName: 'Admin',
-        lastName: 'User',
-        email: 'admin@example.com',
-        phoneNumber: null,
-        roleId: 1,
-        active: true,
-        orgId: 1,
-        profileImageUrl: null,
-        isSystemAdmin: true,
-        department: 'Administration',
-        position: 'Administrator',
-        canEditLeads: true,
-        canViewReports: true,
-        canManageUsers: true
-      };
-      
-      // Admin role with full permissions
-      const adminRole = {
-        id: 1,
-        name: 'Admin',
-        department: 'Administration',
-        level: 5,
-        permissions: ['all']
-      };
-      
-      // Essential session variables
-      req.session.userId = 1;
-      req.session.orgId = 1;
-      
-      // Save session synchronously
-      req.session.save((err) => {
-        if (err) {
-          console.error("❌ Session save error:", err);
-        } else {
-          console.log("✅ Admin session saved successfully:", req.sessionID);
-        }
+    try {
+      console.log("LOGIN ATTEMPT:", {
+        username: req.body?.username || "not provided",
+        sessionID: req.sessionID
       });
+
+      // Admin authentication bypass for development access
+      if (req.body && req.body.username === 'admin' && req.body.password === 'admin123') {
+        console.log("ADMIN LOGIN SUCCESSFUL");
+        
+        const adminUser = {
+          id: 1,
+          username: 'admin',
+          firstName: 'Admin',
+          lastName: 'User',
+          email: 'admin@example.com',
+          phoneNumber: null,
+          roleId: 1,
+          active: true,
+          orgId: 1,
+          profileImageUrl: null,
+          isSystemAdmin: true,
+          department: 'Administration',
+          position: 'Administrator',
+          canEditLeads: true,
+          canViewReports: true,
+          canManageUsers: true
+        };
+        
+        const adminRole = {
+          id: 1,
+          name: 'Admin',
+          department: 'Administration',
+          level: 5,
+          permissions: ['all']
+        };
+        
+        // Set session values
+        req.session.userId = 1;
+        req.session.orgId = 1;
+        
+        // Save session
+        await new Promise<void>((resolve) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error("Session save error:", err);
+            } else {
+              console.log("Session saved successfully, ID:", req.sessionID);
+            }
+            resolve(); // Always resolve to continue
+          });
+        });
+        
+        // Set client-side cookies
+        res.cookie('metasys_auth', 'true', {
+          path: '/',
+          httpOnly: false,
+          maxAge: 24 * 60 * 60 * 1000,
+          sameSite: 'lax'
+        });
+        
+        // Return authentication response
+        return res.status(200).json({
+          user: adminUser,
+          role: adminRole,
+          authenticated: true
+        });
+      }
       
-      // Set client-side cookies for redundant auth
-      res.cookie('metasys_auth', 'true', {
-        path: '/',
-        httpOnly: false,
-        maxAge: 24 * 60 * 60 * 1000,
-        sameSite: 'lax'
-      });
-      
-      console.log("✅ ADMIN LOGIN SUCCESSFUL");
-      
-      // Return successful authentication response
-      return res.status(200).json({
-        user: adminUser,
-        role: adminRole,
-        authenticated: true
-      });
-    } else {
-      // For non-admin users
-      console.log("⚠️ Non-admin login attempt:", req.body?.username);
-      
-      // Return unsuccessful authentication response
+      // For non-admin users - currently only admin is supported
+      console.log("LOGIN FAILED:", req.body?.username);
       return res.status(401).json({
         authenticated: false,
         message: "Invalid credentials"
       });
+    } catch (error) {
+      console.error("Login error:", error);
+      return res.status(500).json({
+        authenticated: false,
+        message: "Internal server error during login"
+      });
     }
+  });
+  
+  // Check user session status
+  authRouter.get("/me", async (req, res) => {
     try {
       // Explicitly set JSON content type
       res.setHeader('Content-Type', 'application/json');
