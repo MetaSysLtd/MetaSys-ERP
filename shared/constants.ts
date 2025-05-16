@@ -158,7 +158,8 @@ export const API_ROUTES = {
     LOGIN: '/api/auth/login',
     LOGOUT: '/api/auth/logout',
     REGISTER: '/api/auth/register',
-    ME: '/api/auth/me'
+    ME: '/api/auth/me',
+    USER_ORGANIZATIONS: '/api/auth/user-organizations'
   },
   USER: {
     PROFILE: '/api/user/profile',
