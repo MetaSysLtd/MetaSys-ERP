@@ -1,0 +1,40 @@
+🛑 Critical Issue: Live Server Redirects to Login After Dashboard Loads
+✅ What’s Working:
+	• The Dev Server works fine:
+		○ Login screen shows
+		○ Auth works
+		○ Dashboard loads and stays accessible
+		○ Navigation across modules works
+❌ What’s Broken:
+	• The Live Server (erp.metasysltd.com) logs in but:
+		○ Immediately loads the dashboard
+		○ Then auto-redirects back to the login screen
+		○ This creates an infinite loop or "bounce-back" pattern
+
+🔍 What’s Likely Going Wrong (You don’t need to debug this—Replit does)
+This usually happens when:
+	• The auth token or session is set properly on the Dev server, but not on the Live server
+	• Live environment doesn’t:
+		○ Store cookies/session correctly
+		○ Handle Secure/SameSite cookie flags properly
+		○ Send the session on GET /api/auth/me
+	• OR the AuthProvider (on the frontend) gets a 401 or empty user object and forces redirect to /login
+
+📣 Message to Replit
+	The Dev server is now working properly, but the live deployed version is still broken.
+	Here’s the problem:
+		○ After logging in, it shows the dashboard for a second
+		○ Then automatically redirects back to /login
+		○ This happens every time—even after successful login
+	✅ Expected: Once I log in, I should stay on the dashboard unless I log out.
+	❌ Actual: It bounces back to login even with valid credentials.
+	Please check the following in the Live environment (not Dev):
+		1. Does the session/cookie persist correctly in production?
+		2. Is /api/auth/me returning a valid user on the live domain?
+		3. Is there any mismatch in frontend session handling or routing logic between Dev and Live?
+	Also verify:
+		○ Cookie flags: SameSite=None; Secure
+		○ That useEffect or router.push('/login') isn’t firing too early if auth is undefined or null
+	Do not change the flow or structure.
+	Just ensure the session persists and the user doesn’t get kicked out.
+	If you need to apply a fix, please test and confirm it works on both Dev and Live before closing it.

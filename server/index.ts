@@ -26,18 +26,26 @@ app.use(express.json());
 app.use(jsonErrorHandler);
 app.use(express.urlencoded({ extended: false }));
 
-// Set up session middleware with improved configuration
+// Detect if we're in a secure production environment that uses HTTPS
+const isSecureEnvironment = process.env.NODE_ENV === 'production' && 
+                            (process.env.SECURE_COOKIES === 'true' || 
+                            process.env.SECURE_ENVIRONMENT === 'true');
+
+// Set up session middleware with improved configuration for both dev and production
 app.use(session({
   secret: process.env.SESSION_SECRET || 'metasys_erp_secure_session_secret',
   resave: false,                // Only save session if changed
   saveUninitialized: false,     // Don't create session until something stored
   rolling: true,                // Reset cookie expiration on each response
+  proxy: true,                  // Trust the reverse proxy
   cookie: { 
-    secure: process.env.NODE_ENV === 'production',
+    // Only use secure cookies in secure environment (HTTPS)
+    secure: isSecureEnvironment,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days for better persistence
     httpOnly: true,
-    sameSite: 'lax',
-    path: '/'                   // Ensure cookies are available across all paths
+    sameSite: isSecureEnvironment ? 'none' : 'lax', // Cross-site cookies for HTTPS, lax for HTTP
+    path: '/',                  // Ensure cookies are available across all paths
+    domain: undefined           // Allow the cookie to work on any domain
   },
   store: storage.sessionStore   // Use the configured database session store
 }));
