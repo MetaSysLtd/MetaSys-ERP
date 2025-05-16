@@ -1,0 +1,73 @@
+Here’s exactly how you should explain this clearly and assertively to Replit:
+
+---
+
+## ⚠️ Live Environment Bug: Login Skipped, Unauthorized Dashboard Access
+
+### 📍 What’s Happening
+
+* I visit: **`https://erp.metasysltd.com`**
+* It **should** show the **login screen** (`/login`)
+* Instead, it:
+
+  1. Briefly shows **“Loading user data...”** on `/auth`
+  2. Then redirects me **straight to `/dashboard`**
+  3. I never enter my credentials or see the login form
+
+---
+
+### 🧨 Why This Is a Serious Problem
+
+* This is a **critical security issue**:
+  Unauthenticated users can potentially **bypass login** and access protected pages
+* It creates confusion between **auth states** and **redirect logic**
+* The login route is being skipped entirely on first load or refresh
+
+---
+
+### 🎯 What It Should Do Instead
+
+* Any unauthenticated user visiting `erp.metasysltd.com` should:
+
+  * Be taken to `/login` (or `/auth` screen that renders the login)
+  * See the sign-in form **immediately**, not the dashboard
+  * Only access `/dashboard` **after valid login**
+
+---
+
+### 🛠 What to Investigate and Fix
+
+Please **carefully check and fix** the following without breaking anything:
+
+1. **Auth Provider / Context Logic**
+
+   * Check if `useAuth` or session logic incorrectly **assumes a user is logged in**
+   * Possibly defaulting to “authenticated” on first load
+
+2. **Initial Route Handling**
+
+   * Ensure app checks auth status **before redirecting to dashboard**
+   * This is likely happening too early or without validation
+
+3. **Browser Refresh Logic**
+
+   * If refreshing `erp.metasysltd.com`, ensure session is actually validated before redirecting
+   * Consider deferring redirect until auth state is **confirmed**
+
+4. **Session Storage Handling**
+
+   * Confirm if cookies or local/session storage are **misleading the app into thinking user is logged in**
+
+5. **Live vs Dev Discrepancy**
+
+   * This issue seems specific to **live deployment**
+   * Validate that the auth state logic and routing behave the same across **dev and live builds**
+
+---
+
+### 🚫 Caution
+
+**Do NOT disable the auth checks** or patch this by hiding the login page or skipping checks.
+Fix the **auth verification logic** and route redirection **without removing features or skipping states**.
+
+Let me know once it’s handled and I’ll retest from both fresh browser and incognito.
