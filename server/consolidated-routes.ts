@@ -18,6 +18,7 @@ import * as slackNotifications from "./slack";
 import * as notificationService from "./notifications";
 import * as leaderboardService from "./leaderboard";
 import { NotificationPreferences, defaultNotificationPreferences } from "./notifications";
+import { getIo, notifyDataChange } from "./socket";
 // Removed WebSocket import as we're using Socket.IO exclusively
 import errorLoggingRoutes from "./routes/error-logging";
 import statusRoutes from "./routes/status";
@@ -2395,10 +2396,24 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       });
       
       // Explicitly emit socket event for lead creation
-      emitRealTimeUpdate('lead', 'created', newLead.id, newLead, { 
-        userId: req.user?.id, 
+      const io = getIo();
+      io.to(`org:${req.user?.orgId}`).emit('realtime_update', {
+        type: 'lead',
+        action: 'created',
+        entityId: newLead.id,
+        data: newLead,
+        metadata: { 
+          userId: req.user?.id, 
+          orgId: req.user?.orgId,
+          timestamp: new Date()
+        }
+      });
+      
+      // Also use the notifyDataChange helper
+      notifyDataChange('lead', newLead.id, 'created', newLead, {
+        userId: req.user?.id,
         orgId: req.user?.orgId,
-        broadcastToOrg: true 
+        broadcastToOrg: true
       });
       
       res.status(201).json(newLead);
