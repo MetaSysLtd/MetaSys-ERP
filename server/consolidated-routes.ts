@@ -2382,7 +2382,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         entityType: 'lead',
         entityId: newLead.id,
         action: 'created',
-        details: `Created lead: ${newLead.name}`
+        details: `Created lead: ${newLead.companyName || 'Unknown Company'}`
       });
       
       // Send notifications
@@ -2390,8 +2390,15 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         leadId: newLead.id,
         action: 'created',
         title: 'New Lead Created',
-        message: `New lead '${newLead.name}' was created`,
+        message: `New lead '${newLead.companyName || 'Unknown Company'}' was created`,
         createdBy: req.user?.id || 0
+      });
+      
+      // Explicitly emit socket event for lead creation
+      emitRealTimeUpdate('lead', 'created', newLead.id, newLead, { 
+        userId: req.user?.id, 
+        orgId: req.user?.orgId,
+        broadcastToOrg: true 
       });
       
       res.status(201).json(newLead);
