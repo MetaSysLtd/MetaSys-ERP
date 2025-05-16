@@ -79,7 +79,7 @@ import TeamManagementPage from "@/pages/settings/teams";
 // Import the MetaSys logo
 import metaSysLogo from "@/assets/logos/MetaSys.png";
 
-// Improved ProtectedRoute with quick skeleton rendering
+// Enhanced ProtectedRoute with consistent redirect behavior and better state management
 function ProtectedRoute({ component: Component, ...rest }: any) {
   const { isAuthenticated, isLoading, user, error } = useAuth();
   const [showSkeleton, setShowSkeleton] = useState(true);
@@ -142,17 +142,23 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
       console.log("Auth validation complete, not authenticated, redirecting to login");
       setRedirecting(true);
       
-      // Add a small delay before redirecting to avoid race conditions
-      const redirectTimer = setTimeout(() => {
-        // Always redirect to /auth which is our main auth page
-        window.location.href = "/auth";
+      // Prevent redirect loops by checking if we're already on the auth page
+      if (window.location.pathname !== "/auth") {
+        // Add a small delay before redirecting to avoid race conditions
+        const redirectTimer = setTimeout(() => {
+          // Always redirect to /auth which is our main auth page
+          window.location.href = "/auth";
+          
+          // Clear any cached auth data to ensure a clean logout state
+          sessionStorage.clear();
+          localStorage.removeItem("metasys_ui_prefs");
+        }, 100);
         
-        // Clear any cached auth data to ensure a clean logout state
-        sessionStorage.removeItem("lastAuthCheck");
-        localStorage.removeItem("metasys_ui_prefs");
-      }, 100);
-      
-      return () => clearTimeout(redirectTimer);
+        return () => clearTimeout(redirectTimer);
+      } else {
+        // If we're already on the auth page, just reset redirect state
+        setRedirecting(false);
+      }
     }
   }, [authValidated, isLoading, isAuthenticated, redirecting]);
 

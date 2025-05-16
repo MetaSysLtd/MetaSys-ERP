@@ -281,45 +281,59 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Optimized logout function
+  // Improved logout function with better state cleanup
   const logout = async () => {
     console.log("Logout requested");
     setIsLoading(true);
 
     try {
-      // First clear client-side auth state immediately
-      setIsAuthenticated(false);
-      setUser(null);
-      setRole(null);
-      
-      // Clear session storage
-      sessionStorage.removeItem(AUTH_USER_CACHE_KEY);
-      sessionStorage.removeItem(AUTH_ROLE_CACHE_KEY);
-      sessionStorage.removeItem(AUTH_TIMESTAMP_KEY);
+      // Clear ALL browser storage to ensure complete logout
+      sessionStorage.clear();
+      localStorage.removeItem("metasys_ui_prefs");
+      localStorage.removeItem("lastAuthCheck");
       
       // Then make the server request to clear the session
+      // Wait for this to complete before redirecting
       const res = await fetch(API_ROUTES.AUTH.LOGOUT, {
         method: "POST",
         credentials: "include",
         headers: {
-          "Cache-Control": "no-cache",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
           "Pragma": "no-cache"
         }
       });
 
+      // Only after server response, update the state
+      setIsAuthenticated(false);
+      setUser(null);
+      setRole(null);
+      
       if (!res.ok) {
         console.error(`Logout API call failed with status ${res.status}`);
-        // Even if the server call fails, we still want to clear local state
+        // Add a forced clear of cookies by setting expired cookie
+        document.cookie = "metasys.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       }
       
       console.log("Logout API call completed, redirecting to auth page");
       
       // Use consistent redirect to /auth page
-      window.location.href = '/auth';
+      // The setTimeout ensures all state changes have processed before redirect
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 100);
     } catch (err) {
       console.error("Logout error:", err);
       // Even if there's an error, clear state and redirect to login
-      window.location.href = '/auth';
+      setIsAuthenticated(false);
+      setUser(null);
+      setRole(null);
+      
+      // Attempt to clear cookies directly
+      document.cookie = "metasys.sid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 100);
     } finally {
       setIsLoading(false);
     }

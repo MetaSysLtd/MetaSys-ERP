@@ -5,7 +5,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import * as notificationService from "./notifications";
 import session from "express-session";
 import { storage } from "./storage";
-import { sessionHandler } from "./middleware/error-handler";
+import { sessionAuthMiddleware } from "./middleware/auth-middleware";
 
 // JSON error handler middleware with proper type handling
 function jsonErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
@@ -34,9 +34,9 @@ app.use(express.urlencoded({ extended: false }));
 // Enhanced session middleware with robust persistence configuration
 app.use(session({
   secret: SESSION_SECRET,
-  // Save session for any changes to ensure consistency
-  resave: true,
-  // Don't save empty uninitialized sessions
+  // Don't save unmodified sessions to reduce DB writes
+  resave: false,
+  // Initialize sessions only when needed
   saveUninitialized: false,
   // Store sessions in PostgreSQL for better persistence
   store: storage.sessionStore,
@@ -50,8 +50,9 @@ app.use(session({
   }
 }));
 
-// Apply session authentication check middleware
-app.use(sessionHandler);
+// Apply lightweight session check middleware to API routes
+// This allows public routes to bypass auth
+app.use('/api', sessionAuthMiddleware);
 
 // Add a special middleware to handle API routes specifically
 // This ensures API routes are handled correctly

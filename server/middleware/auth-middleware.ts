@@ -3,13 +3,30 @@ import { storage } from '../storage';
 import { logger } from '../logger';
 import { AuthenticationError, AuthorizationError } from './error-handler';
 
-// Auth middleware function with enhanced error handling
+// Enhanced Auth middleware function with improved session handling
 export const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
+      // Log authentication attempt for debugging
+      const sessionInfo = req.session ? {
+        hasSession: true,
+        sessionData: { userId: req.session.userId, orgId: req.session.orgId }
+      } : { hasSession: false };
+      
+      console.log(`Auth check for session: ${req.sessionID}`, sessionInfo);
+      
       // Check if user is authenticated via session
       if (!req.session || !req.session.userId) {
         logger.warn(`Authentication failed: No valid session or userId for path ${req.method} ${req.path}`);
+        console.log("No valid session or userId found");
+        
+        // Always save session state changes
+        if (req.session) {
+          await new Promise<void>((resolve) => {
+            req.session.save(() => resolve());
+          });
+        }
+        
         return res.status(401).json({ 
           status: "error",
           message: "Unauthorized: Please log in to access this resource",
@@ -48,6 +65,13 @@ export const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
           if (orgs && orgs.length > 0) {
             await storage.updateUser(user.id, { orgId: orgs[0].id });
             user.orgId = orgs[0].id;
+            
+            // Save the session with updated organization
+            req.session.orgId = orgs[0].id;
+            await new Promise<void>((resolve) => {
+              req.session.save(() => resolve());
+            });
+            
             logger.info(`Assigned user ${user.id} to default organization ${orgs[0].id}`);
           } else {
             return res.status(400).json({ 
@@ -125,6 +149,28 @@ export const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
     }
   };
 };
+
+// Standalone session check middleware that only verifies session existence
+// This is used as a lightweight check for routes that don't need full role validation
+export function sessionAuthMiddleware(req: Request, res: Response, next: NextFunction) {
+  // Skip auth for public routes
+  if (req.path.startsWith('/api/public/') || 
+      req.path.startsWith('/api/auth/login') || 
+      req.path.startsWith('/api/auth/register')) {
+    return next();
+  }
+  
+  // Check if user is authenticated via session
+  if (!req.session || !req.session.userId) {
+    logger.debug(`Session check failed for ${req.method} ${req.path}`);
+    return res.status(401).json({ 
+      authenticated: false 
+    });
+  }
+  
+  // Authenticated, proceed
+  next();
+}
 
 // Role authorization middleware
 export function requireRole(roles: string[]) {
