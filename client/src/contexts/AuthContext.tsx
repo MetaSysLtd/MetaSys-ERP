@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, ReactNode, useContext } from "react";
+import { createContext, useState, useEffect, ReactNode, useContext, useCallback, useRef } from "react";
 import { API_ROUTES } from "@shared/constants";
 
 interface User {
@@ -32,6 +32,11 @@ interface AuthContextType {
   error: string | null;
 }
 
+// Cache keys for session storage
+const AUTH_USER_CACHE_KEY = 'metasys_user_cache';
+const AUTH_ROLE_CACHE_KEY = 'metasys_role_cache';
+const AUTH_TIMESTAMP_KEY = 'metasys_auth_timestamp';
+
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isLoading: true,
@@ -47,145 +52,170 @@ interface AuthProviderProps {
 }
 
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  // Try to load initial user state from session storage for faster rendering
+  const getInitialUser = () => {
+    try {
+      const cachedUser = sessionStorage.getItem(AUTH_USER_CACHE_KEY);
+      const cachedTimestamp = sessionStorage.getItem(AUTH_TIMESTAMP_KEY);
+      
+      if (cachedUser && cachedTimestamp) {
+        const timestamp = parseInt(cachedTimestamp, 10);
+        const now = Date.now();
+        // Cache valid for 5 minutes
+        if (now - timestamp < 5 * 60 * 1000) {
+          return JSON.parse(cachedUser);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load auth cache:', e);
+    }
+    return null;
+  };
+  
+  // Try to load initial role state from session storage
+  const getInitialRole = () => {
+    try {
+      const cachedRole = sessionStorage.getItem(AUTH_ROLE_CACHE_KEY);
+      const cachedTimestamp = sessionStorage.getItem(AUTH_TIMESTAMP_KEY);
+      
+      if (cachedRole && cachedTimestamp) {
+        const timestamp = parseInt(cachedTimestamp, 10);
+        const now = Date.now();
+        // Cache valid for 5 minutes
+        if (now - timestamp < 5 * 60 * 1000) {
+          return JSON.parse(cachedRole);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load role cache:', e);
+    }
+    return null;
+  };
+
+  // Initialize state with cached values if available
+  const [user, setUser] = useState<User | null>(getInitialUser());
+  const [role, setRole] = useState<Role | null>(getInitialRole());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [role, setRole] = useState<Role | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!getInitialUser());
   
+  // Reference to track if component is mounted
+  const isMountedRef = useRef(true);
+  
+  // Track ongoing auth requests to prevent duplicates
+  const authRequestInProgressRef = useRef(false);
 
+  // Check auth status on mount
   useEffect(() => {
-    // Use a flag to avoid state updates after unmount
-    let isMounted = true;
-    
-    // Try to use cached auth status for initial state
-    const cachedAuth = sessionStorage.getItem('authStatus');
-    if (cachedAuth) {
-      try {
-        const parsed = JSON.parse(cachedAuth);
-        const cacheAge = Date.now() - (parsed.timestamp || 0);
-        
-        // Only use cache if it's less than 5 minutes old
-        if (cacheAge < 5 * 60 * 1000) {
-          console.log("Using cached auth status from session storage", cacheAge/1000, "seconds old");
-          if (parsed.isAuthenticated && parsed.user) {
-            setIsAuthenticated(true);
-            setUser(parsed.user);
-            setRole(parsed.role);
-            setError(null);
-          }
-        } else {
-          console.log("Cached auth status is too old, fetching fresh data");
-        }
-      } catch (e) {
-        console.warn("Failed to parse cached auth status:", e);
-      }
-    }
-    
-    const checkAuth = async () => {
-      try {
-        // Create an AbortController for timeout handling
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-          controller.abort();
-        }, 5000); // 5 second timeout
-        
-        console.log("Initiating auth check with /me endpoint");
-        
-        // Try to fetch with timeout
-        const res = await fetch(API_ROUTES.AUTH.ME, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          },
-          signal: controller.signal
-        }).catch(err => {
-          if (err.name === 'AbortError') {
-            throw new Error('Session check timed out after 5 seconds');
-          }
-          throw err;
-        });
-        
-        // Clear the timeout as we got a response
-        clearTimeout(timeoutId);
-        
-        console.log(`Auth check response received with status: ${res.status}`);
-
-        if (res.status === 401) {
-          console.log("Auth check returned 401 Unauthorized");
-          if (isMounted) {
-            setIsAuthenticated(false);
-            setUser(null);
-            setRole(null);
-            setError("Please log in to continue");
-          }
-          return;
-        }
-
-        if (!res.ok) {
-          const errorText = await res.text().catch(() => res.statusText);
-          throw new Error(`${res.status}: ${errorText}`);
-        }
-
-        const data = await res.json();
-
-        if (data.authenticated === true || data.user) {
-          console.log("Auth check: User is authenticated");
-          if (isMounted) {
-            setIsAuthenticated(true);
-            setUser(data.user);
-            setRole(data.role);
-            setError(null);
-            
-            // Cache successful auth result in sessionStorage
-            sessionStorage.setItem('authStatus', JSON.stringify({
-              isAuthenticated: true,
-              user: data.user,
-              role: data.role,
-              timestamp: Date.now()
-            }));
-          }
-        } else {
-          console.log("Auth check: User is not authenticated");
-          if (isMounted) {
-            setIsAuthenticated(false);
-            setUser(null);
-            setRole(null);
-            setError("Authentication status unknown");
-          }
-        }
-      } catch (err: any) {
-        console.error("Auth check error:", err);
-        if (isMounted) {
-          setIsAuthenticated(false);
-          setUser(null);
-          setRole(null);
-          
-          // Set a user-friendly error message
-          if (err.message?.includes('timed out')) {
-            setError("Session check timed out. Please refresh the page or try again later.");
-          } else {
-            setError(`Authentication error: ${err.message || "Unknown error"}`);
-          }
-        }
-      } finally {
-        console.log("Auth check complete, setting isLoading to false");
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    // Always perform auth check, even if we have cached data
-    checkAuth();
-    
+    // Cleanup function
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
     };
   }, []);
 
+  // Memoized authentication check function
+  const checkAuth = useCallback(async () => {
+    // Prevent duplicate auth requests
+    if (authRequestInProgressRef.current) {
+      return;
+    }
+    
+    authRequestInProgressRef.current = true;
+    
+    try {
+      // Create an AbortController for timeout handling
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 5000); // 5 second timeout
+      
+      console.log("Initiating auth check with /me endpoint");
+      
+      // Try to fetch with timeout
+      const res = await fetch(API_ROUTES.AUTH.ME, {
+        method: "GET",
+        credentials: "include",
+        signal: controller.signal,
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
+      // Clear the timeout as we got a response
+      clearTimeout(timeoutId);
+      
+      console.log(`Auth check response received with status: ${res.status}`);
+
+      if (res.status === 401) {
+        console.log("Auth check returned 401 Unauthorized");
+        if (isMountedRef.current) {
+          setIsAuthenticated(false);
+          setUser(null);
+          setRole(null);
+          setError("Please log in to continue");
+        }
+        return;
+      }
+
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => res.statusText);
+        throw new Error(`${res.status}: ${errorText}`);
+      }
+
+      const data = await res.json();
+
+      if (data.authenticated === true || data.user) {
+        console.log("Auth check: User is authenticated");
+        if (isMountedRef.current) {
+          setIsAuthenticated(true);
+          setUser(data.user);
+          setRole(data.role);
+          setError(null);
+          
+          // Cache successful auth result in sessionStorage
+          sessionStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(data.user));
+          sessionStorage.setItem(AUTH_ROLE_CACHE_KEY, JSON.stringify(data.role));
+          sessionStorage.setItem(AUTH_TIMESTAMP_KEY, Date.now().toString());
+        }
+      } else {
+        console.log("Auth check: User is not authenticated");
+        if (isMountedRef.current) {
+          setIsAuthenticated(false);
+          setUser(null);
+          setRole(null);
+          setError("Authentication status unknown");
+        }
+      }
+    } catch (err: any) {
+      console.error("Auth check error:", err);
+      if (isMountedRef.current) {
+        setIsAuthenticated(false);
+        setUser(null);
+        setRole(null);
+        
+        // Set a user-friendly error message
+        if (err.message?.includes('timed out')) {
+          setError("Session check timed out. Please refresh the page or try again later.");
+        } else {
+          setError(`Authentication error: ${err.message || "Unknown error"}`);
+        }
+      }
+    } finally {
+      console.log("Auth check complete, setting isLoading to false");
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
+      authRequestInProgressRef.current = false;
+    }
+  }, []);
+
+  // Run auth check on mount
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // Optimized login function
   const login = async (username: string, password: string) => {
     setIsLoading(true);
     setError(null);
@@ -221,64 +251,22 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       const data = await res.json();
-      console.log("Login response:", { status: res.status, data });
+      console.log("Login response:", { status: res.status });
 
       if (!data.user) {
         throw new Error("Server returned no user data");
       }
 
-      // First update the auth state
+      // Update the auth state
       setUser(data.user);
       setRole(data.role);
       setIsAuthenticated(true);
       
-      // Verify the session is established with an immediate auth check (with timeout)
-      try {
-        console.log("Verifying session is established after login...");
-        
-        // Create an AbortController for timeout handling on verification
-        const verifyController = new AbortController();
-        const verifyTimeoutId = setTimeout(() => {
-          verifyController.abort();
-        }, 5000); // 5 second timeout
-        
-        const verifyRes = await fetch(API_ROUTES.AUTH.ME, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          },
-          signal: verifyController.signal
-        }).catch(err => {
-          if (err.name === 'AbortError') {
-            console.warn("Session verification timed out. Session may not be properly established.");
-            return null;
-          }
-          throw err;
-        });
-        
-        clearTimeout(verifyTimeoutId);
-        
-        if (!verifyRes) {
-          console.warn("Session verification timeout - but proceeding with login");
-        } else if (!verifyRes.ok) {
-          console.warn(`Session verification failed after login with status: ${verifyRes.status}`);
-        } else {
-          console.log("Session verification confirmed successful login");
-          // Parse the verification data for extra confidence
-          try {
-            const verifyData = await verifyRes.json();
-            console.log("Session verification data:", verifyData);
-          } catch (parseErr) {
-            console.warn("Error parsing verification response:", parseErr);
-          }
-        }
-      } catch (verifyErr) {
-        console.warn("Error during session verification:", verifyErr);
-      }
+      // Cache successful login in session storage
+      sessionStorage.setItem(AUTH_USER_CACHE_KEY, JSON.stringify(data.user));
+      sessionStorage.setItem(AUTH_ROLE_CACHE_KEY, JSON.stringify(data.role));
+      sessionStorage.setItem(AUTH_TIMESTAMP_KEY, Date.now().toString());
       
-      // Return successfully even if verification has issues
       return data.user;
     } catch (err: any) {
       console.error("Login error:", err);
@@ -293,15 +281,21 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Optimized logout function
   const logout = async () => {
     console.log("Logout requested");
     setIsLoading(true);
 
     try {
-      // First clear client-side auth state immediately to prevent flashing of protected content
+      // First clear client-side auth state immediately
       setIsAuthenticated(false);
       setUser(null);
       setRole(null);
+      
+      // Clear session storage
+      sessionStorage.removeItem(AUTH_USER_CACHE_KEY);
+      sessionStorage.removeItem(AUTH_ROLE_CACHE_KEY);
+      sessionStorage.removeItem(AUTH_TIMESTAMP_KEY);
       
       // Then make the server request to clear the session
       const res = await fetch(API_ROUTES.AUTH.LOGOUT, {
@@ -315,12 +309,12 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (!res.ok) {
         console.error(`Logout API call failed with status ${res.status}`);
-        // Even if the server call fails, we still want to clear local state and redirect
+        // Even if the server call fails, we still want to clear local state
       }
       
       console.log("Logout API call completed, redirecting to auth page");
       
-      // Use consistent redirect to /auth which is the main authentication page
+      // Use consistent redirect to /auth page
       window.location.href = '/auth';
     } catch (err) {
       console.error("Logout error:", err);
@@ -346,7 +340,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
 // Custom hook to use the auth context
 export const useAuth = () => {
