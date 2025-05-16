@@ -130,27 +130,19 @@ function Router() {
       </Route>
 
       <Route path="/">
-        {() => {
-          // SECURITY FIX: Force authentication check on root route
-          localStorage.removeItem('metasys_auth_timestamp');
-          return (
-            <AppLayout>
-              <ProtectedRoute component={Dashboard} />
-            </AppLayout>
-          );
-        }}
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={Dashboard} />
+          </AppLayout>
+        )}
       </Route>
 
       <Route path="/dashboard">
-        {() => {
-          // SECURITY FIX: Force authentication check on dashboard route
-          localStorage.removeItem('metasys_auth_timestamp');
-          return (
-            <AppLayout>
-              <ProtectedRoute component={Dashboard} />
-            </AppLayout>
-          );
-        }}
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={Dashboard} />
+          </AppLayout>
+        )}
       </Route>
 
       <Route path="/crm">

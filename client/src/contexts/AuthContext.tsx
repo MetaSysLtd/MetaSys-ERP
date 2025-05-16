@@ -51,10 +51,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
   // Track auth checks to prevent infinite loops in session validation
   const [authCheckCount, setAuthCheckCount] = useState(0);
-  const MAX_AUTH_CHECKS = 3;
+  const MAX_AUTH_CHECKS = 2; // Reduce max auth checks to minimize redirects
 
   // CRITICAL SECURITY FIX: Explicitly set initial state to not authenticated
   useEffect(() => {
+    // Only run initial auth check on first render
+    if (authCheckCount > 0) return;
+    
     // Clear any potentially misleading auth data in localStorage during initialization
     localStorage.removeItem('metasys_auth_timestamp');
     localStorage.removeItem('login_attempt_timestamp');
@@ -255,30 +258,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error("Server returned no user data");
       }
 
-      // Update authentication state
-      setIsAuthenticated(true);
-      setUser(data.user);
-      setRole(data.role);
+      // Note: We don't need to update authentication state here as it's already 
+      // set in the verification step above. Removing duplicate state updates.
       
-      // Immediately verify the session was established by making a follow-up auth check
-      // This ensures cookies were properly set
-      setTimeout(async () => {
-        try {
-          const verifyRes = await fetch(`${API_ROUTES.AUTH.ME}?_t=${new Date().getTime()}`, {
-            method: "GET",
-            credentials: "include",
-            headers: { 'Cache-Control': 'no-cache' }
-          });
-          
-          if (verifyRes.ok) {
-            console.log("Session verification successful after login");
-          } else {
-            console.warn("Session verification failed after login:", verifyRes.status);
-          }
-        } catch (verifyErr) {
-          console.warn("Error verifying session after login:", verifyErr);
-        }
-      }, 500);
+      // Skip redundant verification that creates multiple auth state changes
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message || "Failed to login. Please check your credentials.");
