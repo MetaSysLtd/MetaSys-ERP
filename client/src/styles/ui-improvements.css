@@ -1,0 +1,145 @@
+/* MetaSys ERP UI Improvements - May 2025 */
+
+/**
+ * BUTTON STYLING
+ * Following brand palette:
+ * Primary: #025E73 → #011F26 (hover) → #412754 (active)
+ * Secondary: #F2A71B → darker/tinted hover → alternate active
+ */
+
+/* Primary button styling */
+.btn-primary,
+button.bg-\[\#025E73\],
+button.bg-\[\#457B9D\] {
+  background-color: #025E73 !important;
+  color: white !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-primary:hover,
+button.bg-\[\#025E73\]:hover,
+button.bg-\[\#457B9D\]:hover {
+  background-color: #011F26 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.btn-primary:active,
+button.bg-\[\#025E73\]:active,
+button.bg-\[\#457B9D\]:active {
+  background-color: #412754 !important;
+  transform: translateY(0) !important;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Secondary button styling */
+.btn-secondary,
+button.bg-\[\#F2A71B\],
+button.bg-secondary {
+  background-color: #F2A71B !important;
+  color: white !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-secondary:hover,
+button.bg-\[\#F2A71B\]:hover,
+button.bg-secondary:hover {
+  background-color: #E09616 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.btn-secondary:active,
+button.bg-\[\#F2A71B\]:active,
+button.bg-secondary:active {
+  background-color: #D18613 !important;
+  transform: translateY(0) !important;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+/**
+ * SIDEBAR NAVIGATION FEEDBACK
+ * Active item styling:
+ * - Visible background highlight (very light amber)
+ * - 4px left border in brand yellow (#F2A71B)
+ * - Text switches to primary teal (#025E73) and bold
+ */
+
+/* Active sidebar link styling */
+.sidebar-link.active,
+.nav-item.active,
+[data-active=true].nav-item,
+[data-state=open].nav-item {
+  background-color: rgba(242, 167, 27, 0.15) !important;
+  color: #025E73 !important;
+  font-weight: 600 !important;
+  position: relative !important;
+}
+
+/* Add the branded left border */
+.sidebar-link.active::before,
+.nav-item.active::before,
+[data-active=true].nav-item::before,
+[data-state=open].nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 70%;
+  border-radius: 0 2px 2px 0;
+  background-color: #F2A71B;
+}
+
+/* Parent is active styling */
+.sidebar-link.parent-active,
+.nav-item.parent-active {
+  background-color: rgba(242, 167, 27, 0.1) !important;
+  color: #025E73 !important;
+  font-weight: 600 !important;
+}
+
+/* Hover state for consistency */
+.sidebar-link:hover,
+.nav-item:hover {
+  background-color: rgba(242, 167, 27, 0.05) !important;
+  color: #025E73 !important;
+}
+
+/* Style nested/sub navigation items */
+.sub-nav-item.active {
+  background-color: rgba(242, 167, 27, 0.15) !important;
+  color: #025E73 !important;
+  font-weight: 600 !important;
+  position: relative !important;
+}
+
+.sub-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 70%;
+  border-radius: 0 2px 2px 0;
+  background-color: #F2A71B;
+}
+
+/* Icon consistency for active states */
+.nav-icon,
+.sidebar-icon {
+  color: #025E73;
+  transition: color 0.2s ease;
+}
+
+.active .nav-icon,
+.active .sidebar-icon {
+  color: #025E73 !important;
+}
+
+.parent-active .nav-icon,
+.parent-active .sidebar-icon {
+  color: #025E73 !important;
+}

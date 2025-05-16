@@ -316,7 +316,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
                 ${isActiveRoute(item.href)
                   ? 'bg-[#F2A71B]/20 text-[#025E73] font-semibold relative before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#F2A71B] before:rounded-r'
                   : isParentActive(item.href)
-                    ? 'bg-[#F2A71B]/10 text-[#025E73] font-semibold'
+                    ? 'bg-[#F2A71B]/10 text-[#025E73] font-semibold relative before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#F2A71B] before:rounded-r'
                     : 'text-gray-800 bg-white/40 hover:bg-gray-100 hover:text-[#025E73]'}`}
             >
               <item.icon className={`h-[18px] w-[18px] nav-icon ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
