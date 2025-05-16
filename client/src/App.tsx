@@ -90,9 +90,9 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
     );
   }
 
-  // Fix for proper routing by using Wouter's Route instead of window.location
+  // Fix for proper routing - redirect to auth page if not authenticated
   if (!isAuthenticated) {
-    window.location.href = "/login";
+    window.location.href = "/auth";
     return null;
   }
 
@@ -102,10 +102,13 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
 function Router() {
   return (
     <Switch>
-      <Route path="/auth/login">
+      <Route path="/auth">
         <Login />
       </Route>
       <Route path="/login">
+        <Login />
+      </Route>
+      <Route path="/auth/login">
         <Login />
       </Route>
       <Route path="/auth/forgot-password">

@@ -157,21 +157,35 @@ function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
 
     try {
+      // Clear state first for immediate UI feedback
+      setIsAuthenticated(false);
+      setUser(null);
+      setRole(null);
+      
+      // Clear any stored user data
+      window.localStorage.removeItem('user');
+      window.sessionStorage.clear();
+      
+      // Make the logout request to the server
       const res = await fetch(API_ROUTES.AUTH.LOGOUT, {
         method: "POST",
-        credentials: "include"
+        credentials: "include",
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
       });
 
       if (!res.ok) {
         console.error(`Logout failed with status ${res.status}`);
       }
-
-      setIsAuthenticated(false);
-      setUser(null);
-      setRole(null);
+      
+      // Force redirect to auth page
       window.location.href = '/auth';
     } catch (err) {
       console.error("Logout error:", err);
+      // Still redirect even if there's an error
+      window.location.href = '/auth';
     } finally {
       setIsLoading(false);
     }

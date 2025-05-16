@@ -60,7 +60,10 @@ function LoginForm() {
   useEffect(() => {
     // Redirect if user is already logged in
     if (user) {
-      navigate("/");
+      const redirectTo = getRedirectPath();
+      console.log(`User already authenticated, redirecting to ${redirectTo}`);
+      navigate(redirectTo);
+      return;
     }
 
     // Set mobile state based on screen size
