@@ -49,10 +49,13 @@ export function Header({ setSidebarOpen }: HeaderProps) {
 
   const handleLogout = async () => {
     try {
+      // The logout function already handles the redirect to /auth
+      // No need for additional redirect here as it would create race conditions
       await logout();
-      window.location.href = "/login";
     } catch (error) {
       console.error("Logout failed:", error);
+      // If logout fails, still attempt to redirect to auth page as fallback
+      window.location.replace("/auth");
     }
   };
 

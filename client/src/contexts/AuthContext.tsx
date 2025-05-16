@@ -180,12 +180,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
         console.error(`Logout failed with status ${res.status}`);
       }
       
-      // Force redirect to auth page
-      window.location.href = '/auth';
+      // Using replace() instead of href to prevent adding to browser history
+      // This helps prevent back-button access to protected pages after logout
+      window.location.replace('/auth');
     } catch (err) {
       console.error("Logout error:", err);
-      // Still redirect even if there's an error
-      window.location.href = '/auth';
+      // Still redirect even if there's an error, using replace for consistency
+      window.location.replace('/auth');
     } finally {
       setIsLoading(false);
     }
