@@ -1,25 +1,51 @@
 /* Enhanced sidebar styles to improve visibility and branding */
 
-/* Increase border-width to 4px and use branded yellow for active state */
-.sidebar-nav-item.active {
+/* Target the active CRM Dashboard item (the yellow line visible in screenshot) */
+.crm-section a[href*="/crm/dashboard"] {
   border-left: 4px solid #F2A71B !important;
   background-color: rgba(242, 167, 27, 0.1) !important;
 }
 
-/* Improve hover state for better visual feedback */
-.sidebar-nav-item:hover:not(.active) {
+/* Target all sidebar navigation links */
+nav a {
+  transition: all 0.2s ease !important;
+}
+
+/* Main section items */
+nav > div > a, 
+.crm-section > a,
+nav a[href*="/dispatch"],
+nav a[href*="/invoices"],
+nav a[href*="/time-tracking"],
+nav a[href*="/admin"] {
+  position: relative;
+  border-left: 0px solid transparent;
+  transition: all 0.2s ease !important;
+}
+
+/* Hover states for all navigation links */
+nav a:hover {
   background-color: rgba(2, 94, 115, 0.05) !important;
   border-left: 4px solid rgba(242, 167, 27, 0.3) !important;
 }
 
+/* Active state for all navigation links */
+nav a.active,
+nav a[aria-current="page"] {
+  border-left: 4px solid #F2A71B !important;
+  background-color: rgba(242, 167, 27, 0.1) !important;
+}
+
 /* Enhanced branded button "pressed" state */
-.btn-primary:active {
+.btn-primary:active,
+button[class*="primary"]:active {
   background-color: #01485A !important;
   transform: translateY(1px);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
-.btn-secondary:active {
+.btn-secondary:active,
+button[class*="secondary"]:active {
   background-color: #D89216 !important;
   transform: translateY(1px);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
@@ -27,23 +53,15 @@
 
 /* Mobile sidebar improvements */
 @media (max-width: 768px) {
-  .sidebar-nav-item.active {
+  nav a.active,
+  nav a[aria-current="page"] {
     border-left: 4px solid #F2A71B !important;
     border-right: none !important;
-  }
-
-  .sidebar-nav-item {
-    padding-left: 16px !important;
   }
 }
 
 /* Improve focus states for accessibility */
-.sidebar-nav-item:focus-visible {
+nav a:focus-visible {
   outline: 2px solid #F2A71B;
   outline-offset: -2px;
-}
-
-/* Better transitions for smoother interactions */
-.sidebar-nav-item {
-  transition: all 0.2s ease;
 }
