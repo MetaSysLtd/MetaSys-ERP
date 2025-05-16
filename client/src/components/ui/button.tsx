@@ -5,19 +5,19 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#025E73] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden",
   {
     variants: {
       variant: {
-        default: "bg-[#457B9D] text-white hover:bg-[#2EC4B6] transition-colors text-sm sm:text-base px-2 sm:px-4",
+        default: "bg-[#025E73] text-white hover:bg-[#011F26] active:bg-[#412754] text-sm sm:text-base px-2 sm:px-4 hover:-translate-y-1 hover:shadow-md active:translate-y-0 active:shadow-inner",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 text-sm sm:text-base px-2 sm:px-4",
+          "bg-destructive text-white hover:bg-destructive/90 active:bg-destructive/100 text-sm sm:text-base px-2 sm:px-4 hover:-translate-y-1 hover:shadow-md active:translate-y-0 active:shadow-inner",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm sm:text-base px-2 sm:px-4",
+          "border border-[#025E73] bg-background text-[#025E73] hover:bg-[#025E73]/5 hover:border-[#011F26] active:bg-[#025E73]/10 active:border-[#025E73] text-sm sm:text-base px-2 sm:px-4 hover:-translate-y-1 hover:shadow-md active:translate-y-0 active:shadow-inner",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 text-sm sm:text-base px-2 sm:px-4",
-        ghost: "hover:bg-accent hover:text-accent-foreground text-sm sm:text-base px-2 sm:px-4",
-        link: "text-primary underline-offset-4 hover:underline text-sm sm:text-base px-2 sm:px-4",
+          "bg-[#F2A71B] text-white hover:bg-[#E09616] active:bg-[#D18613] text-sm sm:text-base px-2 sm:px-4 hover:-translate-y-1 hover:shadow-md active:translate-y-0 active:shadow-inner",
+        ghost: "hover:bg-[#025E73]/10 hover:text-[#025E73] active:bg-[#025E73]/20 text-sm sm:text-base px-2 sm:px-4",
+        link: "text-[#025E73] underline-offset-4 hover:underline hover:text-[#011F26] active:text-[#412754] text-sm sm:text-base px-2 sm:px-4",
       },
       size: {
         default: "h-10 px-4 py-2",

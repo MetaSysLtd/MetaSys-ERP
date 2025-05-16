@@ -298,8 +298,8 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
                   <Link key={subItem.href} href={subItem.href} onClick={handleLinkClick}>
                     <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-all
                       ${location === subItem.href || (subItem.href.includes('?') && location.includes(subItem.href.split('?')[0]))
-                        ? 'bg-[#F2A71B]/80 text-white' 
-                        : 'text-gray-700 hover:bg-[#025E73]/10 hover:text-[#025E73]'}`}
+                        ? 'bg-[#F2A71B]/20 text-[#025E73] font-semibold relative pl-3 before:content-[""] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-[70%] before:w-1 before:bg-[#F2A71B] before:rounded-r' 
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-[#025E73]'}`}
                     >
                       <span>{subItem.name}</span>
                     </div>
