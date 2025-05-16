@@ -1351,9 +1351,17 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       }
 
       // Store user in session with improved persistence
+      // Ensure session data is properly set
       req.session.userId = user.id;
-      req.session.orgId = user.orgId;
-      req.session.roleId = user.roleId;
+      req.session.orgId = user.orgId || null;
+      req.session.userRoleId = user.roleId; // Changed to userRoleId to avoid conflicts
+      
+      // Add debug information
+      console.log(`Setting session data for user ${user.id}: sessionID=${req.sessionID}`, {
+        userId: user.id,
+        orgId: user.orgId,
+        roleId: user.roleId
+      });
       
       // Explicitly save session to ensure it's properly stored
       await new Promise<void>((resolve, reject) => {
@@ -1362,6 +1370,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
             console.error("Session save error:", err);
             reject(err);
           } else {
+            console.log(`Session saved successfully for ${user.id}, sessionID: ${req.sessionID}`);
             resolve();
           }
         });
@@ -1376,6 +1385,14 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         
         // Log successful login
         console.log(`User ${username} logged in successfully with session ID: ${req.sessionID}`);
+        
+        // Set a cookie to help with session persistence
+        res.cookie('metasys_auth', 'true', {
+          path: '/',
+          httpOnly: false, // Allow JS access for client-side checks
+          maxAge: 24 * 60 * 60 * 1000, // 24 hours
+          sameSite: 'lax'
+        });
         
         return res.status(200).json({ 
           user: userInfo,
@@ -1548,12 +1565,21 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         hasSession: !!req.session,
         sessionData: req.session ? {
           userId: req.session.userId,
-          orgId: req.session.orgId
+          orgId: req.session.orgId,
+          userRoleId: req.session.userRoleId
         } : null
       });
       
-      if (!req.session || !req.session.userId) {
-        console.log("No valid session or userId found");
+      if (!req.session) {
+        console.log("No session object found during /me check");
+        return res.status(401).json({ 
+          authenticated: false,
+          message: "No session found"
+        });
+      }
+      
+      if (!req.session.userId) {
+        console.log("Session exists but no userId found in it:", req.sessionID);
         return res.status(401).json({ 
           authenticated: false,
           message: "No active session found"

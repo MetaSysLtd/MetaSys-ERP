@@ -18,10 +18,15 @@ export const createAuthMiddleware = (requiredRoleLevel: number = 1) => {
       // Check if user is authenticated via session
       if (!req.session || !req.session.userId) {
         logger.warn(`Authentication failed: No valid session or userId for path ${req.method} ${req.path}`);
-        console.log("No valid session or userId found");
+        console.log(`No valid session or userId found: ${req.sessionID || 'no session id'}`);
         
         // Always save session state changes
         if (req.session) {
+          console.log('Session exists but no userId in it:', {
+            sessionID: req.sessionID,
+            sessionData: req.session
+          });
+          
           await new Promise<void>((resolve) => {
             req.session.save(() => resolve());
           });
