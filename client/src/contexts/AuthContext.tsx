@@ -243,7 +243,12 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       let data;
       try {
         data = await res.json();
-        console.log("Login response received:", { hasData: !!data, hasUser: !!data?.user });
+        console.log("Login response received:", { 
+          status: res.status,
+          hasData: !!data, 
+          hasUser: !!data?.user,
+          responseData: data
+        });
       } catch (err) {
         console.error("Failed to parse response JSON:", err);
         data = null;
