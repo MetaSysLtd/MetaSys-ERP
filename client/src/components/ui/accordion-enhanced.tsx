@@ -315,7 +315,7 @@ export {
 }
 
 export type {
-  AccordionProps,
+  AccordionElementProps,
   AccordionItemProps,
   AccordionTriggerProps,
   AccordionContentProps

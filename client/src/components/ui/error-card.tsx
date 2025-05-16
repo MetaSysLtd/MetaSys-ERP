@@ -1,6 +1,6 @@
 import * as React from "react"
 import { AlertCircle, RefreshCcw, ArrowLeft } from "lucide-react"
-import { useNavigate } from "wouter"
+import { useLocation } from "wouter"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -74,7 +74,7 @@ export function ErrorCard({
   className,
   ...props
 }: ErrorCardProps) {
-  const navigate = useNavigate()[1]
+  const [, navigate] = useLocation()
   const [isExpanded, setIsExpanded] = React.useState(false)
   
   // Map severity to appropriate styling
@@ -96,8 +96,8 @@ export function ErrorCard({
   
   // Go back handler
   const handleBack = React.useCallback(() => {
-    navigate(-1)
-  }, [navigate])
+    window.history.back()
+  }, [])
   
   return (
     <Card 
