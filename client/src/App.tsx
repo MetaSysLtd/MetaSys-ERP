@@ -125,6 +125,14 @@ function Router() {
         )}
       </Route>
 
+      <Route path="/dashboard">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={Dashboard} />
+          </AppLayout>
+        )}
+      </Route>
+
       <Route path="/crm">
         {() => (
           <AppLayout>
