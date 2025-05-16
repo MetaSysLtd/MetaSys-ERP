@@ -103,7 +103,13 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
         notes: formData.remarks || undefined
       });
       
+      // Invalidate all related queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
+      
+      // Also invalidate dashboard stats and counters
+      queryClient.invalidateQueries({ queryKey: ["/api/crm/dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      
       toast({
         title: "Success",
         description: "Lead created successfully",

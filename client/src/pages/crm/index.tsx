@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, useSearch } from "wouter";
@@ -8,6 +8,8 @@ import { NewContactModal } from "@/components/modals/NewContactModal";
 import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
 import { ViewToggle } from "@/components/crm/ViewToggle";
 import { KanbanView } from "@/components/crm/KanbanView";
+import { useSocket } from "@/hooks/use-socket";
+import { useLeadEvents } from "@/hooks/use-socket";
 
 import {
   Table,
@@ -37,6 +39,8 @@ export default function CRMPage() {
   const [, setLocation] = useLocation();
   const search = useSearch();
   const searchParams = new URLSearchParams(search);
+  const queryClient = useQueryClient();
+  const { socket } = useSocket();
   
   const [newContactModalOpen, setNewContactModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "all");
@@ -45,6 +49,54 @@ export default function CRMPage() {
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
   const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "all");
   const [sortOption, setSortOption] = useState<string>("recent");
+  
+  // Socket event handlers for real-time updates
+  const handleLeadCreated = useCallback((data: any) => {
+    console.log('Lead created event received:', data);
+    // Invalidate queries to refresh data
+    queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
+    // Show toast notification
+    toast({
+      title: "New Lead Created",
+      description: `Lead ${data.companyName || '#' + data.id} has been created successfully.`,
+      variant: "default",
+    });
+  }, [queryClient, toast]);
+  
+  const handleLeadUpdated = useCallback((data: any) => {
+    console.log('Lead updated event received:', data);
+    // Invalidate queries to refresh data
+    queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
+  }, [queryClient]);
+  
+  const handleLeadStatusChanged = useCallback((data: any) => {
+    console.log('Lead status changed event received:', data);
+    // Invalidate queries to refresh data
+    queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
+    // Show toast notification
+    toast({
+      title: "Lead Status Changed",
+      description: `Lead ${data.companyName || '#' + data.id} status changed to ${data.status}.`,
+      variant: "default",
+    });
+  }, [queryClient, toast]);
+  
+  // Register socket event listeners
+  useEffect(() => {
+    if (!socket) return;
+    
+    // Subscribe to lead events
+    socket.on('lead:created', handleLeadCreated);
+    socket.on('lead:updated', handleLeadUpdated);
+    socket.on('lead:status_changed', handleLeadStatusChanged);
+    
+    // Cleanup
+    return () => {
+      socket.off('lead:created', handleLeadCreated);
+      socket.off('lead:updated', handleLeadUpdated);
+      socket.off('lead:status_changed', handleLeadStatusChanged);
+    };
+  }, [socket, handleLeadCreated, handleLeadUpdated, handleLeadStatusChanged]);
   
   // Get leads from the API
   const { data: leads, isLoading, error } = useQuery({
