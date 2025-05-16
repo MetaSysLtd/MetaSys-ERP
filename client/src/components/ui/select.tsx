@@ -237,7 +237,6 @@ const SelectItem = React.forwardRef<
       className
     )}
     role="option"
-    aria-selected={props.value === props['data-value']}
     {...props}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
