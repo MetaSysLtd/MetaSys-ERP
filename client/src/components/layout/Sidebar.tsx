@@ -72,15 +72,15 @@ const NavItemComponent = ({ item }: { item: NavItem }) => {
       <div 
         className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all
           ${isActiveRoute(item.href)
-            ? 'bg-[#025E73] text-white hover:bg-[#025E73]/90'
+            ? 'bg-[#F2A71B]/10 text-[#025E73] border-l-4 border-l-[#F2A71B] font-semibold pl-2'
             : isParentActive(item.href)
-              ? 'bg-[#F2A71B] text-white'
-              : 'text-gray-800 bg-white/40 hover:bg-[#025E73]/20 hover:text-[#025E73]'}`}
+              ? 'bg-[#F2A71B]/10 text-[#025E73] border-l-4 border-l-[#F2A71B] font-semibold pl-2'
+              : 'text-gray-800 bg-white/40 hover:bg-gray-100 hover:text-[#025E73]'}`}
       >
-        <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) ? 'text-white' : 'text-[#025E73]'}`} />
+        <item.icon className={`h-[18px] w-[18px] ${isActiveRoute(item.href) || isParentActive(item.href) ? 'text-[#025E73]' : 'text-[#025E73]/80'}`} />
         <span>{item.name}</span>
         {isActiveRoute(item.href) && (
-          <ChevronRight className="w-4 h-4 ml-auto" />
+          <ChevronRight className="w-4 h-4 ml-auto text-[#025E73]" />
         )}
       </div>
     </Link>
@@ -266,7 +266,31 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
     }
   }, [dispatch, preferences.expandedDropdown]);
 
-  // Will add the effect after navigation items are defined
+  // Effect to auto-expand parent menu when child is active
+  useEffect(() => {
+    if (!mainNavItems || !secondaryNavItems) return;
+    
+    // Check all items with children after they've been defined
+    const checkForActiveChildren = () => {
+      const allNavItems = [...mainNavItems, ...secondaryNavItems];
+      const itemWithActiveChild = allNavItems
+        .find(item => item.subItems && hasActiveChild(item.subItems));
+      
+      if (itemWithActiveChild && preferences.expandedDropdown !== itemWithActiveChild.name) {
+        dispatch(setPreferences({ ...preferences, expandedDropdown: itemWithActiveChild.name }));
+        
+        // Save to localStorage
+        try {
+          localStorage.setItem('metasys_expanded_dropdown', itemWithActiveChild.name);
+        } catch (error) {
+          console.error('Failed to save dropdown state to localStorage:', error);
+        }
+      }
+    };
+    
+    // Run after navigation items are defined
+    checkForActiveChildren();
+  }, [location, dispatch, hasActiveChild, preferences]);
 
   // Navigation item renderer function (not a React component with hooks)
   const renderNavItem = (item: NavItem, isMain = false) => {
