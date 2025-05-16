@@ -1411,6 +1411,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   });
 
   // Enhanced logout route with comprehensive session and cookie handling
+  // No middleware to ensure it always works even if auth is broken
   authRouter.post("/logout", async (req, res) => {
     try {
       // Log the session info for debugging
@@ -1447,8 +1448,9 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       // Clear session data first
       req.session.userId = undefined;
       req.session.orgId = undefined;
+      req.session.roleId = undefined;
       
-      // Save the cleared session then destroy it using promises
+      // Save the cleared session first before destroying
       await new Promise<void>((resolve, reject) => {
         req.session.save(err => {
           if (err) {
@@ -1474,7 +1476,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       });
       
       // Clear all possible session cookies with various options
-      // Clear the custom named cookie
+      // Clear the main custom cookie
       res.clearCookie('metasys.sid', {
         path: '/',
         httpOnly: true,
@@ -1517,6 +1519,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   });
 
   // Check current user session with improved session handling
+  // This endpoint needs to work regardless of middleware
   authRouter.get("/me", async (req, res, next) => {
     try {
       // Log the session for debugging
@@ -1530,7 +1533,10 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       
       if (!req.session || !req.session.userId) {
         console.log("No valid session or userId found");
-        return res.status(401).json({ authenticated: false });
+        return res.status(401).json({ 
+          authenticated: false,
+          message: "No active session found"
+        });
       }
 
       // Use a try-catch here specifically for database errors
@@ -1548,7 +1554,10 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
             });
           });
           
-          return res.status(401).json({ authenticated: false });
+          return res.status(401).json({ 
+            authenticated: false,
+            message: "User not found"
+          });
         }
 
         // Try to get role information but handle errors gracefully
