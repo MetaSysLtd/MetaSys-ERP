@@ -1,304 +1,273 @@
-import { io, Socket } from 'socket.io-client';
+/**
+ * Centralized socket service for the MetaSys ERP application
+ * This service standardizes socket interactions throughout the application.
+ */
 
-// Event types for real-time updates
+import { io, Socket } from 'socket.io-client';
+import { toast } from '@/hooks/use-toast';
+
+let socket: Socket | null = null;
+let isInitialized = false;
+let userId: number | string | null = null;
+let orgId: number | string | null = null;
+let pendingSubscriptions: Array<{ type: string; id: number | string }> = [];
+
+// Standardized event names for better consistency across the application
 export enum RealTimeEvents {
-  // Authentication events
-  USER_LOGGED_IN = 'user:logged_in',
-  USER_LOGGED_OUT = 'user:logged_out',
+  // Connection events
+  CONNECT = 'connect',
+  DISCONNECT = 'disconnect',
+  RECONNECT = 'reconnect',
+  AUTHENTICATED = 'authenticated',
+  
+  // Status events
+  DATA_REFRESH = 'data:refresh',
+  ERROR = 'error',
+  SYSTEM_MESSAGE = 'system:message',
+  SYSTEM_ALERT = 'system:alert',
   
   // Lead events
   LEAD_CREATED = 'lead:created',
   LEAD_UPDATED = 'lead:updated',
-  LEAD_STATUS_CHANGED = 'lead:status_changed',
   LEAD_DELETED = 'lead:deleted',
+  LEAD_STATUS_CHANGED = 'lead:status_changed',
   LEAD_ASSIGNED = 'lead:assigned',
-  LEAD_REMARK_ADDED = 'lead:remark_added',
-  LEAD_FOLLOW_UP_CREATED = 'lead:follow_up_created',
-  LEAD_FOLLOW_UP_COMPLETED = 'lead:follow_up_completed',
   
   // Load/Dispatch events
-  LOAD_CREATED = 'load:created',
-  LOAD_UPDATED = 'load:updated',
-  LOAD_STATUS_CHANGED = 'load:status_changed',
-  LOAD_DELETED = 'load:deleted',
-  LOAD_ASSIGNED = 'load:assigned',
+  LOAD_CREATED = 'dispatch:created',
+  LOAD_UPDATED = 'dispatch:updated',
+  LOAD_DELETED = 'dispatch:deleted',
+  LOAD_STATUS_CHANGED = 'dispatch:status_changed',
+  LOAD_ASSIGNED = 'dispatch:assigned',
+  LOAD_COMPLETED = 'dispatch:completed',
   
   // Invoice events
   INVOICE_CREATED = 'invoice:created',
   INVOICE_UPDATED = 'invoice:updated',
-  INVOICE_STATUS_CHANGED = 'invoice:status_changed',
   INVOICE_DELETED = 'invoice:deleted',
+  INVOICE_STATUS_CHANGED = 'invoice:status_changed',
+  INVOICE_PAID = 'invoice:paid',
   
   // Notification events
   NOTIFICATION_CREATED = 'notification:created',
   NOTIFICATION_READ = 'notification:read',
   NOTIFICATION_DELETED = 'notification:deleted',
   
-  // HR events
-  CANDIDATE_CREATED = 'hr:candidate_created',
-  CANDIDATE_UPDATED = 'hr:candidate_updated',
-  CANDIDATE_STATUS_CHANGED = 'hr:candidate_status_changed',
-  PROBATION_UPDATED = 'hr:probation_updated',
-  
-  // Task events
-  TASK_CREATED = 'task:created',
-  TASK_UPDATED = 'task:updated',
-  TASK_COMPLETED = 'task:completed',
-  TASK_ASSIGNED = 'task:assigned',
-  
-  // Report events
-  REPORT_GENERATED = 'report:generated',
-  REPORT_REMINDER = 'report:reminder',
-  
-  // General events
-  ERROR = 'error',
-  DATA_REFRESH = 'data:refresh',
+  // Dashboard data
   DATA_UPDATED = 'data:updated',
-  SYSTEM_MESSAGE = 'system:message'
 }
 
-// SocketService class to handle all socket operations
-class SocketService {
-  private socket: Socket | null = null;
-  private isConnected = false;
-  private isAuthenticated = false;
-  private userId: number | null = null;
-  private orgId: number | null = null;
-  private eventHandlers: Map<string, Set<Function>> = new Map();
-  private reconnectTimer: NodeJS.Timeout | null = null;
-  private reconnectAttempts = 0;
-  private MAX_RECONNECT_ATTEMPTS = 5;
-  private RECONNECT_DELAY = 3000; // 3 seconds
-  
-  // Initialize the socket connection
-  public initSocket(): void {
-    try {
-      if (this.socket) {
-        console.log('Socket already initialized');
-        return;
-      }
-      
-      // Get the base URL dynamically - use standard HTTP/HTTPS protocol for Socket.IO
-      const socketUrl = window.location.origin;
-      console.log('Connecting to socket at:', socketUrl);
-      
-      this.socket = io(socketUrl, {
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-        transports: ['websocket', 'polling']
-      });
-      
-      this.setupListeners();
-    } catch (error) {
-      console.error('Socket initialization error:', error);
-    }
+/**
+ * Initialize the socket connection to the server
+ * @returns {boolean} True if successfully initialized
+ */
+function initSocket(): boolean {
+  if (isInitialized && socket) {
+    return true;
   }
   
-  // Setup event listeners for the socket
-  private setupListeners(): void {
-    if (!this.socket) return;
+  try {
+    // Determine WebSocket URL based on current environment
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
     
-    this.socket.on('connect', () => {
-      console.log('Socket connected:', this.socket?.id);
-      this.isConnected = true;
-      this.reconnectAttempts = 0;
+    console.log('Connecting to socket at:', wsUrl);
+    
+    // Create socket connection with proper config
+    socket = io(wsUrl, {
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 20000,
+    });
+    
+    // Set up standard event handlers
+    socket.on('connect', () => {
+      console.log('Socket connected:', socket?.id);
       
-      // If we have user info, authenticate immediately after reconnecting
-      if (this.userId) {
-        this.authenticate(this.userId, this.orgId);
+      // If we have user ID, authenticate immediately
+      if (userId) {
+        authenticate(userId, orgId);
       }
       
-      // Notify all data refresh handlers
-      this.notifyHandlers(RealTimeEvents.DATA_REFRESH, { reconnected: true });
+      // Process any pending subscriptions
+      processPendingSubscriptions();
     });
     
-    this.socket.on('disconnect', () => {
-      console.log('Socket disconnected');
-      this.isConnected = false;
-      this.isAuthenticated = false;
+    socket.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason);
       
-      // Attempt to reconnect
-      this.attemptReconnect();
+      if (reason === 'io server disconnect') {
+        // Need to manually reconnect
+        setTimeout(() => socket?.connect(), 1000);
+      }
     });
     
-    this.socket.on('error', (error) => {
+    socket.on('error', (error) => {
       console.error('Socket error:', error);
-      this.notifyHandlers(RealTimeEvents.ERROR, { error });
     });
     
-    this.socket.on('authenticated', (response) => {
-      console.log('Socket authenticated:', response);
-      this.isAuthenticated = response.success;
-      
-      if (!response.success) {
-        console.error('Socket authentication failed:', response.error);
-      }
+    socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log(`Socket reconnect attempt ${attemptNumber}`);
     });
     
-    // Setup handlers for general events
-    this.socket.on(RealTimeEvents.DATA_UPDATED, (data) => {
-      this.notifyHandlers(RealTimeEvents.DATA_UPDATED, data);
+    socket.on('reconnect', () => {
+      console.log('Socket reconnected');
       
-      // Also notify specific entity handlers
-      if (data.entityType && data.action) {
-        const specificEvent = `${data.entityType}:${data.action}`;
-        this.notifyHandlers(specificEvent, data);
+      // Re-authenticate and re-subscribe
+      if (userId) {
+        authenticate(userId, orgId);
       }
+      
+      // Process any pending subscriptions
+      processPendingSubscriptions();
     });
     
-    this.socket.on(RealTimeEvents.SYSTEM_MESSAGE, (data) => {
-      this.notifyHandlers(RealTimeEvents.SYSTEM_MESSAGE, data);
-    });
+    isInitialized = true;
+    return true;
+  } catch (err) {
+    console.error('Failed to initialize socket:', err);
+    return false;
   }
+}
+
+/**
+ * Process any subscriptions that were attempted before socket was ready
+ */
+function processPendingSubscriptions(): void {
+  if (!socket || !socket.connected) return;
   
-  // Attempt to reconnect to the socket server
-  private attemptReconnect(): void {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-    }
-    
-    if (this.reconnectAttempts >= this.MAX_RECONNECT_ATTEMPTS) {
-      console.error('Max reconnect attempts reached. Please refresh the page.');
-      return;
-    }
-    
-    this.reconnectAttempts++;
-    console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.MAX_RECONNECT_ATTEMPTS})...`);
-    
-    this.reconnectTimer = setTimeout(() => {
-      if (!this.isConnected && this.socket) {
-        this.socket.connect();
-      }
-    }, this.RECONNECT_DELAY);
-  }
-  
-  // Authenticate the socket connection with user ID
-  public authenticate(userId: number, orgId: number | null = null): void {
-    if (!this.socket || !this.isConnected) {
-      console.warn('Cannot authenticate: Socket not connected');
-      return;
-    }
-    
-    this.userId = userId;
-    this.orgId = orgId;
-    
-    this.socket.emit('authenticate', { userId, orgId });
-  }
-  
-  // Switch the organization context
-  public switchOrganization(orgId: number): void {
-    if (!this.socket || !this.isConnected || !this.isAuthenticated) {
-      console.warn('Cannot switch organization: Socket not authenticated');
-      return;
-    }
-    
-    if (!this.userId) {
-      console.warn('Cannot switch organization: No user ID');
-      return;
-    }
-    
-    this.orgId = orgId;
-    this.socket.emit('switch_organization', { userId: this.userId, orgId });
-  }
-  
-  // Subscribe to updates for a specific entity
-  public subscribeToEntity(entity: string, id: number | string): void {
-    if (!this.socket || !this.isConnected) {
-      console.warn('Cannot subscribe: Socket not connected');
-      return;
-    }
-    
-    this.socket.emit('subscribe', { entity, id });
-  }
-  
-  // Unsubscribe from updates for a specific entity
-  public unsubscribeFromEntity(entity: string, id: number | string): void {
-    if (!this.socket || !this.isConnected) {
-      console.warn('Cannot unsubscribe: Socket not connected');
-      return;
-    }
-    
-    this.socket.emit('unsubscribe', { entity, id });
-  }
-  
-  // Add an event handler
-  public on(event: string, handler: Function): () => void {
-    if (!this.eventHandlers.has(event)) {
-      this.eventHandlers.set(event, new Set());
-      
-      // Add socket listener for this event if socket exists
-      if (this.socket) {
-        this.socket.on(event, (data) => {
-          this.notifyHandlers(event, data);
-        });
-      }
-    }
-    
-    this.eventHandlers.get(event)?.add(handler);
-    
-    // Return a function to remove this handler
-    return () => {
-      const handlers = this.eventHandlers.get(event);
-      if (handlers) {
-        handlers.delete(handler);
-        if (handlers.size === 0) {
-          this.eventHandlers.delete(event);
-          
-          // Remove socket listener if no handlers left
-          if (this.socket) {
-            this.socket.off(event);
-          }
-        }
-      }
-    };
-  }
-  
-  // Notify all handlers for an event
-  private notifyHandlers(event: string, data: any): void {
-    const handlers = this.eventHandlers.get(event);
-    if (handlers) {
-      handlers.forEach(handler => {
-        try {
-          handler(data);
-        } catch (error) {
-          console.error(`Error in handler for event ${event}:`, error);
-        }
-      });
-    }
-  }
-  
-  // Check if socket is connected
-  public isSocketConnected(): boolean {
-    return this.isConnected;
-  }
-  
-  // Check if socket is authenticated
-  public isSocketAuthenticated(): boolean {
-    return this.isAuthenticated;
-  }
-  
-  // Disconnect the socket
-  public disconnect(): void {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-      this.isConnected = false;
-      this.isAuthenticated = false;
-      this.userId = null;
-      this.orgId = null;
-      
-      if (this.reconnectTimer) {
-        clearTimeout(this.reconnectTimer);
-        this.reconnectTimer = null;
-      }
-      
-      this.eventHandlers.clear();
+  // Process and clear pending subscriptions
+  while (pendingSubscriptions.length > 0) {
+    const sub = pendingSubscriptions.shift();
+    if (sub) {
+      subscribeToEntity(sub.type, sub.id);
     }
   }
 }
 
-// Create singleton instance
-const socketService = new SocketService();
+/**
+ * Authenticate the socket connection with user credentials
+ * @param {number|string} id User ID
+ * @param {number|string|null} organization Organization ID (optional)
+ */
+function authenticate(id: number | string, organization: number | string | null = null): void {
+  if (!socket) {
+    initSocket();
+  }
+  
+  userId = id;
+  orgId = organization;
+  
+  if (socket && socket.connected) {
+    console.log('Authenticating socket with user ID:', id);
+    socket.emit('authenticate', { userId: id, orgId: organization });
+  }
+}
 
-export default socketService;
+/**
+ * Subscribe to events for a specific entity
+ * @param {string} entityType Type of entity (e.g., 'lead', 'load', 'invoice')
+ * @param {number|string} entityId ID of the entity
+ */
+function subscribeToEntity(entityType: string, entityId: number | string): void {
+  if (!socket) {
+    initSocket();
+  }
+  
+  if (!socket || !socket.connected) {
+    // Queue subscription for later
+    pendingSubscriptions.push({ type: entityType, id: entityId });
+    return;
+  }
+  
+  console.log(`Subscribing to ${entityType}:${entityId}`);
+  socket.emit('subscribe', { entityType, entityId });
+}
+
+/**
+ * Unsubscribe from events for a specific entity
+ * @param {string} entityType Type of entity
+ * @param {number|string} entityId ID of the entity
+ */
+function unsubscribeFromEntity(entityType: string, entityId: number | string): void {
+  if (!socket || !socket.connected) return;
+  
+  console.log(`Unsubscribing from ${entityType}:${entityId}`);
+  socket.emit('unsubscribe', { entityType, entityId });
+}
+
+/**
+ * Subscribe to a specific event
+ * @param {string} event Event name
+ * @param {Function} handler Event handler function
+ * @returns {Function} Function to unsubscribe from the event
+ */
+function on(event: string, handler: Function): () => void {
+  if (!socket) {
+    initSocket();
+  }
+  
+  if (!socket) return () => {};
+  
+  console.log(`Setting up handler for ${event}`);
+  socket.on(event, handler as (...args: any[]) => void);
+  
+  return () => {
+    if (socket) {
+      console.log(`Removing handler for ${event}`);
+      socket.off(event, handler as (...args: any[]) => void);
+    }
+  };
+}
+
+/**
+ * Emit an event to the server
+ * @param {string} event Event name
+ * @param {any} data Event data
+ */
+function emit(event: string, data: any): void {
+  if (!socket) {
+    initSocket();
+  }
+  
+  if (!socket || !socket.connected) {
+    console.warn(`Cannot emit ${event}, socket not connected`);
+    return;
+  }
+  
+  console.log(`Emitting ${event}:`, data);
+  socket.emit(event, data);
+}
+
+/**
+ * Disconnect the socket
+ */
+function disconnect(): void {
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+    isInitialized = false;
+  }
+}
+
+/**
+ * Check if socket is connected
+ * @returns {boolean} Connection status
+ */
+function isConnected(): boolean {
+  return !!(socket && socket.connected);
+}
+
+// Export the service functions
+export default {
+  initSocket,
+  authenticate,
+  subscribeToEntity,
+  unsubscribeFromEntity,
+  on,
+  emit,
+  disconnect,
+  isConnected,
+  RealTimeEvents,
+};

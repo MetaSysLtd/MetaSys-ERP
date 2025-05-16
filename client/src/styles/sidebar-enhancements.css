@@ -1,0 +1,133 @@
+/* 
+ * Enhanced sidebar navigation styling 
+ * Implements the 4px yellow border and improves active state visibility
+ */
+
+/* Active sidebar item with enhanced left border */
+.nav-item.active,
+.sidebar-link.active,
+[data-active=true].nav-item,
+[data-state=open].nav-item,
+[data-sidebar="menu-button"][data-state="open"],
+[data-sidebar="menu-button"][data-active="true"] {
+  position: relative !important;
+  background-color: rgba(242, 167, 27, 0.2) !important;
+  color: #025E73 !important;
+  font-weight: 600 !important;
+}
+
+/* Active sidebar left accent border - ENHANCED per requirements */
+.nav-item.active::before,
+.sidebar-link.active::before,
+[data-active=true].nav-item::before,
+[data-state=open].nav-item::before,
+[data-sidebar="menu-button"][data-state="open"]::before,
+[data-sidebar="menu-button"][data-active="true"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px; /* ENHANCED: Increased from 2px to 4px per requirements */
+  height: 80%; /* ENHANCED: Increased for better visibility */
+  border-radius: 0 3px 3px 0;
+  background-color: #F2A71B; /* Brand yellow */
+  box-shadow: 0 0 8px rgba(242, 167, 27, 0.5); /* Subtle glow effect */
+  transition: all 0.2s ease-in-out;
+}
+
+/* Parent active state */
+.nav-item.parent-active,
+.sidebar-link.parent-active,
+[data-parent-active="true"].nav-item {
+  background-color: rgba(242, 167, 27, 0.1) !important;
+  color: #025E73 !important;
+  font-weight: 500 !important;
+  position: relative !important;
+}
+
+.nav-item.parent-active::before,
+.sidebar-link.parent-active::before,
+[data-parent-active="true"].nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px; /* Thinner than active, but still visible */
+  height: 60%;
+  border-radius: 0 2px 2px 0;
+  background-color: #F2A71B;
+  opacity: 0.7;
+}
+
+/* Sub-menu items active state */
+.sidebar-sub-link.active,
+[data-sidebar="menu-sub-item"][data-active="true"] {
+  background-color: rgba(242, 167, 27, 0.2) !important;
+  color: #025E73 !important;
+  font-weight: 600 !important;
+  position: relative !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.sidebar-sub-link.active::before,
+[data-sidebar="menu-sub-item"][data-active="true"]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px; /* Consistent with parent items */
+  height: 70%;
+  border-radius: 0 2px 2px 0;
+  background-color: #F2A71B;
+}
+
+/* Hover states with smooth transition */
+.nav-item:not(.active):not(.parent-active):hover,
+.sidebar-link:not(.active):not(.parent-active):hover,
+[data-sidebar="menu-button"]:not([data-active="true"]):not([data-state="open"]):hover {
+  background-color: rgba(242, 167, 27, 0.05) !important;
+  color: #025E73 !important;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Icon styling */
+.nav-icon,
+.sidebar-icon {
+  transition: color 0.2s ease-in-out;
+}
+
+.active .nav-icon,
+.active .sidebar-icon,
+[data-active="true"] .nav-icon,
+[data-active="true"] .sidebar-icon {
+  color: #025E73 !important;
+}
+
+/* Enhanced button pressed state for both primary and secondary buttons */
+.btn-secondary:active,
+button.bg-\[\#F2A71B\]:active,
+button.bg-secondary:active,
+.btn-primary:active,
+button.bg-\[\#025E73\]:active,
+button.bg-primary:active {
+  transform: translateY(1px) !important;
+  box-shadow: inset 0 3px 5px 0 rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.05s ease-in-out !important;
+}
+
+/* Primary buttons pressed state */
+.btn-primary:active,
+button.bg-\[\#025E73\]:active,
+button.bg-primary:active {
+  background-color: #01485A !important; /* Darker teal for pressed state */
+}
+
+/* Secondary buttons pressed state */
+.btn-secondary:active,
+button.bg-\[\#F2A71B\]:active,
+button.bg-secondary:active {
+  background-color: #D18613 !important; /* Darker yellow for pressed state */
+}

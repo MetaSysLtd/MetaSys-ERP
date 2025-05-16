@@ -909,9 +909,11 @@
   /* Selected link with pill highlight and left accent */
   .sidebar-link.active {
     color: var(--c-brand-teal);
-    background-color: rgba(242, 167, 27, 0.15);
+    background-color: rgba(242, 167, 27, 0.2); /* Slightly darker for better contrast */
     position: relative;
     font-weight: 600;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 10px rgba(242, 167, 27, 0.2); /* Subtle glow effect */
   }
   
   .sidebar-link.active::before {
@@ -920,10 +922,11 @@
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    width: 4px;
-    height: 70%;
+    width: 4px; /* Keep 4px as requested */
+    height: 80%; /* Increased height for better visibility */
     border-radius: 0 2px 2px 0;
     background-color: var(--c-brand-yellow);
+    box-shadow: 0 0 8px rgba(242, 167, 27, 0.5); /* Subtle glow effect */
   }
   
   /* Icon background circles */

@@ -3,6 +3,7 @@ import socketService, { RealTimeEvents } from '../services/socket-service';
 import { useAuth } from './use-auth';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from './use-toast';
+import { useSocket, SocketEvents } from './use-socket';
 
 export type RealtimeConfig = {
   onReconnect?: (data: any) => void;

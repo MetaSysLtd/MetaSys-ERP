@@ -112,13 +112,15 @@ router.post('/', createAuthMiddleware(1), async (req, res, next) => {
     // In a real implementation, this would save to database
     // For now, just return the created lead
     
-    // Emit a socket event to notify clients of the new lead
-    if (req.app.locals.io) {
-      req.app.locals.io.emit('leadCreated', {
-        lead: newLead,
-        createdBy: req.user?.id
-      });
-    }
+    // Import event emitter service
+    const eventEmitter = await import('../services/event-emitter');
+    
+    // Emit standardized lead created event for real-time updates
+    eventEmitter.emitLeadCreated(
+      newLead,
+      req.user?.id || 0,
+      newLead.orgId || 1
+    );
     
     res.status(201).json(newLead);
   } catch (error) {
@@ -278,12 +280,28 @@ router.put('/:id', createAuthMiddleware(1), async (req, res, next) => {
     // In a real implementation, this would update the database
     // For now, just return the updated lead
     
-    // Emit a socket event to notify clients of the lead update
-    if (req.app.locals.io) {
-      req.app.locals.io.emit('leadUpdated', {
-        lead: updatedLead,
-        updatedBy: req.user?.id
-      });
+    // Import event emitter service
+    const eventEmitter = await import('../services/event-emitter');
+    
+    // Check if status was changed
+    const previousStatus = req.body.previousStatus;
+    const newStatus = updatedLead.status;
+    
+    // Emit standardized lead updated event
+    eventEmitter.emitLeadUpdated(
+      updatedLead,
+      req.user?.id || 0,
+      updatedLead.orgId || 1
+    );
+    
+    // If status changed, emit a separate status change event
+    if (previousStatus && newStatus && previousStatus !== newStatus) {
+      eventEmitter.emitLeadStatusChanged(
+        updatedLead,
+        previousStatus,
+        req.user?.id || 0,
+        updatedLead.orgId || 1
+      );
     }
     
     res.json(updatedLead);
