@@ -108,26 +108,46 @@ export const getQueryFn: <T>(options: {
     const url = queryKey[0] as string;
     const cacheKey = getCacheKey(url, 'GET');
     
-    // Use deduplication for GET requests
+    // Try to get from memory cache first (with 10 second TTL for frequently accessed data)
+    const cachedData = getCachedData(cacheKey, 10000);
+    if (cachedData) {
+      return cachedData;
+    }
+    
+    // Use deduplication for GET requests if an identical request is in flight
     const existingRequest = inFlightRequests.get(cacheKey);
     if (existingRequest) {
       console.log('Using in-flight query for:', url);
-      const res = await existingRequest;
-      
-      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-        return null;
+      try {
+        const res = await existingRequest;
+        
+        if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+          return null;
+        }
+        
+        const data = await res.json();
+        // Cache successful responses
+        setCachedData(cacheKey, data);
+        return data;
+      } catch (error) {
+        // If the request fails, don't cache the error
+        console.error('Error in existing request:', error);
+        throw error;
       }
-      
-      return await res.json();
     }
     
     console.log('Making query to:', url);
     
-    // Create new request promise and cache it
+    // Create new request promise with better error handling
     const requestPromise = fetch(url, {
       credentials: "include",
+      // Add cache-busting for critical auth requests
+      headers: url.includes('/auth/') ? { 
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      } : {},
     }).then(async (res) => {
-      // Remove from cache
+      // Remove from in-flight cache immediately
       inFlightRequests.delete(cacheKey);
       
       if (unauthorizedBehavior === "returnNull" && res.status === 401) {
@@ -139,18 +159,69 @@ export const getQueryFn: <T>(options: {
     }).catch(err => {
       // Also remove on error
       inFlightRequests.delete(cacheKey);
+      console.error(`Query error for ${url}:`, err.message);
       throw err;
     });
     
-    // Store in cache
+    // Store in in-flight requests cache
     inFlightRequests.set(cacheKey, requestPromise);
     
-    // Wait for the response and parse JSON
-    const res = await requestPromise;
-    return res.status === 401 && unauthorizedBehavior === "returnNull" 
-      ? null 
-      : await res.json();
+    try {
+      // Wait for the response and parse JSON
+      const res = await requestPromise;
+      if (res.status === 401 && unauthorizedBehavior === "returnNull") {
+        return null;
+      }
+      
+      const data = await res.json();
+      
+      // Cache successful responses that aren't authentication related
+      if (!url.includes('/auth/')) {
+        setCachedData(cacheKey, data);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error(`Failed to fetch data from ${url}:`, error);
+      throw error;
+    }
   };
+
+// Enhanced request deduplication with additional result caching
+const requestCache = new Map<string, {
+  timestamp: number;
+  data: any;
+}>();
+
+// Helper to get cached data if it's still fresh
+function getCachedData(cacheKey: string, maxAge: number = 10000): any | null {
+  const cached = requestCache.get(cacheKey);
+  if (cached && (Date.now() - cached.timestamp) < maxAge) {
+    console.log('Using memory-cached result for:', cacheKey);
+    return cached.data;
+  }
+  return null;
+}
+
+// Helper to store data in the cache
+function setCachedData(cacheKey: string, data: any): void {
+  requestCache.set(cacheKey, {
+    timestamp: Date.now(),
+    data
+  });
+}
+
+// Clean up old cache entries periodically (every 5 minutes)
+setInterval(() => {
+  const now = Date.now();
+  const maxAge = 5 * 60 * 1000; // 5 minutes
+  
+  requestCache.forEach((value, key) => {
+    if (now - value.timestamp > maxAge) {
+      requestCache.delete(key);
+    }
+  });
+}, 5 * 60 * 1000);
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -158,8 +229,17 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: 60000, // 1 minute stale time is a better balance
-      retry: false,
+      staleTime: 120000, // Increased to 2 minutes for better performance
+      gcTime: 300000, // 5 minutes garbage collection time to reduce memory usage
+      retry: (failureCount, error) => {
+        // Don't retry auth errors or when we've already tried 2 times
+        if (error instanceof Error) {
+          const message = error.message || '';
+          return !message.includes('401') && failureCount < 2;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff with max 10s
     },
     mutations: {
       retry: false,
