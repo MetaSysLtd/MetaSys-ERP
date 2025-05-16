@@ -35,7 +35,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       timeout: 20000,
       auth: {
         userId: user.id,
-        orgId: user.orgId,
+        orgId: (user as any).orgId || 1, // Safe access with fallback
       },
     });
 

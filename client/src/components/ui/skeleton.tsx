@@ -68,4 +68,43 @@ export function AppLayoutSkeleton() {
   )
 }
 
+/**
+ * Dashboard skeleton for initial loading state of dashboard components
+ */
+export function DashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* KPI row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array(4).fill(0).map((_, i) => (
+          <KPICardSkeleton key={i} />
+        ))}
+      </div>
+      
+      {/* Charts row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="p-6 rounded-lg border border-border bg-card h-[300px] flex flex-col">
+          <Skeleton className="h-6 w-32 mb-4" />
+          <Skeleton className="h-[240px] w-full" />
+        </div>
+        <div className="p-6 rounded-lg border border-border bg-card h-[300px] flex flex-col">
+          <Skeleton className="h-6 w-32 mb-4" />
+          <Skeleton className="h-[240px] w-full" />
+        </div>
+      </div>
+      
+      {/* Table row */}
+      <div className="p-6 rounded-lg border border-border bg-card">
+        <Skeleton className="h-6 w-32 mb-4" />
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-full" />
+          {Array(5).fill(0).map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full" />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export { Skeleton }

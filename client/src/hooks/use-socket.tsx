@@ -68,7 +68,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       timeout: 20000,
       auth: {
         userId: user.id,
-        orgId: user.orgId,
+        orgId: (user as any).orgId || 1, // Safely handle orgId even if not in type
       },
     });
     

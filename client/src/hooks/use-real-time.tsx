@@ -39,7 +39,7 @@ export function useRealTime(config?: RealtimeConfig) {
   // Authenticate when user changes
   useEffect(() => {
     if (user && user.id) {
-      socketService.authenticate(user.id, user.orgId || null);
+      socketService.authenticate(user.id, (user as any).orgId || null);
     }
   }, [user]);
 
@@ -61,13 +61,13 @@ export function useRealTime(config?: RealtimeConfig) {
     cleanupFns.current.push(disconnectHandler);
 
     // Setup authenticated handler
-    const authenticatedHandler = socketService.on('authenticated', (response) => {
+    const authenticatedHandler = socketService.on('authenticated', (response: { success: boolean }) => {
       setIsAuthenticated(response.success);
     });
     cleanupFns.current.push(authenticatedHandler);
 
     // Setup data refresh handler
-    const dataRefreshHandler = socketService.on(RealTimeEvents.DATA_REFRESH, (data) => {
+    const dataRefreshHandler = socketService.on(RealTimeEvents.DATA_REFRESH, (data: { reconnected?: boolean, [key: string]: any }) => {
       if (data.reconnected && config.onReconnect) {
         config.onReconnect(data);
       }
@@ -75,7 +75,7 @@ export function useRealTime(config?: RealtimeConfig) {
     cleanupFns.current.push(dataRefreshHandler);
 
     // Setup error handler
-    const errorHandler = socketService.on(RealTimeEvents.ERROR, (data) => {
+    const errorHandler = socketService.on(RealTimeEvents.ERROR, (data: any) => {
       if (config.onError) {
         config.onError(data);
       }
@@ -83,7 +83,12 @@ export function useRealTime(config?: RealtimeConfig) {
     cleanupFns.current.push(errorHandler);
 
     // Setup system message handler
-    const systemMessageHandler = socketService.on(RealTimeEvents.SYSTEM_MESSAGE, (data) => {
+    const systemMessageHandler = socketService.on(RealTimeEvents.SYSTEM_MESSAGE, (data: { 
+      title?: string; 
+      message?: string; 
+      variant?: string;
+      [key: string]: any;
+    }) => {
       if (config.handleSystemMessage) {
         config.handleSystemMessage(data);
       } else {
@@ -91,7 +96,7 @@ export function useRealTime(config?: RealtimeConfig) {
         toast({
           title: data.title || 'System Message',
           description: data.message || 'A system message was received.',
-          variant: data.variant || 'default',
+          variant: (data.variant as "default" | "destructive" | "success" | "warning" | undefined) || 'default',
         });
       }
     });

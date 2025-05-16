@@ -1,16 +1,17 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import "./styles/sidebar-enhancements.css"; // Import sidebar enhancements CSS
 import { RealTimeProvider } from "./contexts/RealTimeContext";
 
 // Initialize global error handlers with console tracking
 const originalConsoleError = console.error;
-console.error = function() {
-  // Call the original console.error
-  originalConsoleError.apply(console, arguments);
+console.error = function(...args: any[]) {
+  // Call the original console.error with spread arguments
+  originalConsoleError(...args);
   
   // Log that the global error handler caught this
-  console.log("[Global Error]", arguments[0]);
+  console.log("[Global Error]", args[0]);
 };
 
 // Initialize global error handling
