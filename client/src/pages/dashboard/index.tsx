@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -24,6 +24,8 @@ import { DispatchPerformance } from "@/components/dashboard/DispatchPerformance"
 import { PerformanceAlertWidget } from "@/components/dispatch/performance-alert-widget";
 import { DispatchReportAutomation } from "@/components/dashboard/DispatchReportAutomation";
 import { MotionWrapper, MotionList } from "@/components/ui/motion-wrapper-fixed";
+import { DashboardSkeleton } from "@/components/ui/skeleton";
+import { useDashboardData } from "@/hooks/use-dashboard-data";
 
 import { DashboardWidgetManager } from "@/components/dashboard/DashboardWidgetManager";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
@@ -40,6 +42,28 @@ export default function Dashboard() {
   const [department, setDepartment] = useState("all");
   const [hasError, setHasError] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [uiReady, setUiReady] = useState(false);
+  
+  // Use our new parallel data loading hook for improved performance
+  const {
+    isLoading: criticalDataLoading,
+    hasTimedOut,
+    userData,
+    kpiData,
+    revenueData,
+    activitiesData,
+    refetchAll
+  } = useDashboardData();
+
+  // Set a quick timeout to ensure the UI frame appears instantly
+  // even before data is loaded (perceived performance boost)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setUiReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   // Default data to use as fallback when the API call fails
   const fallbackData = {
@@ -121,6 +145,15 @@ export default function Dashboard() {
     retry: 3, // Retry up to 3 times
     retryDelay: 3000, // 3 seconds between retries
   });
+  
+  // Handle the skeleton state display for the first render
+  if (!uiReady || criticalDataLoading) {
+    return (
+      <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
+        <DashboardSkeleton />
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary moduleName="dashboard">

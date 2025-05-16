@@ -29,8 +29,61 @@ interface RevenueCardProps {
 }
 
 export function RevenueCard({ data }: RevenueCardProps) {
-  // Return placeholder UI if no data is provided
-  if (!data) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasTimedOut, setHasTimedOut] = useState(false);
+  
+  // Set a timeout for loading - if data doesn't load within 1 second,
+  // we'll show the empty state without waiting for the API
+  useEffect(() => {
+    // Show initial skeleton
+    setIsLoading(true);
+    setHasTimedOut(false);
+    
+    // Set a minimum loading time to prevent flickering (300ms)
+    const minLoadingTimer = setTimeout(() => {
+      if (data) {
+        setIsLoading(false);
+      }
+    }, 300);
+    
+    // Set a maximum loading time before showing fallback (1000ms)
+    const timeoutTimer = setTimeout(() => {
+      setIsLoading(false);
+      if (!data) {
+        setHasTimedOut(true);
+      }
+    }, 1000);
+    
+    return () => {
+      clearTimeout(minLoadingTimer);
+      clearTimeout(timeoutTimer);
+    };
+  }, [data]);
+  
+  // Show a skeleton loader during initial loading
+  if (isLoading) {
+    return (
+      <Card className="shadow rounded-lg">
+        <CardHeader className="px-5 py-4 border-b border-gray-200">
+          <CardTitle className="text-lg leading-6 font-medium text-gray-900">
+            Revenue Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-5">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-28" />
+            </div>
+            <Skeleton className="h-72 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Return placeholder UI if no data is provided or timed out
+  if (!data || hasTimedOut) {
     return (
       <Card className="shadow rounded-lg">
         <CardHeader className="px-5 py-4 border-b border-gray-200">
