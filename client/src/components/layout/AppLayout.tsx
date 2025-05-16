@@ -1,11 +1,12 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import SimpleSidebar from "./SimpleSidebar";
 import { Header } from "./Header";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
 import { NotificationContainer } from "./NotificationContainer";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedPage } from "@/components/ui/AnimatedPage";
+import { AppLayoutSkeleton } from "@/components/ui/skeleton";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -19,6 +20,17 @@ export function AppLayout({ children }: AppLayoutProps) {
     return storedPref ? JSON.parse(storedPref) : false;
   });
   const [location] = useLocation();
+  const [layoutReady, setLayoutReady] = useState(false);
+  
+  // Load the layout frame quickly
+  useEffect(() => {
+    // Mark layout as ready after a very short delay to ensure skeleton shows first
+    const timer = setTimeout(() => {
+      setLayoutReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   // Handle mobile sidebar closing when menu item is clicked
   const handleCloseSidebar = () => {
@@ -30,6 +42,11 @@ export function AppLayout({ children }: AppLayoutProps) {
     setSidebarCollapsed(collapsed);
     localStorage.setItem('sidebarCollapsed', JSON.stringify(collapsed));
   };
+  
+  // Show skeleton UI during initial load for better perceived performance
+  if (!layoutReady) {
+    return <AppLayoutSkeleton />;
+  }
   
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50">

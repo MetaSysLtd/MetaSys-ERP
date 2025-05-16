@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   LineChart,
   Line,
@@ -11,6 +13,7 @@ import {
   Legend
 } from "recharts";
 import { formatCurrency } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 interface RevenueData {
   total: number;

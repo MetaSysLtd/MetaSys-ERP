@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MetricCard } from './MetricCard';
 import { useQuery } from '@tanstack/react-query';
 import { formatCurrency } from '@/lib/utils';
 import { metricCardStyles } from '@/lib/style-utils';
+import { KPICardSkeleton } from '@/components/ui/skeleton';
 
 // Define the metrics interface
 interface DashboardMetrics {
@@ -37,13 +38,39 @@ interface KPISectionProps {
 
 export function KPISection({ metrics: propMetrics }: KPISectionProps) {
   const [filter, setFilter] = useState('all');
+  const [showSkeleton, setShowSkeleton] = useState(true);
   
   // Only fetch metrics if not provided as props
-  const { data: fetchedMetrics } = useQuery({
+  const { data: fetchedMetrics, isLoading, error } = useQuery({
     queryKey: ['/api/dashboard/metrics'],
     queryFn: () => fetch('/api/dashboard/metrics').then(res => res.json()),
-    enabled: !propMetrics
+    enabled: !propMetrics,
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: false
   });
+
+  // Handle loading state with timeout for perceived performance
+  useEffect(() => {
+    // Show skeleton for at least 300ms to prevent flicker
+    const timer = setTimeout(() => {
+      setShowSkeleton(false);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // If we're still loading and the timeout hasn't elapsed, show skeleton
+  if ((isLoading && !propMetrics) && showSkeleton) {
+    return (
+      <div className={metricCardStyles.grid}>
+        <KPICardSkeleton />
+        <KPICardSkeleton />
+        <KPICardSkeleton />
+        <KPICardSkeleton />
+        <KPICardSkeleton />
+      </div>
+    );
+  }
 
   // Use provided metrics or fetched metrics with empty state handling
   const metrics = propMetrics || fetchedMetrics || {
