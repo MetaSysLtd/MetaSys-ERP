@@ -169,7 +169,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(false);
       setUser(null);
       setRole(null);
-      window.location.href = '/login';
+      window.location.href = '/auth';
     } catch (err) {
       console.error("Logout error:", err);
     } finally {

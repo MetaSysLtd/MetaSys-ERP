@@ -2,8 +2,31 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let errorMessage = "";
+    
+    // Try to parse as JSON first
+    try {
+      const errorJson = await res.json();
+      errorMessage = errorJson.message || errorJson.error || JSON.stringify(errorJson);
+    } catch {
+      // If not JSON, get as text
+      errorMessage = await res.text() || res.statusText;
+    }
+    
+    // Handle specific status codes
+    if (res.status === 401) {
+      // If we're already on the auth page, don't redirect again
+      if (!window.location.pathname.includes('/auth')) {
+        console.error('Authentication error detected, redirecting to login');
+        // Clear any stale state and redirect to login
+        window.localStorage.removeItem('user');
+        window.sessionStorage.clear();
+        window.location.href = '/auth';
+        throw new Error('Unauthorized: Please log in to access this resource');
+      }
+    }
+    
+    throw new Error(`${res.status}: ${errorMessage}`);
   }
 }
 
