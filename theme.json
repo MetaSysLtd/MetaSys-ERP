@@ -1,16 +1,22 @@
 {
   "variant": "tint",
-  "primary": "#1D3557",
+  "primary": "#025E73",
   "appearance": "light",
   "radius": 0.5,
-  "secondary": "#457B9D",
+  "secondary": "#F2A71B",
   "colors": {
-    "brand-navy": "#1D3557",
-    "brand-accent": "#457B9D",
+    "brand-navy": "#025E73",
+    "brand-navy-dark": "#011F26",
+    "brand-navy-hover": "#011F26",
+    "brand-navy-active": "#412754",
+    "brand-accent": "#F2A71B",
+    "brand-accent-dark": "#D78F0F",
+    "brand-accent-hover": "#D78F0F",
+    "brand-accent-active": "#412754",
     "brand-highlight": "#2EC4B6",
     "brand-contrast": "#FFDD57",
     "brand-background": "#F1FAFB",
     "brand-border": "#D6D6D6",
-    "brand-text": "#1D3557"
+    "brand-text": "#333333"
   }
 }

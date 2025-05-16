@@ -12,14 +12,18 @@ export default {
       },
       colors: {
         brandNavy: {
-          DEFAULT: "#1D3557",
-          light: "#2A4A78",
-          dark: "#142841",
+          DEFAULT: "#025E73",
+          light: "#037A96",
+          dark: "#011F26",
+          hover: "#011F26",
+          active: "#412754",
         },
         brandAccent: {
-          DEFAULT: "#457B9D",
-          light: "#5C9AC1",
-          dark: "#35647E",
+          DEFAULT: "#F2A71B",
+          light: "#F9BD4D",
+          dark: "#D78F0F",
+          hover: "#D78F0F",
+          active: "#412754",
         },
         brandHighlight: {
           DEFAULT: "#2EC4B6",

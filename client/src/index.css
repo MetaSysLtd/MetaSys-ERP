@@ -21,21 +21,25 @@
 
 :root {
   /* Core Design System Colors */
-  --c-primary: #1D3557;       /* Primary dark blue */
-  --c-primary-light: #2A4A78;
-  --c-primary-dark: #142841;
+  --c-primary: #025E73;       /* Primary dark blue */
+  --c-primary-light: #037A96;
+  --c-primary-dark: #011F26;
+  --c-primary-hover: #011F26;
+  --c-primary-active: #412754;
   
-  --c-accent: #457B9D;        /* Accent bright blue */
-  --c-accent-light: #5C9AC1;
-  --c-accent-dark: #35647E;
+  --c-accent: #F2A71B;        /* Accent bright gold */
+  --c-accent-light: #F9BD4D;
+  --c-accent-dark: #D78F0F;
+  --c-accent-hover: #D78F0F;
+  --c-accent-active: #412754;
   
   --c-highlight: #2EC4B6;     /* Highlight aqua */
   --c-highlight-light: #4DD6CA;
   --c-highlight-dark: #25A195;
   
-  --c-contrast: #FFDD57;      /* Contrast soft yellow */
-  --c-contrast-light: #FFE57A;
-  --c-contrast-dark: #ECC93A;
+  --c-contrast: #412754;      /* Contrast plum */
+  --c-contrast-light: #583872;
+  --c-contrast-dark: #2F1D3C;
   
   /* UI System Colors */
   --c-bg-primary: #FFFFFF;

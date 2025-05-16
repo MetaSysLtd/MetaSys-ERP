@@ -1,0 +1,116 @@
+Alright—here’s a concise, high-level spec you can hand off to Replit (or any front-ender) without diving into code. Treat this as your “ticket” list with clear objectives, flows, and acceptance criteria:
+
+---
+
+## 1. **Global Button & Interaction States**
+
+**Problem:**
+Some buttons (e.g. “Sign In,” “Update Metrics,” sidebar toggles) flicker to yellow on click, others don’t. Users can’t build muscle memory.
+
+**What to Deliver:**
+
+* **Single source of truth** for all clickable controls: primary, secondary, tertiary.
+* **Hover / active / focus** states must use our brand palette:
+
+  * Primary: `#025E73` → `#011F26` (hover) → `#412754` (active)
+  * Secondary: `#F2A71B` → darker/tinted hover → alternate active
+* **Consistent focus rings** for keyboard users (Inter font, rounded corners).
+
+**Acceptance Criteria:**
+
+* Every button or “button-like” link in the app shows the same hover/active/focus transition.
+* Verify on Desktop & mobile widths in Chrome with 100% zoom.
+
+---
+
+## 2. **Sidebar Navigation Feedback**
+
+**Problem:**
+Deep links (CRM → Leads/Accounts/Clients/etc.) only get a faint 2 px left border. Hard to see, no background change.
+
+**What to Deliver:**
+
+* Wrap all sidebar items—including nested—into a nav component that uses React Router’s “active” state.
+* **Active item styling**:
+
+  * Visible background highlight (very light amber)
+  * 4 px left border in brand yellow (`#F2A71B`)
+  * Text switches to primary teal (`#025E73`) and bold.
+
+**Acceptance Criteria:**
+
+* When you click “Leads” under CRM, the entire row is highlighted and the parent “CRM” stays expanded.
+* Hover on any item shows a subtle gray background.
+
+---
+
+## 3. **Login/Logout Flow & Redirects**
+
+**Problem:**
+
+* After logout you land back on Dashboard, not the login page.
+* Unauthenticated users (and fresh tabs) go straight to `/dashboard` instead of `/login`.
+
+**What to Deliver:**
+
+* **Protect every route**: if no valid session → redirect to `/login`.
+* **Logout handler**: clear session + force-redirect to `/login`.
+* **Initial load**: app entry point must check session first, then push to login or dashboard.
+
+**Acceptance Criteria:**
+
+* Open in a private/incognito window → you always see the login screen.
+* On successful logout → user sees login form (no Dashboard flash).
+* No “flash of content” showing dashboard to unauthorized.
+
+---
+
+## 4. **Performance & Perceived Speed**
+
+**Problem:**
+Sign-in → Dashboard load takes several seconds; blank spinners feel unresponsive.
+
+**What to Deliver:**
+
+* **Skeleton UIs**: show lightweight placeholders for header + menu so the frame feels instant.
+* **Parallelize** critical calls: fetch user profile + permissions + key dashboard stats in one go.
+* **Timeout fallbacks**: if a widget takes >1s, show its own “no data” state rather than freezing the whole page.
+
+**Acceptance Criteria:**
+
+* Header + sidebar appear within 300 ms of login click.
+* Primary KPI cards render within 1 s; lower-tier widgets can lazy-load.
+* No full-page blank screen longer than 500 ms.
+
+---
+
+## 5. **UX Consistency & Accessibility**
+
+**Problem:**
+
+* Some buttons/links are inconsistent.
+* Screen reader & keyboard nav gaps.
+* No clear focus outline on form fields and menu items.
+
+**What to Deliver:**
+
+* **ARIA labels** & `tabindex` where needed.
+* **Uniform input styles**: single border, single shadow, clear focus ring.
+* **Dark mode check**: verify colors invert properly.
+
+**Acceptance Criteria:**
+
+* Keyboard‐only navigation lands on every interactive element in a logical order.
+* Form inputs and buttons show visible focus rings.
+* Contrast ratios meet WCAG AA.
+
+---
+
+### Next Steps
+
+1. **Assign** each of the above to a sprint ticket.
+2. **Review** on staging (dev) with shared incognito link.
+3. **QA pass**: ride along in Chrome/Firefox, desktop & mobile.
+4. **Deploy** to production.
+
+Once these are in place, every click, hover, route‐guard and redirect will feel intentional, on‐brand, and rock-solid. Let me know when you’ve got a working staging build and we’ll verify each acceptance criterion together.
