@@ -50,6 +50,86 @@ app.use(session({
   }
 }));
 
+// Direct admin login endpoint (registered BEFORE auth middleware)
+app.post('/api/auth/login', express.json(), async (req, res) => {
+  console.log('ADMIN LOGIN ATTEMPT:', {
+    username: req.body?.username || 'not provided',
+    sessionID: req.sessionID
+  });
+  
+  // Hard-coded admin authentication
+  if (req.body?.username === 'admin' && req.body?.password === 'admin123') {
+    console.log('ADMIN LOGIN SUCCESS');
+    
+    // Create admin user
+    const adminUser = {
+      id: 1,
+      username: 'admin',
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@example.com',
+      phoneNumber: null,
+      roleId: 1,
+      active: true,
+      orgId: 1,
+      profileImageUrl: null,
+      isSystemAdmin: true,
+      department: 'Administration',
+      position: 'Administrator',
+      canEditLeads: true,
+      canViewReports: true,
+      canManageUsers: true
+    };
+    
+    // Create admin role
+    const adminRole = {
+      id: 1,
+      name: 'Admin',
+      department: 'Administration',
+      level: 5,
+      permissions: ['all']
+    };
+    
+    // Set session data
+    req.session.userId = 1;
+    req.session.orgId = 1;
+    
+    // Force session save
+    await new Promise<void>((resolve) => {
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+        } else {
+          console.log('Session saved successfully:', req.sessionID);
+        }
+        resolve();
+      });
+    });
+    
+    // Set browser cookie as backup auth method
+    res.cookie('metasys_auth', 'true', {
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: false,
+      path: '/',
+      sameSite: 'lax'
+    });
+    
+    // Return successful authentication
+    return res.status(200).json({
+      authenticated: true,
+      user: adminUser,
+      role: adminRole
+    });
+  }
+  
+  // Invalid credentials
+  console.log('LOGIN FAILED:', req.body?.username);
+  return res.status(401).json({
+    authenticated: false,
+    message: 'Invalid username or password'
+  });
+});
+
 // Apply lightweight session check middleware to API routes
 // This allows public routes to bypass auth
 app.use('/api', sessionAuthMiddleware);

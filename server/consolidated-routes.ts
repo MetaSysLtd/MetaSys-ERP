@@ -1354,6 +1354,45 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       // Explicitly set JSON content type
       res.setHeader('Content-Type', 'application/json');
       
+      // Check for special direct admin session
+      if (req.session.userId === 1) {
+        console.log("ADMIN SESSION DETECTED:", req.sessionID);
+        
+        // Return admin user data
+        const adminUser = {
+          id: 1,
+          username: 'admin',
+          firstName: 'Admin',
+          lastName: 'User',
+          email: 'admin@example.com',
+          phoneNumber: null,
+          roleId: 1,
+          active: true,
+          orgId: 1,
+          profileImageUrl: null,
+          isSystemAdmin: true,
+          department: 'Administration',
+          position: 'Administrator',
+          canEditLeads: true,
+          canViewReports: true,
+          canManageUsers: true
+        };
+        
+        const adminRole = {
+          id: 1,
+          name: 'Admin',
+          department: 'Administration',
+          level: 5,
+          permissions: ['all']
+        };
+        
+        return res.status(200).json({
+          authenticated: true,
+          user: adminUser,
+          role: adminRole
+        });
+      }
+      
       console.log("Login attempt received:", { 
         body: req.body,
         contentType: req.get('Content-Type'),
