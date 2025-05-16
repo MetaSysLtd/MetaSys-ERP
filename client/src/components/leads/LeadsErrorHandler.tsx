@@ -8,7 +8,7 @@ interface LeadsErrorHandlerProps {
   /**
    * The error that occurred when trying to fetch leads
    */
-  error: Error | unknown;
+  error: Error | any;
   
   /**
    * Function to retry fetching leads data
