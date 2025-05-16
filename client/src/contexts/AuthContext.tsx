@@ -53,7 +53,17 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const [authCheckCount, setAuthCheckCount] = useState(0);
   const MAX_AUTH_CHECKS = 3;
 
+  // CRITICAL SECURITY FIX: Explicitly set initial state to not authenticated
   useEffect(() => {
+    // Clear any potentially misleading auth data in localStorage during initialization
+    localStorage.removeItem('metasys_auth_timestamp');
+    localStorage.removeItem('login_attempt_timestamp');
+    
+    // Initial state is always unauthenticated until proven otherwise
+    setIsAuthenticated(false);
+    setUser(null);
+    setRole(null);
+    
     const checkAuth = async () => {
       try {
         // Add timestamp to prevent caching
@@ -79,8 +89,9 @@ function AuthProvider({ children }: { children: ReactNode }) {
           }
         });
 
-        if (res.status === 401) {
-          console.log("Authentication check failed - not authenticated");
+        // SECURITY FIX: Handle all non-200 responses as unauthenticated
+        if (!res.ok) {
+          console.log(`Authentication check failed with status ${res.status} - not authenticated`);
           setIsAuthenticated(false);
           setUser(null);
           setRole(null);
@@ -88,16 +99,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        if (!res.ok) {
-          throw new Error(`${res.status}: ${await res.text() || res.statusText}`);
-        }
-
         const data = await res.json();
 
-        if (data.authenticated && data.user) {
+        // SECURITY FIX: Stricter validation of authentication data
+        if (data.authenticated === true && data.user && data.user.id) {
           console.log("Authentication check successful - user authenticated", data.user.id);
           
-          // Store auth state timestamp in localStorage as a fallback
+          // Store minimal authentication data - only used for logging
           localStorage.setItem('metasys_auth_timestamp', timestamp.toString());
           
           setIsAuthenticated(true);
@@ -197,9 +205,10 @@ function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       console.log("Login response:", { status: res.status, data });
       
-      // Immediately verify that session was established correctly
+      // SECURITY FIX: Immediately verify that session was established correctly
+      // This is critical to prevent any unauthenticated access
       try {
-        console.log("Verifying session establishment...");
+        console.log("SECURITY CHECK: Verifying session establishment...");
         const verifyRes = await fetch(`${API_ROUTES.AUTH.ME}?_t=${Date.now()}`, {
           method: "GET",
           credentials: "include",
@@ -211,12 +220,35 @@ function AuthProvider({ children }: { children: ReactNode }) {
         });
         
         if (verifyRes.ok) {
-          console.log("Session verification successful");
+          const verifyData = await verifyRes.json();
+          
+          if (verifyData.authenticated === true && verifyData.user && verifyData.user.id) {
+            console.log("Session verification successful - user is properly authenticated");
+            
+            // Set auth state only after successful verification
+            setIsAuthenticated(true);
+            setUser(verifyData.user);
+            setRole(verifyData.role);
+          } else {
+            console.error("SECURITY ERROR: Login succeeded but session verification failed - user data invalid");
+            setIsAuthenticated(false);
+            setUser(null);
+            setRole(null);
+            throw new Error("Login succeeded but authentication verification failed");
+          }
         } else {
-          console.warn("Session verification failed with status:", verifyRes.status);
+          console.error("SECURITY ERROR: Login succeeded but session verification failed with status:", verifyRes.status);
+          setIsAuthenticated(false);
+          setUser(null);
+          setRole(null);
+          throw new Error("Login succeeded but authentication verification failed");
         }
       } catch (verifyErr) {
-        console.warn("Session verification error:", verifyErr);
+        console.error("SECURITY ERROR: Session verification error:", verifyErr);
+        setIsAuthenticated(false);
+        setUser(null);
+        setRole(null);
+        throw new Error("Login succeeded but authentication verification failed");
       }
 
       if (!data.user) {

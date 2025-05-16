@@ -76,8 +76,10 @@ import { Toaster } from "@/components/ui/toaster";
 import metaSysLogo from "@/assets/logos/MetaSys.png";
 
 function ProtectedRoute({ component: Component, ...rest }: any) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
+  // SECURITY FIX: Enhanced protection for routes
+  // First ensure we've completed loading and have a definitive auth state
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center flex-col bg-[#F1FAFB]">
@@ -90,8 +92,18 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
     );
   }
 
-  // Fix for proper routing - redirect to auth page if not authenticated
-  if (!isAuthenticated) {
+  // SECURITY FIX: Strict verification - must be authenticated AND have valid user data
+  const isFullyAuthenticated = isAuthenticated === true && user !== null && user?.id > 0;
+  
+  // If not properly authenticated, redirect to login
+  if (!isFullyAuthenticated) {
+    console.warn("Access to protected route denied - user not authenticated");
+    
+    // Clear any potentially misleading auth data before redirecting
+    localStorage.removeItem('metasys_auth_timestamp');
+    localStorage.removeItem('login_attempt_timestamp');
+    sessionStorage.clear();
+    
     // Using window.location.replace() instead of href to avoid adding to browser history
     // This prevents back button from showing protected content
     window.location.replace("/auth");
@@ -118,19 +130,27 @@ function Router() {
       </Route>
 
       <Route path="/">
-        {() => (
-          <AppLayout>
-            <ProtectedRoute component={Dashboard} />
-          </AppLayout>
-        )}
+        {() => {
+          // SECURITY FIX: Force authentication check on root route
+          localStorage.removeItem('metasys_auth_timestamp');
+          return (
+            <AppLayout>
+              <ProtectedRoute component={Dashboard} />
+            </AppLayout>
+          );
+        }}
       </Route>
 
       <Route path="/dashboard">
-        {() => (
-          <AppLayout>
-            <ProtectedRoute component={Dashboard} />
-          </AppLayout>
-        )}
+        {() => {
+          // SECURITY FIX: Force authentication check on dashboard route
+          localStorage.removeItem('metasys_auth_timestamp');
+          return (
+            <AppLayout>
+              <ProtectedRoute component={Dashboard} />
+            </AppLayout>
+          );
+        }}
       </Route>
 
       <Route path="/crm">

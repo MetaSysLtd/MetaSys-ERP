@@ -58,12 +58,20 @@ function LoginForm() {
   const [loginAttempts, setLoginAttempts] = useState(0);
 
   useEffect(() => {
-    // Redirect if user is already logged in
-    if (user) {
+    // SECURITY FIX: Clear any stored auth data on login page load
+    // This prevents any false authentication states
+    localStorage.removeItem('metasys_auth_timestamp');
+    localStorage.removeItem('login_attempt_timestamp');
+    
+    // Only redirect if user is FULLY authenticated with complete user data
+    if (user && user.id > 0) {
       const redirectTo = getRedirectPath();
-      console.log(`User already authenticated, redirecting to ${redirectTo}`);
+      console.log(`User verified as authenticated (id: ${user.id}), redirecting to ${redirectTo}`);
       navigate(redirectTo);
       return;
+    } else {
+      // SECURITY FIX: Log for debugging authentication bypass issues
+      console.log('User not authenticated or missing data, staying on login page');
     }
 
     // Set mobile state based on screen size
