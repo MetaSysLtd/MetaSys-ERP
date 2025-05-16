@@ -7,6 +7,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { AnimatedPage } from "@/components/ui/AnimatedPage";
 import { AppLayoutSkeleton } from "@/components/ui/skeleton";
+import { SkipLink } from "@/components/ui/skip-link";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -50,6 +51,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50">
+      {/* Skip link for keyboard navigation accessibility */}
+      <SkipLink href="#main-content" />
+      
       {/* Mobile sidebar - with sliding animation */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -160,7 +164,11 @@ export function AppLayout({ children }: AppLayoutProps) {
       >
         <Header setSidebarOpen={setSidebarOpen} />
         
-        <main className="flex-1 relative overflow-y-auto focus:outline-none bg-white dark:bg-gray-900">
+        <main 
+          id="main-content" 
+          className="flex-1 relative overflow-y-auto focus:outline-none bg-white dark:bg-gray-900"
+          tabIndex={-1} // Allows the element to receive focus when skipped to
+        >
           <div className="px-4 py-6">
             <NotificationContainer />
             <AnimatedPage>
