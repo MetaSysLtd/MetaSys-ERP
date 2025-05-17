@@ -82,7 +82,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
         
         setAuthCheckCount(prevCount => prevCount + 1);
         
-        // Ensure we're using the full API path with /api prefix
         const res = await fetch(`${API_ROUTES.AUTH.ME}?_t=${timestamp}`, {
           method: "GET",
           credentials: "include",
@@ -92,8 +91,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
             'Expires': '0'
           }
         });
-        
-        console.log(`Auth check request to: ${API_ROUTES.AUTH.ME}?_t=${timestamp}`);
 
         // SECURITY FIX: Handle all non-200 responses as unauthenticated
         if (!res.ok) {
@@ -122,7 +119,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
           // Set a periodic check to keep session alive (more frequent in production)
           const intervalId = setInterval(() => {
             console.log("Running session keepalive check...");
-            // Ensure using full API path with /api prefix
             fetch(`${API_ROUTES.AUTH.ME}?_t=${new Date().getTime()}`, {
               method: "GET",
               credentials: "include",
@@ -175,7 +171,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('login_attempt_timestamp', timestamp.toString());
       
       // Use enhanced fetch options to ensure proper cookie handling
-      console.log(`Attempting login at: ${API_ROUTES.AUTH.LOGIN}`);
       const res = await fetch(API_ROUTES.AUTH.LOGIN, {
         method: "POST",
         headers: {
@@ -217,7 +212,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
       // This is critical to prevent any unauthenticated access
       try {
         console.log("SECURITY CHECK: Verifying session establishment...");
-        // Ensure we're using the full API path with /api prefix
         const verifyRes = await fetch(`${API_ROUTES.AUTH.ME}?_t=${Date.now()}`, {
           method: "GET",
           credentials: "include",
@@ -227,8 +221,6 @@ function AuthProvider({ children }: { children: ReactNode }) {
             'Expires': '0'
           }
         });
-        
-        console.log(`Session verification request to: ${API_ROUTES.AUTH.ME}?_t=${Date.now()}`);
         
         if (verifyRes.ok) {
           const verifyData = await verifyRes.json();

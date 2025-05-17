@@ -16,11 +16,10 @@ export const pgPool = new Pool({
   connectionString: process.env.DATABASE_URL,
   max: 20,
   idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
   allowExitOnIdle: true,
   keepAlive: true,
-  keepAliveInitialDelayMillis: 10000,
-  // Improved connection settings for stability
-  connectionTimeoutMillis: 10000
+  keepAliveInitialDelayMillis: 10000
 });
 
 // Add health check query

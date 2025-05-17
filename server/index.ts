@@ -6,9 +6,6 @@ import * as notificationService from "./notifications";
 import session from "express-session";
 import { storage } from "./storage";
 import { sessionHandler } from "./middleware/error-handler";
-import { spaHandler } from "./middleware/spa-handler";
-import path from "path";
-import fs from "fs";
 
 // JSON error handler middleware
 function jsonErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
@@ -136,77 +133,20 @@ app.use((req, res, next) => {
 
   // Mount the API router at /api
   app.use('/api', apiRouter);
-  
-  // Add compatibility middleware for authentication routes
-  // This handles both /auth/... and /api/auth/... routes for backward compatibility
-  app.use('/auth', (req, res, next) => {
-    // Only redirect API calls, not HTML page requests
-    if (!req.headers.accept || !req.headers.accept.includes('text/html')) {
-      console.log(`Redirecting API ${req.path} to /api${req.originalUrl}`);
-      
-      // Forward the request to the /api/auth route
-      req.url = `/api${req.originalUrl}`;
-      app._router.handle(req, res, next);
-    } else {
-      // For HTML requests, let the SPA handler middleware take care of it
-      next();
-    }
-  });
-  
-  // Register SPA handler for HTML requests
-  // This ensures all routes serve the React app correctly
-  app.use(spaHandler);
 
-  // Setup Vite or static serving for frontend assets
+  // Setup Vite or static serving BEFORE API routes
+  // This is counter-intuitive but fixes the clash between Vite's "*" handler and our API routes
   if (app.get("env") === "development") {
     // Make sure we pass the correct httpServer to setupVite
     await setupVite(app, httpServer); 
   } else {
-    // Log available paths for static files to help with debugging
-    console.log('Setting up static file serving for production...');
-    
-    // Check for client/dist folder (standard Vite output)
-    const clientDistPath = path.resolve(process.cwd(), 'client/dist');
-    if (fs.existsSync(clientDistPath)) {
-      console.log(`Found client/dist folder at ${clientDistPath}`);
-      app.use(express.static(clientDistPath, {
-        index: false, // Don't serve index.html automatically for SPA routes
-        setHeaders: (res, filePath) => {
-          // Set appropriate MIME types for Vite-generated files
-          if (filePath.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-          } else if (filePath.match(/\.module\.js$/)) {
-            // Special case for ES modules - this is critical
-            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-          } else if (filePath.endsWith('.mjs')) {
-            // Special case for ES modules with .mjs extension
-            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-          } else if (filePath.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css; charset=utf-8');
-          } else if (filePath.endsWith('.html')) {
-            res.setHeader('Content-Type', 'text/html; charset=utf-8');
-          } else if (filePath.endsWith('.json')) {
-            res.setHeader('Content-Type', 'application/json; charset=utf-8');
-          } else if (filePath.match(/\.(png|jpg|jpeg|gif|webp)$/)) {
-            // Let Express handle image MIME types automatically
-          } else if (filePath.match(/\.(woff|woff2|ttf|otf|eot)$/)) {
-            // Let Express handle font MIME types automatically
-          } else {
-            console.log(`Setting default headers for: ${filePath}`);
-          }
-        }
-      }));
-      console.log('Serving static files from client/dist');
-    } else {
-      console.log('client/dist folder not found, falling back to serveStatic');
-      serveStatic(app);
-    }
+    serveStatic(app);
   }
 
   // Now register API routes using our dedicated apiRouter
   // Pass the apiRouter and httpServer to registerRoutes
   await registerRoutes(apiRouter, httpServer);
-  
+
   // Initialize socket.io server using the correct HTTP server
   const { initSocketIO } = await import('./socket');
   const io = initSocketIO(httpServer);
@@ -217,29 +157,6 @@ app.use((req, res, next) => {
 
   // Import error handling middleware
   const { errorHandler, notFoundHandler } = await import('./middleware/error-handler');
-
-  // Explicit handler for the root path to ensure it always serves the SPA
-  app.get('/', (req, res, next) => {
-    if (req.headers.accept && req.headers.accept.includes('text/html')) {
-      console.log('Explicit root handler for SPA');
-      // For development, let Vite handle it
-      if (app.get("env") === "development") {
-        return next();
-      }
-      
-      // For production, try to serve our emergency index.html if it exists
-      const emergencyIndexPath = path.resolve(process.cwd(), 'public/emergency-index.html');
-      if (fs.existsSync(emergencyIndexPath)) {
-        console.log(`Using emergency index.html from ${emergencyIndexPath}`);
-        res.setHeader('Content-Type', 'text/html');
-        return res.sendFile(emergencyIndexPath);
-      }
-      
-      next();
-    } else {
-      next();
-    }
-  });
 
   // Route not found handler - must be after Vite/static middleware and before the errorHandler
   app.use(notFoundHandler);
