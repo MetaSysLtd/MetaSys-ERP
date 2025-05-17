@@ -6,6 +6,7 @@ import * as notificationService from "./notifications";
 import session from "express-session";
 import { storage } from "./storage";
 import { sessionHandler } from "./middleware/error-handler";
+import { spaHandler } from "./middleware/spa-handler";
 
 // JSON error handler middleware
 function jsonErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
@@ -144,8 +145,7 @@ app.use((req, res, next) => {
     app._router.handle(req, res, next);
   });
 
-  // Setup Vite or static serving BEFORE API routes
-  // This is counter-intuitive but fixes the clash between Vite's "*" handler and our API routes
+  // Setup Vite or static serving for frontend assets
   if (app.get("env") === "development") {
     // Make sure we pass the correct httpServer to setupVite
     await setupVite(app, httpServer); 
@@ -156,7 +156,7 @@ app.use((req, res, next) => {
   // Now register API routes using our dedicated apiRouter
   // Pass the apiRouter and httpServer to registerRoutes
   await registerRoutes(apiRouter, httpServer);
-
+  
   // Initialize socket.io server using the correct HTTP server
   const { initSocketIO } = await import('./socket');
   const io = initSocketIO(httpServer);

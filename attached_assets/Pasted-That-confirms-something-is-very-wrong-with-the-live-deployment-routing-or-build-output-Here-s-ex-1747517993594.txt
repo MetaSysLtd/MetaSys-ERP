@@ -1,0 +1,67 @@
+That confirms something is very wrong with the live deployment routing or build output.
+
+Here's exactly what to tell Replit next from your **Product Manager** role:
+
+---
+
+### 🛑 URGENT: Live Production Build Broken – Landing on Raw HTML/CSS
+
+When visiting the main production domain `https://erp.metasysltd.com`, the browser **renders raw CSS variables** and does not load the actual app.
+
+---
+
+### 📍Observed Behavior:
+
+* The page displays a stylesheet dump like:
+
+  ```
+  :root {
+    --background: 215 100% 98%;
+    --foreground: ...
+    ...
+  }
+  ```
+* No HTML content or React app appears.
+* This is happening even without login or interaction.
+
+---
+
+### 🔎 What This Likely Means:
+
+1. The **frontend build is corrupted or not deployed properly**.
+2. The default route (`/`) or the fallback route is broken or **not serving `index.html`**.
+3. **React Router or Next.js routes** might not be handling root path requests (`/auth`, `/`, etc.).
+4. The deployment server might be serving the wrong file type (e.g. CSS or raw text instead of bundled app).
+
+---
+
+### ✅ Actions Needed:
+
+1. Recheck the deployment pipeline:
+
+   * Is the `build` folder generated correctly?
+   * Is `index.html` present and set as the root entry point?
+   * Are all public routes (e.g. `/`, `/auth`, `/login`) correctly resolved to the React app?
+2. In Replit’s deployment settings:
+
+   * Check that the correct build command and output folder are defined.
+   * Rebuild manually if needed to ensure a clean build.
+3. Add a **fallback route in your frontend routing logic**:
+
+   * If route not found, **redirect to `/login` or `/auth`**, not crash or dump styles.
+4. Verify server settings:
+
+   * Ensure the express/static or proxy logic (if any) is pointing to the `dist` or `build` folder.
+
+---
+
+### 🧩 Bonus Debug Clue:
+
+* You may have **accidentally set the `/` route or root index to return a stylesheet or theme object**, not the main app.
+* Or your production build is **missing React root mount point** (`<div id="root">`).
+
+---
+
+Tell Replit to urgently rebuild the live deployment cleanly, ensure all routes fall back correctly to your login screen, and verify the production frontend is serving the actual application.
+
+Let me know once this is fixed—we’ll revalidate dashboard access and routing.
