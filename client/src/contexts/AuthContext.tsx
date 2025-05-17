@@ -175,6 +175,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('login_attempt_timestamp', timestamp.toString());
       
       // Use enhanced fetch options to ensure proper cookie handling
+      console.log(`Attempting login at: ${API_ROUTES.AUTH.LOGIN}`);
       const res = await fetch(API_ROUTES.AUTH.LOGIN, {
         method: "POST",
         headers: {
