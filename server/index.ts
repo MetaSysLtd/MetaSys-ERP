@@ -138,12 +138,22 @@ app.use((req, res, next) => {
   // Add compatibility middleware for authentication routes
   // This handles both /auth/... and /api/auth/... routes for backward compatibility
   app.use('/auth', (req, res, next) => {
-    console.log(`Redirecting ${req.path} to /api${req.originalUrl}`);
-    
-    // Forward the request to the /api/auth route
-    req.url = `/api${req.originalUrl}`;
-    app._router.handle(req, res, next);
+    // Only redirect API calls, not HTML page requests
+    if (!req.headers.accept || !req.headers.accept.includes('text/html')) {
+      console.log(`Redirecting API ${req.path} to /api${req.originalUrl}`);
+      
+      // Forward the request to the /api/auth route
+      req.url = `/api${req.originalUrl}`;
+      app._router.handle(req, res, next);
+    } else {
+      // For HTML requests, let the SPA handler middleware take care of it
+      next();
+    }
   });
+  
+  // Register SPA handler for HTML requests
+  // This ensures all routes serve the React app correctly
+  app.use(spaHandler);
 
   // Setup Vite or static serving for frontend assets
   if (app.get("env") === "development") {
@@ -167,6 +177,43 @@ app.use((req, res, next) => {
 
   // Import error handling middleware
   const { errorHandler, notFoundHandler } = await import('./middleware/error-handler');
+
+  // Explicit handler for the root path to ensure it always serves the SPA
+  app.get('/', (req, res, next) => {
+    if (req.headers.accept && req.headers.accept.includes('text/html')) {
+      console.log('Explicit root handler for SPA');
+      // For development, let Vite handle it
+      if (app.get("env") === "development") {
+        return next();
+      }
+      
+      // For production, serve index.html directly with correct content type
+      import('path').then(path => {
+        import('fs').then(fs => {
+          // Look in all possible build output locations
+          const possiblePaths = [
+            path.resolve(import.meta.dirname, "public/index.html"),
+            path.resolve(process.cwd(), "public/index.html"),
+            path.resolve(process.cwd(), "dist/index.html"),
+            path.resolve(process.cwd(), "client/dist/index.html")
+          ];
+          
+          for (const indexPath of possiblePaths) {
+            if (fs.existsSync(indexPath)) {
+              console.log(`Root handler: serving index.html from ${indexPath}`);
+              res.setHeader('Content-Type', 'text/html');
+              return res.sendFile(indexPath);
+            }
+          }
+          
+          // If we can't find the file, continue to next handler
+          next();
+        });
+      });
+    } else {
+      next();
+    }
+  });
 
   // Route not found handler - must be after Vite/static middleware and before the errorHandler
   app.use(notFoundHandler);

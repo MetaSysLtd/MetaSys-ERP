@@ -19,15 +19,26 @@ export function spaHandler(req: Request, res: Response, next: NextFunction) {
     
     // In production, serve the index.html file directly
     if (process.env.NODE_ENV !== 'development') {
-      const distPath = path.resolve(process.cwd(), 'server/public');
-      const indexPath = path.resolve(distPath, 'index.html');
+      // Try multiple possible paths for the index.html file
+      const possiblePaths = [
+        path.resolve(process.cwd(), 'server/public/index.html'),
+        path.resolve(process.cwd(), 'public/index.html'),
+        path.resolve(process.cwd(), 'dist/index.html'),
+        path.resolve(process.cwd(), 'client/dist/index.html'),
+        path.resolve(process.cwd(), 'client/index.html')
+      ];
       
-      if (fs.existsSync(indexPath)) {
-        res.setHeader('Content-Type', 'text/html');
-        return res.sendFile(indexPath);
-      } else {
-        console.error(`SPA handler: Could not find index.html at ${indexPath}`);
+      // Try each possible path
+      for (const indexPath of possiblePaths) {
+        if (fs.existsSync(indexPath)) {
+          console.log(`SPA handler: Found index.html at ${indexPath}`);
+          res.setHeader('Content-Type', 'text/html');
+          return res.sendFile(indexPath);
+        }
       }
+      
+      console.error(`SPA handler: Could not find index.html in any expected location`);
+      console.error(`Looked in: ${possiblePaths.join(', ')}`);
     }
   }
   
