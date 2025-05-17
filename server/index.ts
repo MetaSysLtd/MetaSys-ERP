@@ -133,6 +133,16 @@ app.use((req, res, next) => {
 
   // Mount the API router at /api
   app.use('/api', apiRouter);
+  
+  // Add compatibility middleware for authentication routes
+  // This handles both /auth/... and /api/auth/... routes for backward compatibility
+  app.use('/auth', (req, res, next) => {
+    console.log(`Redirecting ${req.path} to /api${req.originalUrl}`);
+    
+    // Forward the request to the /api/auth route
+    req.url = `/api${req.originalUrl}`;
+    app._router.handle(req, res, next);
+  });
 
   // Setup Vite or static serving BEFORE API routes
   // This is counter-intuitive but fixes the clash between Vite's "*" handler and our API routes
