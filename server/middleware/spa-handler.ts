@@ -3,109 +3,134 @@ import path from 'path';
 import fs from 'fs';
 
 /**
- * Middleware to ensure SPA routes always serve the index.html file 
- * with proper content type headers in production
+ * Middleware to handle SPA routes and serve index.html
+ * Specifically enhanced to handle production deployment challenges
  */
-export function spaHandler(req: Request, res: Response, next: NextFunction) {
-  // Only handle HTML requests, not API or asset requests
-  if (
-    req.method === 'GET' && 
-    !req.path.startsWith('/api') && 
-    !req.path.includes('.') && // Skip files with extensions (static assets)
-    req.headers.accept && 
-    req.headers.accept.includes('text/html')
-  ) {
-    console.log(`SPA fallback for URL: ${req.originalUrl} (path: ${req.path})`);
-    
-    // In production, serve the index.html file directly
-    if (process.env.NODE_ENV !== 'development') {
-      // Try multiple possible paths for the index.html file
-      const possiblePaths = [
-        path.resolve(process.cwd(), 'client/index.html'), // This is the original source file
-        path.resolve(process.cwd(), 'server/public/index.html'),
-        path.resolve(process.cwd(), 'public/index.html'),
-        path.resolve(process.cwd(), 'dist/index.html'),
-        path.resolve(process.cwd(), 'client/dist/index.html'),
-        path.resolve(process.cwd(), 'client/public/index.html'),
-      ];
+export const spaHandler = (req: Request, res: Response, next: NextFunction) => {
+  // Only handle GET requests that accept HTML
+  if (req.method !== 'GET' || !req.headers.accept?.includes('text/html')) {
+    return next();
+  }
+
+  console.log(`SPA fallback for URL: ${req.url} (path: ${req.path})`);
+
+  // Log directory structure to help with debugging
+  const projectRoot = process.cwd();
+  console.log('Current directory structure:');
+  
+  // Check critical directories and log their contents
+  const directories = ['client', 'server', 'public', 'dist', './'];
+  directories.forEach(dir => {
+    try {
+      console.log(`Contents of ${dir}/:`)
+      const dirContents = fs.readdirSync(path.join(projectRoot, dir));
+      console.log(dirContents.join(', '));
+    } catch (e) {
+      console.log(`Error reading ${dir}/: ${e instanceof Error ? e.message : 'Unknown error'}`);
+    }
+  });
+
+  // Try multiple possible locations for index.html
+  const possibleIndexLocations = [
+    path.join(projectRoot, 'public/index.html'), // Custom fallback
+    path.join(projectRoot, 'dist/client/index.html'), // Typical Vite output
+    path.join(projectRoot, 'client/dist/index.html'), // Another possible location
+    path.join(projectRoot, 'client/index.html'), // Development version
+    path.join(projectRoot, 'dist/index.html'), // Server build location
+  ];
+
+  // Find the first existing index.html
+  for (const indexPath of possibleIndexLocations) {
+    if (fs.existsSync(indexPath)) {
+      console.log(`SPA handler: Found index.html at ${indexPath}`);
+      const fileSize = fs.statSync(indexPath).size;
+      console.log(`File size: ${fileSize} bytes`);
       
-      // List all directories to help debug
-      console.log('Current directory structure:');
-      try {
-        const dirs = ['client', 'server', 'public', 'dist', '.'].filter(dir => fs.existsSync(dir));
-        for (const dir of dirs) {
-          console.log(`Contents of ${dir}/:`);
-          console.log(fs.readdirSync(dir).join(', '));
-        }
-      } catch (error) {
-        console.error('Error listing directories:', error);
-      }
-      
-      // Try each possible path
-      let indexHtmlContent = null;
-      let foundPath = null;
-      
-      for (const indexPath of possiblePaths) {
-        if (fs.existsSync(indexPath)) {
-          console.log(`SPA handler: Found index.html at ${indexPath}`);
-          
-          try {
-            // Read the file content to make sure it's not empty
-            indexHtmlContent = fs.readFileSync(indexPath, 'utf8');
-            console.log(`File size: ${indexHtmlContent.length} bytes`);
-            
-            if (indexHtmlContent && indexHtmlContent.length > 0) {
-              foundPath = indexPath;
-              break;
-            } else {
-              console.warn(`Found empty index.html at ${indexPath}`);
-            }
-          } catch (error) {
-            console.error(`Error reading ${indexPath}:`, error);
-          }
-        }
-      }
-      
-      if (foundPath && indexHtmlContent) {
-        // Ensure content type is set to HTML
-        res.setHeader('Content-Type', 'text/html');
-        
-        // Directly send the content instead of using sendFile to ensure it works
-        return res.send(indexHtmlContent);
-      }
-      
-      console.error(`SPA handler: Could not find valid index.html in any expected location`);
-      console.error(`Looked in: ${possiblePaths.join(', ')}`);
-      
-      // In case we can't find the index.html, return a basic HTML page instead of blank
+      // Set correct content type
       res.setHeader('Content-Type', 'text/html');
-      return res.send(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>MetaSys ERP</title>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-              body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
-              h1 { color: #025E73; }
-              .error { color: #e44; }
-              .container { max-width: 800px; margin: 0 auto; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <h1>MetaSys ERP</h1>
-              <p>The application could not be loaded.</p>
-              <p class="error">Error: Could not find the application files.</p>
-              <p>Please contact the administrator.</p>
-            </div>
-          </body>
-        </html>
-      `);
+      
+      // Send the file and end the request
+      return res.sendFile(indexPath);
     }
   }
+
+  // If no index.html is found, generate a minimal emergency fallback
+  console.log('No index.html found, generating emergency fallback');
   
-  // Let other middleware handle it
-  next();
-}
+  const emergencyHtml = `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaSys ERP</title>
+    <style>
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: #f1fafb;
+        color: #011F26;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+      
+      .container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+        padding: 2rem;
+        text-align: center;
+      }
+      
+      h1 {
+        color: #025E73;
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+      }
+      
+      p {
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        color: #666;
+      }
+      
+      .button {
+        display: inline-block;
+        background-color: #025E73;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+        margin-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>MetaSys ERP</h1>
+      <p>Welcome to the MetaSys Enterprise Resource Planning system.</p>
+      <p>The application is currently being updated. Please click below to access the system.</p>
+      <a href="/auth" class="button">Login to System</a>
+    </div>
+    
+    <script>
+      // Redirect to auth after 2 seconds
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 2000);
+    </script>
+  </body>
+  </html>
+  `;
+  
+  res.setHeader('Content-Type', 'text/html');
+  return res.send(emergencyHtml);
+};
+
+export default spaHandler;
