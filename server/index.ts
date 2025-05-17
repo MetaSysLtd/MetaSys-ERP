@@ -212,29 +212,15 @@ app.use((req, res, next) => {
         return next();
       }
       
-      // For production, serve index.html directly with correct content type
-      import('path').then(path => {
-        import('fs').then(fs => {
-          // Look in all possible build output locations
-          const possiblePaths = [
-            path.resolve(import.meta.dirname, "public/index.html"),
-            path.resolve(process.cwd(), "public/index.html"),
-            path.resolve(process.cwd(), "dist/index.html"),
-            path.resolve(process.cwd(), "client/dist/index.html")
-          ];
-          
-          for (const indexPath of possiblePaths) {
-            if (fs.existsSync(indexPath)) {
-              console.log(`Root handler: serving index.html from ${indexPath}`);
-              res.setHeader('Content-Type', 'text/html');
-              return res.sendFile(indexPath);
-            }
-          }
-          
-          // If we can't find the file, continue to next handler
-          next();
-        });
-      });
+      // For production, try to serve our emergency index.html if it exists
+      const emergencyIndexPath = path.resolve(process.cwd(), 'public/emergency-index.html');
+      if (fs.existsSync(emergencyIndexPath)) {
+        console.log(`Using emergency index.html from ${emergencyIndexPath}`);
+        res.setHeader('Content-Type', 'text/html');
+        return res.sendFile(emergencyIndexPath);
+      }
+      
+      next();
     } else {
       next();
     }
