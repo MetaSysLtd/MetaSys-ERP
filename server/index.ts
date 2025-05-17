@@ -171,13 +171,28 @@ app.use((req, res, next) => {
       console.log(`Found client/dist folder at ${clientDistPath}`);
       app.use(express.static(clientDistPath, {
         index: false, // Don't serve index.html automatically for SPA routes
-        setHeaders: (res, path) => {
-          if (path.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript');
-          } else if (path.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css');
-          } else if (path.endsWith('.html')) {
-            res.setHeader('Content-Type', 'text/html');
+        setHeaders: (res, filePath) => {
+          // Set appropriate MIME types for Vite-generated files
+          if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+          } else if (filePath.match(/\.module\.js$/)) {
+            // Special case for ES modules - this is critical
+            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+          } else if (filePath.endsWith('.mjs')) {
+            // Special case for ES modules with .mjs extension
+            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+          } else if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css; charset=utf-8');
+          } else if (filePath.endsWith('.html')) {
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          } else if (filePath.endsWith('.json')) {
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          } else if (filePath.match(/\.(png|jpg|jpeg|gif|webp)$/)) {
+            // Let Express handle image MIME types automatically
+          } else if (filePath.match(/\.(woff|woff2|ttf|otf|eot)$/)) {
+            // Let Express handle font MIME types automatically
+          } else {
+            console.log(`Setting default headers for: ${filePath}`);
           }
         }
       }));

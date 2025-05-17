@@ -1,0 +1,68 @@
+2025-05-18 03:26:08.76
+f895ca67
+User
+.config, .env.example, .gitignore, .local, .replit, .upm, attached_assets, client, cookies.txt, dist, docs, drizzle.config.ts, generated-icon.png, image_base64.txt, node_modules, original_schema.ts, package-lock.json, package.json, postcss.config.js, project_inventory.json, public, server, shared, tailwind.config.ts, test-auth.sh, theme.json, tsconfig.json, vite.config.ts
+2025-05-18 03:26:08.76
+f895ca67
+User
+SPA handler: Found index.html at /home/runner/workspace/client/index.html
+2025-05-18 03:26:08.76
+f895ca67
+User
+File size: 674 bytes
+2025-05-18 03:31:49.73
+f895ca67
+User
+SPA fallback for URL: / (path: /)
+2025-05-18 03:31:49.73
+f895ca67
+User
+Current directory structure:
+2025-05-18 03:31:49.73
+f895ca67
+User
+Contents of client/:
+2025-05-18 03:31:49.73
+f895ca67
+User
+index.html, public, src
+2025-05-18 03:31:49.73
+f895ca67
+User
+Contents of server/:
+2025-05-18 03:31:49.73
+f895ca67
+User
+__tests__, auth-middleware.ts, config, consolidated-routes.ts, db.ts, dispatch-report-automation.ts, email.ts, formApi.ts, index.ts, invoiceTemplates.ts, leaderboard.ts, leadsApi.ts, logger.ts, middleware, middleware.ts, migrations, notifications.ts, routes, routes.ts, run-migration.ts, scheduler.ts, services, session.d.ts, simplified-routes.ts, slack.ts, socket.ts, storage.ts, teamStorage.ts, utils, vite.ts
+2025-05-18 03:31:49.73
+f895ca67
+User
+Contents of public/:
+2025-05-18 03:31:49.73
+f895ca67
+User
+ai-enterprise.png, auth-bg.jpg, metio-logo.svg
+2025-05-18 03:31:49.73
+f895ca67
+User
+Contents of dist/:
+2025-05-18 03:31:49.73
+f895ca67
+User
+index.js, public
+2025-05-18 03:31:49.73
+f895ca67
+User
+Contents of ./:
+2025-05-18 03:31:49.73
+f895ca67
+User
+.config, .env.example, .gitignore, .local, .replit, .upm, attached_assets, client, cookies.txt, dist, docs, drizzle.config.ts, generated-icon.png, image_base64.txt, node_modules, original_schema.ts, package-lock.json, package.json, postcss.config.js, project_inventory.json, public, server, shared, tailwind.config.ts, test-auth.sh, theme.json, tsconfig.json, vite.config.ts
+2025-05-18 03:31:49.73
+f895ca67
+User
+SPA handler: Found index.html at /home/runner/workspace/client/index.html
+2025-05-18 03:31:49.73
+f895ca67
+User
+File size: 674 bytes

@@ -7,8 +7,18 @@ import fs from 'fs';
  * Specifically enhanced to handle production deployment challenges
  */
 export const spaHandler = (req: Request, res: Response, next: NextFunction) => {
-  // Only handle GET requests that accept HTML
-  if (req.method !== 'GET' || !req.headers.accept?.includes('text/html')) {
+  // Check if this is an API request (skip SPA handling)
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  
+  // Only handle GET requests that accept HTML or where browser might be requesting a module
+  // This helps catch cases where modules are requested but would be handled incorrectly
+  if (req.method !== 'GET' || 
+      (!req.headers.accept?.includes('text/html') && 
+       !req.path.endsWith('.js') && 
+       !req.path.endsWith('.mjs') && 
+       !req.path.includes('assets/'))) {
     return next();
   }
 
