@@ -7,6 +7,8 @@ import session from "express-session";
 import { storage } from "./storage";
 import { sessionHandler } from "./middleware/error-handler";
 import { spaHandler } from "./middleware/spa-handler";
+import path from "path";
+import fs from "fs";
 
 // JSON error handler middleware
 function jsonErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
@@ -160,7 +162,30 @@ app.use((req, res, next) => {
     // Make sure we pass the correct httpServer to setupVite
     await setupVite(app, httpServer); 
   } else {
-    serveStatic(app);
+    // Log available paths for static files to help with debugging
+    console.log('Setting up static file serving for production...');
+    
+    // Check for client/dist folder (standard Vite output)
+    const clientDistPath = path.resolve(process.cwd(), 'client/dist');
+    if (fs.existsSync(clientDistPath)) {
+      console.log(`Found client/dist folder at ${clientDistPath}`);
+      app.use(express.static(clientDistPath, {
+        index: false, // Don't serve index.html automatically for SPA routes
+        setHeaders: (res, path) => {
+          if (path.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+          } else if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+          } else if (path.endsWith('.html')) {
+            res.setHeader('Content-Type', 'text/html');
+          }
+        }
+      }));
+      console.log('Serving static files from client/dist');
+    } else {
+      console.log('client/dist folder not found, falling back to serveStatic');
+      serveStatic(app);
+    }
   }
 
   // Now register API routes using our dedicated apiRouter
