@@ -4501,8 +4501,25 @@ export class DatabaseStorage implements IStorage {
       const [prefs] = await db.select().from(uiPreferences).where(eq(uiPreferences.userId, userId));
       return prefs;
     } catch (error) {
+      // Enhanced error handling specifically for connection issues
       console.error('Error getting UI preferences:', error);
-      // For now, return a default object if table doesn't exist
+      
+      // Check for specific database connection errors
+      const errorMessage = String(error);
+      if (
+        errorMessage.includes('terminating connection') || 
+        errorMessage.includes('Connection terminated') ||
+        errorMessage.includes('Connection refused') ||
+        errorMessage.includes('administrator command')
+      ) {
+        console.error('Database connection issue detected during preference retrieval', {
+          operation: 'getUserPreferences',
+          userId,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      // Return default preferences regardless of error type to ensure application stability
       return {
         id: 0,
         userId,
