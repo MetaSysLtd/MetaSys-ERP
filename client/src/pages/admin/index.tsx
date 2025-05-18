@@ -23,25 +23,41 @@ export default function AdminDashboard() {
   const [dateRange, setDateRange] = useState({ from: new Date(), to: new Date() });
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Fetch admin dashboard data
+  // Fetch admin dashboard data with improved error handling and fallback
   const { data: adminData, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/admin/dashboard', dateRange],
     queryFn: async () => {
       try {
         console.log('Fetching admin dashboard data');
-        const response = await fetch('/api/admin/dashboard', {
+        
+        // First attempt with API path
+        let response = await fetch('/api/admin/dashboard', {
           credentials: 'include', // Important for auth cookies
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
           }
         });
+        
         console.log('Admin dashboard API response status:', response.status);
         
+        // If first attempt fails, try backup route
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Admin dashboard API error:', errorText);
-          throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+          console.log('Admin dashboard primary route failed, trying legacy endpoint...');
+          // Try backup admin endpoint
+          response = await fetch('/api/admin-legacy', {
+            credentials: 'include',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('All admin dashboard API routes failed:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+          }
         }
         
         const responseData = await response.json();
@@ -54,6 +70,9 @@ export default function AdminDashboard() {
     },
     // Don't refetch on window focus for admin data
     refetchOnWindowFocus: false,
+    // Add a reasonable retry configuration
+    retry: 2,
+    retryDelay: 1000,
   });
 
   // Mock data for scheduled tasks

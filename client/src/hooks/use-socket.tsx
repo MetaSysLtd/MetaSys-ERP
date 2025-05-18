@@ -60,12 +60,15 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     
     console.log('Connecting to socket at:', wsUrl);
     
-    // Create socket connection with proper config
+    // Create socket connection with proper config and robust error handling
     const socketInstance = io(wsUrl, {
       transports: ['websocket', 'polling'],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      timeout: 20000,
+      reconnectionAttempts: 10,   // Increased for better reliability
+      reconnectionDelay: 2000,    // More time between attempts
+      timeout: 30000,             // Increased timeout
+      forceNew: true,             // Force new connection to avoid stale connections
+      autoConnect: true,          // Ensure auto-connection
+      path: '/socket.io',         // Explicitly specify default path
       auth: {
         userId: user.id,
         orgId: (user as any).orgId || 1, // Safely handle orgId even if not in type
