@@ -1,0 +1,561 @@
+injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 TSS: excluded result:  false
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+ Browsing Topics API removed
+index-BYMfUM5q.js:1269 Global error handlers initialized
+index-BYMfUM5q.js:840 User not authenticated or missing data, staying on login page
+index-BYMfUM5q.js:60 Connecting to socket at: wss://erp.metasysltd.com/ws
+index-BYMfUM5q.js:60 Setting up handler for connect
+index-BYMfUM5q.js:60 Setting up handler for disconnect
+index-BYMfUM5q.js:60 Setting up handler for authenticated
+index-BYMfUM5q.js:60 Setting up handler for data:refresh
+index-BYMfUM5q.js:60 Setting up handler for error
+index-BYMfUM5q.js:60 Setting up handler for system:message
+index-BYMfUM5q.js:60 Setting up handler for lead:created
+index-BYMfUM5q.js:60 Setting up handler for lead:updated
+index-BYMfUM5q.js:60 Setting up handler for lead:deleted
+index-BYMfUM5q.js:60 Setting up handler for lead:status_changed
+index-BYMfUM5q.js:60 Setting up handler for dispatch:created
+index-BYMfUM5q.js:60 Setting up handler for dispatch:updated
+index-BYMfUM5q.js:60 Setting up handler for dispatch:deleted
+index-BYMfUM5q.js:60 Setting up handler for dispatch:status_changed
+index-BYMfUM5q.js:60 Setting up handler for invoice:created
+index-BYMfUM5q.js:60 Setting up handler for invoice:updated
+index-BYMfUM5q.js:60 Setting up handler for invoice:deleted
+index-BYMfUM5q.js:60 Setting up handler for invoice:status_changed
+index-BYMfUM5q.js:60 Setting up handler for notification:created
+index-BYMfUM5q.js:60 Setting up handler for notification:read
+index-BYMfUM5q.js:60 Setting up handler for notification:deleted
+index-BYMfUM5q.js:60 Setting up handler for data:updated
+index-BYMfUM5q.js:60 Making query to: /api/organization/current
+index-BYMfUM5q.js:60 Checking authentication (attempt 1/2)
+index-BYMfUM5q.js:1046 Global error handlers initialized
+index-BYMfUM5q.js:1269 MetaSys ERP global error handling initialized
+index-BYMfUM5q.js:60 Setting up handler for connect
+index-BYMfUM5q.js:60 Setting up handler for disconnect
+index-BYMfUM5q.js:60 Setting up handler for authenticated
+index-BYMfUM5q.js:60 Setting up handler for system:message
+index-BYMfUM5q.js:60 Setting up handler for error
+index-BYMfUM5q.js:60 Setting up handler for data:updated
+index-BYMfUM5q.js:60 Removing handler for connect
+index-BYMfUM5q.js:60 Removing handler for disconnect
+index-BYMfUM5q.js:60 Removing handler for authenticated
+index-BYMfUM5q.js:60 Removing handler for data:refresh
+index-BYMfUM5q.js:60 Removing handler for error
+index-BYMfUM5q.js:60 Removing handler for system:message
+index-BYMfUM5q.js:60 Removing handler for lead:created
+index-BYMfUM5q.js:60 Removing handler for lead:updated
+index-BYMfUM5q.js:60 Removing handler for lead:deleted
+index-BYMfUM5q.js:60 Removing handler for lead:status_changed
+index-BYMfUM5q.js:60 Removing handler for dispatch:created
+index-BYMfUM5q.js:60 Removing handler for dispatch:updated
+index-BYMfUM5q.js:60 Removing handler for dispatch:deleted
+index-BYMfUM5q.js:60 Removing handler for dispatch:status_changed
+index-BYMfUM5q.js:60 Removing handler for invoice:created
+index-BYMfUM5q.js:60 Removing handler for invoice:updated
+index-BYMfUM5q.js:60 Removing handler for invoice:deleted
+index-BYMfUM5q.js:60 Removing handler for invoice:status_changed
+index-BYMfUM5q.js:60 Removing handler for notification:created
+index-BYMfUM5q.js:60 Removing handler for notification:read
+index-BYMfUM5q.js:60 Removing handler for notification:deleted
+index-BYMfUM5q.js:60 Removing handler for data:updated
+index-BYMfUM5q.js:60 Setting up handler for connect
+index-BYMfUM5q.js:60 Setting up handler for disconnect
+index-BYMfUM5q.js:60 Setting up handler for authenticated
+index-BYMfUM5q.js:60 Setting up handler for data:refresh
+index-BYMfUM5q.js:60 Setting up handler for error
+index-BYMfUM5q.js:60 Setting up handler for system:message
+api/organization/current:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+api/auth/me?_t=1747608609259:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()Understand this error
+index-BYMfUM5q.js:60 Authentication check failed with status 401 - not authenticated
+index-BYMfUM5q.js:60 Removing handler for connect
+index-BYMfUM5q.js:60 Removing handler for disconnect
+index-BYMfUM5q.js:60 Removing handler for authenticated
+index-BYMfUM5q.js:60 Removing handler for data:refresh
+index-BYMfUM5q.js:60 Removing handler for error
+index-BYMfUM5q.js:60 Removing handler for system:message
+index-BYMfUM5q.js:60 Setting up handler for connect
+index-BYMfUM5q.js:60 Setting up handler for disconnect
+index-BYMfUM5q.js:60 Setting up handler for authenticated
+index-BYMfUM5q.js:60 Setting up handler for data:refresh
+index-BYMfUM5q.js:60 Setting up handler for error
+index-BYMfUM5q.js:60 Setting up handler for system:message
+index-BYMfUM5q.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BYMfUM5q.js:60Understand this error
+index-BYMfUM5q.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BYMfUM5q.js:60Understand this error
+index-BYMfUM5q.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BYMfUM5q.js:60Understand this error
+index-BYMfUM5q.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BYMfUM5q.js:60Understand this error
+index-BYMfUM5q.js:60 Attempting to login with username: admin
+index-BYMfUM5q.js:60 Removing handler for connect
+index-BYMfUM5q.js:60 Removing handler for disconnect
+index-BYMfUM5q.js:60 Removing handler for authenticated
+index-BYMfUM5q.js:60 Removing handler for data:refresh
+index-BYMfUM5q.js:60 Removing handler for error
+index-BYMfUM5q.js:60 Removing handler for system:message
+index-BYMfUM5q.js:60 Setting up handler for connect
+index-BYMfUM5q.js:60 Setting up handler for disconnect
+index-BYMfUM5q.js:60 Setting up handler for authenticated
+index-BYMfUM5q.js:60 Setting up handler for data:refresh
+index-BYMfUM5q.js:60 Setting up handler for error
+index-BYMfUM5q.js:60 Setting up handler for system:message
+index-BYMfUM5q.js:60 Login attempt to /api/auth/login, status: 200
+index-BYMfUM5q.js:60 Login response: Object
+index-BYMfUM5q.js:60 SECURITY CHECK: Verifying session establishment...
+index-BYMfUM5q.js:60 Session verification successful - user is properly authenticated
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+index-BYMfUM5q.js:60 Removing handler for connect
+index-BYMfUM5q.js:60 Removing handler for disconnect
+index-BYMfUM5q.js:60 Removing handler for authenticated
+index-BYMfUM5q.js:60 Removing handler for data:refresh
+index-BYMfUM5q.js:60 Removing handler for error
+index-BYMfUM5q.js:60 Removing handler for system:message
+index-BYMfUM5q.js:60 Setting up handler for connect
+index-BYMfUM5q.js:60 Setting up handler for disconnect
+index-BYMfUM5q.js:60 Setting up handler for authenticated
+index-BYMfUM5q.js:60 Setting up handler for data:refresh
+index-BYMfUM5q.js:60 Setting up handler for error
+index-BYMfUM5q.js:60 Setting up handler for system:message
+index-BYMfUM5q.js:60 Making API request to: /api/ui-prefs/me with method: GET
+index-BYMfUM5q.js:60 Connecting to socket at: wss://erp.metasysltd.com/ws
+index-BYMfUM5q.js:60 Removing handler for connect
+index-BYMfUM5q.js:60 Removing handler for disconnect
+index-BYMfUM5q.js:60 Removing handler for authenticated
+index-BYMfUM5q.js:60 Removing handler for data:refresh
+index-BYMfUM5q.js:60 Removing handler for error
+index-BYMfUM5q.js:60 Removing handler for system:message
+index-BYMfUM5q.js:60 Setting up handler for connect
+index-BYMfUM5q.js:60 Setting up handler for disconnect
+index-BYMfUM5q.js:60 Setting up handler for authenticated
+index-BYMfUM5q.js:60 Setting up handler for data:refresh
+index-BYMfUM5q.js:60 Setting up handler for error
+index-BYMfUM5q.js:60 Setting up handler for system:message
+index-BYMfUM5q.js:60 Making query to: /api/auth/user-organizations
+index-BYMfUM5q.js:60 Making query to: /api/organizations/current
+index-BYMfUM5q.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BYMfUM5q.js:60Understand this warning
+index-BYMfUM5q.js:60 Making query to: /api/auth/me
+index-BYMfUM5q.js:60 Making query to: /api/dashboard/metrics
+index-BYMfUM5q.js:60 Making query to: /api/dashboard/revenue
+index-BYMfUM5q.js:60 Making query to: /api/dashboard/activities
+index-BYMfUM5q.js:1046 [Dashboard] Fetching dashboard data...
+index-BYMfUM5q.js:60 Making query to: /api/dashboard/revenue
+index-BYMfUM5q.js:1046 [Dashboard] Fetching dashboard data...
+index-BYMfUM5q.js:1046 [Dashboard] Data loaded successfully
+index-BYMfUM5q.js:60 Making query to: /api/dashboard/widgets
+index-BYMfUM5q.js:1046 [Dashboard] Data loaded successfully
+index-BYMfUM5q.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BYMfUM5q.js:60Understand this error
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BYMfUM5q.js:60Understand this error
+index-BYMfUM5q.js:60 Making API request to: /api/ui-prefs/me with method: PATCH
+index-BYMfUM5q.js:60 Making query to: /api/dashboard/revenue
+index-BYMfUM5q.js:60 Making query to: /api/dashboard/activities
+index-BYMfUM5q.js:1046 [Dashboard] Fetching dashboard data...
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:1269 Failed to update UI preferences: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Failed to update UI preferences:
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:1046 [Dashboard] Data loaded successfully
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:1269 Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Invalid prop `value` of value `NaN` supplied to `Progress`. The `value` prop must be:
+  - a positive number
+  - less than the value passed to `max` (or 100 if no `max` prop is set)
+  - `null` or `undefined` if the progress is indeterminate.
+
+Defaulting to `null`.
+index-BYMfUM5q.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BYMfUM5q.js:60Understand this error
+index-BYMfUM5q.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BYMfUM5q.js:60Understand this error
+index-BYMfUM5q.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BYMfUM5q.js:60Understand this error
+index-BYMfUM5q.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BYMfUM5q.js:60Understand this error
+index-BYMfUM5q.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BYMfUM5q.js:60Understand this error
+index-BYMfUM5q.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BYMfUM5q.js:60Understand this error
+index-BYMfUM5q.js:1046 [Dashboard] Fetching dashboard data...
+index-BYMfUM5q.js:1046 [Dashboard] Data loaded successfully
+index-BYMfUM5q.js:1046 [Dashboard] Fetching dashboard data...
+index-BYMfUM5q.js:1046 [Dashboard] Data loaded successfully
+index-BYMfUM5q.js:1046 [Dashboard] Fetching dashboard data...
+index-BYMfUM5q.js:1046 [Dashboard] Data loaded successfully
+index-BYMfUM5q.js:1046 [Dashboard] Fetching dashboard data...
+index-BYMfUM5q.js:1046 [Dashboard] Data loaded successfully
+index-BYMfUM5q.js:1046 [Dashboard] Fetching dashboard data...
+index-BYMfUM5q.js:1046 [Dashboard] Data loaded successfully
+index-BYMfUM5q.js:1046 [Dashboard] Fetching dashboard data...
+index-BYMfUM5q.js:1046 [Dashboard] Data loaded successfully
+index-BYMfUM5q.js:1046 [Dashboard] Fetching dashboard data...
+index-BYMfUM5q.js:1046 [Dashboard] Data loaded successfully
+index-BYMfUM5q.js:1046 [Dashboard] Fetching dashboard data...
+index-BYMfUM5q.js:1046 [Dashboard] Data loaded successfully
+index-BYMfUM5q.js:1046 [Dashboard] Fetching dashboard data...
+index-BYMfUM5q.js:1046 [Dashboard] Data loaded successfully
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+index-BYMfUM5q.js:60 Making query to: /api/leads
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+index-BYMfUM5q.js:1258 Fetching admin dashboard data
+api/admin/dashboard:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+index-BYMfUM5q.js:1258 Admin dashboard API response status: 502
+index-BYMfUM5q.js:1269 Admin dashboard API error: 
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Admin dashboard API error:
+index-BYMfUM5q.js:1269 Admin dashboard fetch error: Error: HTTP error! status: 502, message: 
+    at queryFn (index-BYMfUM5q.js:1258:166707)
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Admin dashboard fetch error:
+index-BYMfUM5q.js:1258 Fetching admin dashboard data
+api/admin/dashboard:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+index-BYMfUM5q.js:1258 Admin dashboard API response status: 502
+index-BYMfUM5q.js:1269 Admin dashboard API error: 
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Admin dashboard API error:
+index-BYMfUM5q.js:1269 Admin dashboard fetch error: Error: HTTP error! status: 502, message: 
+    at queryFn (index-BYMfUM5q.js:1258:166707)
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Admin dashboard fetch error:
+index-BYMfUM5q.js:1258 Fetching admin dashboard data
+api/admin/dashboard:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+index-BYMfUM5q.js:1258 Admin dashboard API response status: 502
+index-BYMfUM5q.js:1269 Admin dashboard API error: 
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Admin dashboard API error:
+index-BYMfUM5q.js:1269 Admin dashboard fetch error: Error: HTTP error! status: 502, message: 
+    at queryFn (index-BYMfUM5q.js:1258:166707)
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Admin dashboard fetch error:
+index-BYMfUM5q.js:1258 Fetching admin dashboard data
+api/admin/dashboard:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+index-BYMfUM5q.js:1258 Admin dashboard API response status: 502
+index-BYMfUM5q.js:1269 Admin dashboard API error: 
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Admin dashboard API error:
+index-BYMfUM5q.js:1269 Admin dashboard fetch error: Error: HTTP error! status: 502, message: 
+    at queryFn (index-BYMfUM5q.js:1258:166707)
+console.error @ index-BYMfUM5q.js:1269Understand this error
+index-BYMfUM5q.js:1269 [Global Error] Admin dashboard fetch error:
+api/notifications/leads:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+conversations:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+index-DA_19XND.css:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+admin:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+api/notifications:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+api/messages/conversations:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+api/messages/conversations:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+api/notifications:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+api/messages/conversations:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+api/messages/conversations:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+api/notifications:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+api/messages/conversations:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+api/messages/conversations:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+api/messages/conversations:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+api/messages/conversations:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+api/notifications:1 
+            
+            
+           Failed to load resource: the server responded with a status of 502 ()Understand this error
+index-BYMfUM5q.js:60 Making API request to: PATCH with method: /api/users/1
+index-BYMfUM5q.js:60 Removing handler for connect
+index-BYMfUM5q.js:60 Removing handler for disconnect
+index-BYMfUM5q.js:60 Removing handler for authenticated
+index-BYMfUM5q.js:60 Removing handler for data:refresh
+index-BYMfUM5q.js:60 Removing handler for error
+index-BYMfUM5q.js:60 Removing handler for system:message
+index-BYMfUM5q.js:60 Setting up handler for connect
+index-BYMfUM5q.js:60 Setting up handler for disconnect
+index-BYMfUM5q.js:60 Setting up handler for authenticated
+index-BYMfUM5q.js:60 Setting up handler for data:refresh
+index-BYMfUM5q.js:60 Setting up handler for error
+index-BYMfUM5q.js:60 Setting up handler for system:message
+index-BYMfUM5q.js:60 Making API request to: PATCH with method: /api/users/1
+index-BYMfUM5q.js:60 Removing handler for connect
+index-BYMfUM5q.js:60 Removing handler for disconnect
+index-BYMfUM5q.js:60 Removing handler for authenticated
+index-BYMfUM5q.js:60 Removing handler for data:refresh
+index-BYMfUM5q.js:60 Removing handler for error
+index-BYMfUM5q.js:60 Removing handler for system:message
+index-BYMfUM5q.js:60 Setting up handler for connect
+index-BYMfUM5q.js:60 Setting up handler for disconnect
+index-BYMfUM5q.js:60 Setting up handler for authenticated
+index-BYMfUM5q.js:60 Setting up handler for data:refresh
+index-BYMfUM5q.js:60 Setting up handler for error
+index-BYMfUM5q.js:60 Setting up handler for system:message
+index-BYMfUM5q.js:60 Removing handler for connect
+index-BYMfUM5q.js:60 Removing handler for disconnect
+index-BYMfUM5q.js:60 Removing handler for authenticated
+index-BYMfUM5q.js:60 Removing handler for data:refresh
+index-BYMfUM5q.js:60 Removing handler for error
+index-BYMfUM5q.js:60 Removing handler for system:message
+index-BYMfUM5q.js:60 Setting up handler for connect
+index-BYMfUM5q.js:60 Setting up handler for disconnect
+index-BYMfUM5q.js:60 Setting up handler for authenticated
+index-BYMfUM5q.js:60 Setting up handler for data:refresh
+index-BYMfUM5q.js:60 Setting up handler for error
+index-BYMfUM5q.js:60 Setting up handler for system:message
+index-BYMfUM5q.js:60 Removing handler for connect
+index-BYMfUM5q.js:60 Removing handler for disconnect
+index-BYMfUM5q.js:60 Removing handler for authenticated
+index-BYMfUM5q.js:60 Removing handler for data:refresh
+index-BYMfUM5q.js:60 Removing handler for error
+index-BYMfUM5q.js:60 Removing handler for system:message
+index-BYMfUM5q.js:60 Setting up handler for connect
+index-BYMfUM5q.js:60 Setting up handler for disconnect
+index-BYMfUM5q.js:60 Setting up handler for authenticated
+index-BYMfUM5q.js:60 Setting up handler for data:refresh
+index-BYMfUM5q.js:60 Setting up handler for error
+index-BYMfUM5q.js:60 Setting up handler for system:message
