@@ -121,6 +121,7 @@ export function SystemHealth({
   const [activeTab, setActiveTab] = useState('system');
   
   const getStatusFromValue = (value: number): 'healthy' | 'warning' | 'critical' => {
+    if (isNaN(value) || value === undefined || value === null) return 'healthy';
     if (value < 50) return 'healthy';
     if (value < 80) return 'warning';
     return 'critical';
@@ -231,7 +232,7 @@ export function SystemHealth({
                 </div>
                 <div className="flex items-center gap-2">
                   <Progress 
-                    value={metric.value} 
+                    value={isNaN(metric.value) ? null : metric.value} 
                     className={cn("h-2", 
                       metric.status === 'healthy' && "[&>div]:bg-green-500",
                       metric.status === 'warning' && "[&>div]:bg-yellow-500",
