@@ -27,6 +27,7 @@ import { WebSocket, WebSocketServer } from "ws";
 import errorLoggingRoutes from "./routes/error-logging";
 import statusRoutes from "./routes/status";
 import settingsRoutes from "./routes/settings";
+import usersRoutes from "./routes/users";
 
 // Helper function to handle date objects correctly for database insertion
 function createDateObject(dateString?: string | null) {
@@ -1661,6 +1662,43 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   // User routes
   const userRouter = express.Router();
   app.use("/api/users", userRouter); // Using the full path to match frontend expectations
+  
+  // Add individual user routes
+  userRouter.patch("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      // Only allow users to update their own profiles unless they are admins
+      if (userId !== req.user?.id && (!req.userRole || req.userRole.level < 3)) {
+        return res.status(403).json({ 
+          error: "Forbidden: You can only update your own profile"
+        });
+      }
+      
+      // Validate the update data
+      const { firstName, lastName, email, phoneNumber } = req.body;
+      
+      // Update the user profile
+      const updatedUser = await storage.updateUser(userId, {
+        firstName,
+        lastName,
+        email,
+        phoneNumber
+      });
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Remove sensitive data from the response
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      next(error);
+    }
+  });
 
   // User-Organization management routes
   userRouter.get("/:userId/organizations", createAuthMiddleware(3), async (req, res, next) => {

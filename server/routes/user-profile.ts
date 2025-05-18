@@ -2,7 +2,7 @@ import express from 'express';
 import { storage } from '../storage';
 import { z } from 'zod';
 import { fromZodError } from 'zod-validation-error';
-import { createAuthMiddleware } from '../middleware/authMiddleware';
+import { createAuthMiddleware } from '../routes';
 
 const router = express.Router();
 
