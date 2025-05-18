@@ -26,6 +26,7 @@ import { NotificationPreferences, defaultNotificationPreferences } from "./notif
 import { WebSocket, WebSocketServer } from "ws";
 import errorLoggingRoutes from "./routes/error-logging";
 import statusRoutes from "./routes/status";
+import settingsRoutes from "./routes/settings";
 
 // Helper function to handle date objects correctly for database insertion
 function createDateObject(dateString?: string | null) {
