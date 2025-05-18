@@ -22,6 +22,7 @@ import { getIo, notifyDataChange } from "./socket";
 // Removed WebSocket import as we're using Socket.IO exclusively
 import errorLoggingRoutes from "./routes/error-logging";
 import statusRoutes from "./routes/status";
+import userProfileRoutes from "./routes/user-profile";
 import { registerModuleRoutes } from "./routes/index";
 
 import { organizationMiddleware } from "./middleware/organizationMiddleware";
