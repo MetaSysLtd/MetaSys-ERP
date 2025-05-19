@@ -127,6 +127,14 @@ export function SystemHealth({
     return 'critical';
   }
   
+  // Helper function to safely get metric values
+  const safeMetricValue = (value: number | undefined | null): number | undefined => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return undefined;
+    }
+    return value;
+  }
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'healthy': 
@@ -232,7 +240,7 @@ export function SystemHealth({
                 </div>
                 <div className="flex items-center gap-2">
                   <Progress 
-                    value={isNaN(metric.value) || metric.value === undefined || metric.value === null ? undefined : metric.value} 
+                    value={safeMetricValue(metric.value)} 
                     className={cn("h-2", 
                       metric.status === 'healthy' && "[&>div]:bg-green-500",
                       metric.status === 'warning' && "[&>div]:bg-yellow-500",

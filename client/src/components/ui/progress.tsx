@@ -91,8 +91,10 @@ const Progress = React.forwardRef<
   valueLabel,
   ...props 
 }, ref) => {
-  const percentage = value !== undefined ? Math.min(Math.max(0, value), max) : 0;
-  const displayValue = percentage !== undefined ? Math.round((percentage / max) * 100) : 0;
+  // Check for NaN, undefined, or null and handle safely
+  const safeValue = (value === undefined || value === null || isNaN(value)) ? 0 : value;
+  const percentage = Math.min(Math.max(0, safeValue), max);
+  const displayValue = Math.round((percentage / max) * 100);
   
   // Format for the valueLabel, with fallbacks
   const valueLabelText = valueLabel 
