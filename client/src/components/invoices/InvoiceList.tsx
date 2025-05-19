@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ViewButton } from "@/components/ui/view-button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
@@ -356,7 +357,15 @@ export function InvoiceList({
                             {formatCurrency(invoice.totalAmount)}
                           </TableCell>
                           <TableCell>
-                            <DropdownMenu>
+                            <div className="flex items-center justify-end gap-2">
+                              <ViewButton 
+                                size="sm" 
+                                onClick={() => window.location.href = `/invoices/${invoice.id}`}
+                                iconOnly
+                                className="h-8 w-8 p-0"
+                                aria-label="View Invoice Details"
+                              />
+                              <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                   <span className="sr-only">Open menu</span>
@@ -366,7 +375,7 @@ export function InvoiceList({
                               <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuItem asChild>
-                                  <Link to={`/invoices/${invoice.id}`}>
+                                  <Link to={`/invoices/${invoice.id}`} className="flex items-center">
                                     <Eye className="h-4 w-4 mr-2" />
                                     View Details
                                   </Link>
