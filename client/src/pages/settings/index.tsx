@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useSearch } from "wouter";
 import { useAnimationContext } from "@/contexts/AnimationContext";
+import { API_ROUTES } from "@shared/constants";
 import { AnimationSettings } from "@/components/ui/animation-settings";
 
 import {
@@ -180,12 +181,27 @@ export default function SettingsPage() {
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Profile updated",
         description: "Your profile information has been updated successfully.",
       });
+      
+      // Invalidate all relevant user data queries
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      // Force a session refresh to update all components with user data
+      fetch(`/api/auth/me?_t=${new Date().getTime()}`, {
+        method: "GET",
+        credentials: "include",
+        headers: { 'Cache-Control': 'no-cache' }
+      })
+      .then(res => res.json())
+      .then(userData => {
+        // Manually force refresh the auth context by reloading the page
+        window.location.reload();
+      })
+      .catch(err => console.error("Failed to refresh user session:", err));
     },
     onError: (error: any) => {
       toast({

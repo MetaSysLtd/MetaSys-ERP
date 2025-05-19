@@ -232,14 +232,14 @@ export function SystemHealth({
                 </div>
                 <div className="flex items-center gap-2">
                   <Progress 
-                    value={isNaN(metric.value) || metric.value === undefined || metric.value === null ? null : metric.value} 
+                    value={isNaN(metric.value) || metric.value === undefined || metric.value === null ? undefined : metric.value} 
                     className={cn("h-2", 
                       metric.status === 'healthy' && "[&>div]:bg-green-500",
                       metric.status === 'warning' && "[&>div]:bg-yellow-500",
                       metric.status === 'critical' && "[&>div]:bg-red-500"
                     )}
                   />
-                  <span className="text-sm font-medium">{metric.value}%</span>
+                  <span className="text-sm font-medium">{isNaN(metric.value) || metric.value === undefined || metric.value === null ? '-' : `${metric.value}%`}</span>
                 </div>
               </div>
             ))}
