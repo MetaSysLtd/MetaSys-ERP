@@ -1,0 +1,140 @@
+injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 CONTENT_SHELL: Page is excluded. Skipping shell protection.
+content-scripts.js:1 TSS: excluded result:  true
+injection-topics.js:1 Browsing Topics API removed
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+client:495 [vite] connecting...
+client:618 [vite] connected.
+chunk-RPCDYKBN.js?v=124d4c6c:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+main.tsx:18 Global error handlers initialized
+socket-service.ts:74 Connecting to socket at: wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/ws
+socket-service.ts:213 Setting up handler for connect
+socket-service.ts:213 Setting up handler for disconnect
+socket-service.ts:213 Setting up handler for authenticated
+socket-service.ts:213 Setting up handler for data:refresh
+socket-service.ts:213 Setting up handler for error
+socket-service.ts:213 Setting up handler for system:message
+socket-service.ts:213 Setting up handler for lead:created
+socket-service.ts:213 Setting up handler for lead:updated
+socket-service.ts:213 Setting up handler for lead:deleted
+socket-service.ts:213 Setting up handler for lead:status_changed
+socket-service.ts:213 Setting up handler for dispatch:created
+socket-service.ts:213 Setting up handler for dispatch:updated
+socket-service.ts:213 Setting up handler for dispatch:deleted
+socket-service.ts:213 Setting up handler for dispatch:status_changed
+socket-service.ts:213 Setting up handler for invoice:created
+socket-service.ts:213 Setting up handler for invoice:updated
+socket-service.ts:213 Setting up handler for invoice:deleted
+socket-service.ts:213 Setting up handler for invoice:status_changed
+socket-service.ts:213 Setting up handler for notification:created
+socket-service.ts:213 Setting up handler for notification:read
+socket-service.ts:213 Setting up handler for notification:deleted
+socket-service.ts:213 Setting up handler for data:updated
+queryClient.ts:89 Making query to: /api/organization/current
+AuthContext.tsx:75 Checking authentication (attempt 1/2)
+global-error-handler.ts:86 Global error handlers initialized
+App.tsx:533 MetaSys ERP global error handling initialized
+socket-service.ts:213 Setting up handler for connect
+socket-service.ts:213 Setting up handler for disconnect
+socket-service.ts:213 Setting up handler for authenticated
+socket-service.ts:213 Setting up handler for system:message
+socket-service.ts:213 Setting up handler for error
+socket-service.ts:213 Setting up handler for data:updated
+socket-service.ts:218 Removing handler for connect
+socket-service.ts:218 Removing handler for disconnect
+socket-service.ts:218 Removing handler for authenticated
+socket-service.ts:218 Removing handler for data:refresh
+socket-service.ts:218 Removing handler for error
+socket-service.ts:218 Removing handler for system:message
+socket-service.ts:218 Removing handler for lead:created
+socket-service.ts:218 Removing handler for lead:updated
+socket-service.ts:218 Removing handler for lead:deleted
+socket-service.ts:218 Removing handler for lead:status_changed
+socket-service.ts:218 Removing handler for dispatch:created
+socket-service.ts:218 Removing handler for dispatch:updated
+socket-service.ts:218 Removing handler for dispatch:deleted
+socket-service.ts:218 Removing handler for dispatch:status_changed
+socket-service.ts:218 Removing handler for invoice:created
+socket-service.ts:218 Removing handler for invoice:updated
+socket-service.ts:218 Removing handler for invoice:deleted
+socket-service.ts:218 Removing handler for invoice:status_changed
+socket-service.ts:218 Removing handler for notification:created
+socket-service.ts:218 Removing handler for notification:read
+socket-service.ts:218 Removing handler for notification:deleted
+socket-service.ts:218 Removing handler for data:updated
+socket-service.ts:213 Setting up handler for connect
+socket-service.ts:213 Setting up handler for disconnect
+socket-service.ts:213 Setting up handler for authenticated
+socket-service.ts:213 Setting up handler for data:refresh
+socket-service.ts:213 Setting up handler for error
+socket-service.ts:213 Setting up handler for system:message
+queryClient.ts:89 Making query to: /api/auth/user-organizations
+queryClient.ts:89 Making query to: /api/organizations/current
+AuthContext.tsx:109 Authentication check successful - user authenticated 1
+socket-service.ts:218 Removing handler for connect
+socket-service.ts:218 Removing handler for disconnect
+socket-service.ts:218 Removing handler for authenticated
+socket-service.ts:218 Removing handler for data:refresh
+socket-service.ts:218 Removing handler for error
+socket-service.ts:218 Removing handler for system:message
+socket-service.ts:213 Setting up handler for connect
+socket-service.ts:213 Setting up handler for disconnect
+socket-service.ts:213 Setting up handler for authenticated
+socket-service.ts:213 Setting up handler for data:refresh
+socket-service.ts:213 Setting up handler for error
+socket-service.ts:213 Setting up handler for system:message
+queryClient.ts:67 Making API request to: /api/ui-prefs/me with method: GET
+use-socket.tsx:61 Connecting to socket at: wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/ws
+socket-service.ts:218 Removing handler for connect
+socket-service.ts:218 Removing handler for disconnect
+socket-service.ts:218 Removing handler for authenticated
+socket-service.ts:218 Removing handler for data:refresh
+socket-service.ts:218 Removing handler for error
+socket-service.ts:218 Removing handler for system:message
+use-socket.tsx:164 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ use-socket.tsx:164Understand this warning
+socket-service.ts:213 Setting up handler for connect
+socket-service.ts:213 Setting up handler for disconnect
+socket-service.ts:213 Setting up handler for authenticated
+socket-service.ts:213 Setting up handler for data:refresh
+socket-service.ts:213 Setting up handler for error
+socket-service.ts:213 Setting up handler for system:message
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059Understand this error
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059Understand this error
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059Understand this error
+queryClient.ts:67 Making API request to: PATCH with method: /api/users/1
+socket-service.ts:218 Removing handler for connect
+socket-service.ts:218 Removing handler for disconnect
+socket-service.ts:218 Removing handler for authenticated
+socket-service.ts:218 Removing handler for data:refresh
+socket-service.ts:218 Removing handler for error
+socket-service.ts:218 Removing handler for system:message
+socket-service.ts:213 Setting up handler for connect
+socket-service.ts:213 Setting up handler for disconnect
+socket-service.ts:213 Setting up handler for authenticated
+socket-service.ts:213 Setting up handler for data:refresh
+socket-service.ts:213 Setting up handler for error
+socket-service.ts:213 Setting up handler for system:message
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059Understand this error
+socket-service.ts:218 Removing handler for connect
+socket-service.ts:218 Removing handler for disconnect
+socket-service.ts:218 Removing handler for authenticated
+socket-service.ts:218 Removing handler for data:refresh
+socket-service.ts:218 Removing handler for error
+socket-service.ts:218 Removing handler for system:message
+socket-service.ts:213 Setting up handler for connect
+socket-service.ts:213 Setting up handler for disconnect
+socket-service.ts:213 Setting up handler for authenticated
+socket-service.ts:213 Setting up handler for data:refresh
+socket-service.ts:213 Setting up handler for error
+socket-service.ts:213 Setting up handler for system:message
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059Understand this error
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059Understand this error

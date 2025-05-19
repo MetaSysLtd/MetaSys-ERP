@@ -1,0 +1,84 @@
+2025-05-19 04:33:29.34
+26059755
+User
+11:33:29 PM [express] serving on port 5000
+2025-05-19 04:34:29.97
+26059755
+User
+API request: GET /notifications
+2025-05-19 04:34:30.39
+26059755
+User
+11:34:30 PM [express] GET /api/notifications 200 in 426ms :: []
+2025-05-19 04:35:23.54
+26059755
+User
+API request: GET /messages/conversations
+2025-05-19 04:35:23.99
+26059755
+User
+11:35:23 PM [express] GET /api/messages/conversations 200 in 451ms :: [{"id":"conv1","participants":[…
+2025-05-19 04:35:25.77
+26059755
+User
+API request: GET /notifications/leads
+2025-05-19 04:35:25.98
+26059755
+User
+11:35:25 PM [express] GET /api/notifications/leads 200 in 210ms :: []
+2025-05-19 04:35:31.23
+26059755
+User
+API request: GET /notifications
+2025-05-19 04:35:31.43
+26059755
+User
+11:35:31 PM [express] GET /api/notifications 200 in 200ms :: []
+2025-05-19 04:35:54.31
+26059755
+User
+API request: GET /messages/conversations
+2025-05-19 04:35:54.70
+26059755
+User
+11:35:54 PM [express] GET /api/messages/conversations 200 in 392ms :: [{"id":"conv1","participants":[…
+2025-05-19 04:36:25.23
+26059755
+User
+API request: GET /messages/conversations
+2025-05-19 04:36:25.57
+26059755
+User
+11:36:25 PM [express] GET /api/messages/conversations 200 in 345ms :: [{"id":"conv1","participants":[…
+2025-05-19 04:36:31.73
+26059755
+User
+API request: GET /notifications
+2025-05-19 04:36:32.01
+26059755
+User
+11:36:32 PM [express] GET /api/notifications 200 in 279ms :: []
+2025-05-19 04:42:09.44
+26059755
+User
+API request: GET /organizations/current
+2025-05-19 04:42:11.47
+26059755
+User
+API request: GET /auth/user-organizations
+2025-05-19 04:42:11.52
+26059755
+User
+API request: GET /notifications/leads
+2025-05-19 04:42:11.87
+26059755
+User
+11:42:11 PM [express] GET /api/organizations/current 200 in 2426ms :: {"id":1,"name":"Default Organiz…
+2025-05-19 04:42:11.97
+26059755
+User
+11:42:11 PM [express] GET /api/auth/user-organizations 200 in 496ms :: [{"id":1,"name":"Default Organ…
+2025-05-19 04:42:11.98
+26059755
+User
+11:42:11 PM [express] GET /api/notifications/leads 200 in 459ms :: []

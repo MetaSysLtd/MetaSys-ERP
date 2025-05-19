@@ -159,7 +159,26 @@ export default function SettingsPage() {
   const updateProfileMutation = useMutation({
     mutationFn: async (values: ProfileFormValues) => {
       if (!user) throw new Error("User not authenticated");
-      return apiRequest("PATCH", `/api/users/${user.id}`, values);
+      
+      // Use a more direct approach to avoid any method/URL confusion
+      const url = `/api/users/${user.id}`;
+      console.log('Updating profile:', { url, values });
+      
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(values),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Profile update failed: ${response.status} ${errorText}`);
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
