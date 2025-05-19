@@ -164,6 +164,48 @@ router.patch('/:id/password', createAuthMiddleware(1), async (req, res) => {
   }
 });
 
+// Get user notification preferences
+router.get('/:id/notifications', createAuthMiddleware(1), async (req, res) => {
+  // Set proper content type for JSON responses
+  res.setHeader('Content-Type', 'application/json');
+  try {
+    const userId = parseInt(req.params.id);
+    
+    // Check if user is requesting their own notification settings or has admin privileges
+    if (userId !== req.user!.id && req.userRole!.level < 3) {
+      return res.status(403).json({
+        error: 'Forbidden: You do not have permission to view this user\'s notification settings'
+      });
+    }
+    
+    // Get the user to retrieve notification settings
+    const user = await storage.getUser(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Return the user's notification preferences or default values if not set
+    const defaultPrefs = {
+      emailNotifications: true,
+      slackNotifications: true,
+      leadUpdates: true,
+      loadUpdates: true,
+      invoiceUpdates: true,
+      dailySummary: true,
+      weeklySummary: true
+    };
+    
+    res.json(user.notificationSettings || defaultPrefs);
+  } catch (error: any) {
+    console.error('Error fetching notification preferences:', error);
+    res.status(500).json({
+      error: 'Failed to fetch notification preferences',
+      message: error.message
+    });
+  }
+});
+
 // Update user notification settings
 router.patch('/:id/notifications', createAuthMiddleware(1), async (req, res) => {
   // Set proper content type for JSON responses
