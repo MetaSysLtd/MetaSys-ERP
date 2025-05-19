@@ -176,6 +176,21 @@ export default function SettingsPage() {
     }
   }, [user, profileForm]);
   
+  // Set default values for notification form when settings data is loaded
+  useEffect(() => {
+    if (notificationSettings) {
+      notificationForm.reset({
+        emailNotifications: notificationSettings.emailNotifications ?? true,
+        slackNotifications: notificationSettings.slackNotifications ?? true,
+        leadUpdates: notificationSettings.leadUpdates ?? true,
+        loadUpdates: notificationSettings.loadUpdates ?? true,
+        invoiceUpdates: notificationSettings.invoiceUpdates ?? true,
+        dailySummary: notificationSettings.dailySummary ?? false,
+        weeklySummary: notificationSettings.weeklySummary ?? true,
+      });
+    }
+  }, [notificationSettings, notificationForm]);
+  
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (values: ProfileFormValues) => {
