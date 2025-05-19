@@ -187,21 +187,35 @@ export default function SettingsPage() {
         description: "Your profile information has been updated successfully.",
       });
       
-      // Invalidate all relevant user data queries
+      // Invalidate all relevant user data queries to update UI components
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/organizations/current"] });
       
-      // Force a session refresh to update all components with user data
-      fetch(`/api/auth/me?_t=${new Date().getTime()}`, {
-        method: "GET",
-        credentials: "include",
-        headers: { 'Cache-Control': 'no-cache' }
-      })
-      .then(res => res.json())
-      .then(userData => {
-        // Manually force refresh the auth context by reloading the page
-        window.location.reload();
-      })
-      .catch(err => console.error("Failed to refresh user session:", err));
+      // Force the socket to reconnect with updated user data
+      if (window.socket && window.socket.connected) {
+        try {
+          window.socket.disconnect().connect();
+        } catch (e) {
+          console.log("Socket reconnection failed, will rely on query cache updates");
+        }
+      }
+      
+      // Update the user data in the auth context if possible
+      if (data && typeof data === 'object') {
+        queryClient.setQueryData(["/api/auth/me"], (oldData: any) => {
+          if (oldData && oldData.user) {
+            return {
+              ...oldData,
+              user: {
+                ...oldData.user,
+                ...data
+              }
+            };
+          }
+          return oldData;
+        });
+      }
     },
     onError: (error: any) => {
       toast({

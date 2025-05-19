@@ -14,12 +14,12 @@ if (!process.env.DATABASE_URL) {
 // Create a pg Pool for session store and direct queries
 export const pgPool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-  allowExitOnIdle: true,
+  max: 10,
+  idleTimeoutMillis: 60000,
+  connectionTimeoutMillis: 10000,
+  allowExitOnIdle: false,
   keepAlive: true,
-  keepAliveInitialDelayMillis: 10000
+  keepAliveInitialDelayMillis: 5000
 });
 
 // Add health check query
