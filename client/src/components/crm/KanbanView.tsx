@@ -146,7 +146,7 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
     });
     
     // Subscribe to general lead events
-    const unsubscribeLeadUpdated = subscribe(RealTimeEvents.LEAD_UPDATED, (data) => {
+    const unsubscribeLeadUpdated = subscribe(RealTimeEvents.LEAD_UPDATED, (data: any) => {
       if (data && data.data) {
         // Update the local leads state when we receive a real-time update
         setLocalLeads(prevLeads => 
@@ -166,7 +166,7 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
     });
     
     // Subscribe to lead status change events
-    const unsubscribeStatusChange = subscribe('lead-status:updated', (data) => {
+    const unsubscribeStatusChange = subscribe('lead-status:updated', (data: any) => {
       if (data && data.data) {
         const { leadId, newStatus } = data.data;
         // Update the specific lead status in our local state
@@ -179,7 +179,7 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
     });
     
     // Subscribe to lead qualification events
-    const unsubscribeQualification = subscribe('lead-qualification:updated', (data) => {
+    const unsubscribeQualification = subscribe('lead-qualification:updated', (data: any) => {
       if (data && data.data) {
         const { leadId, newScore } = data.data;
         // Update the specific lead qualification in our local state
@@ -386,9 +386,9 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
                     <CardContent 
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`p-2 flex-1 min-h-[300px] max-h-[60vh] transition-colors ${
+                      className={`p-2 flex-1 min-h-[300px] max-h-[60vh] overflow-y-auto transition-colors ${
                         snapshot.isDraggingOver ? 'bg-blue-50' : ''
-                      }`}
+                      } ${isDragging ? 'overflow-visible' : 'overflow-y-auto'}`}
                     >
                       {statusLeads.length === 0 ? (
                         <div className="text-center py-4 text-gray-500 text-xs">
