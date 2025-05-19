@@ -165,21 +165,45 @@ export default function SettingsPage() {
       const url = `/api/users/${user.id}`;
       console.log('Updating profile:', { url, values });
       
-      const response = await fetch(url, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(values),
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Profile update failed: ${response.status} ${errorText}`);
+      try {
+        const response = await fetch(url, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(values),
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          // Try to parse error as text first
+          const errorText = await response.text();
+          
+          try {
+            // See if the error text can be parsed as JSON
+            const errorJson = JSON.parse(errorText);
+            throw new Error(errorJson.error || errorJson.message || `Profile update failed: ${response.status}`);
+          } catch (e) {
+            // If not JSON, use as plain text
+            throw new Error(`Profile update failed: ${response.status} ${errorText.substring(0, 100)}`);
+          }
+        }
+        
+        // Try to parse the response as JSON
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          return await response.json();
+        } else {
+          // Handle non-JSON response
+          const text = await response.text();
+          console.log("Non-JSON response:", text);
+          return { success: true };
+        }
+      } catch (error) {
+        console.error("Profile update error:", error);
+        throw error;
       }
-      
-      return response.json();
     },
     onSuccess: (data) => {
       toast({
@@ -192,13 +216,15 @@ export default function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/organizations/current"] });
       
-      // Force the socket to reconnect with updated user data
-      if (window.socket && window.socket.connected) {
-        try {
-          window.socket.disconnect().connect();
-        } catch (e) {
-          console.log("Socket reconnection failed, will rely on query cache updates");
+      // Try to refresh socket connection if it exists
+      try {
+        // Access socket via global namespace if available
+        const socketService = (window as any).socketService;
+        if (socketService && typeof socketService.reconnect === 'function') {
+          socketService.reconnect();
         }
+      } catch (e) {
+        console.log("Socket reconnection failed, will rely on query cache updates");
       }
       
       // Update the user data in the auth context if possible
@@ -230,10 +256,26 @@ export default function SettingsPage() {
   const updatePasswordMutation = useMutation({
     mutationFn: async (values: PasswordFormValues) => {
       if (!user) throw new Error("User not authenticated");
-      return apiRequest("PATCH", `/api/users/${user.id}/password`, {
-        currentPassword: values.currentPassword,
-        newPassword: values.newPassword,
+      
+      // Use standard fetch for better control over error handling
+      const response = await fetch(`/api/users/${user.id}/password`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          currentPassword: values.currentPassword,
+          newPassword: values.newPassword,
+        }),
+        credentials: 'include'
       });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Password update failed: ${response.status} ${errorText}`);
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
