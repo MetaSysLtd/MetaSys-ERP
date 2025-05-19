@@ -81,9 +81,8 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
         submissionData.equipmentType = `Other: ${data.customEquipmentType}`;
       }
       
-      // CRITICAL FIX: Ensure method is correctly specified as first parameter
-      // and data as third parameter according to apiRequest function signature
-      const res = await apiRequest("/api/leads", "POST", submissionData);
+      // Fix parameter order: Method first, URL second, data third
+      const res = await apiRequest("POST", "/api/leads", submissionData);
       
       if (!res.ok) {
         const errorData = await res.json();

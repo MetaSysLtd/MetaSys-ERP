@@ -61,8 +61,12 @@ export async function apiRequest(
     requestData = urlOrConfig.body;
   }
   
-  // Don't modify URLs that already include the protocol or are absolute
-  // The URL is already correct as provided in the API_ROUTES constants
+  // Ensure URLs are properly formatted with a leading /api if needed
+  if (url && !url.startsWith('http') && !url.startsWith('/api') && !url.startsWith('api/')) {
+    url = `/api${url.startsWith('/') ? '' : '/'}${url}`;
+  } else if (url && url.startsWith('api/')) {
+    url = `/${url}`;
+  }
   
   console.log('Making API request to:', url, 'with method:', method);
   
@@ -83,8 +87,15 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Don't modify the URL, assume it's correct as specified in API_ROUTES
-    const url = queryKey[0] as string;
+    // Ensure URL is properly formatted with /api prefix if needed
+    let url = queryKey[0] as string;
+    
+    // Ensure URLs are properly formatted with a leading /api if needed
+    if (url && !url.startsWith('http') && !url.startsWith('/api') && !url.startsWith('api/')) {
+      url = `/api${url.startsWith('/') ? '' : '/'}${url}`;
+    } else if (url && url.startsWith('api/')) {
+      url = `/${url}`;
+    }
     
     console.log('Making query to:', url);
     

@@ -221,7 +221,7 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
   // Mutation for updating lead status
   const updateLeadStatusMutation = useMutation({
     mutationFn: async ({ leadId, newStatus }: { leadId: number, newStatus: string }) => {
-      // Make sure the URL is properly formatted with a leading slash
+      // Make sure the URL is properly formatted
       const response = await apiRequest("PATCH", `/api/leads/${leadId}/status`, {
         status: newStatus
       });
@@ -315,11 +315,23 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
       }
     };
     
-    // Perform the API update
-    updateLeadStatusMutation.mutate({ leadId, newStatus });
-    
-    // Log the activity
-    logActivity();
+    try {
+      // Perform the API update
+      updateLeadStatusMutation.mutate({ leadId, newStatus });
+      
+      // Log the activity
+      logActivity();
+    } catch (error) {
+      console.error('Error updating lead status:', error);
+      toast({
+        title: "Status Update Failed",
+        description: "There was an error updating the lead status. Please try again.",
+        variant: "destructive",
+      });
+      
+      // Revert the local state on error
+      setLocalLeads(leads || []);
+    }
   };
   
   // Calculate the column layout based on screen size and filter status
