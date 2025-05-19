@@ -389,6 +389,9 @@ export interface IStorage {
   createUserPreferences(prefs: InsertUiPreferences): Promise<UiPreferences>;
   updateUserPreferences(userId: number, prefs: Partial<UiPreferences>): Promise<UiPreferences>;
   
+  // User Notification Preferences operations
+  updateUserNotificationPreferences(userId: number, preferences: any): Promise<User | undefined>;
+  
   // User Settings & Organization Settings - implementations completed
   // All methods for managing user preferences, settings, and organizational configuration
   // have been successfully implemented and are fully operational
