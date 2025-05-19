@@ -286,6 +286,11 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
     // Extract the new status from the destination droppable ID
     const newStatus = destination.droppableId.replace('status-', '');
     
+    if (isNaN(leadId) || !newStatus) {
+      console.error("Invalid lead ID or status in drag-and-drop operation");
+      return;
+    }
+    
     // Optimistically update the local state
     const updatedLeads = localLeads.map(lead => {
       if (lead.id === leadId) {
@@ -315,23 +320,11 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
       }
     };
     
-    try {
-      // Perform the API update
-      updateLeadStatusMutation.mutate({ leadId, newStatus });
-      
-      // Log the activity
-      logActivity();
-    } catch (error) {
-      console.error('Error updating lead status:', error);
-      toast({
-        title: "Status Update Failed",
-        description: "There was an error updating the lead status. Please try again.",
-        variant: "destructive",
-      });
-      
-      // Revert the local state on error
-      setLocalLeads(leads || []);
-    }
+    // Use the mutation to update status - mutations handle their own errors
+    updateLeadStatusMutation.mutate({ leadId, newStatus });
+    
+    // Log the activity
+    logActivity();
   };
   
   // Calculate the column layout based on screen size and filter status
@@ -394,14 +387,14 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
                   </CardDescription>
                 </CardHeader>
                 
-                <Droppable droppableId={`status-${status}`} type="LEAD" mode="standard">
+                <Droppable droppableId={`status-${status}`} type="LEAD">
                   {(provided, snapshot) => (
                     <CardContent 
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`p-2 flex-1 min-h-[300px] max-h-[60vh] transition-colors ${
+                      className={`p-2 flex-1 min-h-[300px] transition-colors ${
                         snapshot.isDraggingOver ? 'bg-blue-50' : ''
-                      } ${isDragging ? 'overflow-visible' : 'overflow-y-auto'}`}
+                      } ${isDragging ? 'overflow-visible' : ''}`}
                     >
                       {statusLeads.length === 0 ? (
                         <div className="text-center py-4 text-gray-500 text-xs">

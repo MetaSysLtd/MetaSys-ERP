@@ -13,7 +13,7 @@ let orgId: number | string = 0;
 
 // Type guard function to check if userId is not null
 function isValidUserId(id: number | string | null): id is number | string {
-    return id !== null;
+    return id !== null && id !== undefined;
 }
 let pendingSubscriptions: Array<{ type: string; id: number | string }> = [];
 
@@ -107,15 +107,19 @@ function initSocket(): boolean {
         setTimeout(() => {
           if (socket && socket.connected) {
             // Make sure we have a valid user ID and org ID for authentication
-            authenticate(userId, orgId);
+            if (isValidUserId(userId)) {
+              authenticate(userId, orgId);
+            }
           }
         }, 500);
       }
       
       // Process any pending subscriptions with a slight delay
-      setTimeout(() => {
-        processPendingSubscriptions();
-      }, 1000);
+      if (socket && socket.connected) {
+        setTimeout(() => {
+          processPendingSubscriptions();
+        }, 1000);
+      }
     });
     
     socket.on('disconnect', (reason) => {
@@ -140,7 +144,7 @@ function initSocket(): boolean {
       
       // Re-authenticate and re-subscribe
       if (isValidUserId(userId)) {
-        authenticate(userId, orgId || 0);
+        authenticate(userId, orgId);
       }
       
       // Process any pending subscriptions
@@ -176,10 +180,10 @@ function processPendingSubscriptions(): void {
  * @param {number|string|undefined} organization Organization ID (optional)
  * @returns {Promise<boolean>} Success status
  */
-function authenticate(id: number | string, organization?: number | string): Promise<boolean> {
+function authenticate(id: number | string, organization: number | string = 0): Promise<boolean> {
   // Store these values regardless of connection status
   userId = id;
-  orgId = organization || 0; // Use 0 as default value for undefined organization
+  orgId = organization; // Default is already handled in parameter
   
   return new Promise((resolve) => {
     if (!socket) {
