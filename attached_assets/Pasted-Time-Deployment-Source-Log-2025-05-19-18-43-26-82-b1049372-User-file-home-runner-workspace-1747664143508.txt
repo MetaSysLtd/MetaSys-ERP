@@ -1,0 +1,152 @@
+Time
+Deployment
+Source
+Log
+2025-05-19 18:43:26.82
+b1049372
+User
+file:///home/runner/workspace/dist/index.js:1486
+2025-05-19 18:43:26.82
+b1049372
+User
+Node.js v20.18.1
+2025-05-19 18:43:26.84
+b1049372
+User
+npm notice
+2025-05-19 18:43:26.84
+b1049372
+User
+npm notice New major version of npm available! 10.8.2 -> 11.4.0
+2025-05-19 18:43:26.84
+b1049372
+User
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.4.0
+2025-05-19 18:43:26.84
+b1049372
+User
+npm notice To update run: npm install -g npm@11.4.0
+2025-05-19 18:43:26.84
+b1049372
+User
+npm notice
+2025-05-19 18:43:26.85
+b1049372
+System
+command finished with error [npm run start]: exit status 7
+2025-05-19 18:46:21.65
+b1049372
+User
+API request: GET /messages/conversations
+2025-05-19 18:46:22.04
+b1049372
+User
+API request: GET /notifications
+2025-05-19 18:46:22.26
+b1049372
+User
+1:46:22 PM [express] GET /api/messages/conversations 200 in 611ms :: [{"id":"conv1","participants":[…
+2025-05-19 18:46:22.29
+b1049372
+User
+1:46:22 PM [express] GET /api/notifications 200 in 243ms :: []
+2025-05-19 18:48:52.76
+b1049372
+User
+API request: GET /messages/conversations
+2025-05-19 18:48:53.18
+b1049372
+User
+1:48:53 PM [express] GET /api/messages/conversations 200 in 422ms :: [{"id":"conv1","participants":[…
+2025-05-19 18:52:22.83
+b1049372
+User
+API request: GET /notifications
+2025-05-19 18:52:23.24
+b1049372
+User
+1:52:23 PM [express] GET /api/notifications 200 in 410ms :: []
+2025-05-19 18:52:23.51
+b1049372
+User
+API request: GET /messages/conversations
+2025-05-19 18:52:23.67
+b1049372
+User
+1:52:23 PM [express] GET /api/messages/conversations 200 in 156ms :: [{"id":"conv1","participants":[…
+2025-05-19 18:52:46.45
+b1049372
+User
+API request: PATCH /ui-prefs/me
+2025-05-19 18:52:46.74
+b1049372
+User
+1:52:46 PM [express] PATCH /api/ui-prefs/me 200 in 289ms
+2025-05-19 18:52:47.26
+b1049372
+User
+API request: PATCH /ui-prefs/me
+2025-05-19 18:52:47.33
+b1049372
+User
+1:52:47 PM [express] PATCH /api/ui-prefs/me 200 in 75ms
+2025-05-19 18:52:54.03
+b1049372
+User
+API request: GET /messages/conversations
+2025-05-19 18:52:54.21
+b1049372
+User
+1:52:54 PM [express] GET /api/messages/conversations 200 in 179ms :: [{"id":"conv1","participants":[…
+2025-05-19 18:52:57.02
+b1049372
+User
+API request: GET /auth/user-organizations
+2025-05-19 18:52:57.21
+b1049372
+User
+API request: GET /organizations/current
+2025-05-19 18:52:57.27
+b1049372
+User
+1:52:57 PM [express] GET /api/auth/user-organizations 200 in 249ms :: [{"id":1,"name":"Default Organ…
+2025-05-19 18:52:57.66
+b1049372
+User
+1:52:57 PM [express] GET /api/organizations/current 200 in 454ms :: {"id":1,"name":"Default Organiza…
+2025-05-19 18:53:18.58
+b1049372
+User
+API request: GET /notifications/leads
+2025-05-19 18:53:19.06
+b1049372
+User
+1:53:19 PM [express] GET /api/notifications/leads 200 in 477ms :: []
+2025-05-19 18:53:23.53
+b1049372
+User
+API request: GET /notifications
+2025-05-19 18:53:23.77
+b1049372
+User
+1:53:23 PM [express] GET /api/notifications 200 in 236ms :: []
+2025-05-19 18:53:24.51
+b1049372
+User
+API request: GET /messages/conversations
+2025-05-19 18:53:24.70
+b1049372
+User
+1:53:24 PM [express] GET /api/messages/conversations 200 in 183ms :: [{"id":"conv1","participants":[…
+2025-05-19 18:53:55.17
+b1049372
+User
+API request: GET /messages/conversations
+2025-05-19 18:53:55.66
+b1049372
+User
+1:53:55 PM [express] GET /api/messages/conversations 200 in 494ms :: [{"id":"conv1","participants":[…
+2025-05-19 18:55:24.30
+b1049372
+User
+API request: GET /notifications

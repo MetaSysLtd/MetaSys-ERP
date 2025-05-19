@@ -144,6 +144,26 @@ export default function SettingsPage() {
     },
   });
   
+  // Query to fetch notification settings
+  const { data: notificationSettings, isLoading: isLoadingNotifications } = useQuery({
+    queryKey: [`/api/users/${user?.id}/notifications`],
+    queryFn: async () => {
+      if (!user) return null;
+      const response = await fetch(`/api/users/${user.id}/notifications`, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        console.error('Error fetching notification settings:', response.status);
+        return null;
+      }
+      return await response.json();
+    },
+    enabled: !!user?.id,
+  });
+  
   // Set default values for profile form when user data is loaded
   useEffect(() => {
     if (user) {
