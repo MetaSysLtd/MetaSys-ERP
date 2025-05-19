@@ -210,6 +210,7 @@ router.get('/:id/notifications', createAuthMiddleware(1), async (req, res) => {
 router.patch('/:id/notifications', createAuthMiddleware(1), async (req, res) => {
   // Set proper content type for JSON responses
   res.setHeader('Content-Type', 'application/json');
+  
   try {
     const userId = parseInt(req.params.id);
     
@@ -233,12 +234,20 @@ router.patch('/:id/notifications', createAuthMiddleware(1), async (req, res) => 
     
     const validatedData = notificationSchema.parse(req.body);
     
-    try {
-      // Store notification preferences in the user record using the jsonb column
-      const updatedUser = await storage.updateUser(userId, {
-        notificationSettings: validatedData 
-      });
+    // Get the current user to merge notification settings
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
     
+    // Create a data object to update the user
+    const userData = {
+      // Ensure we're only updating the notification settings
+      notificationSettings: validatedData 
+    };
+    
+    // Update user with new notification settings
+    const updatedUser = await storage.updateUser(userId, userData);
     
     if (!updatedUser) {
       return res.status(404).json({ error: 'User not found' });
@@ -246,7 +255,8 @@ router.patch('/:id/notifications', createAuthMiddleware(1), async (req, res) => 
     
     res.json({ 
       success: true,
-      message: 'Notification settings updated successfully' 
+      message: 'Notification settings updated successfully',
+      settings: validatedData
     });
   } catch (error: any) {
     console.error('Error updating notification settings:', error);

@@ -102,8 +102,8 @@ function initSocket(): boolean {
       if (isValidUserId(userId)) {
         setTimeout(() => {
           if (socket && socket.connected) {
-            // Pass the organization ID as is - we've fixed the type definition
-            authenticate(userId, orgId);
+            // Make sure we have a valid user ID and org ID for authentication
+            authenticate(userId, orgId || 0);
           }
         }, 500);
       }
