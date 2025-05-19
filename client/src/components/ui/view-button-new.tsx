@@ -22,7 +22,7 @@ export function ViewButton({
   const content = (
     <>
       <Eye className="h-4 w-4" />
-      {!iconOnly && <span className="ml-2">{label || children}</span>}
+      {!iconOnly && <span>{label || children}</span>}
     </>
   );
 

@@ -359,41 +359,42 @@ export function InvoiceList({
                           <TableCell>
                             <div className="flex items-center justify-end gap-2">
                               <ViewButton 
-                                size="sm" 
-                                onClick={() => window.location.href = `/invoices/${invoice.id}`}
+                                to={`/invoices/${invoice.id}`}
+                                size="sm"
                                 iconOnly
                                 className="h-8 w-8 p-0"
                                 aria-label="View Invoice Details"
                               />
                               <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <span className="sr-only">Open menu</span>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem asChild>
-                                  <Link to={`/invoices/${invoice.id}`} className="flex items-center">
-                                    <Eye className="h-4 w-4 mr-2" />
-                                    View Details
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Download className="h-4 w-4 mr-2" />
-                                  Download PDF
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                  onClick={() => handleDeleteInvoice(invoice.id)}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <Trash className="h-4 w-4 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  <DropdownMenuItem asChild>
+                                    <Link to={`/invoices/${invoice.id}`} className="flex items-center">
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      View Details
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Download PDF
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteInvoice(invoice.id)}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Trash className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </TableCell>
                         </TableRow>
                       </AnimatedListItem>
