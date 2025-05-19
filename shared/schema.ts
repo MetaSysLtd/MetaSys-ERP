@@ -498,6 +498,7 @@ export const users = pgTable("users", {
   // Extended fields
   active: boolean("active").notNull().default(true),
   profileImageUrl: text("profile_image_url"),
+  notificationSettings: jsonb("notification_settings"),
   
   // Permission fields that DO exist in the actual database
   isSystemAdmin: boolean("is_system_admin").notNull().default(false),
@@ -1476,6 +1477,16 @@ export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 
 export type User = typeof users.$inferSelect;
+
+export type NotificationSettings = {
+  emailNotifications: boolean;
+  slackNotifications: boolean;
+  leadUpdates: boolean;
+  loadUpdates: boolean;
+  invoiceUpdates: boolean;
+  dailySummary: boolean;
+  weeklySummary: boolean;
+};
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export type Lead = typeof leads.$inferSelect;

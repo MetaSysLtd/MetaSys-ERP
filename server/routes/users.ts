@@ -222,23 +222,23 @@ router.patch('/:id/notifications', createAuthMiddleware(1), async (req, res) => 
     
     // Validate notification settings
     const notificationSchema = z.object({
-      emailNotifications: z.boolean(),
-      slackNotifications: z.boolean(),
-      leadUpdates: z.boolean(),
-      loadUpdates: z.boolean(),
-      invoiceUpdates: z.boolean(),
-      dailySummary: z.boolean(),
-      weeklySummary: z.boolean(),
+      emailNotifications: z.boolean().default(true),
+      slackNotifications: z.boolean().default(true),
+      leadUpdates: z.boolean().default(true),
+      loadUpdates: z.boolean().default(true),
+      invoiceUpdates: z.boolean().default(true),
+      dailySummary: z.boolean().default(true),
+      weeklySummary: z.boolean().default(true),
     });
     
     const validatedData = notificationSchema.parse(req.body);
     
-    // Store notification preferences directly in the user record as a JSON field
-    // We'll update the user directly since the storage method isn't yet implemented
-    const updatedUser = await storage.updateUser(userId, {
-      // Use proper field name from the schema
-      notificationSettings: validatedData 
-    });
+    try {
+      // Store notification preferences in the user record using the jsonb column
+      const updatedUser = await storage.updateUser(userId, {
+        notificationSettings: validatedData 
+      });
+    
     
     if (!updatedUser) {
       return res.status(404).json({ error: 'User not found' });
