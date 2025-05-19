@@ -391,6 +391,7 @@ export interface IStorage {
   
   // User Notification Preferences operations
   updateUserNotificationPreferences(userId: number, preferences: any): Promise<User | undefined>;
+  getUserNotificationPreferences(userId: number): Promise<any>;
   
   // User Settings & Organization Settings - implementations completed
   // All methods for managing user preferences, settings, and organizational configuration

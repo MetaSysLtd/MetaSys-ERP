@@ -191,9 +191,12 @@ router.patch('/:id/notifications', createAuthMiddleware(1), async (req, res) => 
     
     const validatedData = notificationSchema.parse(req.body);
     
-    // Store notification preferences in the user record
-    // Convert to JSON format for storage
-    const updatedUser = await storage.updateUserNotificationPreferences(userId, validatedData);
+    // Store notification preferences directly in the user record as a JSON field
+    // We'll update the user directly since the storage method isn't yet implemented
+    const updatedUser = await storage.updateUser(userId, {
+      // Use proper field name from the schema
+      notificationSettings: validatedData 
+    });
     
     if (!updatedUser) {
       return res.status(404).json({ error: 'User not found' });
