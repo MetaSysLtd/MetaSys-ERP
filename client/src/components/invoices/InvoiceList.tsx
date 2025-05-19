@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
   FileText, Search, Plus, Download, Calendar, Clock, DollarSign, Trash, 
-  ArrowUpDown, MoreHorizontal, Filter, CheckCircle, XCircle, AlertCircle
+  ArrowUpDown, MoreHorizontal, Filter, CheckCircle, XCircle, AlertCircle, Eye
 } from "lucide-react";
 import {
   DropdownMenu,
