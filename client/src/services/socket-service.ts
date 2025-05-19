@@ -9,7 +9,7 @@ import { toast } from '@/hooks/use-toast';
 let socket: Socket | null = null;
 let isInitialized = false;
 let userId: number | string | null = null;
-let orgId: number | string | null = null;
+let orgId: number | string | undefined = undefined;
 let pendingSubscriptions: Array<{ type: string; id: number | string }> = [];
 
 // Standardized event names for better consistency across the application
@@ -62,7 +62,13 @@ export enum RealTimeEvents {
  * @returns {boolean} True if successfully initialized
  */
 function initSocket(): boolean {
+  // If already initialized but socket is null, clean up state first
+  if (isInitialized && !socket) {
+    isInitialized = false;
+  }
+  
   if (isInitialized && socket) {
+    console.log('Socket already initialized, reusing existing connection');
     return true;
   }
   
@@ -73,25 +79,34 @@ function initSocket(): boolean {
     
     console.log('Connecting to socket at:', wsUrl);
     
-    // Create socket connection with proper config
+    // Create socket connection with proper config and more reliable settings
     socket = io(wsUrl, {
       transports: ['websocket', 'polling'],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      timeout: 20000,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1500,
+      timeout: 30000,
+      autoConnect: true,
+      forceNew: true
     });
     
     // Set up standard event handlers
     socket.on('connect', () => {
-      console.log('Socket connected:', socket?.id);
+      console.log('Socket connected successfully:', socket?.id);
       
-      // If we have user ID, authenticate immediately
+      // If we have user ID, authenticate immediately with delay to ensure connection is stable
       if (userId) {
-        authenticate(userId, orgId);
+        setTimeout(() => {
+          if (socket && socket.connected) {
+            // Pass the organization ID as is - we've fixed the type definition
+            authenticate(userId, orgId);
+          }
+        }, 500);
       }
       
-      // Process any pending subscriptions
-      processPendingSubscriptions();
+      // Process any pending subscriptions with a slight delay
+      setTimeout(() => {
+        processPendingSubscriptions();
+      }, 1000);
     });
     
     socket.on('disconnect', (reason) => {
@@ -149,20 +164,51 @@ function processPendingSubscriptions(): void {
 /**
  * Authenticate the socket connection with user credentials
  * @param {number|string} id User ID
- * @param {number|string|null} organization Organization ID (optional)
+ * @param {number|string|undefined} organization Organization ID (optional)
+ * @returns {Promise<boolean>} Success status
  */
-function authenticate(id: number | string, organization: number | string | null = null): void {
-  if (!socket) {
-    initSocket();
-  }
-  
+function authenticate(id: number | string, organization?: number | string): Promise<boolean> {
+  // Store these values regardless of connection status
   userId = id;
   orgId = organization;
   
-  if (socket && socket.connected) {
-    console.log('Authenticating socket with user ID:', id);
-    socket.emit('authenticate', { userId: id, orgId: organization });
-  }
+  return new Promise((resolve) => {
+    if (!socket) {
+      // If no socket, initialize and wait for connection before authenticating
+      const initialized = initSocket();
+      if (!initialized) {
+        console.warn('Failed to initialize socket for authentication');
+        resolve(false);
+        return;
+      }
+    }
+    
+    // If socket exists but not connected, wait a moment and try again
+    if (socket && !socket.connected) {
+      console.log('Socket not connected, waiting before authentication attempt');
+      setTimeout(() => {
+        if (socket && socket.connected) {
+          console.log('Authenticating socket with user ID after connection delay:', id);
+          socket.emit('authenticate', { userId: id, orgId: organization });
+          resolve(true);
+        } else {
+          console.warn('Cannot emit event, socket is not connected: authenticate');
+          resolve(false);
+        }
+      }, 1500);
+      return;
+    }
+    
+    // Normal case: socket is connected, authenticate immediately
+    if (socket && socket.connected) {
+      console.log('Authenticating socket with user ID:', id);
+      socket.emit('authenticate', { userId: id, orgId: organization });
+      resolve(true);
+    } else {
+      console.warn('Cannot emit authenticate event, socket unavailable');
+      resolve(false);
+    }
+  });
 }
 
 /**
