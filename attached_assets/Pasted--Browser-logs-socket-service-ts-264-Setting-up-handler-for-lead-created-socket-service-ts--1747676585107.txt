@@ -1,0 +1,81 @@
+__
+
+Browser logs:
+
+socket-service.ts:264 Setting up handler for lead:created
+socket-service.ts:264 Setting up handler for lead:updated
+socket-service.ts:264 Setting up handler for lead-status:updated
+socket-service.ts:264 Setting up handler for lead-qualification:updated
+socket-service.ts:200 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ socket-service.ts:200
+setTimeout
+(anonymous) @ socket-service.ts:194
+authenticate @ socket-service.ts:180
+(anonymous) @ use-real-time.tsx:42
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=124d4c6c:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=124d4c6c:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19416
+commitRoot @ chunk-RPCDYKBN.js?v=124d4c6c:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=124d4c6c:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=124d4c6c:18627Understand this warning
+6@hello-pangea_dnd.js?v=124d4c6c:208 @hello-pangea/dndDroppable: unsupported nested scroll container detected.A Droppable can only have one scroll parent (which can be itself)Nested scroll containers are currently not supported.We hope to support nested scroll containers soon: https://github.com/atlassian/react-beautiful-dnd/issues/131👷‍ This is a development only message. It will be removed in production builds.
+
+___
+
+
+Production console logs:
+
+2025-05-19 20:53:58.67
+b1049372
+User
+[2025-05-19T15:53:58.671Z] ERROR: [2025-05-19T15:53:58.670Z] 500 ERROR: Internal Server Error User: unknown Path: GET /api/messages/conversations Error: Connection terminated due to connection timeout
+2025-05-19 20:53:58.67
+b1049372
+User
+at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+2025-05-19 20:53:58.67
+b1049372
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-05-19 20:53:58.67
+b1049372
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:322:21) {
+2025-05-19 20:53:58.67
+b1049372
+User
+[cause]: Error: Connection terminated unexpectedly
+2025-05-19 20:53:58.67
+b1049372
+User
+at Connection. (/home/runner/workspace/node_modules/pg/lib/client.js:136:73)
+2025-05-19 20:53:58.67
+b1049372
+User
+at Object.onceWrapper (node:events:632:28)
+2025-05-19 20:53:58.67
+b1049372
+User
+at Connection.emit (node:events:518:28)
+2025-05-19 20:53:58.67
+b1049372
+User
+at Socket. (/home/runner/workspace/node_modules/pg/lib/connection.js:62:12)
+2025-05-19 20:53:58.67
+b1049372
+User
+at Socket.emit (node:events:530:35)
+2025-05-19 20:53:58.67
+b1049372
+User
+at TCP. (node:net:343:12)
+2025-05-19 20:53:58.67
+b1049372
+User
+}

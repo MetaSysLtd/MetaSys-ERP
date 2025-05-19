@@ -374,7 +374,7 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
                     <CardContent 
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`p-2 overflow-y-auto flex-1 min-h-[300px] transition-colors ${
+                      className={`p-2 flex-1 min-h-[300px] transition-colors ${
                         snapshot.isDraggingOver ? 'bg-blue-50' : ''
                       }`}
                     >
