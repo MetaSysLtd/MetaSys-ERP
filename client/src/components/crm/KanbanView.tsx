@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -116,6 +116,9 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
   
   // Set up hover state for lead cards
   const [hoveredLeadId, setHoveredLeadId] = useState<number | null>(null);
+  
+  // Set state for dragging to fix scroll container issues
+  const [isDragging, setIsDragging] = useState(false);
   
   // Sync local leads when the prop changes
   useEffect(() => {
@@ -258,8 +261,15 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
     },
   });
   
+  // Functions to handle drag states
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+  
   // Handle drag end
   const handleDragEnd = (result: DropResult) => {
+    setIsDragging(false);
+    
     const { source, destination, draggableId } = result;
     
     // Return if dropped outside a valid droppable or same position
@@ -369,12 +379,12 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
                   </CardDescription>
                 </CardHeader>
                 
-                <Droppable droppableId={`status-${status}`} type="LEAD">
+                <Droppable droppableId={`status-${status}`} type="LEAD" mode="standard">
                   {(provided, snapshot) => (
                     <CardContent 
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`p-2 flex-1 min-h-[300px] transition-colors ${
+                      className={`p-2 flex-1 min-h-[300px] max-h-[60vh] transition-colors ${
                         snapshot.isDraggingOver ? 'bg-blue-50' : ''
                       }`}
                     >
@@ -511,9 +521,9 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
                   </div>
                   
                   <Button 
-                    variant="ghost" 
+                    variant="view" 
                     size="sm"
-                    className="h-7 text-xs text-gray-500 px-2"
+                    className="h-7 text-xs px-2"
                     onClick={() => window.location.href = `/crm?status=${status}`}
                   >
                     View all
