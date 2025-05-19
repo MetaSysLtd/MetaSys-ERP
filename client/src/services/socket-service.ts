@@ -10,6 +10,11 @@ let socket: Socket | null = null;
 let isInitialized = false;
 let userId: number | string | null = null;
 let orgId: number | string | undefined = undefined;
+
+// Type guard function to check if userId is not null
+function isValidUserId(id: number | string | null): id is number | string {
+    return id !== null;
+}
 let pendingSubscriptions: Array<{ type: string; id: number | string }> = [];
 
 // Standardized event names for better consistency across the application
@@ -94,7 +99,7 @@ function initSocket(): boolean {
       console.log('Socket connected successfully:', socket?.id);
       
       // If we have user ID, authenticate immediately with delay to ensure connection is stable
-      if (userId) {
+      if (isValidUserId(userId)) {
         setTimeout(() => {
           if (socket && socket.connected) {
             // Pass the organization ID as is - we've fixed the type definition

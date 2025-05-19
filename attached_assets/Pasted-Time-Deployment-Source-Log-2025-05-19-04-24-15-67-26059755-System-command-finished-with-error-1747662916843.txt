@@ -1,0 +1,98 @@
+Time
+Deployment
+Source
+Log
+2025-05-19 04:24:15.67
+26059755
+System
+command finished with error [npm run start]: exit status 7
+2025-05-19 18:43:26.82
+b1049372
+User
+file:///home/runner/workspace/dist/index.js:1486
+2025-05-19 18:43:26.82
+b1049372
+User
+throw err;
+2025-05-19 18:43:26.82
+b1049372
+User
+^
+2025-05-19 18:43:26.82
+b1049372
+User
+2025-05-19 18:43:26.82
+b1049372
+User
+TypeError: req.isAuthenticated is not a function
+2025-05-19 18:43:26.82
+b1049372
+User
+at requireAuth (file:///home/runner/workspace/dist/index.js:10611:12)
+2025-05-19 18:43:26.82
+b1049372
+User
+at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+2025-05-19 18:43:26.82
+b1049372
+User
+at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+2025-05-19 18:43:26.82
+b1049372
+User
+at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+2025-05-19 18:43:26.82
+b1049372
+User
+at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+2025-05-19 18:43:26.82
+b1049372
+User
+at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+2025-05-19 18:43:26.82
+b1049372
+User
+at Function.handle (/home/runner/workspace/node_modules/express/lib/router/index.js:175:3)
+2025-05-19 18:43:26.82
+b1049372
+User
+at router (/home/runner/workspace/node_modules/express/lib/router/index.js:47:12)
+2025-05-19 18:43:26.82
+b1049372
+User
+at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+2025-05-19 18:43:26.82
+b1049372
+User
+at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:328:13)
+2025-05-19 18:43:26.82
+b1049372
+User
+2025-05-19 18:43:26.82
+b1049372
+User
+Node.js v20.18.1
+2025-05-19 18:43:26.84
+b1049372
+User
+npm notice
+2025-05-19 18:43:26.84
+b1049372
+User
+npm notice New major version of npm available! 10.8.2 -> 11.4.0
+2025-05-19 18:43:26.84
+b1049372
+User
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.4.0
+2025-05-19 18:43:26.84
+b1049372
+User
+npm notice To update run: npm install -g npm@11.4.0
+2025-05-19 18:43:26.84
+b1049372
+User
+npm notice
+2025-05-19 18:43:26.85
+b1049372
+System
+command finished with error [npm run start]: exit status 7

@@ -59,6 +59,8 @@ router.get('/:id', createAuthMiddleware(1), async (req, res) => {
 
 // Update a user (corresponds to the ProfileFormValues schema in the client)
 router.patch('/:id', createAuthMiddleware(1), async (req, res) => {
+  // Set proper content type header to ensure JSON response
+  res.setHeader('Content-Type', 'application/json');
   try {
     const userId = parseInt(req.params.id);
     
@@ -108,8 +110,10 @@ router.patch('/:id', createAuthMiddleware(1), async (req, res) => {
   }
 });
 
-// Update user password
+// Update user password - ensure method is properly supported
 router.patch('/:id/password', createAuthMiddleware(1), async (req, res) => {
+  // Set proper content type for JSON responses
+  res.setHeader('Content-Type', 'application/json');
   try {
     const userId = parseInt(req.params.id);
     
