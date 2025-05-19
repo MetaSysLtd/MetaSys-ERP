@@ -176,17 +176,10 @@ export default function InvoicesPage() {
                   {!invoicesQuery.data || !Array.isArray(invoicesQuery.data) || invoicesQuery.data.length === 0 ? (
                     <EmptyState
                       title="No invoices found"
-                      description="You haven't created any invoices yet. Create your first invoice to get started."
+                      message="You haven't created any invoices yet. Create your first invoice to get started."
                       icon={<FileText className="h-14 w-14 text-muted-foreground/60" />}
-                      action={
-                        <Button
-                          onClick={() => document.getElementById('create-invoice-btn')?.click()}
-                          className="mt-4 bg-[#025E73] text-white hover:bg-[#025E73]/90"
-                        >
-                          <Plus className="mr-2 h-4 w-4" />
-                          Create Invoice
-                        </Button>
-                      }
+                      actionLabel="Create Invoice"
+                      onAction={() => document.getElementById('create-invoice-btn')?.click()}
                     />
                   ) : (
                     <div>
@@ -326,7 +319,7 @@ export default function InvoicesPage() {
 }
 
 // InfoIcon component
-function InfoIcon(props) {
+function InfoIcon(props: React.SVGAttributes<SVGSVGElement>) {
   return (
     <svg
       {...props}

@@ -5,25 +5,25 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2A71B] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden aria-disabled:opacity-50 aria-disabled:pointer-events-none",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F2A71B] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden aria-disabled:opacity-50 aria-disabled:pointer-events-none",
   {
     variants: {
       variant: {
-        default: "bg-[#025E73] text-white hover:bg-[#011F26] focus:bg-[#011F26] active:bg-[#412754] dark:bg-[#025E73] dark:text-white dark:hover:bg-[#011F26] dark:focus:bg-[#011F26] dark:active:bg-[#412754] text-sm sm:text-base px-3 sm:px-4 hover:-translate-y-0.5 hover:shadow-md focus:-translate-y-0.5 focus:shadow-md active:translate-y-0 active:shadow-inner [&_svg]:visible",
+        default: "bg-[#025E73] text-white hover:bg-[#011F26] active:bg-[#025E73]/90 dark:bg-[#025E73] dark:text-white dark:hover:bg-[#011F26] dark:active:bg-[#025E73]/90 text-sm sm:text-base px-3 sm:px-4 hover:shadow-md active:shadow-inner [&_svg]:text-white [&_svg]:h-4 [&_svg]:w-4 [&_svg]:mr-2 gap-2",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus:bg-destructive/90 active:bg-destructive/100 dark:bg-destructive dark:text-white dark:hover:bg-destructive/90 dark:active:bg-destructive/100 text-sm sm:text-base px-2 sm:px-4 hover:-translate-y-1 hover:shadow-md focus:-translate-y-1 focus:shadow-md active:translate-y-0 active:shadow-inner",
+          "bg-destructive text-white hover:bg-destructive/90 active:bg-destructive/100 dark:bg-destructive dark:text-white dark:hover:bg-destructive/90 dark:active:bg-destructive/100 text-sm sm:text-base px-3 sm:px-4 hover:shadow-md active:shadow-inner [&_svg]:text-white [&_svg]:h-4 [&_svg]:w-4 [&_svg]:mr-2 gap-2",
         outline:
-          "border border-[#025E73] bg-background text-[#025E73] hover:bg-[#025E73]/5 focus:bg-[#025E73]/5 hover:border-[#011F26] focus:border-[#011F26] active:bg-[#025E73]/10 active:border-[#025E73] dark:border-[#025E73] dark:bg-background dark:text-[#025E73] dark:hover:bg-[#025E73]/20 dark:focus:bg-[#025E73]/20 text-sm sm:text-base px-2 sm:px-4 hover:-translate-y-1 hover:shadow-md focus:-translate-y-1 focus:shadow-md active:translate-y-0 active:shadow-inner",
+          "border border-[#025E73] bg-background text-[#025E73] hover:bg-[#025E73]/5 active:bg-[#025E73]/10 dark:border-[#025E73] dark:bg-background dark:text-[#025E73] dark:hover:bg-[#025E73]/20 dark:active:bg-[#025E73]/30 text-sm sm:text-base px-3 sm:px-4 hover:shadow-md active:shadow-inner [&_svg]:text-[#025E73] [&_svg]:h-4 [&_svg]:w-4 [&_svg]:mr-2 gap-2",
         secondary:
-          "bg-[#F2A71B] text-white hover:bg-[#E09616] focus:bg-[#E09616] active:bg-[#D18613] dark:bg-[#F2A71B] dark:text-white dark:hover:bg-[#E09616] dark:focus:bg-[#E09616] dark:active:bg-[#D18613] text-sm sm:text-base px-2 sm:px-4 hover:-translate-y-1 hover:shadow-md focus:-translate-y-1 focus:shadow-md active:translate-y-0 active:shadow-inner",
-        ghost: "hover:bg-[#025E73]/10 focus:bg-[#025E73]/10 hover:text-[#025E73] focus:text-[#025E73] active:bg-[#025E73]/20 dark:hover:bg-[#025E73]/20 dark:focus:bg-[#025E73]/20 dark:hover:text-[#025E73] dark:focus:text-[#025E73] dark:active:bg-[#025E73]/30 text-sm sm:text-base px-2 sm:px-4",
-        link: "text-[#025E73] underline-offset-4 hover:underline focus:underline hover:text-[#011F26] focus:text-[#011F26] active:text-[#412754] dark:text-[#64D2E5] dark:hover:text-[#88E1F2] dark:focus:text-[#88E1F2] dark:active:text-[#B8F0FF] text-sm sm:text-base px-2 sm:px-4",
+          "bg-[#F2A71B] text-white hover:bg-[#E09616] active:bg-[#D18613] dark:bg-[#F2A71B] dark:text-white dark:hover:bg-[#E09616] dark:active:bg-[#D18613] text-sm sm:text-base px-3 sm:px-4 hover:shadow-md active:shadow-inner [&_svg]:text-white [&_svg]:h-4 [&_svg]:w-4 [&_svg]:mr-2 gap-2",
+        ghost: "hover:bg-[#025E73]/10 hover:text-[#025E73] active:bg-[#025E73]/20 dark:hover:bg-[#025E73]/20 dark:hover:text-[#025E73] dark:active:bg-[#025E73]/30 text-sm sm:text-base px-3 sm:px-4 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:mr-2 gap-2",
+        link: "text-[#025E73] underline-offset-4 hover:underline hover:text-[#011F26] active:text-[#412754] dark:text-[#64D2E5] dark:hover:text-[#88E1F2] dark:active:text-[#B8F0FF] text-sm sm:text-base px-3 sm:px-4 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:mr-2 gap-2",
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        icon: "h-10 w-10 p-2 [&_svg]:mr-0",
       },
     },
     defaultVariants: {
