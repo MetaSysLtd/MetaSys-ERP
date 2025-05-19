@@ -221,6 +221,7 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
   // Mutation for updating lead status
   const updateLeadStatusMutation = useMutation({
     mutationFn: async ({ leadId, newStatus }: { leadId: number, newStatus: string }) => {
+      // Make sure the URL is properly formatted with a leading slash
       const response = await apiRequest("PATCH", `/api/leads/${leadId}/status`, {
         status: newStatus
       });
@@ -386,7 +387,7 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
                     <CardContent 
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`p-2 flex-1 min-h-[300px] max-h-[60vh] overflow-y-auto transition-colors ${
+                      className={`p-2 flex-1 min-h-[300px] max-h-[60vh] transition-colors ${
                         snapshot.isDraggingOver ? 'bg-blue-50' : ''
                       } ${isDragging ? 'overflow-visible' : 'overflow-y-auto'}`}
                     >
@@ -423,11 +424,20 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
                                   `}
                                   onMouseEnter={() => setHoveredLeadId(lead.id)}
                                   onMouseLeave={() => setHoveredLeadId(null)}
-                                  onClick={() => {
-                                    if (setLocation) {
-                                      setLocation(`/crm/leads/${lead.id}`);
-                                    } else {
-                                      window.location.href = `/crm/leads/${lead.id}`;
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    try {
+                                      if (setLocation) {
+                                        setLocation(`/crm/leads/${lead.id}`);
+                                      } else {
+                                        // Using a more reliable way to navigate
+                                        window.location.href = `/crm/leads/${lead.id}`;
+                                      }
+                                    } catch (error) {
+                                      console.error("Navigation error:", error);
+                                      // Fallback navigation
+                                      window.location.replace(`/crm/leads/${lead.id}`);
                                     }
                                   }}
                                 >

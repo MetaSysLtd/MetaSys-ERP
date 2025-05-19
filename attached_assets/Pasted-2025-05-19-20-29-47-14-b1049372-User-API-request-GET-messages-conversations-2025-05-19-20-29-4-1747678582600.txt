@@ -1,0 +1,80 @@
+2025-05-19 20:29:47.14
+b1049372
+User
+API request: GET /messages/conversations
+2025-05-19 20:29:47.57
+b1049372
+User
+3:29:47 PM [express] GET /api/messages/conversations 200 in 436ms :: [{"id":"conv1","participants":[…
+2025-05-19 20:53:58.30
+b1049372
+User
+API request: GET /notifications/leads
+2025-05-19 20:53:58.67
+b1049372
+User
+[2025-05-19T15:53:58.671Z] ERROR: [2025-05-19T15:53:58.670Z] 500 ERROR: Internal Server Error User: unknown Path: GET /api/messages/conversations Error: Connection terminated due to connection timeout
+2025-05-19 20:53:58.67
+b1049372
+User
+at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+2025-05-19 20:53:58.67
+b1049372
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-05-19 20:53:58.67
+b1049372
+User
+at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:322:21) {
+2025-05-19 20:53:58.67
+b1049372
+User
+[cause]: Error: Connection terminated unexpectedly
+2025-05-19 20:53:58.67
+b1049372
+User
+at Connection. (/home/runner/workspace/node_modules/pg/lib/client.js:136:73)
+2025-05-19 20:53:58.67
+b1049372
+User
+at Object.onceWrapper (node:events:632:28)
+2025-05-19 20:53:58.67
+b1049372
+User
+at Connection.emit (node:events:518:28)
+2025-05-19 20:53:58.67
+b1049372
+User
+at Socket. (/home/runner/workspace/node_modules/pg/lib/connection.js:62:12)
+2025-05-19 20:53:58.67
+b1049372
+User
+at Socket.emit (node:events:530:35)
+2025-05-19 20:53:58.67
+b1049372
+User
+at TCP. (node:net:343:12)
+2025-05-19 20:53:58.67
+b1049372
+User
+}
+2025-05-19 20:53:58.80
+b1049372
+User
+3:53:58 PM [express] GET /api/notifications/leads 200 in 502ms :: []
+2025-05-19 21:02:36.00
+b1049372
+User
+API request: GET /messages/conversations
+2025-05-19 21:02:36.41
+b1049372
+User
+4:02:36 PM [express] GET /api/messages/conversations 200 in 402ms :: [{"id":"conv1","participants":[…
+2025-05-19 21:38:00.86
+b1049372
+User
+API request: GET /messages/conversations
+2025-05-19 21:38:01.29
+b1049372
+User
+4:38:01 PM [express] GET /api/messages/conversations 200 in 428ms :: [{"id":"conv1","participants":[…

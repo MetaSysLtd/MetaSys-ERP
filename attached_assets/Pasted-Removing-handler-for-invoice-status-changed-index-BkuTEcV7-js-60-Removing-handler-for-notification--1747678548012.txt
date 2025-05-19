@@ -1,0 +1,682 @@
+Removing handler for invoice:status_changed
+index-BkuTEcV7.js:60 Removing handler for notification:created
+index-BkuTEcV7.js:60 Removing handler for notification:read
+index-BkuTEcV7.js:60 Removing handler for notification:deleted
+index-BkuTEcV7.js:60 Removing handler for data:updated
+index-BkuTEcV7.js:60 Setting up handler for connect
+index-BkuTEcV7.js:60 Setting up handler for disconnect
+index-BkuTEcV7.js:60 Setting up handler for authenticated
+index-BkuTEcV7.js:60 Setting up handler for data:refresh
+index-BkuTEcV7.js:60 Setting up handler for error
+index-BkuTEcV7.js:60 Setting up handler for system:message
+index-BkuTEcV7.js:60 
+            
+            
+           GET https://erp.metasysltd.com/api/organization/current 401 (Unauthorized)
+(anonymous) @ index-BkuTEcV7.js:60
+i @ index-BkuTEcV7.js:48
+x @ index-BkuTEcV7.js:48
+start @ index-BkuTEcV7.js:48
+fetch @ index-BkuTEcV7.js:48
+kx @ index-BkuTEcV7.js:48
+onSubscribe @ index-BkuTEcV7.js:48
+subscribe @ index-BkuTEcV7.js:48
+(anonymous) @ index-BkuTEcV7.js:48
+mq @ index-BkuTEcV7.js:38
+ON @ index-BkuTEcV7.js:40
+hh @ index-BkuTEcV7.js:40
+S4 @ index-BkuTEcV7.js:40
+vd @ index-BkuTEcV7.js:38
+Xde @ index-BkuTEcV7.js:40
+Bd @ index-BkuTEcV7.js:40
+Wq @ index-BkuTEcV7.js:40
+w @ index-BkuTEcV7.js:25
+E @ index-BkuTEcV7.js:25Understand this error
+index-BkuTEcV7.js:60 
+            
+            
+           GET https://erp.metasysltd.com/api/auth/me?_t=1747678158853 401 (Unauthorized)
+(anonymous) @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60
+ON @ index-BkuTEcV7.js:40
+hh @ index-BkuTEcV7.js:40
+S4 @ index-BkuTEcV7.js:40
+vd @ index-BkuTEcV7.js:38
+Xde @ index-BkuTEcV7.js:40
+Bd @ index-BkuTEcV7.js:40
+Wq @ index-BkuTEcV7.js:40
+w @ index-BkuTEcV7.js:25
+E @ index-BkuTEcV7.js:25Understand this error
+index-BkuTEcV7.js:60 Authentication check failed with status 401 - not authenticated
+index-BkuTEcV7.js:60 Removing handler for connect
+index-BkuTEcV7.js:60 Removing handler for disconnect
+index-BkuTEcV7.js:60 Removing handler for authenticated
+index-BkuTEcV7.js:60 Removing handler for data:refresh
+index-BkuTEcV7.js:60 Removing handler for error
+index-BkuTEcV7.js:60 Removing handler for system:message
+index-BkuTEcV7.js:60 Setting up handler for connect
+index-BkuTEcV7.js:60 Setting up handler for disconnect
+index-BkuTEcV7.js:60 Setting up handler for authenticated
+index-BkuTEcV7.js:60 Setting up handler for data:refresh
+index-BkuTEcV7.js:60 Setting up handler for error
+index-BkuTEcV7.js:60 Setting up handler for system:message
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+Lk @ index-BkuTEcV7.js:60
+Zx @ index-BkuTEcV7.js:60
+yy @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60
+ON @ index-BkuTEcV7.js:40
+hh @ index-BkuTEcV7.js:40
+S4 @ index-BkuTEcV7.js:40
+vd @ index-BkuTEcV7.js:38
+Xde @ index-BkuTEcV7.js:40
+Bd @ index-BkuTEcV7.js:40
+Wq @ index-BkuTEcV7.js:40
+w @ index-BkuTEcV7.js:25
+E @ index-BkuTEcV7.js:25Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+content-scripts.js:1 TSS: excluded result:  false
+injection-topics.js:1 Browsing Topics API removed
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {}
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747678180855, lastCount: 1}
+index-BkuTEcV7.js:830 User not authenticated or missing data, staying on login page
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 TSS: excluded result:  false
+injection-topics.js:1 Browsing Topics API removed
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+index-BkuTEcV7.js:1259 Global error handlers initialized
+index-BkuTEcV7.js:60 Connecting to socket at: wss://erp.metasysltd.com/ws
+index-BkuTEcV7.js:60 Setting up handler for connect
+index-BkuTEcV7.js:60 Setting up handler for disconnect
+index-BkuTEcV7.js:60 Setting up handler for authenticated
+index-BkuTEcV7.js:60 Setting up handler for data:refresh
+index-BkuTEcV7.js:60 Setting up handler for error
+index-BkuTEcV7.js:60 Setting up handler for system:message
+index-BkuTEcV7.js:60 Setting up handler for lead:created
+index-BkuTEcV7.js:60 Setting up handler for lead:updated
+index-BkuTEcV7.js:60 Setting up handler for lead:deleted
+index-BkuTEcV7.js:60 Setting up handler for lead:status_changed
+index-BkuTEcV7.js:60 Setting up handler for dispatch:created
+index-BkuTEcV7.js:60 Setting up handler for dispatch:updated
+index-BkuTEcV7.js:60 Setting up handler for dispatch:deleted
+index-BkuTEcV7.js:60 Setting up handler for dispatch:status_changed
+index-BkuTEcV7.js:60 Setting up handler for invoice:created
+index-BkuTEcV7.js:60 Setting up handler for invoice:updated
+index-BkuTEcV7.js:60 Setting up handler for invoice:deleted
+index-BkuTEcV7.js:60 Setting up handler for invoice:status_changed
+index-BkuTEcV7.js:60 Setting up handler for notification:created
+index-BkuTEcV7.js:60 Setting up handler for notification:read
+index-BkuTEcV7.js:60 Setting up handler for notification:deleted
+index-BkuTEcV7.js:60 Setting up handler for data:updated
+index-BkuTEcV7.js:60 Making query to: /api/organization/current
+index-BkuTEcV7.js:60 Checking authentication (attempt 1/2)
+index-BkuTEcV7.js:1036 Global error handlers initialized
+index-BkuTEcV7.js:1259 MetaSys ERP global error handling initialized
+index-BkuTEcV7.js:60 Socket already initialized, reusing existing connection
+index-BkuTEcV7.js:60 Setting up handler for connect
+index-BkuTEcV7.js:60 Setting up handler for disconnect
+index-BkuTEcV7.js:60 Setting up handler for authenticated
+index-BkuTEcV7.js:60 Setting up handler for system:message
+index-BkuTEcV7.js:60 Setting up handler for error
+index-BkuTEcV7.js:60 Setting up handler for data:updated
+index-BkuTEcV7.js:60 Removing handler for connect
+index-BkuTEcV7.js:60 Removing handler for disconnect
+index-BkuTEcV7.js:60 Removing handler for authenticated
+index-BkuTEcV7.js:60 Removing handler for data:refresh
+index-BkuTEcV7.js:60 Removing handler for error
+index-BkuTEcV7.js:60 Removing handler for system:message
+index-BkuTEcV7.js:60 Removing handler for lead:created
+index-BkuTEcV7.js:60 Removing handler for lead:updated
+index-BkuTEcV7.js:60 Removing handler for lead:deleted
+index-BkuTEcV7.js:60 Removing handler for lead:status_changed
+index-BkuTEcV7.js:60 Removing handler for dispatch:created
+index-BkuTEcV7.js:60 Removing handler for dispatch:updated
+index-BkuTEcV7.js:60 Removing handler for dispatch:deleted
+index-BkuTEcV7.js:60 Removing handler for dispatch:status_changed
+index-BkuTEcV7.js:60 Removing handler for invoice:created
+index-BkuTEcV7.js:60 Removing handler for invoice:updated
+index-BkuTEcV7.js:60 Removing handler for invoice:deleted
+index-BkuTEcV7.js:60 Removing handler for invoice:status_changed
+index-BkuTEcV7.js:60 Removing handler for notification:created
+index-BkuTEcV7.js:60 Removing handler for notification:read
+index-BkuTEcV7.js:60 Removing handler for notification:deleted
+index-BkuTEcV7.js:60 Removing handler for data:updated
+index-BkuTEcV7.js:60 Setting up handler for connect
+index-BkuTEcV7.js:60 Setting up handler for disconnect
+index-BkuTEcV7.js:60 Setting up handler for authenticated
+index-BkuTEcV7.js:60 Setting up handler for data:refresh
+index-BkuTEcV7.js:60 Setting up handler for error
+index-BkuTEcV7.js:60 Setting up handler for system:message
+index-BkuTEcV7.js:60 Making query to: /api/auth/user-organizations
+index-BkuTEcV7.js:60 Making query to: /api/organizations/current
+index-BkuTEcV7.js:60 Authentication check successful - user authenticated 1
+index-BkuTEcV7.js:60 Removing handler for connect
+index-BkuTEcV7.js:60 Removing handler for disconnect
+index-BkuTEcV7.js:60 Removing handler for authenticated
+index-BkuTEcV7.js:60 Removing handler for data:refresh
+index-BkuTEcV7.js:60 Removing handler for error
+index-BkuTEcV7.js:60 Removing handler for system:message
+index-BkuTEcV7.js:60 Making query to: /api/leads
+index-BkuTEcV7.js:60 Socket not connected, waiting before authentication attempt
+index-BkuTEcV7.js:60 Setting up handler for connect
+index-BkuTEcV7.js:60 Setting up handler for disconnect
+index-BkuTEcV7.js:60 Setting up handler for authenticated
+index-BkuTEcV7.js:60 Setting up handler for data:refresh
+index-BkuTEcV7.js:60 Setting up handler for error
+index-BkuTEcV7.js:60 Setting up handler for system:message
+index-BkuTEcV7.js:60 Making API request to: /api/ui-prefs/me with method: GET
+index-BkuTEcV7.js:60 Connecting to socket at: wss://erp.metasysltd.com/ws
+index-BkuTEcV7.js:60 Removing handler for connect
+index-BkuTEcV7.js:60 Removing handler for disconnect
+index-BkuTEcV7.js:60 Removing handler for authenticated
+index-BkuTEcV7.js:60 Removing handler for data:refresh
+index-BkuTEcV7.js:60 Removing handler for error
+index-BkuTEcV7.js:60 Removing handler for system:message
+index-BkuTEcV7.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:1259
+ON @ index-BkuTEcV7.js:40
+hh @ index-BkuTEcV7.js:40
+(anonymous) @ index-BkuTEcV7.js:40
+w @ index-BkuTEcV7.js:25
+E @ index-BkuTEcV7.js:25Understand this warning
+index-BkuTEcV7.js:60 Setting up handler for connect
+index-BkuTEcV7.js:60 Setting up handler for disconnect
+index-BkuTEcV7.js:60 Setting up handler for authenticated
+index-BkuTEcV7.js:60 Setting up handler for data:refresh
+index-BkuTEcV7.js:60 Setting up handler for error
+index-BkuTEcV7.js:60 Setting up handler for system:message
+index-BkuTEcV7.js:60 Socket already initialized, reusing existing connection
+index-BkuTEcV7.js:60 Socket not connected, waiting before authentication attempt
+index-BkuTEcV7.js:60 Setting up handler for lead:created
+index-BkuTEcV7.js:60 Setting up handler for lead:updated
+index-BkuTEcV7.js:60 Setting up handler for lead:deleted
+index-BkuTEcV7.js:60 Setting up handler for lead:status_changed
+index-BkuTEcV7.js:60 Setting up handler for dispatch:created
+index-BkuTEcV7.js:60 Setting up handler for dispatch:updated
+index-BkuTEcV7.js:60 Setting up handler for dispatch:deleted
+index-BkuTEcV7.js:60 Setting up handler for dispatch:status_changed
+index-BkuTEcV7.js:60 Setting up handler for invoice:created
+index-BkuTEcV7.js:60 Setting up handler for invoice:updated
+index-BkuTEcV7.js:60 Setting up handler for invoice:deleted
+index-BkuTEcV7.js:60 Setting up handler for invoice:status_changed
+index-BkuTEcV7.js:60 Setting up handler for notification:created
+index-BkuTEcV7.js:60 Setting up handler for notification:read
+index-BkuTEcV7.js:60 Setting up handler for notification:deleted
+index-BkuTEcV7.js:60 Setting up handler for data:updated
+index-BkuTEcV7.js:60 Setting up handler for lead:created
+index-BkuTEcV7.js:60 Setting up handler for lead:updated
+index-BkuTEcV7.js:60 Setting up handler for lead-status:updated
+index-BkuTEcV7.js:60 Setting up handler for lead-qualification:updated
+index-BkuTEcV7.js:60 Making query to: /api/activities
+index-BkuTEcV7.js:60 Removing handler for lead:created
+index-BkuTEcV7.js:60 Removing handler for lead:updated
+index-BkuTEcV7.js:60 Removing handler for lead-status:updated
+index-BkuTEcV7.js:60 Removing handler for lead-qualification:updated
+index-BkuTEcV7.js:60 Setting up handler for lead:created
+index-BkuTEcV7.js:60 Setting up handler for lead:updated
+index-BkuTEcV7.js:60 Setting up handler for lead-status:updated
+index-BkuTEcV7.js:60 Setting up handler for lead-qualification:updated
+index-BkuTEcV7.js:60 Removing handler for lead:created
+index-BkuTEcV7.js:60 Removing handler for lead:updated
+index-BkuTEcV7.js:60 Removing handler for lead-status:updated
+index-BkuTEcV7.js:60 Removing handler for lead-qualification:updated
+index-BkuTEcV7.js:60 Setting up handler for lead:created
+index-BkuTEcV7.js:60 Setting up handler for lead:updated
+index-BkuTEcV7.js:60 Setting up handler for lead-status:updated
+index-BkuTEcV7.js:60 Setting up handler for lead-qualification:updated
+index-BkuTEcV7.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BkuTEcV7.js:60
+setTimeout
+(anonymous) @ index-BkuTEcV7.js:60
+Fk @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60
+ON @ index-BkuTEcV7.js:40
+hh @ index-BkuTEcV7.js:40
+S4 @ index-BkuTEcV7.js:40
+vd @ index-BkuTEcV7.js:38
+Xde @ index-BkuTEcV7.js:40
+Bd @ index-BkuTEcV7.js:40
+Wq @ index-BkuTEcV7.js:40
+w @ index-BkuTEcV7.js:25
+E @ index-BkuTEcV7.js:25Understand this warning
+index-BkuTEcV7.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BkuTEcV7.js:60
+setTimeout
+(anonymous) @ index-BkuTEcV7.js:60
+Fk @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60
+ON @ index-BkuTEcV7.js:40
+hh @ index-BkuTEcV7.js:40
+Xde @ index-BkuTEcV7.js:40
+Bd @ index-BkuTEcV7.js:40
+S4 @ index-BkuTEcV7.js:40
+vd @ index-BkuTEcV7.js:38
+(anonymous) @ index-BkuTEcV7.js:40
+setTimeout
+a @ index-BkuTEcV7.js:48
+o @ index-BkuTEcV7.js:48
+batch @ index-BkuTEcV7.js:48
+pl @ index-BkuTEcV7.js:48
+setData @ index-BkuTEcV7.js:48
+onSuccess @ index-BkuTEcV7.js:48
+f @ index-BkuTEcV7.js:48
+Promise.then
+x @ index-BkuTEcV7.js:48
+start @ index-BkuTEcV7.js:48
+fetch @ index-BkuTEcV7.js:48
+kx @ index-BkuTEcV7.js:48
+onSubscribe @ index-BkuTEcV7.js:48
+subscribe @ index-BkuTEcV7.js:48
+(anonymous) @ index-BkuTEcV7.js:48
+mq @ index-BkuTEcV7.js:38
+ON @ index-BkuTEcV7.js:40
+hh @ index-BkuTEcV7.js:40
+S4 @ index-BkuTEcV7.js:40
+vd @ index-BkuTEcV7.js:38
+Xde @ index-BkuTEcV7.js:40
+Bd @ index-BkuTEcV7.js:40
+Wq @ index-BkuTEcV7.js:40
+w @ index-BkuTEcV7.js:25
+E @ index-BkuTEcV7.js:25Understand this warning
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+Lk @ index-BkuTEcV7.js:60
+Zx @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60
+ON @ index-BkuTEcV7.js:40
+hh @ index-BkuTEcV7.js:40
+S4 @ index-BkuTEcV7.js:40
+vd @ index-BkuTEcV7.js:38
+Xde @ index-BkuTEcV7.js:40
+Bd @ index-BkuTEcV7.js:40
+Wq @ index-BkuTEcV7.js:40
+w @ index-BkuTEcV7.js:25
+E @ index-BkuTEcV7.js:25Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+Lk @ index-BkuTEcV7.js:60
+Zx @ index-BkuTEcV7.js:60
+yy @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60
+ON @ index-BkuTEcV7.js:40
+hh @ index-BkuTEcV7.js:40
+S4 @ index-BkuTEcV7.js:40
+vd @ index-BkuTEcV7.js:38
+Xde @ index-BkuTEcV7.js:40
+Bd @ index-BkuTEcV7.js:40
+Wq @ index-BkuTEcV7.js:40
+w @ index-BkuTEcV7.js:25
+E @ index-BkuTEcV7.js:25Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 Making API request to: POST with method: /api/activities
+index-BkuTEcV7.js:60 Making API request to: PATCH with method: /api/leads/1002/status
+index-BkuTEcV7.js:1259 Failed to log status change activity: TypeError: Failed to execute 'fetch' on 'Window': '/api/activities' is not a valid HTTP method.
+    at Le (index-BkuTEcV7.js:60:20192)
+    at k (index-BkuTEcV7.js:1036:66558)
+    at g (index-BkuTEcV7.js:1036:66776)
+    at Y2 (index-BkuTEcV7.js:1019:34076)
+    at index-BkuTEcV7.js:1019:34947
+    at px (index-BkuTEcV7.js:1019:33883)
+    at Object.d [as drop] (index-BkuTEcV7.js:1019:34928)
+    at index-BkuTEcV7.js:1019:35539
+    at index-BkuTEcV7.js:1019:36519
+    at index-BkuTEcV7.js:1019:32933
+console.error @ index-BkuTEcV7.js:1259
+k @ index-BkuTEcV7.js:1036
+await in k
+g @ index-BkuTEcV7.js:1036
+Y2 @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+px @ index-BkuTEcV7.js:1019
+d @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+dispatch @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+(anonymous) @ index-BkuTEcV7.js:1019
+Ufe.r.<computed> @ index-BkuTEcV7.js:56
+Pu @ index-BkuTEcV7.js:40
+ci.flushSync @ index-BkuTEcV7.js:40
+(anonymous) @ index-BkuTEcV7.js:1036
+xce @ index-BkuTEcV7.js:37
+vce @ index-BkuTEcV7.js:37
+yce @ index-BkuTEcV7.js:37
+GR @ index-BkuTEcV7.js:37
+Z9 @ index-BkuTEcV7.js:37
+(anonymous) @ index-BkuTEcV7.js:37
+IT @ index-BkuTEcV7.js:40
+w9 @ index-BkuTEcV7.js:37
+eC @ index-BkuTEcV7.js:37
+cT @ index-BkuTEcV7.js:37Understand this error
+index-BkuTEcV7.js:1259 [Global Error] Failed to log status change activity:
+index-BkuTEcV7.js:60 Removing handler for connect
+index-BkuTEcV7.js:60 Removing handler for disconnect
+index-BkuTEcV7.js:60 Removing handler for authenticated
+index-BkuTEcV7.js:60 Removing handler for data:refresh
+index-BkuTEcV7.js:60 Removing handler for error
+index-BkuTEcV7.js:60 Removing handler for system:message
+index-BkuTEcV7.js:60 Setting up handler for connect
+index-BkuTEcV7.js:60 Setting up handler for disconnect
+index-BkuTEcV7.js:60 Setting up handler for authenticated
+index-BkuTEcV7.js:60 Setting up handler for data:refresh
+index-BkuTEcV7.js:60 Setting up handler for error
+index-BkuTEcV7.js:60 Setting up handler for system:message
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 Removing handler for connect
+index-BkuTEcV7.js:60 Removing handler for disconnect
+index-BkuTEcV7.js:60 Removing handler for authenticated
+index-BkuTEcV7.js:60 Removing handler for data:refresh
+index-BkuTEcV7.js:60 Removing handler for error
+index-BkuTEcV7.js:60 Removing handler for system:message
+index-BkuTEcV7.js:60 Setting up handler for connect
+index-BkuTEcV7.js:60 Setting up handler for disconnect
+index-BkuTEcV7.js:60 Setting up handler for authenticated
+index-BkuTEcV7.js:60 Setting up handler for data:refresh
+index-BkuTEcV7.js:60 Setting up handler for error
+index-BkuTEcV7.js:60 Setting up handler for system:message
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+handler for system:message
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BkuTEcV7.js:60
+doOpen @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+_open @ index-BkuTEcV7.js:60
+Hc @ index-BkuTEcV7.js:60
+zme @ index-BkuTEcV7.js:60
+Ume @ index-BkuTEcV7.js:60
+open @ index-BkuTEcV7.js:60
+(anonymous) @ index-BkuTEcV7.js:60Understand this error
+index-BkuTEcV7.js:60 Removing handler for data:updated
+index-BkuTEcV7.js:60 Removing handler for lead:created
+index-BkuTEcV7.js:60 Removing handler for lead:updated
+index-BkuTEcV7.js:60 Removing handler for lead-status:updated
+index-BkuTEcV7.js:60 Removing handler for lead-qualification:updated
+index-BkuTEcV7.js:60 Removing handler for lead:created
+index-BkuTEcV7.js:60 Removing handler for lead:updated
+index-BkuTEcV7.js:60 Removing handler for lead-status:updated
+index-BkuTEcV7.js:60 Removing handler for lead-qualification:updated
+index-BkuTEcV7.js:60 Removing handler for lead:created
+index-BkuTEcV7.js:60 Removing handler for lead:updated
+index-BkuTEcV7.js:60 Removing handler for lead-status:updated
+index-BkuTEcV7.js:60 Removing handler for lead-qualification:updated
+index-BkuTEcV7.js:60 Removing handler for lead:created
+index-BkuTEcV7.js:60 Removing handler for lead:updated
+index-BkuTEcV7.js:60 Removing handler for lead-status:updated
+index-BkuTEcV7.js:60 Removing handler for lead-qualification:updated
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+index-BkuTEcV7.js:60 Removing handler for data:updated
+index-BkuTEcV7.js:60 Removing handler for lead:created
+index-BkuTEcV7.js:60 Removing handler for lead:updated
+index-BkuTEcV7.js:60 Removing handler for lead-status:updated
+index-BkuTEcV7.js:60 Removing handler for lead-qualification:updated
+index-BkuTEcV7.js:60 Removing handler for lead:created
+index-BkuTEcV7.js:60 Removing handler for lead:updated
+index-BkuTEcV7.js:60 Removing handler for lead-status:updated
+index-BkuTEcV7.js:60 Removing handler for lead-qualification:updated
+index-BkuTEcV7.js:60 Removing handler for lead:created
+index-BkuTEcV7.js:60 Removing handler for lead:updated
+index-BkuTEcV7.js:60 Removing handler for lead-status:updated
+index-BkuTEcV7.js:60 Removing handler for lead-qualification:updated
+index-BkuTEcV7.js:60 Removing handler for lead:created
+index-BkuTEcV7.js:60 Removing handler for lead:updated
+index-BkuTEcV7.js:60 Removing handler for lead-status:updated
+index-BkuTEcV7.js:60 Removing handler for lead-qualification:updated
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+index-BkuTEcV7.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+
+﻿
+
+
+﻿
+
