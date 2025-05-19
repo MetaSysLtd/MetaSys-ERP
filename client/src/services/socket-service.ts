@@ -103,7 +103,7 @@ function initSocket(): boolean {
         setTimeout(() => {
           if (socket && socket.connected) {
             // Make sure we have a valid user ID and org ID for authentication
-            authenticate(userId, orgId || 0);
+            authenticate(userId, typeof orgId === 'number' ? orgId : 0);
           }
         }, 500);
       }
@@ -135,8 +135,8 @@ function initSocket(): boolean {
       console.log('Socket reconnected');
       
       // Re-authenticate and re-subscribe
-      if (userId) {
-        authenticate(userId, orgId);
+      if (isValidUserId(userId)) {
+        authenticate(userId, orgId || 0);
       }
       
       // Process any pending subscriptions
@@ -172,10 +172,10 @@ function processPendingSubscriptions(): void {
  * @param {number|string|undefined} organization Organization ID (optional)
  * @returns {Promise<boolean>} Success status
  */
-function authenticate(id: number | string, organization?: number | string): Promise<boolean> {
+function authenticate(id: number | string, organization?: number | string | null): Promise<boolean> {
   // Store these values regardless of connection status
   userId = id;
-  orgId = organization;
+  orgId = organization || 0; // Use 0 as default value for null or undefined organization
   
   return new Promise((resolve) => {
     if (!socket) {
@@ -194,7 +194,7 @@ function authenticate(id: number | string, organization?: number | string): Prom
       setTimeout(() => {
         if (socket && socket.connected) {
           console.log('Authenticating socket with user ID after connection delay:', id);
-          socket.emit('authenticate', { userId: id, orgId: organization });
+          socket.emit('authenticate', { userId: id, orgId: organization || 0 });
           resolve(true);
         } else {
           console.warn('Cannot emit event, socket is not connected: authenticate');
@@ -207,7 +207,7 @@ function authenticate(id: number | string, organization?: number | string): Prom
     // Normal case: socket is connected, authenticate immediately
     if (socket && socket.connected) {
       console.log('Authenticating socket with user ID:', id);
-      socket.emit('authenticate', { userId: id, orgId: organization });
+      socket.emit('authenticate', { userId: id, orgId: organization || 0 });
       resolve(true);
     } else {
       console.warn('Cannot emit authenticate event, socket unavailable');
