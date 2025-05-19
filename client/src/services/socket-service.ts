@@ -9,7 +9,7 @@ import { toast } from '@/hooks/use-toast';
 let socket: Socket | null = null;
 let isInitialized = false;
 let userId: number | string | null = null;
-let orgId: number | string | undefined = undefined;
+let orgId: number | string = 0;
 
 // Type guard function to check if userId is not null
 function isValidUserId(id: number | string | null): id is number | string {
@@ -80,7 +80,8 @@ function initSocket(): boolean {
   try {
     // Determine WebSocket URL based on current environment
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    // Since we're using socket.io, we need to use the http/https protocol
+    const wsUrl = `${window.location.protocol}//${window.location.host}`;
     
     console.log('Connecting to socket at:', wsUrl);
     
@@ -91,7 +92,10 @@ function initSocket(): boolean {
       reconnectionDelay: 1500,
       timeout: 30000,
       autoConnect: true,
-      forceNew: true
+      forceNew: true,
+      path: '/socket.io', // Ensure the path is explicit and correct
+      reconnectionDelayMax: 5000,
+      randomizationFactor: 0.5
     });
     
     // Set up standard event handlers
@@ -103,7 +107,7 @@ function initSocket(): boolean {
         setTimeout(() => {
           if (socket && socket.connected) {
             // Make sure we have a valid user ID and org ID for authentication
-            authenticate(userId, typeof orgId === 'number' ? orgId : 0);
+            authenticate(userId, orgId);
           }
         }, 500);
       }
@@ -172,10 +176,10 @@ function processPendingSubscriptions(): void {
  * @param {number|string|undefined} organization Organization ID (optional)
  * @returns {Promise<boolean>} Success status
  */
-function authenticate(id: number | string, organization?: number | string | null): Promise<boolean> {
+function authenticate(id: number | string, organization?: number | string): Promise<boolean> {
   // Store these values regardless of connection status
   userId = id;
-  orgId = organization || 0; // Use 0 as default value for null or undefined organization
+  orgId = organization || 0; // Use 0 as default value for undefined organization
   
   return new Promise((resolve) => {
     if (!socket) {

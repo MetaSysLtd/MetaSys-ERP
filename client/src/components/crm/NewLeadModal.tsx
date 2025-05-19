@@ -93,8 +93,8 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
     },
     onSuccess: (data) => {
       // Create an activity for the lead creation
-      // CRITICAL FIX: Ensure URL is the first parameter, method is the second parameter
-      apiRequest("/api/activities", "POST", {
+      // Fix parameter order: Method first, URL second, data third
+      apiRequest("POST", "/api/activities", {
         entityType: "lead",
         entityId: data.id,
         action: "created",
