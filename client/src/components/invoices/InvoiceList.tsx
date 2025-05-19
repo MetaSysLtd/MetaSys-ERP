@@ -367,7 +367,7 @@ export function InvoiceList({
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuItem asChild>
                                   <Link to={`/invoices/${invoice.id}`}>
-                                    <FileText className="h-4 w-4 mr-2" />
+                                    <Eye className="h-4 w-4 mr-2" />
                                     View Details
                                   </Link>
                                 </DropdownMenuItem>

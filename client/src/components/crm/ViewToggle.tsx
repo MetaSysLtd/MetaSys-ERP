@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ListFilter, Kanban } from 'lucide-react';
+import { List, LayoutGrid } from 'lucide-react';
 
 interface ViewToggleProps {
   view: 'list' | 'kanban';
@@ -9,27 +9,23 @@ interface ViewToggleProps {
 
 export function ViewToggle({ view, onChange }: ViewToggleProps) {
   return (
-    <div className="inline-flex bg-gray-100 rounded-lg p-1">
+    <div className="inline-flex border rounded-md">
       <Button
-        variant={view === 'list' ? 'default' : 'ghost'}
+        variant={view === 'list' ? 'default' : 'outline'}
         size="sm"
         onClick={() => onChange('list')}
-        className={`flex items-center gap-1.5 px-3 ${
-          view === 'list' ? 'text-white' : 'text-gray-700 hover:text-gray-900'
-        }`}
+        className={`rounded-r-none border-r-0 ${view === 'list' ? 'border-none' : ''}`}
       >
-        <ListFilter className="h-4 w-4" />
+        <List className="h-4 w-4" />
         <span>List</span>
       </Button>
       <Button
-        variant={view === 'kanban' ? 'default' : 'ghost'}
+        variant={view === 'kanban' ? 'default' : 'outline'}
         size="sm"
         onClick={() => onChange('kanban')}
-        className={`flex items-center gap-1.5 px-3 ${
-          view === 'kanban' ? 'text-white' : 'text-gray-700 hover:text-gray-900'
-        }`}
+        className={`rounded-l-none ${view === 'kanban' ? 'border-none' : ''}`}
       >
-        <Kanban className="h-4 w-4" />
+        <LayoutGrid className="h-4 w-4" />
         <span>Kanban</span>
       </Button>
     </div>

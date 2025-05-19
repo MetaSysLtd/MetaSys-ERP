@@ -9,14 +9,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[#025E73] text-white hover:bg-[#025E73]/90 dark:bg-[#025E73] dark:text-white dark:hover:bg-[#025E73]/90 [&_svg]:text-white [&_svg]:size-4",
+        default: "bg-[#025E73] text-white hover:bg-[#025E73]/90 active:bg-[#025E73]/80 dark:bg-[#025E73] dark:text-white dark:hover:bg-[#025E73]/90 [&_svg]:text-white [&_svg]:size-4",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 dark:bg-destructive dark:text-white dark:hover:bg-destructive/90 [&_svg]:text-white [&_svg]:size-4",
+          "bg-destructive text-white hover:bg-destructive/90 active:bg-destructive/80 dark:bg-destructive dark:text-white dark:hover:bg-destructive/90 [&_svg]:text-white [&_svg]:size-4",
         outline:
-          "border border-[#025E73] bg-transparent text-[#025E73] hover:bg-[#025E73]/10 dark:border-[#025E73] dark:bg-transparent dark:text-[#025E73] dark:hover:bg-[#025E73]/10 [&_svg]:text-[#025E73] [&_svg]:size-4",
+          "border border-[#025E73] bg-transparent text-[#025E73] hover:bg-[#025E73]/5 active:bg-[#025E73]/10 dark:border-[#025E73] dark:bg-transparent dark:text-[#025E73] dark:hover:bg-[#025E73]/10 [&_svg]:text-[#025E73] [&_svg]:size-4",
         secondary:
-          "bg-[#F2A71B] text-white hover:bg-[#F2A71B]/90 dark:bg-[#F2A71B] dark:text-white dark:hover:bg-[#F2A71B]/90 [&_svg]:text-white [&_svg]:size-4",
-        ghost: "bg-transparent text-foreground hover:bg-muted dark:text-foreground dark:hover:bg-muted [&_svg]:size-4",
+          "bg-[#F2A71B] text-white hover:bg-[#F2A71B]/90 active:bg-[#F2A71B]/80 dark:bg-[#F2A71B] dark:text-white dark:hover:bg-[#F2A71B]/90 [&_svg]:text-white [&_svg]:size-4",
+        ghost: "bg-transparent text-foreground hover:text-[#025E73] hover:bg-[#025E73]/5 active:bg-[#025E73]/10 dark:text-foreground dark:hover:text-[#025E73] dark:hover:bg-[#025E73]/10 [&_svg]:size-4",
         link: "text-[#025E73] underline-offset-4 hover:underline dark:text-[#64D2E5] [&_svg]:size-4",
       },
       size: {
