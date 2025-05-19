@@ -173,7 +173,7 @@ export default function InvoicesPage() {
                 fallback={<div className="text-center py-8">Error loading invoice data</div>}
               >
                 <div className="grid gap-6 mt-4">
-                  {invoicesQuery.data?.invoices?.length === 0 || !invoicesQuery.data ? (
+                  {!invoicesQuery.data || !Array.isArray(invoicesQuery.data) || invoicesQuery.data.length === 0 ? (
                     <EmptyState
                       title="No invoices found"
                       description="You haven't created any invoices yet. Create your first invoice to get started."
@@ -192,7 +192,7 @@ export default function InvoicesPage() {
                     <div>
                       {/* Invoice list will go here */}
                       <InvoiceList 
-                        invoices={invoicesQuery.data.invoices} 
+                        invoices={invoicesQuery.data} 
                         isLoading={invoicesQuery.isLoading}
                         onCreateInvoice={handleCreateInvoiceClick}
                       />
