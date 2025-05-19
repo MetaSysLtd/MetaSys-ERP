@@ -122,13 +122,13 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
   
   // Sync local leads when the prop changes
   useEffect(() => {
-    setLocalLeads(leads);
+    setLocalLeads(leads || []);
   }, [leads]);
   
   // Subscribe to real-time lead updates
   useEffect(() => {
     // Subscribe to lead creation events
-    const unsubscribeLeadCreated = subscribe(RealTimeEvents.LEAD_CREATED, (data) => {
+    const unsubscribeLeadCreated = subscribe(RealTimeEvents.LEAD_CREATED, (data: any) => {
       if (data && data.data) {
         // If we have a new lead, add it to our local state
         setLocalLeads(prevLeads => [...prevLeads, data.data]);
@@ -327,7 +327,9 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
     : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6";
   
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <DragDropContext 
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}>
       <div className={`grid ${columnClass} gap-4`}>
         {statuses.map((status) => {
           // Skip this column if a specific filter is applied and this isn't it
