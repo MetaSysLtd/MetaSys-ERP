@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { QueryErrorHandler } from '@/hooks/use-query-error-handler';
+import { QueryErrorHandler } from '@/components/ui/query-error-handler';
 import { handleApiError } from '@/lib/api-error-handler';
 import { useToast } from '@/hooks/use-toast';
 import { InvoiceList } from '@/components/invoices/InvoiceList';
