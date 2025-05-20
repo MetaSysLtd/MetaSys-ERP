@@ -1,9 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
@@ -11,20 +9,12 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useRealTime } from "@/hooks/use-real-time";
 import socketService, { RealTimeEvents } from "@/services/socket-service";
 import { 
-  Bookmark, 
   Calendar, 
   Phone, 
-  Mail, 
   User, 
-  MoreHorizontal, 
   Clock,
   AlertCircle,
-  Star,
-  MoveUp,
-  Truck,
   Info,
-  ArrowRightLeft,
-  Building,
   DollarSign,
   BarChart2
 } from "lucide-react";
@@ -111,7 +101,7 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
   const [localLeads, setLocalLeads] = useState<any[]>([]);
   const { subscribe, subscribeToEntity } = useRealTime();
   
-  // Define the CRM statuses (updated with more modern naming)
+  // Define the CRM statuses
   const statuses = ["New", "Contacted", "FollowUp", "Qualifying", "Active", "Lost"];
   
   // Set up hover state for lead cards
@@ -178,19 +168,6 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
       }
     });
     
-    // Subscribe to lead qualification events
-    const unsubscribeQualification = subscribe('lead-qualification:updated', (data: any) => {
-      if (data && data.data) {
-        const { leadId, newScore } = data.data;
-        // Update the specific lead qualification in our local state
-        setLocalLeads(prevLeads => 
-          prevLeads.map(lead => 
-            lead.id === leadId ? { ...lead, qualificationScore: newScore } : lead
-          )
-        );
-      }
-    });
-    
     // Subscribe to each lead's individual updates
     leads.forEach(lead => {
       subscribeToEntity('lead', lead.id);
@@ -200,7 +177,6 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
       unsubscribeLeadCreated();
       unsubscribeLeadUpdated();
       unsubscribeStatusChange();
-      unsubscribeQualification();
       
       // Unsubscribe from individual lead updates
       leads.forEach(lead => {
@@ -267,7 +243,7 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
     setIsDragging(true);
   };
   
-  // Handle drag end
+  // Handle drag end - manages moving leads between status columns
   const handleDragEnd = (result: DropResult) => {
     setIsDragging(false);
     
@@ -280,34 +256,16 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
       return;
     }
     
-    console.log('Drag end result:', result);
+    // Extract lead ID from draggable ID (format "lead-123")
+    const leadId = parseInt(draggableId.replace('lead-', ''));
     
-    try {
-      // Extract lead ID and convert to number - handle format "lead-123"
-      const leadIdMatch = draggableId.match(/lead-(\d+)/);
-      if (!leadIdMatch) {
-        console.error("Could not extract lead ID from draggableId:", draggableId);
-        return;
-      }
-      
-      const leadId = parseInt(leadIdMatch[1]);
-      
-      // Extract the new status from the destination droppable ID - handle format "status-New"
-      const statusMatch = destination.droppableId.match(/status-(\w+)/);
-      if (!statusMatch) {
-        console.error("Could not extract status from destination droppableId:", destination.droppableId);
-        return;
-      }
-      
-      const newStatus = statusMatch[1];
-      
-      if (isNaN(leadId) || !newStatus) {
-        console.error("Invalid lead ID or status in drag-and-drop operation");
-        return;
-      }
-      
-      console.log(`Moving lead ${leadId} to status ${newStatus}`);
+    // Extract the new status from destination droppable ID (format "status-New")
+    const newStatus = destination.droppableId.replace('status-', '');
     
+    if (isNaN(leadId) || !newStatus) {
+      console.error("Invalid lead ID or status in drag-and-drop operation");
+      return;
+    }
     
     // Optimistically update the local state
     const updatedLeads = localLeads.map(lead => {
@@ -447,122 +405,138 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
                                   `}
                                   onMouseEnter={() => setHoveredLeadId(lead.id)}
                                   onMouseLeave={() => setHoveredLeadId(null)}
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    try {
-                                      if (setLocation) {
-                                        setLocation(`/crm/leads/${lead.id}`);
-                                      } else {
-                                        // Using a more reliable way to navigate
-                                        window.location.href = `/crm/leads/${lead.id}`;
-                                      }
-                                    } catch (error) {
-                                      console.error("Navigation error:", error);
-                                      // Fallback navigation
-                                      window.location.replace(`/crm/leads/${lead.id}`);
-                                    }
-                                  }}
+                                  onClick={() => setLocation && setLocation(`/crm/leads/${lead.id}`)}
                                 >
-                                  <div className="flex justify-between items-start">
-                                    <div className="font-medium text-gray-900 truncate max-w-[75%]">
-                                      {lead.companyName || 'Unnamed Lead'}
+                                  <div className="space-y-2">
+                                    {/* Company Name and MC/DOT Number */}
+                                    <div className="flex justify-between items-start">
+                                      <div className="font-medium text-sm truncate flex-1">
+                                        {lead.companyName || 'Unnamed Company'}
+                                      </div>
+                                      
+                                      <div className="flex space-x-1 text-xs items-center">
+                                        {lead.priority === "High" && (
+                                          <Badge variant="destructive" className="h-5 text-[10px]">
+                                            High Priority
+                                          </Badge>
+                                        )}
+                                        
+                                        {lead.priority === "Medium" && (
+                                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 h-5 text-[10px]">
+                                            Med Priority
+                                          </Badge>
+                                        )}
+                                      </div>
                                     </div>
-                                    <div className="flex items-center space-x-1.5">
-                                      {lead.priority && (
-                                        <Badge className={`text-[10px] px-1.5 ${
-                                          lead.priority === 'High' ? 'bg-red-100 text-red-800' :
-                                          lead.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                          'bg-green-100 text-green-800'
-                                        }`}>
-                                          {lead.priority}
-                                        </Badge>
-                                      )}
-                                      {lead.score && (
-                                        <div className="flex items-center">
-                                          <Star className={`h-3.5 w-3.5 ${
-                                            lead.score === 'High' || lead.score === 'Very High' 
-                                              ? 'text-yellow-500' 
-                                              : 'text-gray-400'
-                                          }`} />
+                                    
+                                    {/* MC Number Row */}
+                                    <div className="mt-1">
+                                      <div className="flex items-center text-xs">
+                                        <span className="text-gray-500 mr-1">MC:</span>
+                                        <span className="font-medium">{lead.mcNumber || 'N/A'}</span>
+                                        
+                                        {lead.mcAge && (
+                                          <Badge variant="secondary" className="ml-2 h-4 text-[9px] px-1.5">
+                                            {lead.mcAge} {lead.mcAge === 1 ? 'month' : 'months'}
+                                          </Badge>
+                                        )}
+                                        
+                                        {lead.dotNumber && (
+                                          <span className="ml-2 text-gray-500">
+                                            <span className="mr-1">DOT:</span>
+                                            <span>{lead.dotNumber}</span>
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Contact Info Row */}
+                                    <div className="flex flex-col space-y-1">
+                                      <div className="flex items-center text-xs">
+                                        <User className="h-3 w-3 mr-1 text-gray-500" />
+                                        <span className="truncate">{lead.contactName || 'No contact'}</span>
+                                      </div>
+                                      
+                                      {lead.phoneNumber && (
+                                        <div className="flex items-center text-xs text-gray-600">
+                                          <Phone className="h-3 w-3 mr-1 text-gray-500" />
+                                          <span className="truncate">{lead.phoneNumber}</span>
                                         </div>
                                       )}
                                     </div>
-                                  </div>
-                                  
-                                  {lead.contactName && (
-                                    <div className="text-sm text-gray-600 mt-1.5 flex items-center">
-                                      <User className="h-3 w-3 mr-1.5 text-gray-500" />
-                                      <span className="truncate">{lead.contactName}</span>
-                                    </div>
-                                  )}
-                                  
-                                  <div className="flex flex-col space-y-1 mt-1.5">
-                                    {lead.phoneNumber && (
-                                      <div className="flex items-center text-xs text-gray-500">
-                                        <Phone className="h-3 w-3 mr-1.5 text-gray-500" />
-                                        {lead.phoneNumber}
-                                      </div>
-                                    )}
                                     
-                                    {lead.email && (
-                                      <div className="flex items-center text-xs text-gray-500">
-                                        <Mail className="h-3 w-3 mr-1.5 text-gray-500" />
-                                        <span className="truncate max-w-[180px]">{lead.email}</span>
+                                    {/* Service Charges and Last Activity */}
+                                    <div className="flex justify-between items-center pt-1 text-xs">
+                                      <div className="flex items-center">
+                                        <DollarSign className="h-3 w-3 text-emerald-600" />
+                                        <span className="font-medium text-emerald-600">
+                                          {lead.serviceCharges || 0}%
+                                        </span>
                                       </div>
-                                    )}
-                                  </div>
-                                  
-                                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
-                                    <div className="flex flex-wrap gap-1.5">
-                                      {lead.category && (
-                                        <Badge variant="outline" className="text-[10px] px-1.5 border-gray-200 bg-gray-50">
-                                          {lead.category}
-                                        </Badge>
-                                      )}
                                       
-                                      {lead.mcNumber && (
-                                        <Badge variant="outline" className="text-[10px] px-1.5 border-gray-200 bg-gray-50">
-                                          MC: {lead.mcNumber}
-                                        </Badge>
-                                      )}
-                                      
-                                      {lead.pendingReminders > 0 && (
-                                        <Badge variant="outline" className="text-[10px] px-1.5 border-red-200 bg-red-50 text-red-700">
-                                          <Clock className="h-2.5 w-2.5 mr-0.5" />
-                                          {lead.pendingReminders}
-                                        </Badge>
-                                      )}
+                                      <div className="flex items-center text-gray-500">
+                                        <Clock className="h-3 w-3 mr-1" />
+                                        <span>
+                                          {new Date(lead.updatedAt || lead.createdAt).toLocaleDateString('en-US', { 
+                                            month: 'short', 
+                                            day: 'numeric' 
+                                          })}
+                                        </span>
+                                      </div>
                                     </div>
                                     
-                                    <div className="text-gray-400 cursor-move">
-                                      <MoveUp className="h-3 w-3" />
-                                    </div>
+                                    {/* Tags Display */}
+                                    {lead.tags && lead.tags.length > 0 && (
+                                      <div className="flex flex-wrap gap-1 mt-1">
+                                        {lead.tags.slice(0, 2).map((tag: string, idx: number) => (
+                                          <Badge 
+                                            key={idx} 
+                                            variant="outline" 
+                                            className="h-5 text-[9px] bg-gray-50 truncate max-w-[80px]"
+                                          >
+                                            {tag}
+                                          </Badge>
+                                        ))}
+                                        {lead.tags.length > 2 && (
+                                          <Badge variant="outline" className="h-5 text-[9px] bg-gray-50">
+                                            +{lead.tags.length - 2}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               )}
                             </Draggable>
                           ))}
-                          {provided.placeholder}
                         </>
                       )}
+                      {provided.placeholder}
                     </CardContent>
                   )}
                 </Droppable>
                 
-                <CardFooter className="py-2 px-3 flex justify-between border-t border-gray-100">
-                  <div className="text-xs text-gray-500">
-                    {statusLeads.length > 0 ? `${statusLeads.length} lead${statusLeads.length > 1 ? 's' : ''}` : 'No leads'}
+                {/* Footer with count or actions */}
+                <CardFooter className="p-2 border-t text-xs">
+                  <div className="flex justify-between w-full items-center">
+                    <div>
+                      {statusLeads.length} {statusLeads.length === 1 ? 'Lead' : 'Leads'}
+                    </div>
+                    
+                    {/* Action buttons - view all or export */}
+                    <div className="flex space-x-2">
+                      {statusLeads.length > 0 && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 text-xs"
+                          onClick={() => setLocation && setLocation(`/crm/leads?status=${status}`)}
+                        >
+                          View All
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  
-                  <Button 
-                    variant="view" 
-                    size="sm"
-                    className="h-7 text-xs px-2"
-                    onClick={() => window.location.href = `/crm?status=${status}`}
-                  >
-                    View all
-                  </Button>
                 </CardFooter>
               </Card>
             </MotionWrapper>
