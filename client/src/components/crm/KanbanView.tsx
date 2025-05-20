@@ -280,16 +280,34 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
       return;
     }
     
-    // Extract lead ID and convert to number
-    const leadId = parseInt(draggableId.replace('lead-', ''));
+    console.log('Drag end result:', result);
     
-    // Extract the new status from the destination droppable ID
-    const newStatus = destination.droppableId.replace('status-', '');
+    try {
+      // Extract lead ID and convert to number - handle format "lead-123"
+      const leadIdMatch = draggableId.match(/lead-(\d+)/);
+      if (!leadIdMatch) {
+        console.error("Could not extract lead ID from draggableId:", draggableId);
+        return;
+      }
+      
+      const leadId = parseInt(leadIdMatch[1]);
+      
+      // Extract the new status from the destination droppable ID - handle format "status-New"
+      const statusMatch = destination.droppableId.match(/status-(\w+)/);
+      if (!statusMatch) {
+        console.error("Could not extract status from destination droppableId:", destination.droppableId);
+        return;
+      }
+      
+      const newStatus = statusMatch[1];
+      
+      if (isNaN(leadId) || !newStatus) {
+        console.error("Invalid lead ID or status in drag-and-drop operation");
+        return;
+      }
+      
+      console.log(`Moving lead ${leadId} to status ${newStatus}`);
     
-    if (isNaN(leadId) || !newStatus) {
-      console.error("Invalid lead ID or status in drag-and-drop operation");
-      return;
-    }
     
     // Optimistically update the local state
     const updatedLeads = localLeads.map(lead => {
@@ -392,9 +410,9 @@ export function KanbanView({ leads, isLoading, showFilter, setLocation }: Kanban
                     <CardContent 
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`p-2 flex-1 min-h-[300px] transition-colors ${
+                      className={`p-2 flex-1 min-h-[300px] max-h-[600px] overflow-y-auto transition-colors ${
                         snapshot.isDraggingOver ? 'bg-blue-50' : ''
-                      } ${isDragging ? 'overflow-visible' : ''}`}
+                      }`}
                     >
                       {statusLeads.length === 0 ? (
                         <div className="text-center py-4 text-gray-500 text-xs">

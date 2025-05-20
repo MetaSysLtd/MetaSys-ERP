@@ -78,21 +78,19 @@ function initSocket(): boolean {
   }
   
   try {
-    // Determine WebSocket URL based on current environment
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // Since we're using socket.io, we need to use the http/https protocol
-    const wsUrl = `${window.location.protocol}//${window.location.host}`;
+    // Use a relative path to ensure correct connection regardless of base URL
+    const wsUrl = '/'; // Connect to server root
     
-    console.log('Connecting to socket at:', wsUrl);
+    console.log('Connecting to socket at relative path');
     
     // Create socket connection with proper config and more reliable settings
     socket = io(wsUrl, {
-      transports: ['websocket', 'polling'],
-      reconnectionAttempts: 10,
-      reconnectionDelay: 1500,
-      timeout: 30000,
+      transports: ['polling', 'websocket'], // Try polling first, then websocket
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 20000,
       autoConnect: true,
-      forceNew: true,
+      forceNew: false, // Don't force new connection on reconnects
       path: '/socket.io', // Ensure the path is explicit and correct
       reconnectionDelayMax: 5000,
       randomizationFactor: 0.5
@@ -125,9 +123,14 @@ function initSocket(): boolean {
     socket.on('disconnect', (reason) => {
       console.log('Socket disconnected:', reason);
       
-      if (reason === 'io server disconnect') {
-        // Need to manually reconnect
-        setTimeout(() => socket?.connect(), 1000);
+      if (reason === 'io server disconnect' || reason === 'transport close' || reason === 'ping timeout') {
+        // More robust reconnection for various disconnect scenarios
+        console.log('Attempting to reconnect socket after disconnect:', reason);
+        setTimeout(() => {
+          if (socket) {
+            socket.connect();
+          }
+        }, 1000);
       }
     });
     
