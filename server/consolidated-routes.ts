@@ -2338,17 +2338,6 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   const leadsRouter = setupLeadRoutes();
   apiRouter.use("/leads", leadsRouter);
   
-  // GET all leads
-  leadsRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
-    try {
-      const leads = await storage.getLeads();
-      res.json(leads);
-    } catch (error) {
-      console.error("Error fetching leads:", error);
-      next(error);
-    }
-  });
-  
   // GET lead by ID
   leadsRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
     try {

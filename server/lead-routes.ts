@@ -144,9 +144,52 @@ export function setupLeadRoutes() {
         details: `Updated lead: ${lead.companyName || 'Unknown Company'}`
       });
       
+      // Notify of update via sockets
+      notifyDataChange('lead', leadId, 'updated', updatedLead);
+      
       res.json(updatedLead);
     } catch (error) {
       console.error("Error updating lead:", error);
+      next(error);
+    }
+  });
+  
+  // PATCH update lead status
+  leadsRouter.patch("/:id", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const leadId = Number(req.params.id);
+      const lead = await storage.getLead(leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // For simplicity, only allow updating status
+      if (!req.body.status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+      
+      // Update the lead
+      const updatedLead = await storage.updateLead(leadId, { 
+        status: req.body.status,
+        lastStatusChangeAt: new Date().toISOString()
+      });
+      
+      // Create activity record for the update
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: 'lead',
+        entityId: leadId,
+        action: 'updated_status',
+        details: `Updated lead status to: ${req.body.status}`
+      });
+      
+      // Notify of update via sockets
+      notifyDataChange('lead', leadId, 'updated', updatedLead);
+      
+      res.json(updatedLead);
+    } catch (error) {
+      console.error("Error updating lead status:", error);
       next(error);
     }
   });
