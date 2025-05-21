@@ -66,7 +66,7 @@ export function setupLeadRoutes() {
   });
   
   // PUT update lead
-  router.put("/:id", createAuthMiddleware(2), async (req, res, next) => {
+  leadsRouter.put("/:id", createAuthMiddleware(2), async (req, res, next) => {
     try {
       const leadId = Number(req.params.id);
       const lead = await storage.getLead(leadId);
@@ -95,7 +95,7 @@ export function setupLeadRoutes() {
   });
   
   // DELETE lead
-  router.delete("/:id", createAuthMiddleware(5), async (req, res, next) => {
+  leadsRouter.delete("/:id", createAuthMiddleware(5), async (req, res, next) => {
     try {
       const leadId = Number(req.params.id);
       const existingLead = await storage.getLead(leadId);

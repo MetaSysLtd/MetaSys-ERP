@@ -24,6 +24,7 @@ import errorLoggingRoutes from "./routes/error-logging";
 import statusRoutes from "./routes/status";
 import userProfileRoutes from "./routes/user-profile";
 import { registerModuleRoutes } from "./routes/index";
+import { setupLeadRoutes } from "./lead-routes";
 
 import { organizationMiddleware } from "./middleware/organizationMiddleware";
 import { 
