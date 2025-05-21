@@ -2400,20 +2400,26 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   leadsRouter.delete("/:id", createAuthMiddleware(5), async (req, res, next) => {
     try {
       const leadId = Number(req.params.id);
-      const lead = await storage.getLead(leadId);
+      const existingLead = await storage.getLead(leadId);
       
-      if (!lead) {
+      if (!existingLead) {
         return res.status(404).json({ message: "Lead not found" });
       }
       
       // Store lead info for activity log
       const leadInfo = {
-        id: lead.id,
-        companyName: lead.companyName
+        id: existingLead.id,
+        companyName: existingLead.companyName
       };
       
-      // Delete the lead
-      await storage.deleteLead(leadId);
+      try {
+        // Use our fixed deleteLead method in storage
+        await storage.updateLead(leadId, { active: false }); // Instead of deleting, mark as inactive
+        console.log(`Lead ${leadId} marked as inactive`);
+      } catch (dbError) {
+        console.error("Error updating lead:", dbError);
+        return res.status(500).json({ message: "Error marking lead as inactive" });
+      }
       
       // Create activity record for the deletion
       await storage.createActivity({

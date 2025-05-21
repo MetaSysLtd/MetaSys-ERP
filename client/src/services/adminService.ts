@@ -42,7 +42,12 @@ class AdminService {
    * @returns The updated entity
    */
   async updateEntity(module: string, data: any): Promise<any> {
-    const response = await apiRequest("PUT", `/api/admin/${module}/${data.id}`, data);
+    // Special case for leads which have direct endpoints
+    const endpoint = module === 'leads' 
+      ? `/api/leads/${data.id}`
+      : `/api/admin/${module}/${data.id}`;
+      
+    const response = await apiRequest("PUT", endpoint, data);
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || `Failed to update ${module}`);
@@ -57,7 +62,12 @@ class AdminService {
    * @returns Success status
    */
   async deleteEntity(module: string, id: string | number): Promise<boolean> {
-    const response = await apiRequest("DELETE", `/api/admin/${module}/${id}`);
+    // For leads, use the direct leads API endpoint
+    const endpoint = module === 'leads' 
+      ? `/api/leads/${id}`
+      : `/api/admin/${module}/${id}`;
+      
+    const response = await apiRequest("DELETE", endpoint);
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || `Failed to delete ${module}`);

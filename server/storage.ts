@@ -1305,6 +1305,31 @@ export class MemStorage implements IStorage {
     this.leads.set(id, updatedLead);
     return updatedLead;
   }
+  
+  async deleteLead(id: number): Promise<boolean> {
+    const lead = await this.getLead(id);
+    if (!lead) return false;
+    
+    // Delete the lead
+    this.leads.delete(id);
+    
+    // Delete associated data (remarks, follow-ups, etc.)
+    const leadRemarks = Array.from(this.leadRemarks.values())
+      .filter(remark => remark.leadId === id);
+    
+    for (const remark of leadRemarks) {
+      this.leadRemarks.delete(remark.id);
+    }
+    
+    const leadFollowUps = Array.from(this.leadFollowUps.values())
+      .filter(followUp => followUp.leadId === id);
+    
+    for (const followUp of leadFollowUps) {
+      this.leadFollowUps.delete(followUp.id);
+    }
+    
+    return true;
+  }
 
   // Load operations
   async getLoad(id: number): Promise<Load | undefined> {
