@@ -5,12 +5,13 @@ import { insertLeadSchema } from "@shared/schema";
 import { leadRealTimeMiddleware } from "./utils/real-time-handler";
 
 export function setupLeadRoutes() {
-  return function(router: Router): void {
+  const leadsRouter = Router();
+  
   // Apply real-time middleware
-  router.use(leadRealTimeMiddleware);
+  leadsRouter.use(leadRealTimeMiddleware);
   
   // GET all leads
-  router.get("/", createAuthMiddleware(1), async (req, res, next) => {
+  leadsRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
       const leads = await storage.getLeads();
       res.json(leads);
@@ -21,7 +22,7 @@ export function setupLeadRoutes() {
   });
   
   // GET lead by ID
-  router.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
+  leadsRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
     try {
       const leadId = Number(req.params.id);
       const lead = await storage.getLead(leadId);
@@ -38,7 +39,7 @@ export function setupLeadRoutes() {
   });
   
   // POST create new lead
-  router.post("/", createAuthMiddleware(1), async (req, res, next) => {
+  leadsRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
       const leadData = insertLeadSchema.parse({
         ...req.body,
@@ -65,7 +66,7 @@ export function setupLeadRoutes() {
   });
   
   // PUT update lead
-  leadsRouter.put("/:id", createAuthMiddleware(2), async (req, res, next) => {
+  router.put("/:id", createAuthMiddleware(2), async (req, res, next) => {
     try {
       const leadId = Number(req.params.id);
       const lead = await storage.getLead(leadId);
@@ -94,7 +95,7 @@ export function setupLeadRoutes() {
   });
   
   // DELETE lead
-  leadsRouter.delete("/:id", createAuthMiddleware(5), async (req, res, next) => {
+  router.delete("/:id", createAuthMiddleware(5), async (req, res, next) => {
     try {
       const leadId = Number(req.params.id);
       const existingLead = await storage.getLead(leadId);
