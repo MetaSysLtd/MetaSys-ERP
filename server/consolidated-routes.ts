@@ -2334,11 +2334,9 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     }
   });
 
-  // Leads routes with real-time middleware
-  const leadsRouter = express.Router();
+  // Register leads routes from dedicated lead-routes.ts file
+  const leadsRouter = setupLeadRoutes();
   apiRouter.use("/leads", leadsRouter);
-  
-  leadsRouter.use(leadRealTimeMiddleware);
   
   // GET all leads
   leadsRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
