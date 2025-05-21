@@ -4,14 +4,13 @@ import { createAuthMiddleware } from "./middleware/authMiddleware";
 import { insertLeadSchema } from "@shared/schema";
 import { leadRealTimeMiddleware } from "./utils/real-time-handler";
 
-export function setupLeadRoutes(): Router {
-  const leadsRouter = express.Router();
-  
+export function setupLeadRoutes() {
+  return function(router: Router): void {
   // Apply real-time middleware
-  leadsRouter.use(leadRealTimeMiddleware);
+  router.use(leadRealTimeMiddleware);
   
   // GET all leads
-  leadsRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+  router.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
       const leads = await storage.getLeads();
       res.json(leads);
@@ -22,7 +21,7 @@ export function setupLeadRoutes(): Router {
   });
   
   // GET lead by ID
-  leadsRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
+  router.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
     try {
       const leadId = Number(req.params.id);
       const lead = await storage.getLead(leadId);
@@ -39,7 +38,7 @@ export function setupLeadRoutes(): Router {
   });
   
   // POST create new lead
-  leadsRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
+  router.post("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
       const leadData = insertLeadSchema.parse({
         ...req.body,
