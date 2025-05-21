@@ -2367,6 +2367,70 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     }
   });
   
+  // PUT update lead - needed for the admin edit functionality
+  leadsRouter.put("/:id", createAuthMiddleware(2), async (req, res, next) => {
+    try {
+      const leadId = Number(req.params.id);
+      const lead = await storage.getLead(leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Update the lead
+      const updatedLead = await storage.updateLead(leadId, req.body);
+      
+      // Create activity record for the update
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: 'lead',
+        entityId: leadId,
+        action: 'updated',
+        details: `Updated lead: ${lead.companyName || 'Unknown Company'}`
+      });
+      
+      res.json(updatedLead);
+    } catch (error) {
+      console.error("Error updating lead:", error);
+      next(error);
+    }
+  });
+  
+  // DELETE lead - needed for the admin delete functionality
+  leadsRouter.delete("/:id", createAuthMiddleware(5), async (req, res, next) => {
+    try {
+      const leadId = Number(req.params.id);
+      const lead = await storage.getLead(leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Store lead info for activity log
+      const leadInfo = {
+        id: lead.id,
+        companyName: lead.companyName
+      };
+      
+      // Delete the lead
+      await storage.deleteLead(leadId);
+      
+      // Create activity record for the deletion
+      await storage.createActivity({
+        userId: req.user?.id || 0,
+        entityType: 'lead',
+        entityId: leadId,
+        action: 'deleted',
+        details: `Deleted lead: ${leadInfo.companyName || 'Unknown Company'}`
+      });
+      
+      res.status(200).json({ success: true, message: "Lead deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting lead:", error);
+      next(error);
+    }
+  });
+  
   // POST create new lead
   leadsRouter.post("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
