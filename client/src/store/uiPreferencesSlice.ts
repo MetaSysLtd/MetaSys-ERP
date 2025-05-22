@@ -144,7 +144,7 @@ export const updatePreferences = (preferences: Partial<UiPreferences>) => async 
       dispatch(setPreferences({ ...currentState, ...updates }));
       
       // Send update to server
-      const response = await apiRequest('/api/ui-prefs/me', 'PATCH', updates);
+      const response = await apiRequest('PATCH', '/api/ui-prefs/me', updates);
       const data = await response.json();
       
       // Server may return additional fields or normalized values

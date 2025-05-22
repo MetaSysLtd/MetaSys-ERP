@@ -35,11 +35,9 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // Handle the fixed signature: method, url, data
-  let requestData: unknown | undefined = data;
   let requestHeaders: Record<string, string> = {};
   
-  if (requestData) {
+  if (data) {
     requestHeaders = { "Content-Type": "application/json" };
   }
   
@@ -55,7 +53,7 @@ export async function apiRequest(
   const res = await fetch(url, {
     method: method || 'GET',
     headers: requestHeaders,
-    body: typeof requestData === 'string' ? requestData : requestData ? JSON.stringify(requestData) : undefined,
+    body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
 
