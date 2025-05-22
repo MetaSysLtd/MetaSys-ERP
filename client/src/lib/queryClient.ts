@@ -31,34 +31,16 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(
-  urlOrConfig: string | { url?: string; method: string; body?: string; headers?: Record<string, string> },
-  methodOrOptions?: string | Record<string, unknown>,
+  method: string,
+  url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // Handle overloaded function signatures
-  let url: string;
-  let method: string;
-  let requestData: unknown | undefined;
+  // Handle the fixed signature: method, url, data
+  let requestData: unknown | undefined = data;
   let requestHeaders: Record<string, string> = {};
   
-  // Check if first parameter is URL (string) or config object
-  if (typeof urlOrConfig === 'string') {
-    // First form: apiRequest(url, method, data)
-    url = urlOrConfig;
-    method = methodOrOptions as string;
-    requestData = data;
-    
-    if (requestData) {
-      requestHeaders = { "Content-Type": "application/json" };
-    }
-  } else {
-    // Second form: apiRequest(config)
-    url = urlOrConfig.url || methodOrOptions as string;
-    method = urlOrConfig.method;
-    requestHeaders = { "Content-Type": "application/json", ...urlOrConfig.headers };
-    
-    // Handle body
-    requestData = urlOrConfig.body;
+  if (requestData) {
+    requestHeaders = { "Content-Type": "application/json" };
   }
   
   // Ensure URLs are properly formatted with a leading /api if needed

@@ -81,7 +81,7 @@ export default function NewLeadModal({ open, onOpenChange }: NewLeadModalProps) 
         submissionData.equipmentType = `Other: ${data.customEquipmentType}`;
       }
       
-      // Fix parameter order: Method first, URL second, data third
+      // Fixed parameter order: Method first, URL second, data third
       const res = await apiRequest("POST", "/api/leads", submissionData);
       
       if (!res.ok) {

@@ -1,0 +1,3309 @@
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 TSS: excluded result:  false
+ Browsing Topics API removed
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+index-DTsCFlDQ.js:1254 Global error handlers initialized
+index-DTsCFlDQ.js:60 Connecting to socket at relative path
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Setting up handler for lead:created
+index-DTsCFlDQ.js:60 Setting up handler for lead:updated
+index-DTsCFlDQ.js:60 Setting up handler for lead:deleted
+index-DTsCFlDQ.js:60 Setting up handler for lead:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:created
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:updated
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:deleted
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for invoice:created
+index-DTsCFlDQ.js:60 Setting up handler for invoice:updated
+index-DTsCFlDQ.js:60 Setting up handler for invoice:deleted
+index-DTsCFlDQ.js:60 Setting up handler for invoice:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for notification:created
+index-DTsCFlDQ.js:60 Setting up handler for notification:read
+index-DTsCFlDQ.js:60 Setting up handler for notification:deleted
+index-DTsCFlDQ.js:60 Setting up handler for data:updated
+index-DTsCFlDQ.js:60 Making query to: /api/organization/current
+index-DTsCFlDQ.js:60 Checking authentication (attempt 1/2)
+index-DTsCFlDQ.js:1031 Global error handlers initialized
+index-DTsCFlDQ.js:1254 MetaSys ERP global error handling initialized
+index-DTsCFlDQ.js:60 Socket already initialized, reusing existing connection
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for data:updated
+index-DTsCFlDQ.js:60 Removing handler for connect
+index-DTsCFlDQ.js:60 Removing handler for disconnect
+index-DTsCFlDQ.js:60 Removing handler for authenticated
+index-DTsCFlDQ.js:60 Removing handler for data:refresh
+index-DTsCFlDQ.js:60 Removing handler for error
+index-DTsCFlDQ.js:60 Removing handler for system:message
+index-DTsCFlDQ.js:60 Removing handler for lead:created
+index-DTsCFlDQ.js:60 Removing handler for lead:updated
+index-DTsCFlDQ.js:60 Removing handler for lead:deleted
+index-DTsCFlDQ.js:60 Removing handler for lead:status_changed
+index-DTsCFlDQ.js:60 Removing handler for dispatch:created
+index-DTsCFlDQ.js:60 Removing handler for dispatch:updated
+index-DTsCFlDQ.js:60 Removing handler for dispatch:deleted
+index-DTsCFlDQ.js:60 Removing handler for dispatch:status_changed
+index-DTsCFlDQ.js:60 Removing handler for invoice:created
+index-DTsCFlDQ.js:60 Removing handler for invoice:updated
+index-DTsCFlDQ.js:60 Removing handler for invoice:deleted
+index-DTsCFlDQ.js:60 Removing handler for invoice:status_changed
+index-DTsCFlDQ.js:60 Removing handler for notification:created
+index-DTsCFlDQ.js:60 Removing handler for notification:read
+index-DTsCFlDQ.js:60 Removing handler for notification:deleted
+index-DTsCFlDQ.js:60 Removing handler for data:updated
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Making query to: /api/auth/user-organizations
+index-DTsCFlDQ.js:60 Making query to: /api/organizations/current
+index-DTsCFlDQ.js:60 Authentication check successful - user authenticated 1
+index-DTsCFlDQ.js:60 Removing handler for connect
+index-DTsCFlDQ.js:60 Removing handler for disconnect
+index-DTsCFlDQ.js:60 Removing handler for authenticated
+index-DTsCFlDQ.js:60 Removing handler for data:refresh
+index-DTsCFlDQ.js:60 Removing handler for error
+index-DTsCFlDQ.js:60 Removing handler for system:message
+index-DTsCFlDQ.js:60 Making query to: /api/leads
+index-DTsCFlDQ.js:60 Socket not connected, waiting before authentication attempt
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Making API request to: /api/ui-prefs/me with method: GET
+index-DTsCFlDQ.js:60 Connecting to socket at: wss://erp.metasysltd.com/ws
+index-DTsCFlDQ.js:60 Removing handler for connect
+index-DTsCFlDQ.js:60 Removing handler for disconnect
+index-DTsCFlDQ.js:60 Removing handler for authenticated
+index-DTsCFlDQ.js:60 Removing handler for data:refresh
+index-DTsCFlDQ.js:60 Removing handler for error
+index-DTsCFlDQ.js:60 Removing handler for system:message
+index-DTsCFlDQ.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 Socket already initialized, reusing existing connection
+index-DTsCFlDQ.js:60 Socket not connected, waiting before authentication attempt
+index-DTsCFlDQ.js:60 Setting up handler for lead:created
+index-DTsCFlDQ.js:60 Setting up handler for lead:updated
+index-DTsCFlDQ.js:60 Setting up handler for lead:deleted
+index-DTsCFlDQ.js:60 Setting up handler for lead:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:created
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:updated
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:deleted
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for invoice:created
+index-DTsCFlDQ.js:60 Setting up handler for invoice:updated
+index-DTsCFlDQ.js:60 Setting up handler for invoice:deleted
+index-DTsCFlDQ.js:60 Setting up handler for invoice:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for notification:created
+index-DTsCFlDQ.js:60 Setting up handler for notification:read
+index-DTsCFlDQ.js:60 Setting up handler for notification:deleted
+index-DTsCFlDQ.js:60 Setting up handler for data:updated
+index-DTsCFlDQ.js:60 Setting up handler for lead:created
+index-DTsCFlDQ.js:60 Setting up handler for lead:updated
+index-DTsCFlDQ.js:60 Setting up handler for lead-status:updated
+index-DTsCFlDQ.js:60 Removing handler for lead:created
+index-DTsCFlDQ.js:60 Removing handler for lead:updated
+index-DTsCFlDQ.js:60 Removing handler for lead:deleted
+index-DTsCFlDQ.js:60 Removing handler for lead:status_changed
+index-DTsCFlDQ.js:60 Removing handler for dispatch:created
+index-DTsCFlDQ.js:60 Removing handler for dispatch:updated
+index-DTsCFlDQ.js:60 Removing handler for dispatch:deleted
+index-DTsCFlDQ.js:60 Removing handler for dispatch:status_changed
+index-DTsCFlDQ.js:60 Removing handler for invoice:created
+index-DTsCFlDQ.js:60 Removing handler for invoice:updated
+index-DTsCFlDQ.js:60 Removing handler for invoice:deleted
+index-DTsCFlDQ.js:60 Removing handler for invoice:status_changed
+index-DTsCFlDQ.js:60 Removing handler for notification:created
+index-DTsCFlDQ.js:60 Removing handler for notification:read
+index-DTsCFlDQ.js:60 Removing handler for notification:deleted
+index-DTsCFlDQ.js:60 Removing handler for data:updated
+index-DTsCFlDQ.js:60 Removing handler for lead:created
+index-DTsCFlDQ.js:60 Removing handler for lead:updated
+index-DTsCFlDQ.js:60 Removing handler for lead-status:updated
+index-DTsCFlDQ.js:60 Removing handler for lead:created
+index-DTsCFlDQ.js:60 Removing handler for lead:updated
+index-DTsCFlDQ.js:60 Removing handler for lead-status:updated
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 Socket already initialized, reusing existing connection
+index-DTsCFlDQ.js:60 Socket not connected, waiting before authentication attempt
+index-DTsCFlDQ.js:60 Setting up handler for lead:created
+index-DTsCFlDQ.js:60 Setting up handler for lead:updated
+index-DTsCFlDQ.js:60 Setting up handler for lead:deleted
+index-DTsCFlDQ.js:60 Setting up handler for lead:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:created
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:updated
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:deleted
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for invoice:created
+index-DTsCFlDQ.js:60 Setting up handler for invoice:updated
+index-DTsCFlDQ.js:60 Setting up handler for invoice:deleted
+index-DTsCFlDQ.js:60 Setting up handler for invoice:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for notification:created
+index-DTsCFlDQ.js:60 Setting up handler for notification:read
+index-DTsCFlDQ.js:60 Setting up handler for notification:deleted
+index-DTsCFlDQ.js:60 Setting up handler for data:updated
+index-DTsCFlDQ.js:60 Setting up handler for lead:created
+index-DTsCFlDQ.js:60 Setting up handler for lead:updated
+index-DTsCFlDQ.js:60 Setting up handler for lead-status:updated
+index-DTsCFlDQ.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 Removing handler for lead:created
+index-DTsCFlDQ.js:60 Removing handler for lead:updated
+index-DTsCFlDQ.js:60 Removing handler for lead:deleted
+index-DTsCFlDQ.js:60 Removing handler for lead:status_changed
+index-DTsCFlDQ.js:60 Removing handler for dispatch:created
+index-DTsCFlDQ.js:60 Removing handler for dispatch:updated
+index-DTsCFlDQ.js:60 Removing handler for dispatch:deleted
+index-DTsCFlDQ.js:60 Removing handler for dispatch:status_changed
+index-DTsCFlDQ.js:60 Removing handler for invoice:created
+index-DTsCFlDQ.js:60 Removing handler for invoice:updated
+index-DTsCFlDQ.js:60 Removing handler for invoice:deleted
+index-DTsCFlDQ.js:60 Removing handler for invoice:status_changed
+index-DTsCFlDQ.js:60 Removing handler for notification:created
+index-DTsCFlDQ.js:60 Removing handler for notification:read
+index-DTsCFlDQ.js:60 Removing handler for notification:deleted
+index-DTsCFlDQ.js:60 Removing handler for data:updated
+index-DTsCFlDQ.js:60 Removing handler for lead:created
+index-DTsCFlDQ.js:60 Removing handler for lead:updated
+index-DTsCFlDQ.js:60 Removing handler for lead-status:updated
+index-DTsCFlDQ.js:60 Removing handler for lead:created
+index-DTsCFlDQ.js:60 Removing handler for lead:updated
+index-DTsCFlDQ.js:60 Removing handler for lead-status:updated
+index-DTsCFlDQ.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+index-DTsCFlDQ.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 Making API request to: /api/POST with method: /api/leads
+index-DTsCFlDQ.js:60 Removing handler for connect
+index-DTsCFlDQ.js:60 Removing handler for disconnect
+index-DTsCFlDQ.js:60 Removing handler for authenticated
+index-DTsCFlDQ.js:60 Removing handler for data:refresh
+index-DTsCFlDQ.js:60 Removing handler for error
+index-DTsCFlDQ.js:60 Removing handler for system:message
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Removing handler for connect
+index-DTsCFlDQ.js:60 Removing handler for disconnect
+index-DTsCFlDQ.js:60 Removing handler for authenticated
+index-DTsCFlDQ.js:60 Removing handler for data:refresh
+index-DTsCFlDQ.js:60 Removing handler for error
+index-DTsCFlDQ.js:60 Removing handler for system:message
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Running session keepalive check...
+index-DTsCFlDQ.js:60 Running session keepalive check...
+index-DTsCFlDQ.js:60 Running session keepalive check...
+index-DTsCFlDQ.js:60 Removing handler for connect
+index-DTsCFlDQ.js:60 Removing handler for disconnect
+index-DTsCFlDQ.js:60 Removing handler for authenticated
+index-DTsCFlDQ.js:60 Removing handler for data:refresh
+index-DTsCFlDQ.js:60 Removing handler for error
+index-DTsCFlDQ.js:60 Removing handler for system:message
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+Navigated to https://erp.metasysltd.com/crm/leads
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 TSS: excluded result:  false
+injection-topics.js:1 Browsing Topics API removed
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+index-DTsCFlDQ.js:1254 Global error handlers initialized
+index-DTsCFlDQ.js:60 Connecting to socket at relative path
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Setting up handler for lead:created
+index-DTsCFlDQ.js:60 Setting up handler for lead:updated
+index-DTsCFlDQ.js:60 Setting up handler for lead:deleted
+index-DTsCFlDQ.js:60 Setting up handler for lead:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:created
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:updated
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:deleted
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for invoice:created
+index-DTsCFlDQ.js:60 Setting up handler for invoice:updated
+index-DTsCFlDQ.js:60 Setting up handler for invoice:deleted
+index-DTsCFlDQ.js:60 Setting up handler for invoice:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for notification:created
+index-DTsCFlDQ.js:60 Setting up handler for notification:read
+index-DTsCFlDQ.js:60 Setting up handler for notification:deleted
+index-DTsCFlDQ.js:60 Setting up handler for data:updated
+index-DTsCFlDQ.js:60 Making query to: /api/organization/current
+index-DTsCFlDQ.js:60 Checking authentication (attempt 1/2)
+index-DTsCFlDQ.js:1031 Global error handlers initialized
+index-DTsCFlDQ.js:1254 MetaSys ERP global error handling initialized
+index-DTsCFlDQ.js:60 Socket already initialized, reusing existing connection
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for data:updated
+index-DTsCFlDQ.js:60 Removing handler for connect
+index-DTsCFlDQ.js:60 Removing handler for disconnect
+index-DTsCFlDQ.js:60 Removing handler for authenticated
+index-DTsCFlDQ.js:60 Removing handler for data:refresh
+index-DTsCFlDQ.js:60 Removing handler for error
+index-DTsCFlDQ.js:60 Removing handler for system:message
+index-DTsCFlDQ.js:60 Removing handler for lead:created
+index-DTsCFlDQ.js:60 Removing handler for lead:updated
+index-DTsCFlDQ.js:60 Removing handler for lead:deleted
+index-DTsCFlDQ.js:60 Removing handler for lead:status_changed
+index-DTsCFlDQ.js:60 Removing handler for dispatch:created
+index-DTsCFlDQ.js:60 Removing handler for dispatch:updated
+index-DTsCFlDQ.js:60 Removing handler for dispatch:deleted
+index-DTsCFlDQ.js:60 Removing handler for dispatch:status_changed
+index-DTsCFlDQ.js:60 Removing handler for invoice:created
+index-DTsCFlDQ.js:60 Removing handler for invoice:updated
+index-DTsCFlDQ.js:60 Removing handler for invoice:deleted
+index-DTsCFlDQ.js:60 Removing handler for invoice:status_changed
+index-DTsCFlDQ.js:60 Removing handler for notification:created
+index-DTsCFlDQ.js:60 Removing handler for notification:read
+index-DTsCFlDQ.js:60 Removing handler for notification:deleted
+index-DTsCFlDQ.js:60 Removing handler for data:updated
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Making query to: /api/auth/user-organizations
+index-DTsCFlDQ.js:60 Making query to: /api/organizations/current
+index-DTsCFlDQ.js:60 Authentication check successful - user authenticated 1
+index-DTsCFlDQ.js:60 Removing handler for connect
+index-DTsCFlDQ.js:60 Removing handler for disconnect
+index-DTsCFlDQ.js:60 Removing handler for authenticated
+index-DTsCFlDQ.js:60 Removing handler for data:refresh
+index-DTsCFlDQ.js:60 Removing handler for error
+index-DTsCFlDQ.js:60 Removing handler for system:message
+index-DTsCFlDQ.js:60 Making query to: /api/leads
+index-DTsCFlDQ.js:60 Socket not connected, waiting before authentication attempt
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Making API request to: /api/ui-prefs/me with method: GET
+index-DTsCFlDQ.js:60 Connecting to socket at: wss://erp.metasysltd.com/ws
+index-DTsCFlDQ.js:60 Removing handler for connect
+index-DTsCFlDQ.js:60 Removing handler for disconnect
+index-DTsCFlDQ.js:60 Removing handler for authenticated
+index-DTsCFlDQ.js:60 Removing handler for data:refresh
+index-DTsCFlDQ.js:60 Removing handler for error
+index-DTsCFlDQ.js:60 Removing handler for system:message
+index-DTsCFlDQ.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:1254
+DN @ index-DTsCFlDQ.js:40
+mh @ index-DTsCFlDQ.js:40
+(anonymous) @ index-DTsCFlDQ.js:40
+w @ index-DTsCFlDQ.js:25
+E @ index-DTsCFlDQ.js:25
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:40 [Violation] 'setTimeout' handler took 99ms
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+Lk @ index-DTsCFlDQ.js:60
+Zx @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+DN @ index-DTsCFlDQ.js:40
+mh @ index-DTsCFlDQ.js:40
+C4 @ index-DTsCFlDQ.js:40
+vd @ index-DTsCFlDQ.js:38
+Xde @ index-DTsCFlDQ.js:40
+Bd @ index-DTsCFlDQ.js:40
+Wq @ index-DTsCFlDQ.js:40
+w @ index-DTsCFlDQ.js:25
+E @ index-DTsCFlDQ.js:25
+index-DTsCFlDQ.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-DTsCFlDQ.js:60
+setTimeout
+(anonymous) @ index-DTsCFlDQ.js:60
+Bk @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+DN @ index-DTsCFlDQ.js:40
+mh @ index-DTsCFlDQ.js:40
+C4 @ index-DTsCFlDQ.js:40
+vd @ index-DTsCFlDQ.js:38
+Xde @ index-DTsCFlDQ.js:40
+Bd @ index-DTsCFlDQ.js:40
+Wq @ index-DTsCFlDQ.js:40
+w @ index-DTsCFlDQ.js:25
+E @ index-DTsCFlDQ.js:25
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 Running session keepalive check...
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+Navigated to https://erp.metasysltd.com/crm/leads
+content-scripts.js:1 TSS: excluded result:  false
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+injection-topics.js:1 Browsing Topics API removed
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.
+index-DTsCFlDQ.js:1254 Global error handlers initialized
+index-DTsCFlDQ.js:60 Connecting to socket at relative path
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Setting up handler for lead:created
+index-DTsCFlDQ.js:60 Setting up handler for lead:updated
+index-DTsCFlDQ.js:60 Setting up handler for lead:deleted
+index-DTsCFlDQ.js:60 Setting up handler for lead:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:created
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:updated
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:deleted
+index-DTsCFlDQ.js:60 Setting up handler for dispatch:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for invoice:created
+index-DTsCFlDQ.js:60 Setting up handler for invoice:updated
+index-DTsCFlDQ.js:60 Setting up handler for invoice:deleted
+index-DTsCFlDQ.js:60 Setting up handler for invoice:status_changed
+index-DTsCFlDQ.js:60 Setting up handler for notification:created
+index-DTsCFlDQ.js:60 Setting up handler for notification:read
+index-DTsCFlDQ.js:60 Setting up handler for notification:deleted
+index-DTsCFlDQ.js:60 Setting up handler for data:updated
+index-DTsCFlDQ.js:60 Making query to: /api/organization/current
+index-DTsCFlDQ.js:60 Checking authentication (attempt 1/2)
+index-DTsCFlDQ.js:1031 Global error handlers initialized
+index-DTsCFlDQ.js:1254 MetaSys ERP global error handling initialized
+index-DTsCFlDQ.js:60 Socket already initialized, reusing existing connection
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for data:updated
+index-DTsCFlDQ.js:60 Removing handler for connect
+index-DTsCFlDQ.js:60 Removing handler for disconnect
+index-DTsCFlDQ.js:60 Removing handler for authenticated
+index-DTsCFlDQ.js:60 Removing handler for data:refresh
+index-DTsCFlDQ.js:60 Removing handler for error
+index-DTsCFlDQ.js:60 Removing handler for system:message
+index-DTsCFlDQ.js:60 Removing handler for lead:created
+index-DTsCFlDQ.js:60 Removing handler for lead:updated
+index-DTsCFlDQ.js:60 Removing handler for lead:deleted
+index-DTsCFlDQ.js:60 Removing handler for lead:status_changed
+index-DTsCFlDQ.js:60 Removing handler for dispatch:created
+index-DTsCFlDQ.js:60 Removing handler for dispatch:updated
+index-DTsCFlDQ.js:60 Removing handler for dispatch:deleted
+index-DTsCFlDQ.js:60 Removing handler for dispatch:status_changed
+index-DTsCFlDQ.js:60 Removing handler for invoice:created
+index-DTsCFlDQ.js:60 Removing handler for invoice:updated
+index-DTsCFlDQ.js:60 Removing handler for invoice:deleted
+index-DTsCFlDQ.js:60 Removing handler for invoice:status_changed
+index-DTsCFlDQ.js:60 Removing handler for notification:created
+index-DTsCFlDQ.js:60 Removing handler for notification:read
+index-DTsCFlDQ.js:60 Removing handler for notification:deleted
+index-DTsCFlDQ.js:60 Removing handler for data:updated
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Making query to: /api/auth/user-organizations
+index-DTsCFlDQ.js:60 Making query to: /api/organizations/current
+index-DTsCFlDQ.js:60 Authentication check successful - user authenticated 1
+index-DTsCFlDQ.js:60 Removing handler for connect
+index-DTsCFlDQ.js:60 Removing handler for disconnect
+index-DTsCFlDQ.js:60 Removing handler for authenticated
+index-DTsCFlDQ.js:60 Removing handler for data:refresh
+index-DTsCFlDQ.js:60 Removing handler for error
+index-DTsCFlDQ.js:60 Removing handler for system:message
+index-DTsCFlDQ.js:60 Making query to: /api/leads
+index-DTsCFlDQ.js:60 Socket not connected, waiting before authentication attempt
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 Making API request to: /api/ui-prefs/me with method: GET
+index-DTsCFlDQ.js:60 Connecting to socket at: wss://erp.metasysltd.com/ws
+index-DTsCFlDQ.js:60 Removing handler for connect
+index-DTsCFlDQ.js:60 Removing handler for disconnect
+index-DTsCFlDQ.js:60 Removing handler for authenticated
+index-DTsCFlDQ.js:60 Removing handler for data:refresh
+index-DTsCFlDQ.js:60 Removing handler for error
+index-DTsCFlDQ.js:60 Removing handler for system:message
+index-DTsCFlDQ.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:1254
+DN @ index-DTsCFlDQ.js:40
+mh @ index-DTsCFlDQ.js:40
+(anonymous) @ index-DTsCFlDQ.js:40
+w @ index-DTsCFlDQ.js:25
+E @ index-DTsCFlDQ.js:25
+index-DTsCFlDQ.js:60 Setting up handler for connect
+index-DTsCFlDQ.js:60 Setting up handler for disconnect
+index-DTsCFlDQ.js:60 Setting up handler for authenticated
+index-DTsCFlDQ.js:60 Setting up handler for data:refresh
+index-DTsCFlDQ.js:60 Setting up handler for error
+index-DTsCFlDQ.js:60 Setting up handler for system:message
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+Lk @ index-DTsCFlDQ.js:60
+Zx @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+DN @ index-DTsCFlDQ.js:40
+mh @ index-DTsCFlDQ.js:40
+C4 @ index-DTsCFlDQ.js:40
+vd @ index-DTsCFlDQ.js:38
+Xde @ index-DTsCFlDQ.js:40
+Bd @ index-DTsCFlDQ.js:40
+Wq @ index-DTsCFlDQ.js:40
+w @ index-DTsCFlDQ.js:25
+E @ index-DTsCFlDQ.js:25
+index-DTsCFlDQ.js:60 
+            
+            
+           GET https://erp.metasysltd.com/socket.io/?EIO=4&transport=polling&t=uucbsedk net::ERR_NETWORK_IO_SUSPENDED
+_create @ index-DTsCFlDQ.js:60
+$o @ index-DTsCFlDQ.js:60
+request @ index-DTsCFlDQ.js:60
+doPoll @ index-DTsCFlDQ.js:60
+_poll @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+setTimeout
+reconnect @ index-DTsCFlDQ.js:60
+maybeReconnectOnOpen @ index-DTsCFlDQ.js:60
+i @ index-DTsCFlDQ.js:60
+$n.emit @ index-DTsCFlDQ.js:60
+_onError @ index-DTsCFlDQ.js:60
+_onPacket @ index-DTsCFlDQ.js:60
+$n.emit @ index-DTsCFlDQ.js:60
+onPacket @ index-DTsCFlDQ.js:60
+r @ index-DTsCFlDQ.js:60
+onData @ index-DTsCFlDQ.js:60
+$n.emit @ index-DTsCFlDQ.js:60
+_onLoad @ index-DTsCFlDQ.js:60
+s.onreadystatechange @ index-DTsCFlDQ.js:60
+XMLHttpRequest.send
+_create @ index-DTsCFlDQ.js:60
+$o @ index-DTsCFlDQ.js:60
+request @ index-DTsCFlDQ.js:60
+doPoll @ index-DTsCFlDQ.js:60
+_poll @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+Lk @ index-DTsCFlDQ.js:60
+Zx @ index-DTsCFlDQ.js:60
+yy @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+DN @ index-DTsCFlDQ.js:40
+mh @ index-DTsCFlDQ.js:40
+C4 @ index-DTsCFlDQ.js:40
+vd @ index-DTsCFlDQ.js:38
+Xde @ index-DTsCFlDQ.js:40
+Bd @ index-DTsCFlDQ.js:40
+Wq @ index-DTsCFlDQ.js:40
+w @ index-DTsCFlDQ.js:25
+E @ index-DTsCFlDQ.js:25
+index-DTsCFlDQ.js:40 [Violation] 'setTimeout' handler took 111ms
+index-DTsCFlDQ.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-DTsCFlDQ.js:60
+setTimeout
+(anonymous) @ index-DTsCFlDQ.js:60
+Bk @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+DN @ index-DTsCFlDQ.js:40
+mh @ index-DTsCFlDQ.js:40
+C4 @ index-DTsCFlDQ.js:40
+vd @ index-DTsCFlDQ.js:38
+Xde @ index-DTsCFlDQ.js:40
+Bd @ index-DTsCFlDQ.js:40
+Wq @ index-DTsCFlDQ.js:40
+w @ index-DTsCFlDQ.js:25
+E @ index-DTsCFlDQ.js:25
+index-DTsCFlDQ.js:60 Running session keepalive check...
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 
+            
+            
+           GET https://erp.metasysltd.com/api/auth/me?_t=1747955572134 net::ERR_NETWORK_CHANGED
+(anonymous) @ index-DTsCFlDQ.js:60
+setInterval
+(anonymous) @ index-DTsCFlDQ.js:60
+await in (anonymous)
+(anonymous) @ index-DTsCFlDQ.js:60
+DN @ index-DTsCFlDQ.js:40
+mh @ index-DTsCFlDQ.js:40
+C4 @ index-DTsCFlDQ.js:40
+vd @ index-DTsCFlDQ.js:38
+Xde @ index-DTsCFlDQ.js:40
+Bd @ index-DTsCFlDQ.js:40
+Wq @ index-DTsCFlDQ.js:40
+w @ index-DTsCFlDQ.js:25
+E @ index-DTsCFlDQ.js:25
+index-DTsCFlDQ.js:60 Session refresh error: TypeError: Failed to fetch
+    at index-DTsCFlDQ.js:60:67560
+(anonymous) @ index-DTsCFlDQ.js:60
+Promise.catch
+(anonymous) @ index-DTsCFlDQ.js:60
+setInterval
+(anonymous) @ index-DTsCFlDQ.js:60
+await in (anonymous)
+(anonymous) @ index-DTsCFlDQ.js:60
+DN @ index-DTsCFlDQ.js:40
+mh @ index-DTsCFlDQ.js:40
+C4 @ index-DTsCFlDQ.js:40
+vd @ index-DTsCFlDQ.js:38
+Xde @ index-DTsCFlDQ.js:40
+Bd @ index-DTsCFlDQ.js:40
+Wq @ index-DTsCFlDQ.js:40
+w @ index-DTsCFlDQ.js:25
+E @ index-DTsCFlDQ.js:25
+index-DTsCFlDQ.js:60 
+            
+            
+           GET https://erp.metasysltd.com/socket.io/?EIO=4&transport=polling&t=zm7bwxr6 net::ERR_NETWORK_CHANGED
+_create @ index-DTsCFlDQ.js:60
+$o @ index-DTsCFlDQ.js:60
+request @ index-DTsCFlDQ.js:60
+doPoll @ index-DTsCFlDQ.js:60
+_poll @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+setTimeout
+reconnect @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+i @ index-DTsCFlDQ.js:60
+$n.emit @ index-DTsCFlDQ.js:60
+_onError @ index-DTsCFlDQ.js:60
+$n.emit @ index-DTsCFlDQ.js:60
+onError @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+$n.emit @ index-DTsCFlDQ.js:60
+_onError @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+setTimeout
+s.onreadystatechange @ index-DTsCFlDQ.js:60
+XMLHttpRequest.send
+_create @ index-DTsCFlDQ.js:60
+$o @ index-DTsCFlDQ.js:60
+request @ index-DTsCFlDQ.js:60
+doPoll @ index-DTsCFlDQ.js:60
+_poll @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+setTimeout
+reconnect @ index-DTsCFlDQ.js:60
+maybeReconnectOnOpen @ index-DTsCFlDQ.js:60
+i @ index-DTsCFlDQ.js:60
+$n.emit @ index-DTsCFlDQ.js:60
+_onError @ index-DTsCFlDQ.js:60
+_onPacket @ index-DTsCFlDQ.js:60
+$n.emit @ index-DTsCFlDQ.js:60
+onPacket @ index-DTsCFlDQ.js:60
+r @ index-DTsCFlDQ.js:60
+onData @ index-DTsCFlDQ.js:60
+$n.emit @ index-DTsCFlDQ.js:60
+_onLoad @ index-DTsCFlDQ.js:60
+s.onreadystatechange @ index-DTsCFlDQ.js:60
+XMLHttpRequest.send
+_create @ index-DTsCFlDQ.js:60
+$o @ index-DTsCFlDQ.js:60
+request @ index-DTsCFlDQ.js:60
+doPoll @ index-DTsCFlDQ.js:60
+_poll @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+Lk @ index-DTsCFlDQ.js:60
+Zx @ index-DTsCFlDQ.js:60
+yy @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+DN @ index-DTsCFlDQ.js:40
+mh @ index-DTsCFlDQ.js:40
+C4 @ index-DTsCFlDQ.js:40
+vd @ index-DTsCFlDQ.js:38
+Xde @ index-DTsCFlDQ.js:40
+Bd @ index-DTsCFlDQ.js:40
+Wq @ index-DTsCFlDQ.js:40
+w @ index-DTsCFlDQ.js:25
+E @ index-DTsCFlDQ.js:25
+index-DTsCFlDQ.js:60 Making query to: /api/organization/current
+index-DTsCFlDQ.js:60 Making query to: /api/auth/user-organizations
+index-DTsCFlDQ.js:60 Making query to: /api/organizations/current
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 Making query to: /api/organization/current
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+index-DTsCFlDQ.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-DTsCFlDQ.js:60
+doOpen @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+_open @ index-DTsCFlDQ.js:60
+Hc @ index-DTsCFlDQ.js:60
+zme @ index-DTsCFlDQ.js:60
+Ume @ index-DTsCFlDQ.js:60
+open @ index-DTsCFlDQ.js:60
+(anonymous) @ index-DTsCFlDQ.js:60
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+Navigated to https://erp.metasysltd.com/crm/leads
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.
+index-BMNGmdQy.js:1254 Global error handlers initialized
+index-BMNGmdQy.js:60 Connecting to socket at relative path
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:deleted
+index-BMNGmdQy.js:60 Setting up handler for lead:status_changed
+index-BMNGmdQy.js:60 Setting up handler for dispatch:created
+index-BMNGmdQy.js:60 Setting up handler for dispatch:updated
+index-BMNGmdQy.js:60 Setting up handler for dispatch:deleted
+index-BMNGmdQy.js:60 Setting up handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Setting up handler for invoice:created
+index-BMNGmdQy.js:60 Setting up handler for invoice:updated
+index-BMNGmdQy.js:60 Setting up handler for invoice:deleted
+index-BMNGmdQy.js:60 Setting up handler for invoice:status_changed
+index-BMNGmdQy.js:60 Setting up handler for notification:created
+index-BMNGmdQy.js:60 Setting up handler for notification:read
+index-BMNGmdQy.js:60 Setting up handler for notification:deleted
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Making query to: /api/organization/current
+index-BMNGmdQy.js:60 Checking authentication (attempt 1/2)
+index-BMNGmdQy.js:1031 Global error handlers initialized
+index-BMNGmdQy.js:1254 MetaSys ERP global error handling initialized
+index-BMNGmdQy.js:60 Socket already initialized, reusing existing connection
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:25 [Violation] 'message' handler took 175ms
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead:deleted
+index-BMNGmdQy.js:60 Removing handler for lead:status_changed
+index-BMNGmdQy.js:60 Removing handler for dispatch:created
+index-BMNGmdQy.js:60 Removing handler for dispatch:updated
+index-BMNGmdQy.js:60 Removing handler for dispatch:deleted
+index-BMNGmdQy.js:60 Removing handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Removing handler for invoice:created
+index-BMNGmdQy.js:60 Removing handler for invoice:updated
+index-BMNGmdQy.js:60 Removing handler for invoice:deleted
+index-BMNGmdQy.js:60 Removing handler for invoice:status_changed
+index-BMNGmdQy.js:60 Removing handler for notification:created
+index-BMNGmdQy.js:60 Removing handler for notification:read
+index-BMNGmdQy.js:60 Removing handler for notification:deleted
+index-BMNGmdQy.js:60 Removing handler for data:updated
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Making query to: /api/auth/user-organizations
+index-BMNGmdQy.js:60 Making query to: /api/organizations/current
+index-BMNGmdQy.js:60 Authentication check successful - user authenticated 1
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Making query to: /api/leads
+index-BMNGmdQy.js:60 Socket not connected, waiting before authentication attempt
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Making API request to: /api/ui-prefs/me with method: GET
+index-BMNGmdQy.js:60 Connecting to socket at: wss://erp.metasysltd.com/ws
+[Violation] Forced reflow while executing JavaScript took 31ms
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:1254
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+(anonymous) @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:40 [Violation] 'setTimeout' handler took 67ms
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+setTimeout
+(anonymous) @ index-BMNGmdQy.js:60
+Bk @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+Lk @ index-BMNGmdQy.js:60
+Zx @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+content-scripts.js:1 TSS: excluded result:  false
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+injection-topics.js:1 Browsing Topics API removed
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 Running session keepalive check...
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 TSS: excluded result:  false
+injection-topics.js:1 Browsing Topics API removed
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+Navigated to https://erp.metasysltd.com/crm/leads
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.
+index-BMNGmdQy.js:1254 Global error handlers initialized
+index-BMNGmdQy.js:60 Connecting to socket at relative path
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:deleted
+index-BMNGmdQy.js:60 Setting up handler for lead:status_changed
+index-BMNGmdQy.js:60 Setting up handler for dispatch:created
+index-BMNGmdQy.js:60 Setting up handler for dispatch:updated
+index-BMNGmdQy.js:60 Setting up handler for dispatch:deleted
+index-BMNGmdQy.js:60 Setting up handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Setting up handler for invoice:created
+index-BMNGmdQy.js:60 Setting up handler for invoice:updated
+index-BMNGmdQy.js:60 Setting up handler for invoice:deleted
+index-BMNGmdQy.js:60 Setting up handler for invoice:status_changed
+index-BMNGmdQy.js:60 Setting up handler for notification:created
+index-BMNGmdQy.js:60 Setting up handler for notification:read
+index-BMNGmdQy.js:60 Setting up handler for notification:deleted
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Making query to: /api/organization/current
+index-BMNGmdQy.js:60 Checking authentication (attempt 1/2)
+index-BMNGmdQy.js:1031 Global error handlers initialized
+index-BMNGmdQy.js:1254 MetaSys ERP global error handling initialized
+index-BMNGmdQy.js:60 Socket already initialized, reusing existing connection
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead:deleted
+index-BMNGmdQy.js:60 Removing handler for lead:status_changed
+index-BMNGmdQy.js:60 Removing handler for dispatch:created
+index-BMNGmdQy.js:60 Removing handler for dispatch:updated
+index-BMNGmdQy.js:60 Removing handler for dispatch:deleted
+index-BMNGmdQy.js:60 Removing handler for dispatch:status_changed
+ Removing handler for invoice:created
+ Removing handler for invoice:updated
+ Removing handler for invoice:deleted
+ Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making query to: /api/auth/user-organizations
+ Making query to: /api/organizations/current
+ Authentication check successful - user authenticated 1
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Making query to: /api/leads
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making API request to: /api/ui-prefs/me with method: GET
+ Connecting to socket at: wss://erp.metasysltd.com/ws
+/assets/index-BMNGmdQy.js:25 [Violation] 'message' handler took 159ms
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:1254
+DN @ /assets/index-BMNGmdQy.js:40
+mh @ /assets/index-BMNGmdQy.js:40
+C4 @ /assets/index-BMNGmdQy.js:40
+vd @ /assets/index-BMNGmdQy.js:38
+(anonymous) @ /assets/index-BMNGmdQy.js:40
+setTimeout
+a @ /assets/index-BMNGmdQy.js:48
+o @ /assets/index-BMNGmdQy.js:48
+batch @ /assets/index-BMNGmdQy.js:48
+ml @ /assets/index-BMNGmdQy.js:48
+l @ /assets/index-BMNGmdQy.js:48
+h @ /assets/index-BMNGmdQy.js:48
+(anonymous) @ /assets/index-BMNGmdQy.js:48
+Promise.catch
+x @ /assets/index-BMNGmdQy.js:48
+start @ /assets/index-BMNGmdQy.js:48
+fetch @ /assets/index-BMNGmdQy.js:48
+Ax @ /assets/index-BMNGmdQy.js:48
+onSubscribe @ /assets/index-BMNGmdQy.js:48
+subscribe @ /assets/index-BMNGmdQy.js:48
+(anonymous) @ /assets/index-BMNGmdQy.js:48
+mq @ /assets/index-BMNGmdQy.js:38
+DN @ /assets/index-BMNGmdQy.js:40
+mh @ /assets/index-BMNGmdQy.js:40
+C4 @ /assets/index-BMNGmdQy.js:40
+vd @ /assets/index-BMNGmdQy.js:38
+Xde @ /assets/index-BMNGmdQy.js:40
+Bd @ /assets/index-BMNGmdQy.js:40
+Wq @ /assets/index-BMNGmdQy.js:40
+w @ /assets/index-BMNGmdQy.js:25
+E @ /assets/index-BMNGmdQy.js:25
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+/assets/index-BMNGmdQy.js:40 [Violation] 'setTimeout' handler took 177ms
+ WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /assets/index-BMNGmdQy.js:60
+doOpen @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+_open @ /assets/index-BMNGmdQy.js:60
+Hc @ /assets/index-BMNGmdQy.js:60
+zme @ /assets/index-BMNGmdQy.js:60
+Ume @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+Lk @ /assets/index-BMNGmdQy.js:60
+Zx @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+DN @ /assets/index-BMNGmdQy.js:40
+mh @ /assets/index-BMNGmdQy.js:40
+C4 @ /assets/index-BMNGmdQy.js:40
+vd @ /assets/index-BMNGmdQy.js:38
+Xde @ /assets/index-BMNGmdQy.js:40
+Bd @ /assets/index-BMNGmdQy.js:40
+Wq @ /assets/index-BMNGmdQy.js:40
+w @ /assets/index-BMNGmdQy.js:25
+E @ /assets/index-BMNGmdQy.js:25
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+setTimeout
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+Bk @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+DN @ /assets/index-BMNGmdQy.js:40
+mh @ /assets/index-BMNGmdQy.js:40
+C4 @ /assets/index-BMNGmdQy.js:40
+vd @ /assets/index-BMNGmdQy.js:38
+Xde @ /assets/index-BMNGmdQy.js:40
+Bd @ /assets/index-BMNGmdQy.js:40
+Wq @ /assets/index-BMNGmdQy.js:40
+w @ /assets/index-BMNGmdQy.js:25
+E @ /assets/index-BMNGmdQy.js:25
+ WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /assets/index-BMNGmdQy.js:60
+doOpen @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+_open @ /assets/index-BMNGmdQy.js:60
+Hc @ /assets/index-BMNGmdQy.js:60
+zme @ /assets/index-BMNGmdQy.js:60
+Ume @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+ WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /assets/index-BMNGmdQy.js:60
+doOpen @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+_open @ /assets/index-BMNGmdQy.js:60
+Hc @ /assets/index-BMNGmdQy.js:60
+zme @ /assets/index-BMNGmdQy.js:60
+Ume @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+ WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /assets/index-BMNGmdQy.js:60
+doOpen @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+_open @ /assets/index-BMNGmdQy.js:60
+Hc @ /assets/index-BMNGmdQy.js:60
+zme @ /assets/index-BMNGmdQy.js:60
+Ume @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+ WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /assets/index-BMNGmdQy.js:60
+doOpen @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+_open @ /assets/index-BMNGmdQy.js:60
+Hc @ /assets/index-BMNGmdQy.js:60
+zme @ /assets/index-BMNGmdQy.js:60
+Ume @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+ WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /assets/index-BMNGmdQy.js:60
+doOpen @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+_open @ /assets/index-BMNGmdQy.js:60
+Hc @ /assets/index-BMNGmdQy.js:60
+zme @ /assets/index-BMNGmdQy.js:60
+Ume @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+ WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /assets/index-BMNGmdQy.js:60
+doOpen @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+_open @ /assets/index-BMNGmdQy.js:60
+Hc @ /assets/index-BMNGmdQy.js:60
+zme @ /assets/index-BMNGmdQy.js:60
+Ume @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+ WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /assets/index-BMNGmdQy.js:60
+doOpen @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+_open @ /assets/index-BMNGmdQy.js:60
+Hc @ /assets/index-BMNGmdQy.js:60
+zme @ /assets/index-BMNGmdQy.js:60
+Ume @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+ WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /assets/index-BMNGmdQy.js:60
+doOpen @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+_open @ /assets/index-BMNGmdQy.js:60
+Hc @ /assets/index-BMNGmdQy.js:60
+zme @ /assets/index-BMNGmdQy.js:60
+Ume @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+ WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /assets/index-BMNGmdQy.js:60
+doOpen @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+_open @ /assets/index-BMNGmdQy.js:60
+Hc @ /assets/index-BMNGmdQy.js:60
+zme @ /assets/index-BMNGmdQy.js:60
+Ume @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+ WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /assets/index-BMNGmdQy.js:60
+doOpen @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+_open @ /assets/index-BMNGmdQy.js:60
+Hc @ /assets/index-BMNGmdQy.js:60
+zme @ /assets/index-BMNGmdQy.js:60
+Ume @ /assets/index-BMNGmdQy.js:60
+open @ /assets/index-BMNGmdQy.js:60
+(anonymous) @ /assets/index-BMNGmdQy.js:60
+Navigated to https://erp.metasysltd.com/crm/leads
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 TSS: excluded result:  false
+injection-topics.js:1 Browsing Topics API removed
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.
+index-BMNGmdQy.js:1254 Global error handlers initialized
+index-BMNGmdQy.js:60 Connecting to socket at relative path
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:deleted
+index-BMNGmdQy.js:60 Setting up handler for lead:status_changed
+index-BMNGmdQy.js:60 Setting up handler for dispatch:created
+index-BMNGmdQy.js:60 Setting up handler for dispatch:updated
+index-BMNGmdQy.js:60 Setting up handler for dispatch:deleted
+index-BMNGmdQy.js:60 Setting up handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Setting up handler for invoice:created
+index-BMNGmdQy.js:60 Setting up handler for invoice:updated
+index-BMNGmdQy.js:60 Setting up handler for invoice:deleted
+index-BMNGmdQy.js:60 Setting up handler for invoice:status_changed
+index-BMNGmdQy.js:60 Setting up handler for notification:created
+index-BMNGmdQy.js:60 Setting up handler for notification:read
+index-BMNGmdQy.js:60 Setting up handler for notification:deleted
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Making query to: /api/organization/current
+index-BMNGmdQy.js:60 Checking authentication (attempt 1/2)
+index-BMNGmdQy.js:1031 Global error handlers initialized
+index-BMNGmdQy.js:1254 MetaSys ERP global error handling initialized
+index-BMNGmdQy.js:60 Socket already initialized, reusing existing connection
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead:deleted
+index-BMNGmdQy.js:60 Removing handler for lead:status_changed
+index-BMNGmdQy.js:60 Removing handler for dispatch:created
+index-BMNGmdQy.js:60 Removing handler for dispatch:updated
+index-BMNGmdQy.js:60 Removing handler for dispatch:deleted
+index-BMNGmdQy.js:60 Removing handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Removing handler for invoice:created
+index-BMNGmdQy.js:60 Removing handler for invoice:updated
+index-BMNGmdQy.js:60 Removing handler for invoice:deleted
+index-BMNGmdQy.js:60 Removing handler for invoice:status_changed
+index-BMNGmdQy.js:60 Removing handler for notification:created
+index-BMNGmdQy.js:60 Removing handler for notification:read
+index-BMNGmdQy.js:60 Removing handler for notification:deleted
+index-BMNGmdQy.js:60 Removing handler for data:updated
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Making query to: /api/auth/user-organizations
+index-BMNGmdQy.js:60 Making query to: /api/organizations/current
+index-BMNGmdQy.js:60 Authentication check successful - user authenticated 1
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Making query to: /api/leads
+index-BMNGmdQy.js:60 Socket not connected, waiting before authentication attempt
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Making API request to: /api/ui-prefs/me with method: GET
+index-BMNGmdQy.js:60 Connecting to socket at: wss://erp.metasysltd.com/ws
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:1254
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+(anonymous) @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:40 [Violation] 'setTimeout' handler took 62ms
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+setTimeout
+(anonymous) @ index-BMNGmdQy.js:60
+Bk @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+Lk @ index-BMNGmdQy.js:60
+Zx @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+[Violation] Forced reflow while executing JavaScript took 32ms
+index-BMNGmdQy.js:60 Making API request to: /api/ui-prefs/me with method: PATCH
+index-BMNGmdQy.js:1254 Failed to update UI preferences: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+console.error @ index-BMNGmdQy.js:1254
+(anonymous) @ index-BMNGmdQy.js:60
+await in (anonymous)
+(anonymous) @ index-BMNGmdQy.js:60
+b @ index-BMNGmdQy.js:1043
+N @ index-BMNGmdQy.js:1043
+(anonymous) @ index-BMNGmdQy.js:832
+(anonymous) @ index-BMNGmdQy.js:832
+(anonymous) @ index-BMNGmdQy.js:978
+(anonymous) @ index-BMNGmdQy.js:832
+xce @ index-BMNGmdQy.js:37
+vce @ index-BMNGmdQy.js:37
+yce @ index-BMNGmdQy.js:37
+YR @ index-BMNGmdQy.js:37
+Z9 @ index-BMNGmdQy.js:37
+(anonymous) @ index-BMNGmdQy.js:37
+RT @ index-BMNGmdQy.js:40
+w9 @ index-BMNGmdQy.js:37
+JS @ index-BMNGmdQy.js:37
+dT @ index-BMNGmdQy.js:37
+Ice @ index-BMNGmdQy.js:37
+index-BMNGmdQy.js:1254 [Global Error] Failed to update UI preferences:
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:1254 Access to protected route denied - user not authenticated
+Tt @ index-BMNGmdQy.js:1254
+AT @ index-BMNGmdQy.js:38
+Q_ @ index-BMNGmdQy.js:40
+Zq @ index-BMNGmdQy.js:40
+Yq @ index-BMNGmdQy.js:40
+Yde @ index-BMNGmdQy.js:40
+yb @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 TSS: excluded result:  false
+injection-topics.js:1 Browsing Topics API removed
+Navigated to https://erp.metasysltd.com/auth
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+index-BMNGmdQy.js:1254 Global error handlers initialized
+index-BMNGmdQy.js:825 User not authenticated or missing data, staying on login page
+index-BMNGmdQy.js:60 Connecting to socket at relative path
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:deleted
+index-BMNGmdQy.js:60 Setting up handler for lead:status_changed
+index-BMNGmdQy.js:60 Setting up handler for dispatch:created
+index-BMNGmdQy.js:60 Setting up handler for dispatch:updated
+index-BMNGmdQy.js:60 Setting up handler for dispatch:deleted
+index-BMNGmdQy.js:60 Setting up handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Setting up handler for invoice:created
+index-BMNGmdQy.js:60 Setting up handler for invoice:updated
+index-BMNGmdQy.js:60 Setting up handler for invoice:deleted
+index-BMNGmdQy.js:60 Setting up handler for invoice:status_changed
+index-BMNGmdQy.js:60 Setting up handler for notification:created
+index-BMNGmdQy.js:60 Setting up handler for notification:read
+index-BMNGmdQy.js:60 Setting up handler for notification:deleted
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Making query to: /api/organization/current
+index-BMNGmdQy.js:60 Checking authentication (attempt 1/2)
+index-BMNGmdQy.js:1031 Global error handlers initialized
+index-BMNGmdQy.js:1254 MetaSys ERP global error handling initialized
+index-BMNGmdQy.js:60 Socket already initialized, reusing existing connection
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead:deleted
+index-BMNGmdQy.js:60 Removing handler for lead:status_changed
+index-BMNGmdQy.js:60 Removing handler for dispatch:created
+index-BMNGmdQy.js:60 Removing handler for dispatch:updated
+index-BMNGmdQy.js:60 Removing handler for dispatch:deleted
+index-BMNGmdQy.js:60 Removing handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Removing handler for invoice:created
+index-BMNGmdQy.js:60 Removing handler for invoice:updated
+index-BMNGmdQy.js:60 Removing handler for invoice:deleted
+index-BMNGmdQy.js:60 Removing handler for invoice:status_changed
+index-BMNGmdQy.js:60 Removing handler for notification:created
+index-BMNGmdQy.js:60 Removing handler for notification:read
+index-BMNGmdQy.js:60 Removing handler for notification:deleted
+index-BMNGmdQy.js:60 Removing handler for data:updated
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 
+            
+            
+           GET https://erp.metasysltd.com/api/organization/current 401 (Unauthorized)
+(anonymous) @ index-BMNGmdQy.js:60
+i @ index-BMNGmdQy.js:48
+x @ index-BMNGmdQy.js:48
+start @ index-BMNGmdQy.js:48
+fetch @ index-BMNGmdQy.js:48
+Ax @ index-BMNGmdQy.js:48
+onSubscribe @ index-BMNGmdQy.js:48
+subscribe @ index-BMNGmdQy.js:48
+(anonymous) @ index-BMNGmdQy.js:48
+mq @ index-BMNGmdQy.js:38
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 
+            
+            
+           GET https://erp.metasysltd.com/api/auth/me?_t=1747956235832 401 (Unauthorized)
+(anonymous) @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 Authentication check failed with status 401 - not authenticated
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Attempting to login with username: admin
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Login attempt to /api/auth/login, status: 200
+index-BMNGmdQy.js:60 Login response: {status: 200, data: {…}}
+index-BMNGmdQy.js:60 SECURITY CHECK: Verifying session establishment...
+index-BMNGmdQy.js:60 Session verification successful - user is properly authenticated
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {}
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Socket not connected, waiting before authentication attempt
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Making API request to: /api/ui-prefs/me with method: GET
+index-BMNGmdQy.js:60 Connecting to socket at: wss://erp.metasysltd.com/ws
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Making query to: /api/auth/user-organizations
+index-BMNGmdQy.js:60 Making query to: /api/organizations/current
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:1254
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 Making query to: /api/auth/me
+index-BMNGmdQy.js:60 Making query to: /api/dashboard/metrics
+index-BMNGmdQy.js:60 Making query to: /api/dashboard/revenue
+index-BMNGmdQy.js:60 Making query to: /api/dashboard/activities
+index-BMNGmdQy.js:1031 [Dashboard] Fetching dashboard data...
+index-BMNGmdQy.js:1031 [Dashboard] Fetching dashboard data...
+index-BMNGmdQy.js:1031 [Dashboard] Data loaded successfully
+index-BMNGmdQy.js:60 Making query to: /api/dashboard/widgets
+index-BMNGmdQy.js:25 [Violation] 'message' handler took 157ms
+[Violation] Forced reflow while executing JavaScript took <N>ms
+[Violation] Forced reflow while executing JavaScript took <N>ms
+[Violation] Forced reflow while executing JavaScript took <N>ms
+[Violation] Forced reflow while executing JavaScript took <N>ms
+[Violation] Forced reflow while executing JavaScript took <N>ms
+[Violation] Forced reflow while executing JavaScript took <N>ms
+[Violation] Forced reflow while executing JavaScript took <N>ms
+[Violation] Forced reflow while executing JavaScript took <N>ms
+[Violation] Forced reflow while executing JavaScript took <N>ms
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+Lk @ index-BMNGmdQy.js:60
+Zx @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+(anonymous) @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+setTimeout
+(anonymous) @ index-BMNGmdQy.js:60
+Bk @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+(anonymous) @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:1031 [Dashboard] Data loaded successfully
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956243504, lastCount: 1}
+index-BMNGmdQy.js:60 Making query to: /api/leads
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 Socket already initialized, reusing existing connection
+index-BMNGmdQy.js:60 Socket not connected, waiting before authentication attempt
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:deleted
+index-BMNGmdQy.js:60 Setting up handler for lead:status_changed
+index-BMNGmdQy.js:60 Setting up handler for dispatch:created
+index-BMNGmdQy.js:60 Setting up handler for dispatch:updated
+index-BMNGmdQy.js:60 Setting up handler for dispatch:deleted
+index-BMNGmdQy.js:60 Setting up handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Setting up handler for invoice:created
+index-BMNGmdQy.js:60 Setting up handler for invoice:updated
+index-BMNGmdQy.js:60 Setting up handler for invoice:deleted
+index-BMNGmdQy.js:60 Setting up handler for invoice:status_changed
+index-BMNGmdQy.js:60 Setting up handler for notification:created
+index-BMNGmdQy.js:60 Setting up handler for notification:read
+index-BMNGmdQy.js:60 Setting up handler for notification:deleted
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Making query to: /api/activities
+index-BMNGmdQy.js:40 [Violation] 'setTimeout' handler took 64ms
+iframe_form_detection.js:23 [Violation] 'setTimeout' handler took 73ms
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+setTimeout
+(anonymous) @ index-BMNGmdQy.js:60
+Bk @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+(anonymous) @ index-BMNGmdQy.js:40
+setTimeout
+a @ index-BMNGmdQy.js:48
+o @ index-BMNGmdQy.js:48
+batch @ index-BMNGmdQy.js:48
+ml @ index-BMNGmdQy.js:48
+setData @ index-BMNGmdQy.js:48
+onSuccess @ index-BMNGmdQy.js:48
+f @ index-BMNGmdQy.js:48
+Promise.then
+x @ index-BMNGmdQy.js:48
+start @ index-BMNGmdQy.js:48
+fetch @ index-BMNGmdQy.js:48
+Ax @ index-BMNGmdQy.js:48
+onSubscribe @ index-BMNGmdQy.js:48
+subscribe @ index-BMNGmdQy.js:48
+(anonymous) @ index-BMNGmdQy.js:48
+mq @ index-BMNGmdQy.js:38
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+(anonymous) @ index-BMNGmdQy.js:40
+index-BMNGmdQy.js:60 Making API request to: /api/POST with method: /api/activities
+index-BMNGmdQy.js:60 Making API request to: /api/PATCH with method: /api/leads/1002/status
+index-BMNGmdQy.js:1254 Failed to log status change activity: TypeError: Failed to execute 'fetch' on 'Window': '/api/activities' is not a valid HTTP method.
+    at Le (index-BMNGmdQy.js:60:20340)
+    at k (index-BMNGmdQy.js:1031:66511)
+    at g (index-BMNGmdQy.js:1031:66729)
+    at Y2 (index-BMNGmdQy.js:1014:34076)
+    at index-BMNGmdQy.js:1014:34947
+    at xx (index-BMNGmdQy.js:1014:33883)
+    at Object.d [as drop] (index-BMNGmdQy.js:1014:34928)
+    at index-BMNGmdQy.js:1014:35539
+    at index-BMNGmdQy.js:1014:36519
+    at index-BMNGmdQy.js:1014:32933
+console.error @ index-BMNGmdQy.js:1254
+k @ index-BMNGmdQy.js:1031
+await in k
+g @ index-BMNGmdQy.js:1031
+Y2 @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+xx @ index-BMNGmdQy.js:1014
+d @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+dispatch @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+Ufe.r.<computed> @ index-BMNGmdQy.js:56
+Pu @ index-BMNGmdQy.js:40
+ci.flushSync @ index-BMNGmdQy.js:40
+(anonymous) @ index-BMNGmdQy.js:1031
+xce @ index-BMNGmdQy.js:37
+vce @ index-BMNGmdQy.js:37
+yce @ index-BMNGmdQy.js:37
+YR @ index-BMNGmdQy.js:37
+Z9 @ index-BMNGmdQy.js:37
+(anonymous) @ index-BMNGmdQy.js:37
+RT @ index-BMNGmdQy.js:40
+w9 @ index-BMNGmdQy.js:37
+JS @ index-BMNGmdQy.js:37
+dT @ index-BMNGmdQy.js:37
+index-BMNGmdQy.js:1254 [Global Error] Failed to log status change activity:
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 Making API request to: /api/POST with method: /api/activities
+index-BMNGmdQy.js:60 Making API request to: /api/PATCH with method: /api/leads/1002/status
+index-BMNGmdQy.js:1254 Failed to log status change activity: TypeError: Failed to execute 'fetch' on 'Window': '/api/activities' is not a valid HTTP method.
+    at Le (index-BMNGmdQy.js:60:20340)
+    at k (index-BMNGmdQy.js:1031:66511)
+    at g (index-BMNGmdQy.js:1031:66729)
+    at Y2 (index-BMNGmdQy.js:1014:34076)
+    at index-BMNGmdQy.js:1014:34947
+    at xx (index-BMNGmdQy.js:1014:33883)
+    at Object.d [as drop] (index-BMNGmdQy.js:1014:34928)
+    at index-BMNGmdQy.js:1014:35539
+    at index-BMNGmdQy.js:1014:36519
+    at index-BMNGmdQy.js:1014:32933
+console.error @ index-BMNGmdQy.js:1254
+k @ index-BMNGmdQy.js:1031
+await in k
+g @ index-BMNGmdQy.js:1031
+Y2 @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+xx @ index-BMNGmdQy.js:1014
+d @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+dispatch @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+Ufe.r.<computed> @ index-BMNGmdQy.js:56
+Pu @ index-BMNGmdQy.js:40
+ci.flushSync @ index-BMNGmdQy.js:40
+(anonymous) @ index-BMNGmdQy.js:1031
+xce @ index-BMNGmdQy.js:37
+vce @ index-BMNGmdQy.js:37
+yce @ index-BMNGmdQy.js:37
+YR @ index-BMNGmdQy.js:37
+Z9 @ index-BMNGmdQy.js:37
+(anonymous) @ index-BMNGmdQy.js:37
+RT @ index-BMNGmdQy.js:40
+w9 @ index-BMNGmdQy.js:37
+JS @ index-BMNGmdQy.js:37
+dT @ index-BMNGmdQy.js:37
+index-BMNGmdQy.js:1254 [Global Error] Failed to log status change activity:
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956255243, lastCount: 1}
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead:deleted
+index-BMNGmdQy.js:60 Removing handler for lead:status_changed
+index-BMNGmdQy.js:60 Removing handler for dispatch:created
+index-BMNGmdQy.js:60 Removing handler for dispatch:updated
+index-BMNGmdQy.js:60 Removing handler for dispatch:deleted
+index-BMNGmdQy.js:60 Removing handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Removing handler for invoice:created
+index-BMNGmdQy.js:60 Removing handler for invoice:updated
+index-BMNGmdQy.js:60 Removing handler for invoice:deleted
+index-BMNGmdQy.js:60 Removing handler for invoice:status_changed
+index-BMNGmdQy.js:60 Removing handler for notification:created
+index-BMNGmdQy.js:60 Removing handler for notification:read
+index-BMNGmdQy.js:60 Removing handler for notification:deleted
+index-BMNGmdQy.js:60 Removing handler for data:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 Making API request to: /api/POST with method: /api/leads
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+iframe_form_detection.js:23 [Violation] 'setTimeout' handler took 97ms
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Socket already initialized, reusing existing connection
+index-BMNGmdQy.js:60 Socket not connected, waiting before authentication attempt
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:deleted
+index-BMNGmdQy.js:60 Setting up handler for lead:status_changed
+index-BMNGmdQy.js:60 Setting up handler for dispatch:created
+index-BMNGmdQy.js:60 Setting up handler for dispatch:updated
+index-BMNGmdQy.js:60 Setting up handler for dispatch:deleted
+index-BMNGmdQy.js:60 Setting up handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Setting up handler for invoice:created
+index-BMNGmdQy.js:60 Setting up handler for invoice:updated
+index-BMNGmdQy.js:60 Setting up handler for invoice:deleted
+index-BMNGmdQy.js:60 Setting up handler for invoice:status_changed
+index-BMNGmdQy.js:60 Setting up handler for notification:created
+index-BMNGmdQy.js:60 Setting up handler for notification:read
+index-BMNGmdQy.js:60 Setting up handler for notification:deleted
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+setTimeout
+(anonymous) @ index-BMNGmdQy.js:60
+Bk @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+(anonymous) @ index-BMNGmdQy.js:40
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead:deleted
+index-BMNGmdQy.js:60 Removing handler for lead:status_changed
+index-BMNGmdQy.js:60 Removing handler for dispatch:created
+index-BMNGmdQy.js:60 Removing handler for dispatch:updated
+index-BMNGmdQy.js:60 Removing handler for dispatch:deleted
+index-BMNGmdQy.js:60 Removing handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Removing handler for invoice:created
+index-BMNGmdQy.js:60 Removing handler for invoice:updated
+index-BMNGmdQy.js:60 Removing handler for invoice:deleted
+index-BMNGmdQy.js:60 Removing handler for invoice:status_changed
+index-BMNGmdQy.js:60 Removing handler for notification:created
+index-BMNGmdQy.js:60 Removing handler for notification:read
+index-BMNGmdQy.js:60 Removing handler for notification:deleted
+index-BMNGmdQy.js:60 Removing handler for data:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Socket already initialized, reusing existing connection
+index-BMNGmdQy.js:60 Socket not connected, waiting before authentication attempt
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:deleted
+index-BMNGmdQy.js:60 Setting up handler for lead:status_changed
+index-BMNGmdQy.js:60 Setting up handler for dispatch:created
+index-BMNGmdQy.js:60 Setting up handler for dispatch:updated
+index-BMNGmdQy.js:60 Setting up handler for dispatch:deleted
+index-BMNGmdQy.js:60 Setting up handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Setting up handler for invoice:created
+index-BMNGmdQy.js:60 Setting up handler for invoice:updated
+index-BMNGmdQy.js:60 Setting up handler for invoice:deleted
+index-BMNGmdQy.js:60 Setting up handler for invoice:status_changed
+index-BMNGmdQy.js:60 Setting up handler for notification:created
+index-BMNGmdQy.js:60 Setting up handler for notification:read
+index-BMNGmdQy.js:60 Setting up handler for notification:deleted
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+setTimeout
+(anonymous) @ index-BMNGmdQy.js:60
+Bk @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+(anonymous) @ index-BMNGmdQy.js:40
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead:deleted
+index-BMNGmdQy.js:60 Removing handler for lead:status_changed
+index-BMNGmdQy.js:60 Removing handler for dispatch:created
+index-BMNGmdQy.js:60 Removing handler for dispatch:updated
+index-BMNGmdQy.js:60 Removing handler for dispatch:deleted
+index-BMNGmdQy.js:60 Removing handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Removing handler for invoice:created
+index-BMNGmdQy.js:60 Removing handler for invoice:updated
+index-BMNGmdQy.js:60 Removing handler for invoice:deleted
+index-BMNGmdQy.js:60 Removing handler for invoice:status_changed
+index-BMNGmdQy.js:60 Removing handler for notification:created
+index-BMNGmdQy.js:60 Removing handler for notification:read
+index-BMNGmdQy.js:60 Removing handler for notification:deleted
+index-BMNGmdQy.js:60 Removing handler for data:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956280865, lastCount: 1}
+index-BMNGmdQy.js:60 Socket already initialized, reusing existing connection
+index-BMNGmdQy.js:60 Socket not connected, waiting before authentication attempt
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:deleted
+index-BMNGmdQy.js:60 Setting up handler for lead:status_changed
+index-BMNGmdQy.js:60 Setting up handler for dispatch:created
+index-BMNGmdQy.js:60 Setting up handler for dispatch:updated
+index-BMNGmdQy.js:60 Setting up handler for dispatch:deleted
+index-BMNGmdQy.js:60 Setting up handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Setting up handler for invoice:created
+index-BMNGmdQy.js:60 Setting up handler for invoice:updated
+index-BMNGmdQy.js:60 Setting up handler for invoice:deleted
+index-BMNGmdQy.js:60 Setting up handler for invoice:status_changed
+index-BMNGmdQy.js:60 Setting up handler for notification:created
+index-BMNGmdQy.js:60 Setting up handler for notification:read
+index-BMNGmdQy.js:60 Setting up handler for notification:deleted
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead:deleted
+index-BMNGmdQy.js:60 Removing handler for lead:status_changed
+index-BMNGmdQy.js:60 Removing handler for dispatch:created
+index-BMNGmdQy.js:60 Removing handler for dispatch:updated
+index-BMNGmdQy.js:60 Removing handler for dispatch:deleted
+index-BMNGmdQy.js:60 Removing handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Removing handler for invoice:created
+index-BMNGmdQy.js:60 Removing handler for invoice:updated
+index-BMNGmdQy.js:60 Removing handler for invoice:deleted
+index-BMNGmdQy.js:60 Removing handler for invoice:status_changed
+index-BMNGmdQy.js:60 Removing handler for notification:created
+index-BMNGmdQy.js:60 Removing handler for notification:read
+index-BMNGmdQy.js:60 Removing handler for notification:deleted
+index-BMNGmdQy.js:60 Removing handler for data:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Socket already initialized, reusing existing connection
+index-BMNGmdQy.js:60 Socket not connected, waiting before authentication attempt
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:deleted
+index-BMNGmdQy.js:60 Setting up handler for lead:status_changed
+index-BMNGmdQy.js:60 Setting up handler for dispatch:created
+index-BMNGmdQy.js:60 Setting up handler for dispatch:updated
+index-BMNGmdQy.js:60 Setting up handler for dispatch:deleted
+index-BMNGmdQy.js:60 Setting up handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Setting up handler for invoice:created
+index-BMNGmdQy.js:60 Setting up handler for invoice:updated
+index-BMNGmdQy.js:60 Setting up handler for invoice:deleted
+index-BMNGmdQy.js:60 Setting up handler for invoice:status_changed
+index-BMNGmdQy.js:60 Setting up handler for notification:created
+index-BMNGmdQy.js:60 Setting up handler for notification:read
+index-BMNGmdQy.js:60 Setting up handler for notification:deleted
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+setTimeout
+(anonymous) @ index-BMNGmdQy.js:60
+Bk @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+(anonymous) @ index-BMNGmdQy.js:40
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+setTimeout
+(anonymous) @ index-BMNGmdQy.js:60
+Bk @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 Making API request to: /api/POST with method: /api/activities
+index-BMNGmdQy.js:60 Making API request to: /api/PATCH with method: /api/leads/1002/status
+index-BMNGmdQy.js:1254 Failed to log status change activity: TypeError: Failed to execute 'fetch' on 'Window': '/api/activities' is not a valid HTTP method.
+    at Le (index-BMNGmdQy.js:60:20340)
+    at k (index-BMNGmdQy.js:1031:66511)
+    at g (index-BMNGmdQy.js:1031:66729)
+    at Y2 (index-BMNGmdQy.js:1014:34076)
+    at index-BMNGmdQy.js:1014:34947
+    at xx (index-BMNGmdQy.js:1014:33883)
+    at Object.d [as drop] (index-BMNGmdQy.js:1014:34928)
+    at index-BMNGmdQy.js:1014:35539
+    at index-BMNGmdQy.js:1014:36519
+    at index-BMNGmdQy.js:1014:32933
+console.error @ index-BMNGmdQy.js:1254
+k @ index-BMNGmdQy.js:1031
+await in k
+g @ index-BMNGmdQy.js:1031
+Y2 @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+xx @ index-BMNGmdQy.js:1014
+d @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+dispatch @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+(anonymous) @ index-BMNGmdQy.js:1014
+Ufe.r.<computed> @ index-BMNGmdQy.js:56
+Pu @ index-BMNGmdQy.js:40
+ci.flushSync @ index-BMNGmdQy.js:40
+(anonymous) @ index-BMNGmdQy.js:1031
+xce @ index-BMNGmdQy.js:37
+vce @ index-BMNGmdQy.js:37
+yce @ index-BMNGmdQy.js:37
+YR @ index-BMNGmdQy.js:37
+Z9 @ index-BMNGmdQy.js:37
+(anonymous) @ index-BMNGmdQy.js:37
+RT @ index-BMNGmdQy.js:40
+w9 @ index-BMNGmdQy.js:37
+JS @ index-BMNGmdQy.js:37
+dT @ index-BMNGmdQy.js:37
+index-BMNGmdQy.js:1254 [Global Error] Failed to log status change activity:
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+index-BMNGmdQy.js:60 Setting up handler for connect
+index-BMNGmdQy.js:60 Setting up handler for disconnect
+index-BMNGmdQy.js:60 Setting up handler for authenticated
+index-BMNGmdQy.js:60 Setting up handler for data:refresh
+index-BMNGmdQy.js:60 Setting up handler for error
+index-BMNGmdQy.js:60 Setting up handler for system:message
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+injection-tss-mv3.js:1 TSS: Counted history being replaced
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956478524, lastCount: 1}
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+injection-tss-mv3.js:1 TSS: Counted history being replaced
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956499035, lastCount: 1}
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+injection-tss-mv3.js:1 TSS: Counted history being replaced
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956500914, lastCount: 1}
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+injection-tss-mv3.js:1 TSS: Counted history being replaced
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956518477, lastCount: 1}
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+injection-tss-mv3.js:1 TSS: Counted history being replaced
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956518477, lastCount: 2}
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+injection-tss-mv3.js:1 TSS: Counted history being replaced
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956520441, lastCount: 1}
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead:deleted
+index-BMNGmdQy.js:60 Removing handler for lead:status_changed
+index-BMNGmdQy.js:60 Removing handler for dispatch:created
+index-BMNGmdQy.js:60 Removing handler for dispatch:updated
+index-BMNGmdQy.js:60 Removing handler for dispatch:deleted
+index-BMNGmdQy.js:60 Removing handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Removing handler for invoice:created
+index-BMNGmdQy.js:60 Removing handler for invoice:updated
+index-BMNGmdQy.js:60 Removing handler for invoice:deleted
+index-BMNGmdQy.js:60 Removing handler for invoice:status_changed
+index-BMNGmdQy.js:60 Removing handler for notification:created
+index-BMNGmdQy.js:60 Removing handler for notification:read
+index-BMNGmdQy.js:60 Removing handler for notification:deleted
+index-BMNGmdQy.js:60 Removing handler for data:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956523398, lastCount: 1}
+index-BMNGmdQy.js:60 Making query to: /api/leads/1001
+index-BMNGmdQy.js:60 Making query to: /api/activities/entity/lead/1001
+index-BMNGmdQy.js:60 Making query to: /api/leads/1001/timeline
+index-BMNGmdQy.js:60 Making query to: /api/loads
+index-BMNGmdQy.js:1254 Error: Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Li (index-BMNGmdQy.js:38:17629)
+    at EN (index-BMNGmdQy.js:38:20576)
+    at Object.ET [as useEffect] (index-BMNGmdQy.js:38:20834)
+    at Zt.useEffect (index-BMNGmdQy.js:9:5910)
+    at ffe (index-BMNGmdQy.js:48:41031)
+    at gfe (index-BMNGmdQy.js:48:41723)
+    at Ae (index-BMNGmdQy.js:48:42565)
+    at index-BMNGmdQy.js:1038:5823
+    at srt (index-BMNGmdQy.js:1038:7704)
+    at AT (index-BMNGmdQy.js:38:17031)
+console.error @ index-BMNGmdQy.js:1254
+Y_ @ index-BMNGmdQy.js:40
+Tq.i.componentDidCatch.r.callback @ index-BMNGmdQy.js:40
+i4 @ index-BMNGmdQy.js:38
+w4 @ index-BMNGmdQy.js:40
+Hq @ index-BMNGmdQy.js:40
+Wde @ index-BMNGmdQy.js:40
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+(anonymous) @ index-BMNGmdQy.js:40
+setTimeout
+a @ index-BMNGmdQy.js:48
+o @ index-BMNGmdQy.js:48
+batch @ index-BMNGmdQy.js:48
+ml @ index-BMNGmdQy.js:48
+setData @ index-BMNGmdQy.js:48
+onSuccess @ index-BMNGmdQy.js:48
+f @ index-BMNGmdQy.js:48
+Promise.then
+x @ index-BMNGmdQy.js:48
+start @ index-BMNGmdQy.js:48
+fetch @ index-BMNGmdQy.js:48
+Ax @ index-BMNGmdQy.js:48
+onSubscribe @ index-BMNGmdQy.js:48
+subscribe @ index-BMNGmdQy.js:48
+(anonymous) @ index-BMNGmdQy.js:48
+mq @ index-BMNGmdQy.js:38
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+(anonymous) @ index-BMNGmdQy.js:40
+index-BMNGmdQy.js:1254 [Global Error] Error: Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Li (index-BMNGmdQy.js:38:17629)
+    at EN (index-BMNGmdQy.js:38:20576)
+    at Object.ET [as useEffect] (index-BMNGmdQy.js:38:20834)
+    at Zt.useEffect (index-BMNGmdQy.js:9:5910)
+    at ffe (index-BMNGmdQy.js:48:41031)
+    at gfe (index-BMNGmdQy.js:48:41723)
+    at Ae (index-BMNGmdQy.js:48:42565)
+    at index-BMNGmdQy.js:1038:5823
+    at srt (index-BMNGmdQy.js:1038:7704)
+    at AT (index-BMNGmdQy.js:38:17031)
+index-BMNGmdQy.js:1254 Error caught by ErrorBoundary: Error: Minified React error #310; visit https://reactjs.org/docs/error-decoder.html?invariant=310 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Li (index-BMNGmdQy.js:38:17629)
+    at EN (index-BMNGmdQy.js:38:20576)
+    at Object.ET [as useEffect] (index-BMNGmdQy.js:38:20834)
+    at Zt.useEffect (index-BMNGmdQy.js:9:5910)
+    at ffe (index-BMNGmdQy.js:48:41031)
+    at gfe (index-BMNGmdQy.js:48:41723)
+    at Ae (index-BMNGmdQy.js:48:42565)
+    at index-BMNGmdQy.js:1038:5823
+    at srt (index-BMNGmdQy.js:1038:7704)
+    at AT (index-BMNGmdQy.js:38:17031) {componentStack: '\n    at srt (https://erp.metasysltd.com/assets/ind…tasysltd.com/assets/index-BMNGmdQy.js:1254:72181)'}
+console.error @ index-BMNGmdQy.js:1254
+componentDidCatch @ index-BMNGmdQy.js:825
+Tq.i.componentDidCatch.r.callback @ index-BMNGmdQy.js:40
+i4 @ index-BMNGmdQy.js:38
+w4 @ index-BMNGmdQy.js:40
+Hq @ index-BMNGmdQy.js:40
+Wde @ index-BMNGmdQy.js:40
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+(anonymous) @ index-BMNGmdQy.js:40
+setTimeout
+a @ index-BMNGmdQy.js:48
+o @ index-BMNGmdQy.js:48
+batch @ index-BMNGmdQy.js:48
+ml @ index-BMNGmdQy.js:48
+setData @ index-BMNGmdQy.js:48
+onSuccess @ index-BMNGmdQy.js:48
+f @ index-BMNGmdQy.js:48
+Promise.then
+x @ index-BMNGmdQy.js:48
+start @ index-BMNGmdQy.js:48
+fetch @ index-BMNGmdQy.js:48
+Ax @ index-BMNGmdQy.js:48
+onSubscribe @ index-BMNGmdQy.js:48
+subscribe @ index-BMNGmdQy.js:48
+(anonymous) @ index-BMNGmdQy.js:48
+mq @ index-BMNGmdQy.js:38
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+(anonymous) @ index-BMNGmdQy.js:40
+index-BMNGmdQy.js:1254 [Global Error] Error caught by ErrorBoundary:
+index-BMNGmdQy.js:60 Removing handler for connect
+index-BMNGmdQy.js:60 Removing handler for disconnect
+index-BMNGmdQy.js:60 Removing handler for authenticated
+index-BMNGmdQy.js:60 Removing handler for data:refresh
+index-BMNGmdQy.js:60 Removing handler for error
+index-BMNGmdQy.js:60 Removing handler for system:message
+ injection-tss TSS: hosted page injected
+ injection-tss MBTSS: Nonce:  nonce
+ TSS: excluded result:  false
+ Browsing Topics API removed
+ DFP: Breach notification feature flag is enabled. true
+ DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+ Global error handlers initialized
+ Connecting to socket at relative path
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Making query to: /api/organization/current
+ Checking authentication (attempt 1/2)
+ Global error handlers initialized
+ MetaSys ERP global error handling initialized
+ Socket already initialized, reusing existing connection
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for system:message
+ Setting up handler for error
+ Setting up handler for data:updated
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead:deleted
+ Removing handler for lead:status_changed
+ Removing handler for dispatch:created
+ Removing handler for dispatch:updated
+ Removing handler for dispatch:deleted
+ Removing handler for dispatch:status_changed
+ Removing handler for invoice:created
+ Removing handler for invoice:updated
+ Removing handler for invoice:deleted
+ Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making query to: /api/auth/user-organizations
+ Making query to: /api/organizations/current
+ Authentication check successful - user authenticated 1
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Making query to: /api/leads
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making API request to: /api/ui-prefs/me with method: GET
+ Connecting to socket at: wss://erp.metasysltd.com/ws
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:1254
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+(anonymous) @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Socket already initialized, reusing existing connection
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Making query to: /api/activities
+index-BMNGmdQy.js:40 [Violation] 'setTimeout' handler took 63ms
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead:deleted
+index-BMNGmdQy.js:60 Removing handler for lead:status_changed
+index-BMNGmdQy.js:60 Removing handler for dispatch:created
+index-BMNGmdQy.js:60 Removing handler for dispatch:updated
+index-BMNGmdQy.js:60 Removing handler for dispatch:deleted
+index-BMNGmdQy.js:60 Removing handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Removing handler for invoice:created
+index-BMNGmdQy.js:60 Removing handler for invoice:updated
+index-BMNGmdQy.js:60 Removing handler for invoice:deleted
+index-BMNGmdQy.js:60 Removing handler for invoice:status_changed
+index-BMNGmdQy.js:60 Removing handler for notification:created
+index-BMNGmdQy.js:60 Removing handler for notification:read
+index-BMNGmdQy.js:60 Removing handler for notification:deleted
+index-BMNGmdQy.js:60 Removing handler for data:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Socket already initialized, reusing existing connection
+index-BMNGmdQy.js:60 Socket not connected, waiting before authentication attempt
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:deleted
+index-BMNGmdQy.js:60 Setting up handler for lead:status_changed
+index-BMNGmdQy.js:60 Setting up handler for dispatch:created
+index-BMNGmdQy.js:60 Setting up handler for dispatch:updated
+index-BMNGmdQy.js:60 Setting up handler for dispatch:deleted
+index-BMNGmdQy.js:60 Setting up handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Setting up handler for invoice:created
+index-BMNGmdQy.js:60 Setting up handler for invoice:updated
+index-BMNGmdQy.js:60 Setting up handler for invoice:deleted
+index-BMNGmdQy.js:60 Setting up handler for invoice:status_changed
+index-BMNGmdQy.js:60 Setting up handler for notification:created
+index-BMNGmdQy.js:60 Setting up handler for notification:read
+index-BMNGmdQy.js:60 Setting up handler for notification:deleted
+index-BMNGmdQy.js:60 Setting up handler for data:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Setting up handler for lead:created
+index-BMNGmdQy.js:60 Setting up handler for lead:updated
+index-BMNGmdQy.js:60 Setting up handler for lead-status:updated
+Navigated to https://erp.metasysltd.com/crm
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+setTimeout
+(anonymous) @ index-BMNGmdQy.js:60
+Bk @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+Lk @ index-BMNGmdQy.js:60
+Zx @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+setTimeout
+(anonymous) @ index-BMNGmdQy.js:60
+Bk @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+(anonymous) @ index-BMNGmdQy.js:40
+setTimeout
+a @ index-BMNGmdQy.js:48
+o @ index-BMNGmdQy.js:48
+batch @ index-BMNGmdQy.js:48
+ml @ index-BMNGmdQy.js:48
+setData @ index-BMNGmdQy.js:48
+onSuccess @ index-BMNGmdQy.js:48
+f @ index-BMNGmdQy.js:48
+Promise.then
+x @ index-BMNGmdQy.js:48
+start @ index-BMNGmdQy.js:48
+fetch @ index-BMNGmdQy.js:48
+Ax @ index-BMNGmdQy.js:48
+onSubscribe @ index-BMNGmdQy.js:48
+subscribe @ index-BMNGmdQy.js:48
+(anonymous) @ index-BMNGmdQy.js:48
+mq @ index-BMNGmdQy.js:38
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+setTimeout
+(anonymous) @ index-BMNGmdQy.js:60
+Bk @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+[Violation] Forced reflow while executing JavaScript took 32ms
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {}
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead:deleted
+index-BMNGmdQy.js:60 Removing handler for lead:status_changed
+index-BMNGmdQy.js:60 Removing handler for dispatch:created
+index-BMNGmdQy.js:60 Removing handler for dispatch:updated
+index-BMNGmdQy.js:60 Removing handler for dispatch:deleted
+index-BMNGmdQy.js:60 Removing handler for dispatch:status_changed
+index-BMNGmdQy.js:60 Removing handler for invoice:created
+index-BMNGmdQy.js:60 Removing handler for invoice:updated
+index-BMNGmdQy.js:60 Removing handler for invoice:deleted
+index-BMNGmdQy.js:60 Removing handler for invoice:status_changed
+index-BMNGmdQy.js:60 Removing handler for notification:created
+index-BMNGmdQy.js:60 Removing handler for notification:read
+index-BMNGmdQy.js:60 Removing handler for notification:deleted
+index-BMNGmdQy.js:60 Removing handler for data:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+index-BMNGmdQy.js:60 Removing handler for lead:created
+index-BMNGmdQy.js:60 Removing handler for lead:updated
+index-BMNGmdQy.js:60 Removing handler for lead-status:updated
+[Violation] Forced reflow while executing JavaScript took 35ms
+index-BMNGmdQy.js:60 Making API request to: /api/ui-prefs/me with method: PATCH
+index-BMNGmdQy.js:1254 Failed to update UI preferences: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+console.error @ index-BMNGmdQy.js:1254
+(anonymous) @ index-BMNGmdQy.js:60
+await in (anonymous)
+(anonymous) @ index-BMNGmdQy.js:60
+b @ index-BMNGmdQy.js:1043
+N @ index-BMNGmdQy.js:1043
+(anonymous) @ index-BMNGmdQy.js:832
+(anonymous) @ index-BMNGmdQy.js:832
+(anonymous) @ index-BMNGmdQy.js:978
+(anonymous) @ index-BMNGmdQy.js:832
+xce @ index-BMNGmdQy.js:37
+vce @ index-BMNGmdQy.js:37
+yce @ index-BMNGmdQy.js:37
+YR @ index-BMNGmdQy.js:37
+Z9 @ index-BMNGmdQy.js:37
+(anonymous) @ index-BMNGmdQy.js:37
+RT @ index-BMNGmdQy.js:40
+w9 @ index-BMNGmdQy.js:37
+JS @ index-BMNGmdQy.js:37
+dT @ index-BMNGmdQy.js:37
+Ice @ index-BMNGmdQy.js:37
+index-BMNGmdQy.js:1254 [Global Error] Failed to update UI preferences:
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956555342, lastCount: 1}
+[Violation] Forced reflow while executing JavaScript took 34ms
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956564993, lastCount: 1}
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:1254
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1747956569062, lastCount: 1}
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:1254
+DN @ index-BMNGmdQy.js:40
+mh @ index-BMNGmdQy.js:40
+C4 @ index-BMNGmdQy.js:40
+vd @ index-BMNGmdQy.js:38
+Xde @ index-BMNGmdQy.js:40
+Bd @ index-BMNGmdQy.js:40
+Wq @ index-BMNGmdQy.js:40
+w @ index-BMNGmdQy.js:25
+E @ index-BMNGmdQy.js:25
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
+index-BMNGmdQy.js:60 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-BMNGmdQy.js:60
+doOpen @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+_open @ index-BMNGmdQy.js:60
+Hc @ index-BMNGmdQy.js:60
+zme @ index-BMNGmdQy.js:60
+Ume @ index-BMNGmdQy.js:60
+open @ index-BMNGmdQy.js:60
+(anonymous) @ index-BMNGmdQy.js:60
