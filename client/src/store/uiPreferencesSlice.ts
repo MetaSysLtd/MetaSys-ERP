@@ -98,7 +98,7 @@ export const saveAnimationSettings = (settings: {
 // Thunks for asynchronous operations
 export const fetchPreferences = () => async (dispatch: any) => {
   try {
-    const response = await apiRequest('/api/ui-prefs/me', 'GET');
+    const response = await apiRequest('GET', '/api/ui-prefs/me');
     const data = await response.json();
     dispatch(setPreferences(data));
     return data;

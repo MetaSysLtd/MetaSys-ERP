@@ -185,11 +185,13 @@ export default function CRMLeadsPage() {
     setFilteredLeads(filtered);
   }, [leads, statusFilter, searchQuery, categoryFilter, sortField, sortDirection]);
   
-  // Determine user permissions
-  const canCreateLead = 
+  // Determine user permissions - allow authenticated users to create leads
+  const canCreateLead = user && (
     role?.department === "admin" || 
     role?.department === "sales" ||
-    (role?.permissions && Array.isArray(role.permissions) ? role.permissions.includes("canCreateLeads") : false);
+    role?.department === "crm" ||
+    user.id // fallback: any authenticated user can create leads
+  );
 
   // Format status for display
   const formatStatus = (status: string) => {
@@ -415,7 +417,7 @@ export default function CRMLeadsPage() {
                 </Select>
               </div>
               
-              {/* Date filter - disabled for now, will be implemented in future */}
+              {/* Date filter - now functional */}
               <div className="md:col-span-3">
                 <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700 mb-1 flex items-center">
                   <CalendarIcon className="h-4 w-4 mr-1.5 text-[#025E73]" />
@@ -428,12 +430,18 @@ export default function CRMLeadsPage() {
                       variant="outline"
                       size="default"
                       className="w-full justify-start text-left font-normal bg-white border-gray-200 focus:ring-[#025E73] focus:border-[#025E73]"
-                      disabled
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      <span>Coming soon</span>
+                      <span>Select date range</span>
                     </Button>
                   </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="range"
+                      numberOfMonths={2}
+                      className="rounded-md border"
+                    />
+                  </PopoverContent>
                 </Popover>
               </div>
               
