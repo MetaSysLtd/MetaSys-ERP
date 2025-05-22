@@ -1,0 +1,91 @@
+Deployment
+Source
+Log
+2025-05-22 21:03:05.79
+c4d6408c
+User
+4:03:05 PM [express] GET /api/notifications/leads 200 in 243ms :: []
+2025-05-23 01:32:21.67
+c4d6408c
+User
+8:32:21 PM [express] GET /api/messages/conversations 200 in 240ms :: [{"id":"conv1","participants":[…
+2025-05-23 01:32:21.91
+c4d6408c
+User
+8:32:21 PM [express] GET /api/notifications 200 in 284ms :: []
+2025-05-23 01:32:21.91
+c4d6408c
+User
+8:32:21 PM [express] GET /api/notifications/leads 200 in 444ms :: []
+2025-05-23 01:32:51.99
+c4d6408c
+User
+API request: GET /messages/conversations
+2025-05-23 01:32:52.38
+c4d6408c
+User
+8:32:52 PM [express] GET /api/messages/conversations 200 in 388ms :: [{"id":"conv1","participants":[…
+2025-05-23 01:33:22.39
+c4d6408c
+User
+API request: GET /notifications
+2025-05-23 01:33:22.73
+c4d6408c
+User
+API request: GET /messages/conversations
+2025-05-23 01:33:22.84
+c4d6408c
+User
+8:33:22 PM [express] GET /api/notifications 200 in 448ms :: []
+2025-05-23 01:33:23.07
+c4d6408c
+User
+8:33:23 PM [express] GET /api/messages/conversations 200 in 340ms :: [{"id":"conv1","participants":[…
+2025-05-23 01:33:53.66
+c4d6408c
+User
+API request: GET /messages/conversations
+2025-05-23 01:33:54.11
+c4d6408c
+User
+8:33:54 PM [express] GET /api/messages/conversations 200 in 448ms :: [{"id":"conv1","participants":[…
+2025-05-23 01:36:55.10
+c4d6408c
+User
+API request: GET /messages/conversations
+2025-05-23 01:36:55.48
+c4d6408c
+User
+8:36:55 PM [express] GET /api/messages/conversations 200 in 388ms :: [{"id":"conv1","participants":[…
+2025-05-23 01:37:21.46
+c4d6408c
+User
+API request: GET /auth/me?_t=1747946240398
+2025-05-23 01:37:22.24
+c4d6408c
+User
+API request: GET /notifications/leads
+2025-05-23 01:37:23.18
+c4d6408c
+User
+API request: GET /notifications
+2025-05-23 01:37:23.93
+c4d6408c
+User
+8:37:23 PM [express] GET /api/auth/me 200 in 2469ms :: {"authenticated":true,"user":{"id":1,"usernam…
+2025-05-23 01:37:24.73
+c4d6408c
+User
+8:37:24 PM [express] GET /api/notifications/leads 200 in 2483ms :: []
+2025-05-23 01:37:25.60
+c4d6408c
+User
+8:37:25 PM [express] GET /api/notifications 200 in 2419ms :: []
+2025-05-23 01:37:25.78
+c4d6408c
+User
+API request: GET /messages/conversations
+2025-05-23 01:37:25.94
+c4d6408c
+User
+8:37:25 PM [express] GET /api/messages/conversations 200 in 161ms :: [{"id":"conv1","participants":[…

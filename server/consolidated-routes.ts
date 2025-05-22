@@ -2339,108 +2339,11 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   apiRouter.use("/leads", leadsRouter);
   
   // Lead routes are now handled by the dedicated lead-routes.ts file
-  // GET /leads, GET /leads/:id, POST /leads, PUT /leads/:id, PATCH /leads/:id, DELETE /leads/:id
+  // All lead operations moved to lead-routes.ts
   
-  // This section below contains invoice and contract routes
-    try {
-      const leadData = insertLeadSchema.parse({
-        ...req.body,
-        createdBy: req.user?.id,
-        orgId: req.user?.orgId
-      });
-      
-      const newLead = await storage.createLead(leadData);
-      
-      // Create activity record
-      await storage.createActivity({
-        userId: req.user?.id || 0,
-        entityType: 'lead',
-        entityId: newLead.id,
-        action: 'created',
-        details: `Created lead: ${newLead.companyName || 'Unknown Company'}`
-      });
-      
-      // Send notifications
-      await notificationService.sendLeadNotification({
-        leadId: newLead.id,
-        action: 'created',
-        title: 'New Lead Created',
-        message: `New lead '${newLead.companyName || 'Unknown Company'}' was created`,
-        createdBy: req.user?.id || 0
-      });
-      
-      // Explicitly emit socket event for lead creation
-      const io = getIo();
-      io.to(`org:${req.user?.orgId}`).emit('realtime_update', {
-        type: 'lead',
-        action: 'created',
-        entityId: newLead.id,
-        data: newLead,
-        metadata: { 
-          userId: req.user?.id, 
-          orgId: req.user?.orgId,
-          timestamp: new Date()
-        }
-      });
-      
-      // Also use the notifyDataChange helper
-      notifyDataChange('lead', newLead.id, 'created', newLead, {
-        userId: req.user?.id,
-        orgId: req.user?.orgId,
-        broadcastToOrg: true
-      });
-      
-      res.status(201).json(newLead);
-    } catch (error) {
-      console.error("Error creating lead:", error);
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: fromZodError(error).message });
-      }
-      next(error);
-    }
-  });
+  // Invoice routes section
   
-  // PATCH update lead
-  leadsRouter.patch("/:id", createAuthMiddleware(1), async (req, res, next) => {
-    try {
-      const leadId = Number(req.params.id);
-      const lead = await storage.getLead(leadId);
-      
-      if (!lead) {
-        return res.status(404).json({ message: "Lead not found" });
-      }
-      
-      const updatedLead = await storage.updateLead(leadId, {
-        ...req.body,
-        updatedBy: req.user?.id
-      });
-      
-      // Create activity record
-      await storage.createActivity({
-        userId: req.user?.id || 0,
-        entityType: 'lead',
-        entityId: leadId,
-        action: 'updated',
-        details: `Updated lead: ${lead.name}`
-      });
-      
-      // Send notifications if status changed
-      if (req.body.status && req.body.status !== lead.status) {
-        await notificationService.sendLeadNotification({
-          leadId: leadId,
-          action: 'status_changed',
-          title: 'Lead Status Changed',
-          message: `Lead '${lead.name}' status changed from '${lead.status}' to '${req.body.status}'`,
-          createdBy: req.user?.id || 0
-        });
-      }
-      
-      res.json(updatedLead);
-    } catch (error) {
-      console.error("Error updating lead:", error);
-      next(error);
-    }
-  });
+  // Invoice routes will be registered here after declaration
 
   // Clients routes (CRM)
   const clientsRouter = express.Router();
