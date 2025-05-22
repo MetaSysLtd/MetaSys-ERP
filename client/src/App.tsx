@@ -160,6 +160,14 @@ function Router() {
           </AppLayout>
         )}
       </Route>
+
+      <Route path="/crm/leads/:id">
+        {() => (
+          <AppLayout>
+            <ProtectedRoute component={ContactDetails} />
+          </AppLayout>
+        )}
+      </Route>
       
       <Route path="/crm/clients">
         {() => (
