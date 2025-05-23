@@ -1,0 +1,2861 @@
+ injection-tss TSS: hosted page injected
+ injection-tss MBTSS: Nonce:  nonce
+ CONTENT_SHELL: Page is excluded. Skipping shell protection.
+ TSS: excluded result:  true
+ DFP: Breach notification feature flag is enabled. true
+ DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+ Browsing Topics API removed
+ [vite] connecting...
+ [vite] connected.
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+main.tsx:18 Global error handlers initialized
+ User not authenticated or missing data, staying on login page
+ Connecting to socket at relative path
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Making query to: /api/organization/current
+ Checking authentication (attempt 1/2)
+ Global error handlers initialized
+App.tsx:541 MetaSys ERP global error handling initialized
+ Socket already initialized, reusing existing connection
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for system:message
+ Setting up handler for error
+ Setting up handler for data:updated
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead:deleted
+ Removing handler for lead:status_changed
+ Removing handler for dispatch:created
+ Removing handler for dispatch:updated
+ Removing handler for dispatch:deleted
+ Removing handler for dispatch:status_changed
+ Removing handler for invoice:created
+ Removing handler for invoice:updated
+ Removing handler for invoice:deleted
+ Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Authentication check successful - user authenticated 1
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ User verified as authenticated (id: 1), redirecting to /dashboard
+ TSS: Counted history being pushed
+ TSS: Caught history
+ TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making API request to: /api/ui-prefs/me with method: GET
+ Connecting to socket at: wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/ws
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making query to: /api/auth/user-organizations
+ Making query to: /api/organizations/current
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ /src/hooks/use-socket.tsx:139
+ Making query to: /api/auth/me
+ Making query to: /api/dashboard/metrics
+ Making query to: /api/dashboard/revenue
+ Making query to: /api/dashboard/activities
+ [Dashboard] Fetching dashboard data...
+ Making query to: /api/dashboard/widgets
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ /src/services/socket-service.ts:143
+ [Dashboard] Fetching dashboard data...
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+ [Dashboard] Data loaded successfully
+ [Dashboard] Data loaded successfully
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+ TSS: Counted history being pushed
+ TSS: Caught history
+ TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+ Making query to: /api/leads
+ Socket already initialized, reusing existing connection
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Making query to: /api/activities
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ TSS: Counted history being pushed
+ TSS: Caught history
+ TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead:deleted
+ Removing handler for lead:status_changed
+ Removing handler for dispatch:created
+ Removing handler for dispatch:updated
+ Removing handler for dispatch:deleted
+ Removing handler for dispatch:status_changed
+ Removing handler for invoice:created
+ Removing handler for invoice:updated
+ Removing handler for invoice:deleted
+ Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ /src/services/socket-service.ts:143
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+(anonymous) @ /@fs/home/runner/wor….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+(anonymous) @ /@fs/home/runner/wor….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+(anonymous) @ /@fs/home/runner/wor….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+(anonymous) @ /@fs/home/runner/wor….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+(anonymous) @ /@fs/home/runner/wor….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+(anonymous) @ /@fs/home/runner/wor….js?v=124d4c6c:3343
+ [vite] hot updated: /src/pages/crm/leads.tsx
+ [vite] hot updated: /src/index.css?v=4C40iCf8zwuGH-3IkA57p
+[Violation] Forced reflow while executing JavaScript took 45ms
+/@react-refresh:472 [Violation] 'setTimeout' handler took 58ms
+[Violation] Forced reflow while executing JavaScript took 30ms
+ [vite] hot updated: /src/pages/crm/leads.tsx
+ [vite] hot updated: /src/index.css?v=4C40iCf8zwuGH-3IkA57p
+ [vite] hot updated: /src/pages/crm/leads.tsx
+ [vite] hot updated: /src/index.css?v=4C40iCf8zwuGH-3IkA57p
+[Violation] Forced reflow while executing JavaScript took 36ms
+ [vite] hot updated: /src/pages/crm/leads.tsx
+ [vite] hot updated: /src/index.css?v=4C40iCf8zwuGH-3IkA57p
+ [vite] hot updated: /src/pages/crm/leads.tsx
+ [vite] hot updated: /src/index.css?v=4C40iCf8zwuGH-3IkA57p
+ Running session keepalive check...
+ [vite] hot updated: /src/components/ui/calendar.tsx
+ [vite] hot updated: /src/index.css?v=4C40iCf8zwuGH-3IkA57p
+[Violation] Forced reflow while executing JavaScript took 40ms
+Navigated to https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm/leads
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 CONTENT_SHELL: Page is excluded. Skipping shell protection.
+content-scripts.js:1 TSS: excluded result:  true
+injection-topics.js:1 Browsing Topics API removed
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+client:495 [vite] connecting...
+client:618 [vite] connected.
+chunk-RPCDYKBN.js?v=124d4c6c:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+main.tsx:18 Global error handlers initialized
+socket-service.ts:84 Connecting to socket at relative path
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for data:refresh
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for system:message
+socket-service.ts:275 Setting up handler for lead:created
+socket-service.ts:275 Setting up handler for lead:updated
+socket-service.ts:275 Setting up handler for lead:deleted
+socket-service.ts:275 Setting up handler for lead:status_changed
+socket-service.ts:275 Setting up handler for dispatch:created
+socket-service.ts:275 Setting up handler for dispatch:updated
+socket-service.ts:275 Setting up handler for dispatch:deleted
+socket-service.ts:275 Setting up handler for dispatch:status_changed
+socket-service.ts:275 Setting up handler for invoice:created
+socket-service.ts:275 Setting up handler for invoice:updated
+socket-service.ts:275 Setting up handler for invoice:deleted
+socket-service.ts:275 Setting up handler for invoice:status_changed
+socket-service.ts:275 Setting up handler for notification:created
+socket-service.ts:275 Setting up handler for notification:read
+socket-service.ts:275 Setting up handler for notification:deleted
+socket-service.ts:275 Setting up handler for data:updated
+queryClient.ts:80 Making query to: /api/organization/current
+AuthContext.tsx:75 Checking authentication (attempt 1/2)
+global-error-handler.ts:86 Global error handlers initialized
+App.tsx:541 MetaSys ERP global error handling initialized
+socket-service.ts:76 Socket already initialized, reusing existing connection
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for system:message
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for data:updated
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+socket-service.ts:280 Removing handler for connect
+socket-service.ts:280 Removing handler for disconnect
+socket-service.ts:280 Removing handler for authenticated
+socket-service.ts:280 Removing handler for data:refresh
+socket-service.ts:280 Removing handler for error
+socket-service.ts:280 Removing handler for system:message
+socket-service.ts:280 Removing handler for lead:created
+socket-service.ts:280 Removing handler for lead:updated
+socket-service.ts:280 Removing handler for lead:deleted
+socket-service.ts:280 Removing handler for lead:status_changed
+socket-service.ts:280 Removing handler for dispatch:created
+socket-service.ts:280 Removing handler for dispatch:updated
+socket-service.ts:280 Removing handler for dispatch:deleted
+socket-service.ts:280 Removing handler for dispatch:status_changed
+socket-service.ts:280 Removing handler for invoice:created
+socket-service.ts:280 Removing handler for invoice:updated
+socket-service.ts:280 Removing handler for invoice:deleted
+socket-service.ts:280 Removing handler for invoice:status_changed
+socket-service.ts:280 Removing handler for notification:created
+socket-service.ts:280 Removing handler for notification:read
+socket-service.ts:280 Removing handler for notification:deleted
+socket-service.ts:280 Removing handler for data:updated
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for data:refresh
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for system:message
+queryClient.ts:80 Making query to: /api/auth/user-organizations
+queryClient.ts:80 Making query to: /api/organizations/current
+AuthContext.tsx:109 Authentication check successful - user authenticated 1
+socket-service.ts:280 Removing handler for connect
+socket-service.ts:280 Removing handler for disconnect
+socket-service.ts:280 Removing handler for authenticated
+socket-service.ts:280 Removing handler for data:refresh
+socket-service.ts:280 Removing handler for error
+socket-service.ts:280 Removing handler for system:message
+queryClient.ts:80 Making query to: /api/leads
+socket-service.ts:204 Socket not connected, waiting before authentication attempt
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for data:refresh
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for system:message
+queryClient.ts:51 Making API request to: /api/ui-prefs/me with method: GET
+use-socket.tsx:61 Connecting to socket at: wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/ws
+socket-service.ts:280 Removing handler for connect
+socket-service.ts:280 Removing handler for disconnect
+socket-service.ts:280 Removing handler for authenticated
+socket-service.ts:280 Removing handler for data:refresh
+socket-service.ts:280 Removing handler for error
+socket-service.ts:280 Removing handler for system:message
+use-socket.tsx:164 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ use-socket.tsx:164
+(anonymous) @ NotificationContainer.tsx:62
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=124d4c6c:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=124d4c6c:19447
+(anonymous) @ chunk-RPCDYKBN.js?v=124d4c6c:19328
+workLoop @ chunk-RPCDYKBN.js?v=124d4c6c:197
+flushWork @ chunk-RPCDYKBN.js?v=124d4c6c:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=124d4c6c:384
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for data:refresh
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for system:message
+leads:1 Error in event handler: TypeError: Cannot read properties of undefined (reading 'length')
+    at t.applyPatch (chrome-extension://liecbddmkiiihnedobmlmillhodjkdmb/js/companionBubble.js:4:1354382)
+    at chrome-extension://liecbddmkiiihnedobmlmillhodjkdmb/js/companionBubble.js:4:2890977
+    at Array.forEach (<anonymous>)
+    at e (chrome-extension://liecbddmkiiihnedobmlmillhodjkdmb/js/companionBubble.js:4:2890708)
+    at chrome-extension://liecbddmkiiihnedobmlmillhodjkdmb/js/companionBubble.js:4:2890776
+    at Array.forEach (<anonymous>)
+    at e [as patchStrategy] (chrome-extension://liecbddmkiiihnedobmlmillhodjkdmb/js/companionBubble.js:4:2890708)
+    at e.value (chrome-extension://liecbddmkiiihnedobmlmillhodjkdmb/js/companionBubble.js:4:2499081)
+    at chrome-extension://liecbddmkiiihnedobmlmillhodjkdmb/js/companionBubble.js:4:2498483
+    at chrome-extension://liecbddmkiiihnedobmlmillhodjkdmb/js/companionBubble.js:4:2452848
+socket-service.ts:211 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ socket-service.ts:211
+setTimeout
+(anonymous) @ socket-service.ts:205
+authenticate @ socket-service.ts:191
+(anonymous) @ use-real-time.tsx:42
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=124d4c6c:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=124d4c6c:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=124d4c6c:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19432
+commitRoot @ chunk-RPCDYKBN.js?v=124d4c6c:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=124d4c6c:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18718
+workLoop @ chunk-RPCDYKBN.js?v=124d4c6c:197
+flushWork @ chunk-RPCDYKBN.js?v=124d4c6c:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=124d4c6c:384
+chunk-RPCDYKBN.js?v=124d4c6c:18625 [Violation] 'setTimeout' handler took 344ms
+use-socket.tsx:64 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+Manager @ socket__io-client.js?v=124d4c6c:3057
+lookup2 @ socket__io-client.js?v=124d4c6c:3390
+(anonymous) @ use-socket.tsx:64
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=124d4c6c:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=124d4c6c:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=124d4c6c:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19432
+commitRoot @ chunk-RPCDYKBN.js?v=124d4c6c:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=124d4c6c:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18718
+workLoop @ chunk-RPCDYKBN.js?v=124d4c6c:197
+flushWork @ chunk-RPCDYKBN.js?v=124d4c6c:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=124d4c6c:384
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket-service.ts:76 Socket already initialized, reusing existing connection
+socket-service.ts:204 Socket not connected, waiting before authentication attempt
+socket-service.ts:275 Setting up handler for lead:created
+socket-service.ts:275 Setting up handler for lead:updated
+socket-service.ts:275 Setting up handler for lead:deleted
+socket-service.ts:275 Setting up handler for lead:status_changed
+socket-service.ts:275 Setting up handler for dispatch:created
+socket-service.ts:275 Setting up handler for dispatch:updated
+socket-service.ts:275 Setting up handler for dispatch:deleted
+socket-service.ts:275 Setting up handler for dispatch:status_changed
+socket-service.ts:275 Setting up handler for invoice:created
+socket-service.ts:275 Setting up handler for invoice:updated
+socket-service.ts:275 Setting up handler for invoice:deleted
+socket-service.ts:275 Setting up handler for invoice:status_changed
+socket-service.ts:275 Setting up handler for notification:created
+socket-service.ts:275 Setting up handler for notification:read
+socket-service.ts:275 Setting up handler for notification:deleted
+socket-service.ts:275 Setting up handler for data:updated
+socket-service.ts:275 Setting up handler for lead:created
+socket-service.ts:275 Setting up handler for lead:updated
+socket-service.ts:275 Setting up handler for lead-status:updated
+socket-service.ts:211 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ socket-service.ts:211
+setTimeout
+(anonymous) @ socket-service.ts:205
+authenticate @ socket-service.ts:191
+(anonymous) @ use-real-time.tsx:42
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=124d4c6c:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=124d4c6c:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19416
+commitRoot @ chunk-RPCDYKBN.js?v=124d4c6c:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=124d4c6c:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=124d4c6c:18627
+socket-service.ts:280 Removing handler for lead:created
+socket-service.ts:280 Removing handler for lead:updated
+socket-service.ts:280 Removing handler for lead:deleted
+socket-service.ts:280 Removing handler for lead:status_changed
+socket-service.ts:280 Removing handler for dispatch:created
+socket-service.ts:280 Removing handler for dispatch:updated
+socket-service.ts:280 Removing handler for dispatch:deleted
+socket-service.ts:280 Removing handler for dispatch:status_changed
+socket-service.ts:280 Removing handler for invoice:created
+socket-service.ts:280 Removing handler for invoice:updated
+socket-service.ts:280 Removing handler for invoice:deleted
+socket-service.ts:280 Removing handler for invoice:status_changed
+socket-service.ts:280 Removing handler for notification:created
+socket-service.ts:280 Removing handler for notification:read
+socket-service.ts:280 Removing handler for notification:deleted
+socket-service.ts:280 Removing handler for data:updated
+socket-service.ts:280 Removing handler for lead:created
+socket-service.ts:280 Removing handler for lead:updated
+socket-service.ts:280 Removing handler for lead-status:updated
+socket-service.ts:280 Removing handler for lead:created
+socket-service.ts:280 Removing handler for lead:updated
+socket-service.ts:280 Removing handler for lead-status:updated
+AuthContext.tsx:121 Running session keepalive check...
+client:560 [vite] server connection lost. Polling for restart...
+client:736 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/ 502 (Bad Gateway)
+ping @ client:736
+waitForSuccessfulPing @ client:749
+(anonymous) @ client:561
+ 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm/leads 502 (Bad Gateway)
+(anonymous) @ /@vite/client:562
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 CONTENT_SHELL: Page is excluded. Skipping shell protection.
+content-scripts.js:1 TSS: excluded result:  true
+injection-topics.js:1 Browsing Topics API removed
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+companionBubble.js:4 [Violation] 'message' handler took 330ms
+favicon.ico:1 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/favicon.ico 502 (Bad Gateway)
+Navigated to https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm/leads
+Navigated to https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm/leads
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 CONTENT_SHELL: Page is excluded. Skipping shell protection.
+content-scripts.js:1 TSS: excluded result:  true
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+injection-topics.js:1 Browsing Topics API removed
+client:495 [vite] connecting...
+client:618 [vite] connected.
+chunk-RPCDYKBN.js?v=124d4c6c:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+main.tsx:18 Global error handlers initialized
+socket-service.ts:84 Connecting to socket at relative path
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for data:refresh
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for system:message
+socket-service.ts:275 Setting up handler for lead:created
+socket-service.ts:275 Setting up handler for lead:updated
+socket-service.ts:275 Setting up handler for lead:deleted
+socket-service.ts:275 Setting up handler for lead:status_changed
+socket-service.ts:275 Setting up handler for dispatch:created
+socket-service.ts:275 Setting up handler for dispatch:updated
+socket-service.ts:275 Setting up handler for dispatch:deleted
+socket-service.ts:275 Setting up handler for dispatch:status_changed
+socket-service.ts:275 Setting up handler for invoice:created
+socket-service.ts:275 Setting up handler for invoice:updated
+socket-service.ts:275 Setting up handler for invoice:deleted
+socket-service.ts:275 Setting up handler for invoice:status_changed
+socket-service.ts:275 Setting up handler for notification:created
+socket-service.ts:275 Setting up handler for notification:read
+socket-service.ts:275 Setting up handler for notification:deleted
+socket-service.ts:275 Setting up handler for data:updated
+queryClient.ts:80 Making query to: /api/organization/current
+AuthContext.tsx:75 Checking authentication (attempt 1/2)
+ Global error handlers initialized
+ MetaSys ERP global error handling initialized
+ Socket already initialized, reusing existing connection
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for system:message
+ Setting up handler for error
+ Setting up handler for data:updated
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead:deleted
+ Removing handler for lead:status_changed
+ Removing handler for dispatch:created
+ Removing handler for dispatch:updated
+ Removing handler for dispatch:deleted
+ Removing handler for dispatch:status_changed
+ Removing handler for invoice:created
+ Removing handler for invoice:updated
+ Removing handler for invoice:deleted
+ Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making query to: /api/auth/user-organizations
+ Making query to: /api/organizations/current
+ Authentication check successful - user authenticated 1
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Making query to: /api/leads
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making API request to: /api/ui-prefs/me with method: GET
+ Connecting to socket at: wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/ws
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ /src/hooks/use-socket.tsx:139
+(anonymous) @ /src/components/layo…ionContainer.tsx:62
+commitHookEffectListMount @ /@fs/home/runner/wor…js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ /@fs/home/runner/wor…js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ /@fs/home/runner/wor…js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ /@fs/home/runner/wor…js?v=124d4c6c:18119
+commitPassiveMountEffects @ /@fs/home/runner/wor…js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ /@fs/home/runner/wor…js?v=124d4c6c:19490
+flushPassiveEffects @ /@fs/home/runner/wor…js?v=124d4c6c:19447
+(anonymous) @ /@fs/home/runner/wor…js?v=124d4c6c:19328
+workLoop @ /@fs/home/runner/wor…N.js?v=124d4c6c:197
+flushWork @ /@fs/home/runner/wor…N.js?v=124d4c6c:176
+performWorkUntilDeadline @ /@fs/home/runner/wor…N.js?v=124d4c6c:384
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ /src/services/socket-service.ts:143
+setTimeout
+(anonymous) @ /src/services/socket-service.ts:137
+authenticate @ /src/services/socket-service.ts:126
+(anonymous) @ /src/hooks/use-real-time.tsx:38
+commitHookEffectListMount @ /@fs/home/runner/wor…js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ /@fs/home/runner/wor…js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ /@fs/home/runner/wor…js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ /@fs/home/runner/wor…js?v=124d4c6c:18119
+commitPassiveMountEffects @ /@fs/home/runner/wor…js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ /@fs/home/runner/wor…js?v=124d4c6c:19490
+flushPassiveEffects @ /@fs/home/runner/wor…js?v=124d4c6c:19447
+performSyncWorkOnRoot @ /@fs/home/runner/wor…js?v=124d4c6c:18868
+flushSyncCallbacks @ /@fs/home/runner/wor….js?v=124d4c6c:9119
+commitRootImpl @ /@fs/home/runner/wor…js?v=124d4c6c:19432
+commitRoot @ /@fs/home/runner/wor…js?v=124d4c6c:19277
+finishConcurrentRender @ /@fs/home/runner/wor…js?v=124d4c6c:18805
+performConcurrentWorkOnRoot @ /@fs/home/runner/wor…js?v=124d4c6c:18718
+workLoop @ /@fs/home/runner/wor…N.js?v=124d4c6c:197
+flushWork @ /@fs/home/runner/wor…N.js?v=124d4c6c:176
+performWorkUntilDeadline @ /@fs/home/runner/wor…N.js?v=124d4c6c:384
+/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=124d4c6c:18625 [Violation] 'setTimeout' handler took 64ms
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+Manager @ /@fs/home/runner/wor….js?v=124d4c6c:3057
+lookup2 @ /@fs/home/runner/wor….js?v=124d4c6c:3390
+(anonymous) @ /src/hooks/use-socket.tsx:54
+commitHookEffectListMount @ /@fs/home/runner/wor…js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ /@fs/home/runner/wor…js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ /@fs/home/runner/wor…js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ /@fs/home/runner/wor…js?v=124d4c6c:18119
+commitPassiveMountEffects @ /@fs/home/runner/wor…js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ /@fs/home/runner/wor…js?v=124d4c6c:19490
+flushPassiveEffects @ /@fs/home/runner/wor…js?v=124d4c6c:19447
+performSyncWorkOnRoot @ /@fs/home/runner/wor…js?v=124d4c6c:18868
+flushSyncCallbacks @ /@fs/home/runner/wor….js?v=124d4c6c:9119
+commitRootImpl @ /@fs/home/runner/wor…js?v=124d4c6c:19432
+commitRoot @ /@fs/home/runner/wor…js?v=124d4c6c:19277
+finishConcurrentRender @ /@fs/home/runner/wor…js?v=124d4c6c:18805
+performConcurrentWorkOnRoot @ /@fs/home/runner/wor…js?v=124d4c6c:18718
+workLoop @ /@fs/home/runner/wor…N.js?v=124d4c6c:197
+flushWork @ /@fs/home/runner/wor…N.js?v=124d4c6c:176
+performWorkUntilDeadline @ /@fs/home/runner/wor…N.js?v=124d4c6c:384
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+(anonymous) @ /@fs/home/runner/wor….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+(anonymous) @ /@fs/home/runner/wor….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+(anonymous) @ /@fs/home/runner/wor….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+(anonymous) @ /@fs/home/runner/wor….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+(anonymous) @ /@fs/home/runner/wor….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ /@fs/home/runner/wor….js?v=124d4c6c:1059
+doOpen @ /@fs/home/runner/wor…t.js?v=124d4c6c:986
+open @ /@fs/home/runner/wor…t.js?v=124d4c6c:503
+_open @ /@fs/home/runner/wor….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1289
+SocketWithUpgrade @ /@fs/home/runner/wor….js?v=124d4c6c:1633
+Socket @ /@fs/home/runner/wor….js?v=124d4c6c:1759
+open @ /@fs/home/runner/wor….js?v=124d4c6c:3125
+(anonymous) @ /@fs/home/runner/wor….js?v=124d4c6c:3343
+Navigated to https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm/leads
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 CONTENT_SHELL: Page is excluded. Skipping shell protection.
+content-scripts.js:1 TSS: excluded result:  true
+injection-topics.js:1 Browsing Topics API removed
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+client:495 [vite] connecting...
+client:618 [vite] connected.
+chunk-RPCDYKBN.js?v=124d4c6c:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+main.tsx:18 Global error handlers initialized
+socket-service.ts:84 Connecting to socket at relative path
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for data:refresh
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for system:message
+socket-service.ts:275 Setting up handler for lead:created
+socket-service.ts:275 Setting up handler for lead:updated
+socket-service.ts:275 Setting up handler for lead:deleted
+socket-service.ts:275 Setting up handler for lead:status_changed
+socket-service.ts:275 Setting up handler for dispatch:created
+socket-service.ts:275 Setting up handler for dispatch:updated
+socket-service.ts:275 Setting up handler for dispatch:deleted
+socket-service.ts:275 Setting up handler for dispatch:status_changed
+socket-service.ts:275 Setting up handler for invoice:created
+socket-service.ts:275 Setting up handler for invoice:updated
+socket-service.ts:275 Setting up handler for invoice:deleted
+socket-service.ts:275 Setting up handler for invoice:status_changed
+socket-service.ts:275 Setting up handler for notification:created
+socket-service.ts:275 Setting up handler for notification:read
+socket-service.ts:275 Setting up handler for notification:deleted
+socket-service.ts:275 Setting up handler for data:updated
+queryClient.ts:80 Making query to: /api/organization/current
+AuthContext.tsx:75 Checking authentication (attempt 1/2)
+global-error-handler.ts:86 Global error handlers initialized
+App.tsx:541 MetaSys ERP global error handling initialized
+socket-service.ts:76 Socket already initialized, reusing existing connection
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for system:message
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for data:updated
+chunk-RPCDYKBN.js?v=124d4c6c:377 [Violation] 'message' handler took 291ms
+socket-service.ts:280 Removing handler for connect
+socket-service.ts:280 Removing handler for disconnect
+socket-service.ts:280 Removing handler for authenticated
+socket-service.ts:280 Removing handler for data:refresh
+socket-service.ts:280 Removing handler for error
+socket-service.ts:280 Removing handler for system:message
+socket-service.ts:280 Removing handler for lead:created
+socket-service.ts:280 Removing handler for lead:updated
+socket-service.ts:280 Removing handler for lead:deleted
+socket-service.ts:280 Removing handler for lead:status_changed
+socket-service.ts:280 Removing handler for dispatch:created
+socket-service.ts:280 Removing handler for dispatch:updated
+socket-service.ts:280 Removing handler for dispatch:deleted
+socket-service.ts:280 Removing handler for dispatch:status_changed
+socket-service.ts:280 Removing handler for invoice:created
+socket-service.ts:280 Removing handler for invoice:updated
+socket-service.ts:280 Removing handler for invoice:deleted
+socket-service.ts:280 Removing handler for invoice:status_changed
+socket-service.ts:280 Removing handler for notification:created
+socket-service.ts:280 Removing handler for notification:read
+socket-service.ts:280 Removing handler for notification:deleted
+socket-service.ts:280 Removing handler for data:updated
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for data:refresh
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for system:message
+queryClient.ts:80 Making query to: /api/auth/user-organizations
+queryClient.ts:80 Making query to: /api/organizations/current
+companionBubble.js:4 [Violation] 'message' handler took 265ms
+AuthContext.tsx:109 Authentication check successful - user authenticated 1
+socket-service.ts:280 Removing handler for connect
+socket-service.ts:280 Removing handler for disconnect
+socket-service.ts:280 Removing handler for authenticated
+socket-service.ts:280 Removing handler for data:refresh
+socket-service.ts:280 Removing handler for error
+socket-service.ts:280 Removing handler for system:message
+queryClient.ts:80 Making query to: /api/leads
+socket-service.ts:204 Socket not connected, waiting before authentication attempt
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for data:refresh
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for system:message
+queryClient.ts:51 Making API request to: /api/ui-prefs/me with method: GET
+use-socket.tsx:61 Connecting to socket at: wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/ws
+chunk-RPCDYKBN.js?v=124d4c6c:377 [Violation] 'message' handler took 233ms
+socket-service.ts:280 Removing handler for connect
+socket-service.ts:280 Removing handler for disconnect
+socket-service.ts:280 Removing handler for authenticated
+socket-service.ts:280 Removing handler for data:refresh
+socket-service.ts:280 Removing handler for error
+socket-service.ts:280 Removing handler for system:message
+use-socket.tsx:164 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ use-socket.tsx:164
+(anonymous) @ NotificationContainer.tsx:62
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=124d4c6c:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=124d4c6c:19447
+(anonymous) @ chunk-RPCDYKBN.js?v=124d4c6c:19328
+workLoop @ chunk-RPCDYKBN.js?v=124d4c6c:197
+flushWork @ chunk-RPCDYKBN.js?v=124d4c6c:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=124d4c6c:384
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for data:refresh
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for system:message
+chunk-RPCDYKBN.js?v=124d4c6c:18625 [Violation] 'setTimeout' handler took 299ms
+socket-service.ts:211 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ socket-service.ts:211
+setTimeout
+(anonymous) @ socket-service.ts:205
+authenticate @ socket-service.ts:191
+(anonymous) @ use-real-time.tsx:42
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=124d4c6c:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=124d4c6c:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=124d4c6c:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19432
+commitRoot @ chunk-RPCDYKBN.js?v=124d4c6c:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=124d4c6c:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18718
+workLoop @ chunk-RPCDYKBN.js?v=124d4c6c:197
+flushWork @ chunk-RPCDYKBN.js?v=124d4c6c:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=124d4c6c:384
+chunk-RPCDYKBN.js?v=124d4c6c:377 [Violation] 'message' handler took 171ms
+use-socket.tsx:64 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+Manager @ socket__io-client.js?v=124d4c6c:3057
+lookup2 @ socket__io-client.js?v=124d4c6c:3390
+(anonymous) @ use-socket.tsx:64
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=124d4c6c:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=124d4c6c:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=124d4c6c:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19432
+commitRoot @ chunk-RPCDYKBN.js?v=124d4c6c:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=124d4c6c:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18718
+workLoop @ chunk-RPCDYKBN.js?v=124d4c6c:197
+flushWork @ chunk-RPCDYKBN.js?v=124d4c6c:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=124d4c6c:384
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+socket__io-client.js?v=124d4c6c:1059 WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js?v=124d4c6c:1059
+doOpen @ socket__io-client.js?v=124d4c6c:986
+open @ socket__io-client.js?v=124d4c6c:503
+_open @ socket__io-client.js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ socket__io-client.js?v=124d4c6c:1289
+SocketWithUpgrade @ socket__io-client.js?v=124d4c6c:1633
+Socket @ socket__io-client.js?v=124d4c6c:1759
+open @ socket__io-client.js?v=124d4c6c:3125
+(anonymous) @ socket__io-client.js?v=124d4c6c:3343
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {}
+main.tsx:11 [Global Error] TypeError: Cannot destructure property 'id' of 'params' as it is undefined.
+    at LeadDetails ([id].tsx:83:11)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=124d4c6c:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=124d4c6c:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=124d4c6c:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=124d4c6c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=124d4c6c:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=124d4c6c:3733:39)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=124d4c6c:19765:15)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=124d4c6c:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=124d4c6c:19137:13)
+console.error @ main.tsx:11
+(anonymous) @ global-error-handler.ts:62
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=124d4c6c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=124d4c6c:3733
+beginWork$1 @ chunk-RPCDYKBN.js?v=124d4c6c:19765
+performUnitOfWork @ chunk-RPCDYKBN.js?v=124d4c6c:19198
+workLoopSync @ chunk-RPCDYKBN.js?v=124d4c6c:19137
+renderRootSync @ chunk-RPCDYKBN.js?v=124d4c6c:19116
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18874
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=124d4c6c:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=124d4c6c:18627
+main.tsx:14 [Global Error] [Global Error]
+main.tsx:11 Warning: Cannot update a component (`AppContent`) while rendering a different component (`LeadDetails`). To locate the bad setState() call inside `LeadDetails`, follow the stack trace as described in https://reactjs.org/link/setstate-in-render
+    at LeadDetails (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/pages/crm/[id].tsx:84:39)
+    at ProtectedRoute (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/App.tsx?t=1747960230961&v=N6K9YGS6I_CuJ1L9pR8gS:90:38)
+    at div
+    at MotionComponent (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/framer-motion.js?v=124d4c6c:945:40)
+    at PresenceChild (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/framer-motion.js?v=124d4c6c:121:24)
+    at AnimatePresence (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/framer-motion.js?v=124d4c6c:210:26)
+    at div
+    at AnimatedPage (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/components/ui/AnimatedPage.tsx:21:32)
+    at div
+    at main
+    at div
+    at MotionComponent (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/framer-motion.js?v=124d4c6c:945:40)
+    at div
+    at AppLayout (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/components/layout/AppLayout.tsx:28:29)
+    at Route (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=124d4c6c:191:16)
+    at Switch (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=124d4c6c:247:17)
+    at Router
+    at AppContent (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/App.tsx?t=1747960230961&v=N6K9YGS6I_CuJ1L9pR8gS:893:20)
+    at LeadNotificationProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/hooks/use-lead-notifications.tsx:54:44)
+    at OrganizationProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/hooks/use-organization.tsx:22:40)
+    at AnimationProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/AnimationContext.tsx:44:37)
+    at MessageProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/MessageContext.tsx:24:35)
+    at NotificationProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/NotificationContext.tsx:24:40)
+    at SocketProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/hooks/use-socket.tsx:40:34)
+    at AuthProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/AuthContext.tsx:31:25)
+    at ErrorBoundary (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/components/ui/error-boundary.tsx:25:5)
+    at QueryClientProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=124d4c6c:2805:3)
+    at Provider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DP3TOLV7.js?v=124d4c6c:923:11)
+    at App (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/App.tsx?t=1747960230961&v=N6K9YGS6I_CuJ1L9pR8gS:832:3)
+    at RealTimeProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/RealTimeContext.tsx?v=N6K9YGS6I_CuJ1L9pR8gS:24:36)
+console.error @ main.tsx:11
+printWarning @ chunk-RPCDYKBN.js?v=124d4c6c:521
+error @ chunk-RPCDYKBN.js?v=124d4c6c:505
+warnAboutRenderPhaseUpdatesInDEV @ chunk-RPCDYKBN.js?v=124d4c6c:19793
+scheduleUpdateOnFiber @ chunk-RPCDYKBN.js?v=124d4c6c:18546
+dispatchSetState @ chunk-RPCDYKBN.js?v=124d4c6c:12403
+(anonymous) @ use-toast.ts:136
+dispatch @ use-toast.ts:135
+toast @ use-toast.ts:152
+(anonymous) @ global-error-handler.ts:71
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=124d4c6c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=124d4c6c:3733
+beginWork$1 @ chunk-RPCDYKBN.js?v=124d4c6c:19765
+performUnitOfWork @ chunk-RPCDYKBN.js?v=124d4c6c:19198
+workLoopSync @ chunk-RPCDYKBN.js?v=124d4c6c:19137
+renderRootSync @ chunk-RPCDYKBN.js?v=124d4c6c:19116
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18874
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=124d4c6c:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=124d4c6c:18627
+main.tsx:14 [Global Error] Warning: Cannot update a component (`%s`) while rendering a different component (`%s`). To locate the bad setState() call inside `%s`, follow the stack trace as described in https://reactjs.org/link/setstate-in-render%s
+[id].tsx:83 Uncaught TypeError: Cannot destructure property 'id' of 'params' as it is undefined.
+    at LeadDetails ([id].tsx:83:11)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=124d4c6c:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=124d4c6c:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=124d4c6c:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=124d4c6c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=124d4c6c:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=124d4c6c:3733:39)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=124d4c6c:19765:15)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=124d4c6c:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=124d4c6c:19137:13)
+LeadDetails @ [id].tsx:83
+renderWithHooks @ chunk-RPCDYKBN.js?v=124d4c6c:11548
+mountIndeterminateComponent @ chunk-RPCDYKBN.js?v=124d4c6c:14926
+beginWork @ chunk-RPCDYKBN.js?v=124d4c6c:15914
+callCallback2 @ chunk-RPCDYKBN.js?v=124d4c6c:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=124d4c6c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=124d4c6c:3733
+beginWork$1 @ chunk-RPCDYKBN.js?v=124d4c6c:19765
+performUnitOfWork @ chunk-RPCDYKBN.js?v=124d4c6c:19198
+workLoopSync @ chunk-RPCDYKBN.js?v=124d4c6c:19137
+renderRootSync @ chunk-RPCDYKBN.js?v=124d4c6c:19116
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18874
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=124d4c6c:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=124d4c6c:18627
+[id].tsx:83 Uncaught TypeError: Cannot destructure property 'id' of 'params' as it is undefined.
+    at LeadDetails ([id].tsx:83:11)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=124d4c6c:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=124d4c6c:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=124d4c6c:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-RPCDYKBN.js?v=124d4c6c:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-RPCDYKBN.js?v=124d4c6c:3699:24)
+    at invokeGuardedCallback (chunk-RPCDYKBN.js?v=124d4c6c:3733:39)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=124d4c6c:19765:15)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=124d4c6c:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=124d4c6c:19137:13)
+LeadDetails @ [id].tsx:83
+renderWithHooks @ chunk-RPCDYKBN.js?v=124d4c6c:11548
+mountIndeterminateComponent @ chunk-RPCDYKBN.js?v=124d4c6c:14926
+beginWork @ chunk-RPCDYKBN.js?v=124d4c6c:15914
+callCallback2 @ chunk-RPCDYKBN.js?v=124d4c6c:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=124d4c6c:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=124d4c6c:3733
+beginWork$1 @ chunk-RPCDYKBN.js?v=124d4c6c:19765
+performUnitOfWork @ chunk-RPCDYKBN.js?v=124d4c6c:19198
+workLoopSync @ chunk-RPCDYKBN.js?v=124d4c6c:19137
+renderRootSync @ chunk-RPCDYKBN.js?v=124d4c6c:19116
+recoverFromConcurrentError @ chunk-RPCDYKBN.js?v=124d4c6c:18736
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18879
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=124d4c6c:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=124d4c6c:18627
+main.tsx:11 The above error occurred in the <LeadDetails> component:
+
+    at LeadDetails (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/pages/crm/[id].tsx:84:39)
+    at ProtectedRoute (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/App.tsx?t=1747960230961&v=N6K9YGS6I_CuJ1L9pR8gS:90:38)
+    at div
+    at MotionComponent (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/framer-motion.js?v=124d4c6c:945:40)
+    at PresenceChild (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/framer-motion.js?v=124d4c6c:121:24)
+    at AnimatePresence (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/framer-motion.js?v=124d4c6c:210:26)
+    at div
+    at AnimatedPage (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/components/ui/AnimatedPage.tsx:21:32)
+    at div
+    at main
+    at div
+    at MotionComponent (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/framer-motion.js?v=124d4c6c:945:40)
+    at div
+    at AppLayout (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/components/layout/AppLayout.tsx:28:29)
+    at Route (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=124d4c6c:191:16)
+    at Switch (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=124d4c6c:247:17)
+    at Router
+    at AppContent (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/App.tsx?t=1747960230961&v=N6K9YGS6I_CuJ1L9pR8gS:893:20)
+    at LeadNotificationProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/hooks/use-lead-notifications.tsx:54:44)
+    at OrganizationProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/hooks/use-organization.tsx:22:40)
+    at AnimationProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/AnimationContext.tsx:44:37)
+    at MessageProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/MessageContext.tsx:24:35)
+    at NotificationProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/NotificationContext.tsx:24:40)
+    at SocketProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/hooks/use-socket.tsx:40:34)
+    at AuthProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/AuthContext.tsx:31:25)
+    at ErrorBoundary (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/components/ui/error-boundary.tsx:25:5)
+    at QueryClientProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=124d4c6c:2805:3)
+    at Provider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DP3TOLV7.js?v=124d4c6c:923:11)
+    at App (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/App.tsx?t=1747960230961&v=N6K9YGS6I_CuJ1L9pR8gS:832:3)
+    at RealTimeProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/RealTimeContext.tsx?v=N6K9YGS6I_CuJ1L9pR8gS:24:36)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+console.error @ main.tsx:11
+logCapturedError @ chunk-RPCDYKBN.js?v=124d4c6c:14032
+callback @ chunk-RPCDYKBN.js?v=124d4c6c:14078
+callCallback @ chunk-RPCDYKBN.js?v=124d4c6c:11248
+commitUpdateQueue @ chunk-RPCDYKBN.js?v=124d4c6c:11265
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=124d4c6c:17075
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=124d4c6c:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=124d4c6c:17969
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=124d4c6c:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19353
+commitRoot @ chunk-RPCDYKBN.js?v=124d4c6c:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=124d4c6c:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=124d4c6c:18627
+main.tsx:14 [Global Error] The above error occurred in the <LeadDetails> component:
+
+    at LeadDetails (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/pages/crm/[id].tsx:84:39)
+    at ProtectedRoute (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/App.tsx?t=1747960230961&v=N6K9YGS6I_CuJ1L9pR8gS:90:38)
+    at div
+    at MotionComponent (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/framer-motion.js?v=124d4c6c:945:40)
+    at PresenceChild (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/framer-motion.js?v=124d4c6c:121:24)
+    at AnimatePresence (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/framer-motion.js?v=124d4c6c:210:26)
+    at div
+    at AnimatedPage (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/components/ui/AnimatedPage.tsx:21:32)
+    at div
+    at main
+    at div
+    at MotionComponent (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/framer-motion.js?v=124d4c6c:945:40)
+    at div
+    at AppLayout (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/components/layout/AppLayout.tsx:28:29)
+    at Route (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=124d4c6c:191:16)
+    at Switch (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=124d4c6c:247:17)
+    at Router
+    at AppContent (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/App.tsx?t=1747960230961&v=N6K9YGS6I_CuJ1L9pR8gS:893:20)
+    at LeadNotificationProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/hooks/use-lead-notifications.tsx:54:44)
+    at OrganizationProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/hooks/use-organization.tsx:22:40)
+    at AnimationProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/AnimationContext.tsx:44:37)
+    at MessageProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/MessageContext.tsx:24:35)
+    at NotificationProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/NotificationContext.tsx:24:40)
+    at SocketProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/hooks/use-socket.tsx:40:34)
+    at AuthProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/AuthContext.tsx:31:25)
+    at ErrorBoundary (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/components/ui/error-boundary.tsx:25:5)
+    at QueryClientProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=124d4c6c:2805:3)
+    at Provider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-DP3TOLV7.js?v=124d4c6c:923:11)
+    at App (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/App.tsx?t=1747960230961&v=N6K9YGS6I_CuJ1L9pR8gS:832:3)
+    at RealTimeProvider (https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/contexts/RealTimeContext.tsx?v=N6K9YGS6I_CuJ1L9pR8gS:24:36)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
+main.tsx:11 Error caught by ErrorBoundary: TypeError: Cannot destructure property 'id' of 'params' as it is undefined.
+    at LeadDetails ([id].tsx:83:11)
+    at renderWithHooks (chunk-RPCDYKBN.js?v=124d4c6c:11548:26)
+    at mountIndeterminateComponent (chunk-RPCDYKBN.js?v=124d4c6c:14926:21)
+    at beginWork (chunk-RPCDYKBN.js?v=124d4c6c:15914:22)
+    at beginWork$1 (chunk-RPCDYKBN.js?v=124d4c6c:19753:22)
+    at performUnitOfWork (chunk-RPCDYKBN.js?v=124d4c6c:19198:20)
+    at workLoopSync (chunk-RPCDYKBN.js?v=124d4c6c:19137:13)
+    at renderRootSync (chunk-RPCDYKBN.js?v=124d4c6c:19116:15)
+    at recoverFromConcurrentError (chunk-RPCDYKBN.js?v=124d4c6c:18736:28)
+    at performSyncWorkOnRoot (chunk-RPCDYKBN.js?v=124d4c6c:18879:28) {componentStack: '\n    at LeadDetails (https://5feb2563-1c7b-4fa8-b3…ealTimeContext.tsx?v=N6K9YGS6I_CuJ1L9pR8gS:24:36)'}
+console.error @ main.tsx:11
+componentDidCatch @ error-boundary.tsx:61
+callback @ chunk-RPCDYKBN.js?v=124d4c6c:14084
+callCallback @ chunk-RPCDYKBN.js?v=124d4c6c:11248
+commitUpdateQueue @ chunk-RPCDYKBN.js?v=124d4c6c:11265
+commitLayoutEffectOnFiber @ chunk-RPCDYKBN.js?v=124d4c6c:17075
+commitLayoutMountEffects_complete @ chunk-RPCDYKBN.js?v=124d4c6c:17980
+commitLayoutEffects_begin @ chunk-RPCDYKBN.js?v=124d4c6c:17969
+commitLayoutEffects @ chunk-RPCDYKBN.js?v=124d4c6c:17920
+commitRootImpl @ chunk-RPCDYKBN.js?v=124d4c6c:19353
+commitRoot @ chunk-RPCDYKBN.js?v=124d4c6c:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=124d4c6c:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=124d4c6c:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=124d4c6c:18627
+main.tsx:14 [Global Error] Error caught by ErrorBoundary:
+socket-service.ts:280 Removing handler for connect
+socket-service.ts:280 Removing handler for disconnect
+socket-service.ts:280 Removing handler for authenticated
+socket-service.ts:280 Removing handler for data:refresh
+socket-service.ts:280 Removing handler for error
+socket-service.ts:280 Removing handler for system:message
+chunk-RPCDYKBN.js?v=124d4c6c:18625 [Violation] 'click' handler took 165ms
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 CONTENT_SHELL: Page is excluded. Skipping shell protection.
+content-scripts.js:1 TSS: excluded result:  true
+injection-topics.js:1 Browsing Topics API removed
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+Navigated to https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm
+client:495 [vite] connecting...
+client:618 [vite] connected.
+chunk-RPCDYKBN.js?v=124d4c6c:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+main.tsx:18 Global error handlers initialized
+socket-service.ts:84 Connecting to socket at relative path
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for data:refresh
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for system:message
+socket-service.ts:275 Setting up handler for lead:created
+socket-service.ts:275 Setting up handler for lead:updated
+socket-service.ts:275 Setting up handler for lead:deleted
+socket-service.ts:275 Setting up handler for lead:status_changed
+socket-service.ts:275 Setting up handler for dispatch:created
+socket-service.ts:275 Setting up handler for dispatch:updated
+socket-service.ts:275 Setting up handler for dispatch:deleted
+socket-service.ts:275 Setting up handler for dispatch:status_changed
+socket-service.ts:275 Setting up handler for invoice:created
+socket-service.ts:275 Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Making query to: /api/organization/current
+ Checking authentication (attempt 1/2)
+ Global error handlers initialized
+ MetaSys ERP global error handling initialized
+ Socket already initialized, reusing existing connection
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for system:message
+ Setting up handler for error
+ Setting up handler for data:updated
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead:deleted
+ Removing handler for lead:status_changed
+ Removing handler for dispatch:created
+ Removing handler for dispatch:updated
+ Removing handler for dispatch:deleted
+ Removing handler for dispatch:status_changed
+ Removing handler for invoice:created
+ Removing handler for invoice:updated
+ Removing handler for invoice:deleted
+ Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making query to: /api/auth/user-organizations
+ Making query to: /api/organizations/current
+ Authentication check successful - user authenticated 1
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Making query to: /api/leads
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making API request to: /api/ui-prefs/me with method: GET
+ Connecting to socket at: wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/ws
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ src/hooks/use-socket.tsx:139
+(anonymous) @ src/components/layou…ionContainer.tsx:62
+commitHookEffectListMount @ @fs/home/runner/work…js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ @fs/home/runner/work…js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ @fs/home/runner/work…js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ @fs/home/runner/work…js?v=124d4c6c:18119
+commitPassiveMountEffects @ @fs/home/runner/work…js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ @fs/home/runner/work…js?v=124d4c6c:19490
+flushPassiveEffects @ @fs/home/runner/work…js?v=124d4c6c:19447
+(anonymous) @ @fs/home/runner/work…js?v=124d4c6c:19328
+workLoop @ @fs/home/runner/work…N.js?v=124d4c6c:197
+flushWork @ @fs/home/runner/work…N.js?v=124d4c6c:176
+performWorkUntilDeadline @ @fs/home/runner/work…N.js?v=124d4c6c:384
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ src/services/socket-service.ts:143
+setTimeout
+(anonymous) @ src/services/socket-service.ts:137
+authenticate @ src/services/socket-service.ts:126
+(anonymous) @ src/hooks/use-real-time.tsx:38
+commitHookEffectListMount @ @fs/home/runner/work…js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ @fs/home/runner/work…js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ @fs/home/runner/work…js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ @fs/home/runner/work…js?v=124d4c6c:18119
+commitPassiveMountEffects @ @fs/home/runner/work…js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ @fs/home/runner/work…js?v=124d4c6c:19490
+flushPassiveEffects @ @fs/home/runner/work…js?v=124d4c6c:19447
+performSyncWorkOnRoot @ @fs/home/runner/work…js?v=124d4c6c:18868
+flushSyncCallbacks @ @fs/home/runner/work….js?v=124d4c6c:9119
+commitRootImpl @ @fs/home/runner/work…js?v=124d4c6c:19432
+commitRoot @ @fs/home/runner/work…js?v=124d4c6c:19277
+finishConcurrentRender @ @fs/home/runner/work…js?v=124d4c6c:18805
+performConcurrentWorkOnRoot @ @fs/home/runner/work…js?v=124d4c6c:18718
+workLoop @ @fs/home/runner/work…N.js?v=124d4c6c:197
+flushWork @ @fs/home/runner/work…N.js?v=124d4c6c:176
+performWorkUntilDeadline @ @fs/home/runner/work…N.js?v=124d4c6c:384
+ Socket already initialized, reusing existing connection
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Making query to: /api/activities
+@fs/home/runner/workspace/node_modules/.vite/deps/chunk-RPCDYKBN.js?v=124d4c6c:18625 [Violation] 'setTimeout' handler took 82ms
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ src/services/socket-service.ts:143
+setTimeout
+(anonymous) @ src/services/socket-service.ts:137
+authenticate @ src/services/socket-service.ts:126
+(anonymous) @ src/hooks/use-real-time.tsx:38
+commitHookEffectListMount @ @fs/home/runner/work…js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ @fs/home/runner/work…js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ @fs/home/runner/work…js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ @fs/home/runner/work…js?v=124d4c6c:18119
+commitPassiveMountEffects @ @fs/home/runner/work…js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ @fs/home/runner/work…js?v=124d4c6c:19490
+flushPassiveEffects @ @fs/home/runner/work…js?v=124d4c6c:19447
+commitRootImpl @ @fs/home/runner/work…js?v=124d4c6c:19416
+commitRoot @ @fs/home/runner/work…js?v=124d4c6c:19277
+performSyncWorkOnRoot @ @fs/home/runner/work…js?v=124d4c6c:18895
+flushSyncCallbacks @ @fs/home/runner/work….js?v=124d4c6c:9119
+(anonymous) @ @fs/home/runner/work…js?v=124d4c6c:18627
+setTimeout
+scheduleFn @ @fs/home/runner/work…y.js?v=124d4c6c:555
+flush @ @fs/home/runner/work…y.js?v=124d4c6c:569
+batch @ @fs/home/runner/work…y.js?v=124d4c6c:587
+dispatch_fn @ @fs/home/runner/work…y.js?v=124d4c6c:996
+setData @ @fs/home/runner/work…y.js?v=124d4c6c:696
+onSuccess @ @fs/home/runner/work…y.js?v=124d4c6c:897
+resolve @ @fs/home/runner/work…y.js?v=124d4c6c:456
+Promise.then
+run @ @fs/home/runner/work…y.js?v=124d4c6c:498
+start @ @fs/home/runner/work…y.js?v=124d4c6c:536
+fetch @ @fs/home/runner/work…y.js?v=124d4c6c:926
+executeFetch_fn @ @fs/home/runner/work….js?v=124d4c6c:2211
+onSubscribe @ @fs/home/runner/work….js?v=124d4c6c:1898
+subscribe @ @fs/home/runner/work…ry.js?v=124d4c6c:24
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3022
+subscribeToStore @ @fs/home/runner/work…js?v=124d4c6c:11984
+commitHookEffectListMount @ @fs/home/runner/work…js?v=124d4c6c:16915
+commitPassiveMountOnFiber @ @fs/home/runner/work…js?v=124d4c6c:18156
+commitPassiveMountEffects_complete @ @fs/home/runner/work…js?v=124d4c6c:18129
+commitPassiveMountEffects_begin @ @fs/home/runner/work…js?v=124d4c6c:18119
+commitPassiveMountEffects @ @fs/home/runner/work…js?v=124d4c6c:18109
+flushPassiveEffectsImpl @ @fs/home/runner/work…js?v=124d4c6c:19490
+flushPassiveEffects @ @fs/home/runner/work…js?v=124d4c6c:19447
+performSyncWorkOnRoot @ @fs/home/runner/work…js?v=124d4c6c:18868
+flushSyncCallbacks @ @fs/home/runner/work….js?v=124d4c6c:9119
+commitRootImpl @ @fs/home/runner/work…js?v=124d4c6c:19432
+commitRoot @ @fs/home/runner/work…js?v=124d4c6c:19277
+finishConcurrentRender @ @fs/home/runner/work…js?v=124d4c6c:18805
+performConcurrentWorkOnRoot @ @fs/home/runner/work…js?v=124d4c6c:18718
+workLoop @ @fs/home/runner/work…N.js?v=124d4c6c:197
+flushWork @ @fs/home/runner/work…N.js?v=124d4c6c:176
+performWorkUntilDeadline @ @fs/home/runner/work…N.js?v=124d4c6c:384
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead:deleted
+ Removing handler for lead:status_changed
+ Removing handler for dispatch:created
+ Removing handler for dispatch:updated
+ Removing handler for dispatch:deleted
+ Removing handler for dispatch:status_changed
+ Removing handler for invoice:created
+ Removing handler for invoice:updated
+ Removing handler for invoice:deleted
+ Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Socket already initialized, reusing existing connection
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ @fs/home/runner/work….js?v=124d4c6c:1059
+doOpen @ @fs/home/runner/work…t.js?v=124d4c6c:986
+open @ @fs/home/runner/work…t.js?v=124d4c6c:503
+_open @ @fs/home/runner/work….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1289
+SocketWithUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1633
+Socket @ @fs/home/runner/work….js?v=124d4c6c:1759
+open @ @fs/home/runner/work….js?v=124d4c6c:3125
+Manager @ @fs/home/runner/work….js?v=124d4c6c:3057
+lookup2 @ @fs/home/runner/work….js?v=124d4c6c:3390
+(anonymous) @ src/hooks/use-socket.tsx:54
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+commitRootImpl @ chunk-RPCDYKBN.js:19432
+commitRoot @ chunk-RPCDYKBN.js:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js:18718
+workLoop @ chunk-RPCDYKBN.js:197
+flushWork @ chunk-RPCDYKBN.js:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js:384
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ src/services/socket-service.ts:143
+setTimeout
+(anonymous) @ src/services/socket-service.ts:137
+authenticate @ src/services/socket-service.ts:126
+(anonymous) @ src/hooks/use-real-time.tsx:38
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+commitRootImpl @ chunk-RPCDYKBN.js:19432
+commitRoot @ chunk-RPCDYKBN.js:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js:18718
+workLoop @ chunk-RPCDYKBN.js:197
+flushWork @ chunk-RPCDYKBN.js:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js:384
+ @hello-pangea/dndDroppable: unsupported nested scroll container detected.A Droppable can only have one scroll parent (which can be itself)Nested scroll containers are currently not supported.We hope to support nested scroll containers soon: https://github.com/atlassian/react-beautiful-dnd/issues/131👷‍ This is a development only message. It will be removed in production builds.
+log @ @fs/home/runner/work…d.js?v=124d4c6c:208
+checkForNestedScrollContainers @ @fs/home/runner/work….js?v=124d4c6c:6702
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:6943
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3607
+getInitialPublish @ @fs/home/runner/work….js?v=124d4c6c:3607
+startPublishing @ @fs/home/runner/work….js?v=124d4c6c:3722
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:2788
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3384
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:2808
+lift2 @ @fs/home/runner/work….js?v=124d4c6c:5837
+fluidLift @ @fs/home/runner/work….js?v=124d4c6c:5879
+fn @ @fs/home/runner/work….js?v=124d4c6c:5039
+ @hello-pangea/dndDroppable: unsupported nested scroll container detected.A Droppable can only have one scroll parent (which can be itself)Nested scroll containers are currently not supported.We hope to support nested scroll containers soon: https://github.com/atlassian/react-beautiful-dnd/issues/131👷‍ This is a development only message. It will be removed in production builds.
+log @ @fs/home/runner/work…d.js?v=124d4c6c:208
+checkForNestedScrollContainers @ @fs/home/runner/work….js?v=124d4c6c:6702
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:6943
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3607
+getInitialPublish @ @fs/home/runner/work….js?v=124d4c6c:3607
+startPublishing @ @fs/home/runner/work….js?v=124d4c6c:3722
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:2788
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3384
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:2808
+lift2 @ @fs/home/runner/work….js?v=124d4c6c:5837
+fluidLift @ @fs/home/runner/work….js?v=124d4c6c:5879
+fn @ @fs/home/runner/work….js?v=124d4c6c:5039
+ @hello-pangea/dndDroppable: unsupported nested scroll container detected.A Droppable can only have one scroll parent (which can be itself)Nested scroll containers are currently not supported.We hope to support nested scroll containers soon: https://github.com/atlassian/react-beautiful-dnd/issues/131👷‍ This is a development only message. It will be removed in production builds.
+log @ @fs/home/runner/work…d.js?v=124d4c6c:208
+checkForNestedScrollContainers @ @fs/home/runner/work….js?v=124d4c6c:6702
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:6943
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3607
+getInitialPublish @ @fs/home/runner/work….js?v=124d4c6c:3607
+startPublishing @ @fs/home/runner/work….js?v=124d4c6c:3722
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:2788
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3384
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:2808
+lift2 @ @fs/home/runner/work….js?v=124d4c6c:5837
+fluidLift @ @fs/home/runner/work….js?v=124d4c6c:5879
+fn @ @fs/home/runner/work….js?v=124d4c6c:5039
+ @hello-pangea/dndDroppable: unsupported nested scroll container detected.A Droppable can only have one scroll parent (which can be itself)Nested scroll containers are currently not supported.We hope to support nested scroll containers soon: https://github.com/atlassian/react-beautiful-dnd/issues/131👷‍ This is a development only message. It will be removed in production builds.
+log @ @fs/home/runner/work…d.js?v=124d4c6c:208
+checkForNestedScrollContainers @ @fs/home/runner/work….js?v=124d4c6c:6702
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:6943
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3607
+getInitialPublish @ @fs/home/runner/work….js?v=124d4c6c:3607
+startPublishing @ @fs/home/runner/work….js?v=124d4c6c:3722
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:2788
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3384
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:2808
+lift2 @ @fs/home/runner/work….js?v=124d4c6c:5837
+fluidLift @ @fs/home/runner/work….js?v=124d4c6c:5879
+fn @ @fs/home/runner/work….js?v=124d4c6c:5039
+ @hello-pangea/dndDroppable: unsupported nested scroll container detected.A Droppable can only have one scroll parent (which can be itself)Nested scroll containers are currently not supported.We hope to support nested scroll containers soon: https://github.com/atlassian/react-beautiful-dnd/issues/131👷‍ This is a development only message. It will be removed in production builds.
+log @ @fs/home/runner/work…d.js?v=124d4c6c:208
+checkForNestedScrollContainers @ @fs/home/runner/work….js?v=124d4c6c:6702
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:6943
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3607
+getInitialPublish @ @fs/home/runner/work….js?v=124d4c6c:3607
+startPublishing @ @fs/home/runner/work….js?v=124d4c6c:3722
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:2788
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3384
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:2808
+lift2 @ @fs/home/runner/work….js?v=124d4c6c:5837
+fluidLift @ @fs/home/runner/work….js?v=124d4c6c:5879
+fn @ @fs/home/runner/work….js?v=124d4c6c:5039
+ @hello-pangea/dndDroppable: unsupported nested scroll container detected.A Droppable can only have one scroll parent (which can be itself)Nested scroll containers are currently not supported.We hope to support nested scroll containers soon: https://github.com/atlassian/react-beautiful-dnd/issues/131👷‍ This is a development only message. It will be removed in production builds.
+log @ @fs/home/runner/work…d.js?v=124d4c6c:208
+checkForNestedScrollContainers @ @fs/home/runner/work….js?v=124d4c6c:6702
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:6943
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3607
+getInitialPublish @ @fs/home/runner/work….js?v=124d4c6c:3607
+startPublishing @ @fs/home/runner/work….js?v=124d4c6c:3722
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:2788
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3384
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:2808
+lift2 @ @fs/home/runner/work….js?v=124d4c6c:5837
+fluidLift @ @fs/home/runner/work….js?v=124d4c6c:5879
+fn @ @fs/home/runner/work….js?v=124d4c6c:5039
+ Making API request to: /api/activities with method: POST
+ Making API request to: /api/leads/1002/status with method: PATCH
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ @fs/home/runner/work….js?v=124d4c6c:1059
+doOpen @ @fs/home/runner/work…t.js?v=124d4c6c:986
+open @ @fs/home/runner/work…t.js?v=124d4c6c:503
+_open @ @fs/home/runner/work….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1289
+SocketWithUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1633
+Socket @ @fs/home/runner/work….js?v=124d4c6c:1759
+open @ @fs/home/runner/work….js?v=124d4c6c:3125
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ @fs/home/runner/work….js?v=124d4c6c:1059
+doOpen @ @fs/home/runner/work…t.js?v=124d4c6c:986
+open @ @fs/home/runner/work…t.js?v=124d4c6c:503
+_open @ @fs/home/runner/work….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1289
+SocketWithUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1633
+Socket @ @fs/home/runner/work….js?v=124d4c6c:1759
+open @ @fs/home/runner/work….js?v=124d4c6c:3125
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ @fs/home/runner/work….js?v=124d4c6c:1059
+doOpen @ @fs/home/runner/work…t.js?v=124d4c6c:986
+open @ @fs/home/runner/work…t.js?v=124d4c6c:503
+_open @ @fs/home/runner/work….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1289
+SocketWithUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1633
+Socket @ @fs/home/runner/work….js?v=124d4c6c:1759
+open @ @fs/home/runner/work….js?v=124d4c6c:3125
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ @fs/home/runner/work….js?v=124d4c6c:1059
+doOpen @ @fs/home/runner/work…t.js?v=124d4c6c:986
+open @ @fs/home/runner/work…t.js?v=124d4c6c:503
+_open @ @fs/home/runner/work….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1289
+SocketWithUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1633
+Socket @ @fs/home/runner/work….js?v=124d4c6c:1759
+open @ @fs/home/runner/work….js?v=124d4c6c:3125
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ @fs/home/runner/work….js?v=124d4c6c:1059
+doOpen @ @fs/home/runner/work…t.js?v=124d4c6c:986
+open @ @fs/home/runner/work…t.js?v=124d4c6c:503
+_open @ @fs/home/runner/work….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1289
+SocketWithUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1633
+Socket @ @fs/home/runner/work….js?v=124d4c6c:1759
+open @ @fs/home/runner/work….js?v=124d4c6c:3125
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ @fs/home/runner/work….js?v=124d4c6c:1059
+doOpen @ @fs/home/runner/work…t.js?v=124d4c6c:986
+open @ @fs/home/runner/work…t.js?v=124d4c6c:503
+_open @ @fs/home/runner/work….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1289
+SocketWithUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1633
+Socket @ @fs/home/runner/work….js?v=124d4c6c:1759
+open @ @fs/home/runner/work….js?v=124d4c6c:3125
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ @fs/home/runner/work….js?v=124d4c6c:1059
+doOpen @ @fs/home/runner/work…t.js?v=124d4c6c:986
+open @ @fs/home/runner/work…t.js?v=124d4c6c:503
+_open @ @fs/home/runner/work….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1289
+SocketWithUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1633
+Socket @ @fs/home/runner/work….js?v=124d4c6c:1759
+open @ @fs/home/runner/work….js?v=124d4c6c:3125
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ @fs/home/runner/work….js?v=124d4c6c:1059
+doOpen @ @fs/home/runner/work…t.js?v=124d4c6c:986
+open @ @fs/home/runner/work…t.js?v=124d4c6c:503
+_open @ @fs/home/runner/work….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1289
+SocketWithUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1633
+Socket @ @fs/home/runner/work….js?v=124d4c6c:1759
+open @ @fs/home/runner/work….js?v=124d4c6c:3125
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ @fs/home/runner/work….js?v=124d4c6c:1059
+doOpen @ @fs/home/runner/work…t.js?v=124d4c6c:986
+open @ @fs/home/runner/work…t.js?v=124d4c6c:503
+_open @ @fs/home/runner/work….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1289
+SocketWithUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1633
+Socket @ @fs/home/runner/work….js?v=124d4c6c:1759
+open @ @fs/home/runner/work….js?v=124d4c6c:3125
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ @fs/home/runner/work….js?v=124d4c6c:1059
+doOpen @ @fs/home/runner/work…t.js?v=124d4c6c:986
+open @ @fs/home/runner/work…t.js?v=124d4c6c:503
+_open @ @fs/home/runner/work….js?v=124d4c6c:1328
+_SocketWithoutUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1289
+SocketWithUpgrade @ @fs/home/runner/work….js?v=124d4c6c:1633
+Socket @ @fs/home/runner/work….js?v=124d4c6c:1759
+open @ @fs/home/runner/work….js?v=124d4c6c:3125
+(anonymous) @ @fs/home/runner/work….js?v=124d4c6c:3343
+ Running session keepalive check...
+ [vite] server connection lost. Polling for restart...
+ 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/ net::ERR_ABORTED 502 (Bad Gateway)
+ping @ client:736
+waitForSuccessfulPing @ client:749
+(anonymous) @ client:561
+ 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm 502 (Bad Gateway)
+(anonymous) @ client:562
+ injection-tss TSS: hosted page injected
+ injection-tss MBTSS: Nonce:  nonce
+ CONTENT_SHELL: Page is excluded. Skipping shell protection.
+ TSS: excluded result:  true
+ Browsing Topics API removed
+Navigated to https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm
+ DFP: Breach notification feature flag is enabled. true
+ DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+chrome-extension://liecbddmkiiihnedobmlmillhodjkdmb/js/companionBubble.js:4 [Violation] 'message' handler took 279ms
+favicon.ico:1 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/favicon.ico 502 (Bad Gateway)
+Navigated to https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm
+ injection-tss TSS: hosted page injected
+ injection-tss MBTSS: Nonce:  nonce
+ CONTENT_SHELL: Page is excluded. Skipping shell protection.
+ TSS: excluded result:  true
+ Browsing Topics API removed
+ DFP: Breach notification feature flag is enabled. true
+ DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+ [vite] connecting...
+ [vite] connected.
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ Global error handlers initialized
+ Connecting to socket at relative path
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Making query to: /api/organization/current
+ Checking authentication (attempt 1/2)
+ Global error handlers initialized
+ MetaSys ERP global error handling initialized
+ Socket already initialized, reusing existing connection
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for system:message
+ Setting up handler for error
+ Setting up handler for data:updated
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead:deleted
+ Removing handler for lead:status_changed
+ Removing handler for dispatch:created
+ Removing handler for dispatch:updated
+ Removing handler for dispatch:deleted
+ Removing handler for dispatch:status_changed
+ Removing handler for invoice:created
+ Removing handler for invoice:updated
+ Removing handler for invoice:deleted
+ Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making query to: /api/auth/user-organizations
+ Making query to: /api/organizations/current
+ Authentication check successful - user authenticated 1
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Making query to: /api/leads
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making API request to: /api/ui-prefs/me with method: GET
+ Connecting to socket at: wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/ws
+chunk-RPCDYKBN.js:377 [Violation] 'message' handler took 151ms
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ use-socket.tsx:139
+(anonymous) @ src/components/layou…ionContainer.tsx:62
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+(anonymous) @ chunk-RPCDYKBN.js:19328
+workLoop @ chunk-RPCDYKBN.js:197
+flushWork @ chunk-RPCDYKBN.js:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js:384
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ socket-service.ts:143
+setTimeout
+(anonymous) @ socket-service.ts:137
+authenticate @ socket-service.ts:126
+(anonymous) @ src/hooks/use-real-time.tsx:38
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+commitRootImpl @ chunk-RPCDYKBN.js:19432
+commitRoot @ chunk-RPCDYKBN.js:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js:18718
+workLoop @ chunk-RPCDYKBN.js:197
+flushWork @ chunk-RPCDYKBN.js:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js:384
+ Socket already initialized, reusing existing connection
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Making query to: /api/activities
+chunk-RPCDYKBN.js:18625 [Violation] 'setTimeout' handler took 223ms
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead:deleted
+ Removing handler for lead:status_changed
+ Removing handler for dispatch:created
+ Removing handler for dispatch:updated
+ Removing handler for dispatch:deleted
+ Removing handler for dispatch:status_changed
+ Removing handler for invoice:created
+ Removing handler for invoice:updated
+ Removing handler for invoice:deleted
+ Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Socket already initialized, reusing existing connection
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+chunk-RPCDYKBN.js:377 [Violation] 'message' handler took 200ms
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+Manager @ socket__io-client.js:3057
+lookup2 @ socket__io-client.js:3390
+(anonymous) @ use-socket.tsx:54
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+commitRootImpl @ chunk-RPCDYKBN.js:19432
+commitRoot @ chunk-RPCDYKBN.js:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js:18718
+workLoop @ chunk-RPCDYKBN.js:197
+flushWork @ chunk-RPCDYKBN.js:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js:384
+chunk-RPCDYKBN.js:18625 [Violation] 'setTimeout' handler took 56ms
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ socket-service.ts:143
+setTimeout
+(anonymous) @ socket-service.ts:137
+authenticate @ socket-service.ts:126
+(anonymous) @ use-real-time.tsx:38
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+commitRootImpl @ chunk-RPCDYKBN.js:19416
+commitRoot @ chunk-RPCDYKBN.js:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+(anonymous) @ chunk-RPCDYKBN.js:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js:555
+flush @ @tanstack_react-query.js:569
+batch @ @tanstack_react-query.js:587
+dispatch_fn @ @tanstack_react-query.js:996
+setData @ @tanstack_react-query.js:696
+onSuccess @ @tanstack_react-query.js:897
+resolve @ @tanstack_react-query.js:456
+Promise.then
+run @ @tanstack_react-query.js:498
+start @ @tanstack_react-query.js:536
+fetch @ @tanstack_react-query.js:926
+executeFetch_fn @ @tanstack_react-query.js:2211
+onSubscribe @ @tanstack_react-query.js:1898
+subscribe @ @tanstack_react-query.js:24
+(anonymous) @ @tanstack_react-query.js:3022
+subscribeToStore @ chunk-RPCDYKBN.js:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+commitRootImpl @ chunk-RPCDYKBN.js:19432
+commitRoot @ chunk-RPCDYKBN.js:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js:18718
+workLoop @ chunk-RPCDYKBN.js:197
+flushWork @ chunk-RPCDYKBN.js:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js:384
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ socket-service.ts:143
+setTimeout
+(anonymous) @ socket-service.ts:137
+authenticate @ socket-service.ts:126
+(anonymous) @ use-real-time.tsx:38
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+commitRootImpl @ chunk-RPCDYKBN.js:19432
+commitRoot @ chunk-RPCDYKBN.js:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js:18718
+workLoop @ chunk-RPCDYKBN.js:197
+flushWork @ chunk-RPCDYKBN.js:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js:384
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+Navigated to https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 CONTENT_SHELL: Page is excluded. Skipping shell protection.
+content-scripts.js:1 TSS: excluded result:  true
+injection-topics.js:1 Browsing Topics API removed
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+client:495 [vite] connecting...
+client:618 [vite] connected.
+chunk-RPCDYKBN.js?v=124d4c6c:21551 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+main.tsx:18 Global error handlers initialized
+socket-service.ts:84 Connecting to socket at relative path
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for data:refresh
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for system:message
+socket-service.ts:275 Setting up handler for lead:created
+socket-service.ts:275 Setting up handler for lead:updated
+socket-service.ts:275 Setting up handler for lead:deleted
+socket-service.ts:275 Setting up handler for lead:status_changed
+socket-service.ts:275 Setting up handler for dispatch:created
+socket-service.ts:275 Setting up handler for dispatch:updated
+socket-service.ts:275 Setting up handler for dispatch:deleted
+socket-service.ts:275 Setting up handler for dispatch:status_changed
+socket-service.ts:275 Setting up handler for invoice:created
+socket-service.ts:275 Setting up handler for invoice:updated
+socket-service.ts:275 Setting up handler for invoice:deleted
+socket-service.ts:275 Setting up handler for invoice:status_changed
+socket-service.ts:275 Setting up handler for notification:created
+socket-service.ts:275 Setting up handler for notification:read
+socket-service.ts:275 Setting up handler for notification:deleted
+socket-service.ts:275 Setting up handler for data:updated
+queryClient.ts:80 Making query to: /api/organization/current
+AuthContext.tsx:75 Checking authentication (attempt 1/2)
+global-error-handler.ts:86 Global error handlers initialized
+App.tsx:541 MetaSys ERP global error handling initialized
+socket-service.ts:76 Socket already initialized, reusing existing connection
+socket-service.ts:275 Setting up handler for connect
+socket-service.ts:275 Setting up handler for disconnect
+socket-service.ts:275 Setting up handler for authenticated
+socket-service.ts:275 Setting up handler for system:message
+socket-service.ts:275 Setting up handler for error
+socket-service.ts:275 Setting up handler for data:updated
+socket-service.ts:280 Removing handler for connect
+socket-service.ts:280 Removing handler for disconnect
+socket-service.ts:280 Removing handler for authenticated
+socket-service.ts:280 Removing handler for data:refresh
+socket-service.ts:280 Removing handler for error
+socket-service.ts:280 Removing handler for system:message
+socket-service.ts:280 Removing handler for lead:created
+socket-service.ts:280 Removing handler for lead:updated
+socket-service.ts:280 Removing handler for lead:deleted
+socket-service.ts:280 Removing handler for lead:status_changed
+socket-service.ts:280 Removing handler for dispatch:created
+socket-service.ts:280 Removing handler for dispatch:updated
+socket-service.ts:280 Removing handler for dispatch:deleted
+socket-service.ts:280 Removing handler for dispatch:status_changed
+socket-service.ts:280 Removing handler for invoice:created
+socket-service.ts:280 Removing handler for invoice:updated
+socket-service.ts:280 Removing handler for invoice:deleted
+socket-service.ts:280 Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making query to: /api/auth/user-organizations
+ Making query to: /api/organizations/current
+ Authentication check successful - user authenticated 1
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Making query to: /api/leads
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making API request to: /api/ui-prefs/me with method: GET
+ Connecting to socket at: wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/ws
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ use-socket.tsx:139
+(anonymous) @ NotificationContainer.tsx:62
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+(anonymous) @ chunk-RPCDYKBN.js:19328
+workLoop @ chunk-RPCDYKBN.js:197
+flushWork @ chunk-RPCDYKBN.js:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js:384
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Socket already initialized, reusing existing connection
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Making query to: /api/activities
+chunk-RPCDYKBN.js:18625 [Violation] 'setTimeout' handler took 96ms
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ socket-service.ts:143
+setTimeout
+(anonymous) @ socket-service.ts:137
+authenticate @ socket-service.ts:126
+(anonymous) @ use-real-time.tsx:38
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+commitRootImpl @ chunk-RPCDYKBN.js:19432
+commitRoot @ chunk-RPCDYKBN.js:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js:18718
+workLoop @ chunk-RPCDYKBN.js:197
+flushWork @ chunk-RPCDYKBN.js:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js:384
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ socket-service.ts:143
+setTimeout
+(anonymous) @ socket-service.ts:137
+authenticate @ socket-service.ts:126
+(anonymous) @ use-real-time.tsx:38
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+commitRootImpl @ chunk-RPCDYKBN.js:19416
+commitRoot @ chunk-RPCDYKBN.js:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+(anonymous) @ chunk-RPCDYKBN.js:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js:555
+flush @ @tanstack_react-query.js:569
+batch @ @tanstack_react-query.js:587
+dispatch_fn @ @tanstack_react-query.js:996
+setData @ @tanstack_react-query.js:696
+onSuccess @ @tanstack_react-query.js:897
+resolve @ @tanstack_react-query.js:456
+Promise.then
+run @ @tanstack_react-query.js:498
+start @ @tanstack_react-query.js:536
+fetch @ @tanstack_react-query.js:926
+executeFetch_fn @ @tanstack_react-query.js:2211
+onSubscribe @ @tanstack_react-query.js:1898
+subscribe @ @tanstack_react-query.js:24
+(anonymous) @ @tanstack_react-query.js:3022
+subscribeToStore @ chunk-RPCDYKBN.js:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+commitRootImpl @ chunk-RPCDYKBN.js:19432
+commitRoot @ chunk-RPCDYKBN.js:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js:18718
+workLoop @ chunk-RPCDYKBN.js:197
+flushWork @ chunk-RPCDYKBN.js:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js:384
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead:deleted
+ Removing handler for lead:status_changed
+ Removing handler for dispatch:created
+ Removing handler for dispatch:updated
+ Removing handler for dispatch:deleted
+ Removing handler for dispatch:status_changed
+ Removing handler for invoice:created
+ Removing handler for invoice:updated
+ Removing handler for invoice:deleted
+ Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Socket already initialized, reusing existing connection
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+Manager @ socket__io-client.js:3057
+lookup2 @ socket__io-client.js:3390
+(anonymous) @ use-socket.tsx:54
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+commitRootImpl @ chunk-RPCDYKBN.js:19432
+commitRoot @ chunk-RPCDYKBN.js:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js:18718
+workLoop @ chunk-RPCDYKBN.js:197
+flushWork @ chunk-RPCDYKBN.js:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js:384
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ socket-service.ts:143
+setTimeout
+(anonymous) @ socket-service.ts:137
+authenticate @ socket-service.ts:126
+(anonymous) @ use-real-time.tsx:38
+commitHookEffectListMount @ chunk-RPCDYKBN.js:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js:9119
+commitRootImpl @ chunk-RPCDYKBN.js:19432
+commitRoot @ chunk-RPCDYKBN.js:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js:18718
+workLoop @ chunk-RPCDYKBN.js:197
+flushWork @ chunk-RPCDYKBN.js:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js:384
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+ TSS: Counted history being pushed
+ TSS: Caught history
+ TSS: Checking if repeated 500 times for interval 1000 against data:  {}
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead:deleted
+ Removing handler for lead:status_changed
+ Removing handler for dispatch:created
+ Removing handler for dispatch:updated
+ Removing handler for dispatch:deleted
+ Removing handler for dispatch:status_changed
+ Removing handler for invoice:created
+ Removing handler for invoice:updated
+ Removing handler for invoice:deleted
+ Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead-status:updated
+chunk-RPCDYKBN.js:18625 [Violation] 'click' handler took 153ms
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+ [vite] server connection lost. Polling for restart...
+ 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/index.css?t=1747961103367&v=ONVwpF6AmforuPx1Moc2Y net::ERR_ABORTED 502 (Bad Gateway)
+importUpdatedModule @ client:602
+fetchUpdate @ client:211
+queueUpdate @ client:186
+(anonymous) @ client:642
+handleMessage @ client:640
+(anonymous) @ client:550
+ [hmr] Failed to reload /src/index.css?v=ONVwpF6AmforuPx1Moc2Y. This could be due to syntax errors or importing non-existent modules. (see errors above)
+console.error @ /src/main.tsx?v=TE0t_dPEI0o2Oe2OzNcFN:9
+warnFailedUpdate @ client:176
+fetchUpdate @ client:213
+await in fetchUpdate
+queueUpdate @ client:186
+(anonymous) @ client:642
+handleMessage @ client:640
+(anonymous) @ client:550
+ [Global Error] [hmr] Failed to reload /src/index.css?v=ONVwpF6AmforuPx1Moc2Y. This could be due to syntax errors or importing non-existent modules. (see errors above)
+ 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/src/pages/crm/leads.tsx?t=1747961103367 net::ERR_ABORTED 502 (Bad Gateway)
+importUpdatedModule @ client:602
+fetchUpdate @ client:211
+queueUpdate @ client:186
+(anonymous) @ client:642
+handleMessage @ client:640
+(anonymous) @ client:550
+ [hmr] Failed to reload /src/pages/crm/leads.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+console.error @ /src/main.tsx?v=TE0t_dPEI0o2Oe2OzNcFN:9
+warnFailedUpdate @ client:176
+fetchUpdate @ client:213
+await in fetchUpdate
+queueUpdate @ client:186
+(anonymous) @ client:642
+handleMessage @ client:640
+(anonymous) @ client:550
+ [Global Error] [hmr] Failed to reload /src/pages/crm/leads.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+ [vite] hot updated: /src/pages/crm/leads.tsx
+ [vite] hot updated: /src/index.css?v=ONVwpF6AmforuPx1Moc2Y
+ WebSocket connection to 'wss://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ socket__io-client.js:1059
+doOpen @ socket__io-client.js:986
+open @ socket__io-client.js:503
+_open @ socket__io-client.js:1328
+_SocketWithoutUpgrade @ socket__io-client.js:1289
+SocketWithUpgrade @ socket__io-client.js:1633
+Socket @ socket__io-client.js:1759
+open @ socket__io-client.js:3125
+(anonymous) @ socket__io-client.js:3343
+ 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/ net::ERR_ABORTED 502 (Bad Gateway)
+ping @ client:736
+waitForSuccessfulPing @ client:749
+(anonymous) @ client:561
+ 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm/leads 502 (Bad Gateway)
+(anonymous) @ client:562
+ injection-tss TSS: hosted page injected
+ injection-tss MBTSS: Nonce:  nonce
+ CONTENT_SHELL: Page is excluded. Skipping shell protection.
+Navigated to https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm/leads
+ TSS: excluded result:  true
+ Browsing Topics API removed
+ DFP: Breach notification feature flag is enabled. true
+ DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+/favicon.ico:1 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/favicon.ico 502 (Bad Gateway)
+ 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm/leads 502 (Bad Gateway)
+(anonymous) @ leads:108
+setTimeout
+(anonymous) @ leads:107
+Navigated to https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm/leads
+ injection-tss TSS: hosted page injected
+ injection-tss MBTSS: Nonce:  nonce
+ CONTENT_SHELL: Page is excluded. Skipping shell protection.
+ TSS: excluded result:  true
+ Browsing Topics API removed
+ DFP: Breach notification feature flag is enabled. true
+ DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+companionBubble.js:4 [Violation] 'message' handler took 180ms
+/favicon.ico:1 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/favicon.ico 502 (Bad Gateway)
+Navigated to https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/crm/leads
+injection-tss-mv3.js:1 injection-tss TSS: hosted page injected
+injection-tss-mv3.js:1 injection-tss MBTSS: Nonce:  nonce
+content-scripts.js:1 CONTENT_SHELL: Page is excluded. Skipping shell protection.
+content-scripts.js:1 TSS: excluded result:  true
+content-scripts.js:1 DFP: Breach notification feature flag is enabled. true
+content-scripts.js:1 DFP: Search Hijacking notification feature flag is disabled. Skipping Search Hijacking notification.
+injection-topics.js:1 Browsing Topics API removed
+client:495 [vite] connecting...
+client:618 [vite] connected.
+@radix-ui_react-popover.js:18 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BQXMF7ST.js?v=124d4c6c net::ERR_ABORTED 404 (Not Found)
+@radix-ui_react-popover.js:14 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5INJJ5RZ.js?v=124d4c6c net::ERR_ABORTED 404 (Not Found)
+@radix-ui_react-popover.js:8 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NBIVFTP4.js?v=124d4c6c net::ERR_ABORTED 404 (Not Found)
+@radix-ui_react-popover.js:22 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OJ2TJDIO.js?v=124d4c6c net::ERR_ABORTED 404 (Not Found)
+@radix-ui_react-popover.js:21 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NRN5YYFF.js?v=124d4c6c net::ERR_ABORTED 404 (Not Found)
+@radix-ui_react-popover.js:25 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-BTIBV3P6.js?v=124d4c6c net::ERR_ABORTED 404 (Not Found)
+@radix-ui_react-popover.js:28 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AZCBCMZO.js?v=124d4c6c net::ERR_ABORTED 404 (Not Found)
+@radix-ui_react-popover.js:34 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LSQNWB54.js?v=124d4c6c net::ERR_ABORTED 404 (Not Found)
+@radix-ui_react-alert-dialog.js:13 
+            
+            
+           GET https://5feb2563-1c7b-4fa8-b343-debb5770a076-00-xpgdm0qnss3o.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AVMSHCD2.js?v=124d4c6c net::ERR_ABORTED 404 (Not Found)

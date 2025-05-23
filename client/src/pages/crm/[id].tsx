@@ -80,7 +80,7 @@ const statusUpdateSchema = z.object({
 type StatusUpdateFormValues = z.infer<typeof statusUpdateSchema>;
 
 export default function LeadDetails({ params }: LeadDetailsProps) {
-  const { id } = params;
+  const { id } = params || {};
   const { toast } = useToast();
   const { user, role } = useAuth();
   const [, navigate] = useLocation();
