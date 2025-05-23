@@ -498,145 +498,98 @@ export default function CRMLeadsPage() {
               </div>
             </div>
             
-            {/* Results count and view toggles */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center pt-4 border-t border-gray-200">
-              <div className="flex items-center space-x-4 mb-4 md:mb-0">
-                <div className="flex items-center">
-                  <span className="text-sm font-medium text-gray-700 mr-2">View:</span>
-                  <div className="flex border rounded-md overflow-hidden shadow-sm">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setViewMode('list')}
-                            className={`rounded-l-md px-3 border ${
-                              viewMode === 'list'
-                                ? 'bg-[#025E73] text-white border-[#025E73] shadow-md'
-                                : 'bg-white text-[#025E73] border-[#025E73] hover:bg-[#025E73] hover:text-white'
-                            }`}
-                          >
-                            <List className="h-5 w-5 stroke-2" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>List View</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setViewMode('kanban')}
-                            className={`rounded-r-md px-3 border-l-0 border ${
-                              viewMode === 'kanban'
-                                ? 'bg-[#025E73] text-white border-[#025E73] shadow-md'
-                                : 'bg-white text-[#025E73] border-[#025E73] hover:bg-[#025E73] hover:text-white'
-                            }`}
-                          >
-                            <LayoutGrid className="h-5 w-5 stroke-2" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Kanban Board</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
-                
-                <div className="flex items-center">
-                  <span className="text-sm font-medium text-gray-700 mr-2">Sort:</span>
-                  <Select
-                    value={`${sortField}-${sortDirection}`}
-                    onValueChange={(value) => {
-                      const [field, direction] = value.split('-');
-                      setSortField(field);
-                      setSortDirection(direction as "asc" | "desc");
-                    }}
-                  >
-                    <SelectTrigger className="w-[180px] h-9 border-gray-200 focus:ring-[#025E73] focus:border-[#025E73]">
-                      <SelectValue placeholder="Sort by..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="createdAt-desc">
-                        <span className="flex items-center">
-                          <ArrowDown10 className="h-3.5 w-3.5 mr-2" />
-                          Newest First
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="createdAt-asc">
-                        <span className="flex items-center">
-                          <ArrowUp10 className="h-3.5 w-3.5 mr-2" />
-                          Oldest First
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="companyName-asc">
-                        <span className="flex items-center">
-                          <Building2 className="h-3.5 w-3.5 mr-2" />
-                          Company (A-Z)
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="companyName-desc">
-                        <span className="flex items-center">
-                          <Building2 className="h-3.5 w-3.5 mr-2" />
-                          Company (Z-A)
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="qualificationScore-desc">
-                        <span className="flex items-center">
-                          <Star className="h-3.5 w-3.5 mr-2 text-yellow-500" />
-                          Highest Score First
-                        </span>
-                      </SelectItem>
-                      <SelectItem value="priority-desc">
-                        <span className="flex items-center">
-                          <BadgeCheck className="h-3.5 w-3.5 mr-2 text-blue-500" />
-                          High Priority First
-                        </span>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            {/* Results count and view controls */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center">
+                <span className="text-sm font-medium text-gray-700 mr-3">Sort:</span>
+                <Select
+                  value={`${sortField}-${sortDirection}`}
+                  onValueChange={(value) => {
+                    const [field, direction] = value.split('-');
+                    setSortField(field);
+                    setSortDirection(direction as "asc" | "desc");
+                  }}
+                >
+                  <SelectTrigger className="w-[180px] h-9 text-sm border-gray-200 focus:ring-[#025E73] focus:border-[#025E73]">
+                    <SelectValue placeholder="Sort by..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="createdAt-desc">
+                      <span className="flex items-center">
+                        <ArrowDown10 className="h-3.5 w-3.5 mr-2" />
+                        Newest First
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="createdAt-asc">
+                      <span className="flex items-center">
+                        <ArrowUp10 className="h-3.5 w-3.5 mr-2" />
+                        Oldest First
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="companyName-asc">
+                      <span className="flex items-center">
+                        <Building2 className="h-3.5 w-3.5 mr-2" />
+                        Company (A-Z)
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="companyName-desc">
+                      <span className="flex items-center">
+                        <Building2 className="h-3.5 w-3.5 mr-2" />
+                        Company (Z-A)
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="qualificationScore-desc">
+                      <span className="flex items-center">
+                        <Star className="h-3.5 w-3.5 mr-2 text-yellow-500" />
+                        Highest Score First
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="priority-desc">
+                      <span className="flex items-center">
+                        <BadgeCheck className="h-3.5 w-3.5 mr-2 text-blue-500" />
+                        High Priority First
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
-              <div className="text-sm">
-                <Badge variant="outline" className="bg-[#F2F5F9] text-[#025E73] border-[#025E73] font-semibold">
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="bg-[#F2F5F9] text-[#025E73] border-[#025E73] font-medium text-sm px-3 py-1">
                   {filteredLeads.length} {filteredLeads.length === 1 ? 'lead' : 'leads'} 
                   {statusFilter !== 'all' ? ` (${statusFilter})` : ''}
                 </Badge>
-              </div>
-              
-              <div className="flex gap-2">
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className={cn(
-                    "flex gap-1 items-center", 
-                    viewMode === 'list' ? "bg-[#025E73] hover:bg-[#025E73]/90 text-white" : ""
-                  )}
-                >
-                  <List className="h-4 w-4" />
-                  <span className="hidden sm:inline">List</span>
-                </Button>
-                <Button
-                  variant={viewMode === 'kanban' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('kanban')}
-                  className={cn(
-                    "flex gap-1 items-center",
-                    viewMode === 'kanban' ? "bg-[#025E73] hover:bg-[#025E73]/90 text-white" : ""
-                  )}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                  <span className="hidden sm:inline">Kanban</span>
-                </Button>
+                
+                <div className="flex gap-1 border border-gray-200 rounded-md p-1 bg-gray-50">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className={cn(
+                      "flex gap-2 items-center px-3 py-1.5 text-sm font-medium transition-all", 
+                      viewMode === 'list' 
+                        ? "bg-[#025E73] text-white shadow-sm" 
+                        : "text-gray-600 hover:text-[#025E73] hover:bg-white"
+                    )}
+                  >
+                    <List className={cn("h-4 w-4", viewMode === 'list' ? "text-white" : "text-gray-500")} />
+                    <span>List</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setViewMode('kanban')}
+                    className={cn(
+                      "flex gap-2 items-center px-3 py-1.5 text-sm font-medium transition-all",
+                      viewMode === 'kanban' 
+                        ? "bg-[#025E73] text-white shadow-sm" 
+                        : "text-gray-600 hover:text-[#025E73] hover:bg-white"
+                    )}
+                  >
+                    <LayoutGrid className={cn("h-4 w-4", viewMode === 'kanban' ? "text-white" : "text-gray-500")} />
+                    <span>Kanban</span>
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
