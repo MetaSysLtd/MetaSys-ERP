@@ -24,9 +24,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AdminActions } from "@/components/admin/AdminActions";
-import { useAdminControls } from "@/hooks/use-admin-controls";
-import { AdminEditModal } from "@/components/admin/AdminEditModal";
+import AdminActions from "@/components/AdminActions";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   Plus, 
   Search, 
@@ -69,7 +68,6 @@ export default function CRMLeadsPage() {
   const { user, role } = useAuth();
   const [, setLocation] = useLocation();
   const search = useSearch();
-  const queryClient = useQueryClient();
   const searchParams = new URLSearchParams(search);
   
   const [newLeadModalOpen, setNewLeadModalOpen] = useState(false);
@@ -82,21 +80,74 @@ export default function CRMLeadsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   
-  // Setup admin controls
-  const { 
-    isSystemAdmin,
-    isEditModalOpen, 
-    setIsEditModalOpen,
-    selectedItem,
-    fields,
-    isLoading: isAdminActionLoading,
-    openEditModal,
-    updateEntity,
-    deleteEntity 
-  } = useAdminControls({ 
-    module: 'leads', 
-    queryKey: ["/api/leads"] 
-  });
+  // Admin controls state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [isAdminActionLoading, setIsAdminActionLoading] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Edit modal handler
+  const openEditModal = (lead: any) => {
+    setSelectedItem(lead);
+    setIsEditModalOpen(true);
+  };
+
+  // Update lead handler
+  const updateEntity = async (data: any) => {
+    setIsAdminActionLoading(true);
+    try {
+      const res = await apiRequest("PATCH", `/api/leads/${selectedItem.id}`, data);
+      if (!res.ok) throw new Error("Failed to update lead");
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
+      
+      toast({
+        title: "Success",
+        description: "Lead updated successfully",
+      });
+      
+      setIsEditModalOpen(false);
+      return await res.json();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update lead",
+        variant: "destructive",
+      });
+      throw error;
+    } finally {
+      setIsAdminActionLoading(false);
+    }
+  };
+
+  // Delete lead handler
+  const deleteEntity = async (id: string | number) => {
+    setIsAdminActionLoading(true);
+    try {
+      const res = await apiRequest("DELETE", `/api/leads/${id}`, null);
+      if (!res.ok) throw new Error("Failed to delete lead");
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/leads"] });
+      
+      toast({
+        title: "Success",
+        description: "Lead deleted successfully",
+      });
+      
+      return true;
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete lead",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsAdminActionLoading(false);
+    }
+  };
   
   // Get leads from the API
   const { data: leads, isLoading, error, isError } = useQuery({
@@ -914,16 +965,19 @@ export default function CRMLeadsPage() {
         onOpenChange={setNewLeadModalOpen}
       />
       
-      {/* Admin Edit Modal */}
-      <AdminEditModal
-        title={`Edit Lead`}
-        open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
-        fields={fields}
-        data={selectedItem}
-        onSubmit={updateEntity}
-        isLoading={isAdminActionLoading}
-      />
+      {/* Edit Modal - Simple for now */}
+      {isEditModalOpen && selectedItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Edit Lead: {selectedItem.companyName}</h3>
+            <p className="text-gray-600 mb-4">Edit functionality will be implemented here.</p>
+            <div className="flex gap-2">
+              <Button onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+              <Button onClick={() => setIsEditModalOpen(false)} className="bg-[#025E73]">Save</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
