@@ -420,7 +420,7 @@ export default function LeadDetails({ params }: LeadDetailsProps) {
                 variant="ghost" 
                 size="sm" 
                 className="mr-2" 
-                onClick={() => navigate("/crm")}
+                onClick={() => navigate("/crm/leads")}
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
