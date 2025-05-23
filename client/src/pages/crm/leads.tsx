@@ -480,13 +480,13 @@ export default function CRMLeadsPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setViewMode('list')}
-                            className={`rounded-l-md px-3 ${
+                            className={`rounded-l-md px-3 border ${
                               viewMode === 'list'
-                                ? 'bg-[#025E73] text-white'
-                                : 'text-gray-700 hover:bg-gray-100'
+                                ? 'bg-[#025E73] text-white border-[#025E73] shadow-md'
+                                : 'bg-white text-[#025E73] border-[#025E73] hover:bg-[#025E73] hover:text-white'
                             }`}
                           >
-                            <List className="h-4 w-4" />
+                            <List className="h-5 w-5 stroke-2" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -502,13 +502,13 @@ export default function CRMLeadsPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setViewMode('kanban')}
-                            className={`rounded-r-md px-3 ${
+                            className={`rounded-r-md px-3 border-l-0 border ${
                               viewMode === 'kanban'
-                                ? 'bg-[#025E73] text-white'
-                                : 'text-gray-700 hover:bg-gray-100'
+                                ? 'bg-[#025E73] text-white border-[#025E73] shadow-md'
+                                : 'bg-white text-[#025E73] border-[#025E73] hover:bg-[#025E73] hover:text-white'
                             }`}
                           >
-                            <LayoutGrid className="h-4 w-4" />
+                            <LayoutGrid className="h-5 w-5 stroke-2" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
