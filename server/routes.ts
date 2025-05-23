@@ -5913,6 +5913,57 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
     }
   });
   
+  // Forgot Password route - sends actual password reset emails
+  authRouter.post("/forgot-password", express.json(), async (req, res, next) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email address is required" });
+      }
+      
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // Don't reveal if email exists for security
+        return res.json({ message: "If an account with that email exists, we've sent a password reset link." });
+      }
+      
+      // Generate reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetExpires = new Date(Date.now() + 3600000); // 1 hour from now
+      
+      // Store reset token in database
+      await storage.updateUser(user.id, {
+        resetToken,
+        resetExpires
+      });
+      
+      // Create reset URL
+      const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password?token=${resetToken}`;
+      
+      // Send password reset email
+      const emailSent = await sendPasswordResetEmail(
+        user.email,
+        user.firstName || user.username,
+        resetUrl,
+        resetToken
+      );
+      
+      if (emailSent) {
+        console.log(`Password reset email sent to ${email}`);
+      } else {
+        console.error(`Failed to send password reset email to ${email}`);
+      }
+      
+      // Always return success to prevent email enumeration
+      res.json({ message: "If an account with that email exists, we've sent a password reset link." });
+    } catch (error) {
+      console.error("Error in forgot password:", error);
+      next(error);
+    }
+  });
+
   // Switch organization route (GET version)
   authRouter.get("/switch", createAuthMiddleware(1), async (req, res, next) => {
     try {
