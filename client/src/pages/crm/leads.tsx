@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import type { DateRange } from "react-day-picker";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -79,6 +80,7 @@ export default function CRMLeadsPage() {
   const [sortField, setSortField] = useState<string>("createdAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   
   // Setup admin controls
   const { 
@@ -138,6 +140,21 @@ export default function CRMLeadsPage() {
       filtered = filtered.filter((lead) => lead.category === categoryFilter);
     }
     
+    // Filter by date range
+    if (dateRange?.from) {
+      filtered = filtered.filter((lead) => {
+        const leadDate = new Date(lead.createdAt);
+        const fromDate = new Date(dateRange.from!);
+        const toDate = dateRange.to ? new Date(dateRange.to) : new Date();
+        
+        // Reset time to start/end of day for accurate comparison
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(23, 59, 59, 999);
+        
+        return leadDate >= fromDate && leadDate <= toDate;
+      });
+    }
+    
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -183,7 +200,7 @@ export default function CRMLeadsPage() {
     }
     
     setFilteredLeads(filtered);
-  }, [leads, statusFilter, searchQuery, categoryFilter, sortField, sortDirection]);
+  }, [leads, statusFilter, searchQuery, categoryFilter, dateRange, sortField, sortDirection]);
   
   // Determine user permissions - allow authenticated users to create leads
   const canCreateLead = user && (
@@ -432,12 +449,26 @@ export default function CRMLeadsPage() {
                       className="w-full justify-start text-left font-normal bg-white border-gray-200 focus:ring-[#025E73] focus:border-[#025E73]"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      <span>Select date range</span>
+                      <span>
+                        {dateRange?.from ? (
+                          dateRange.to ? (
+                            <>
+                              {dateRange.from.toLocaleDateString()} - {dateRange.to.toLocaleDateString()}
+                            </>
+                          ) : (
+                            dateRange.from.toLocaleDateString()
+                          )
+                        ) : (
+                          "Select date range"
+                        )}
+                      </span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="range"
+                      selected={dateRange}
+                      onSelect={setDateRange}
                       numberOfMonths={2}
                       className="rounded-md border"
                     />
