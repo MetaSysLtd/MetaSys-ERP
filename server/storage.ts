@@ -2851,6 +2851,48 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select({
+        id: users.id,
+        username: users.username,
+        password: users.password,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phoneNumber: users.phoneNumber,
+        roleId: users.roleId,
+        orgId: users.orgId,
+        active: users.active,
+        profileImageUrl: users.profileImageUrl,
+        
+        // Permission fields that DO exist in the database
+        isSystemAdmin: users.isSystemAdmin,
+        canManageRoles: users.canManageRoles,
+        canAccessAllOrgs: users.canAccessAllOrgs,
+        canManageSettings: users.canManageSettings,
+        canViewAuditLog: users.canViewAuditLog,
+        canManageLeadAssignments: users.canManageLeadAssignments,
+        canDeleteLeads: users.canDeleteLeads,
+        canExportLeads: users.canExportLeads,
+        canCreateInvoices: users.canCreateInvoices,
+        canApproveInvoices: users.canApproveInvoices,
+        canManageAccounting: users.canManageAccounting,
+        canManageLoads: users.canManageLoads,
+        canManageCarriers: users.canManageCarriers,
+        canApproveDispatchReports: users.canApproveDispatchReports,
+        canManageUsers: users.canManageUsers
+      })
+      .from(users)
+      .where(eq(users.email, email));
+      
+      return user || undefined;
+    } catch (error) {
+      console.error('Error in getUserByEmail:', error);
+      throw error;
+    }
+  }
+
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
       // Explicitly select only the columns we know exist in the database

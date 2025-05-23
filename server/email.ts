@@ -898,10 +898,71 @@ Commission Summary:
   );
 }
 
+/**
+ * Sends a password reset email
+ * @param to - Recipient email address
+ * @param userName - User's name for personalization
+ * @param resetUrl - Password reset URL with token
+ * @param resetToken - Reset token for reference
+ * @returns Promise resolving to success status
+ */
+export async function sendPasswordResetEmail(
+  to: string,
+  userName: string,
+  resetUrl: string,
+  resetToken: string
+): Promise<boolean> {
+  const subject = "Reset Your MetaSys ERP Password";
+  
+  const text = `
+Hello ${userName},
+
+You requested a password reset for your MetaSys ERP account.
+
+Click the link below to reset your password:
+${resetUrl}
+
+This link will expire in 1 hour for security reasons.
+
+If you didn't request this reset, please ignore this email.
+
+Best regards,
+MetaSys ERP Team
+  `;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #025E73;">Reset Your Password</h2>
+      <p>Hello <strong>${userName}</strong>,</p>
+      <p>You requested a password reset for your MetaSys ERP account.</p>
+      
+      <div style="margin: 30px 0;">
+        <a href="${resetUrl}" 
+           style="background-color: #025E73; color: white; padding: 12px 24px; 
+                  text-decoration: none; border-radius: 5px; display: inline-block;">
+          Reset Password
+        </a>
+      </div>
+      
+      <p>This link will expire in <strong>1 hour</strong> for security reasons.</p>
+      <p>If you didn't request this reset, please ignore this email.</p>
+      
+      <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+      <p style="color: #666; font-size: 12px;">
+        Best regards,<br>
+        MetaSys ERP Team
+      </p>
+    </div>
+  `;
+
+  return await sendEmail(to, subject, text, html);
+}
+
 // Export default functions for easier imports
 export default {
   sendEmail,
   sendInvoiceEmail,
   sendLeadNotificationEmail,
-  sendDailySummaryEmail
+  sendDailySummaryEmail,
+  sendPasswordResetEmail
 };
