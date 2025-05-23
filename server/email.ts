@@ -19,10 +19,10 @@ interface EmailConfig {
 }
 
 const defaultConfig: EmailConfig = {
-  fromEmail: 'noreply@metasyserp.com',
+  fromEmail: 'info@metasysltd.com',
   fromName: 'MetaSys ERP',
-  replyToEmail: 'support@metasyserp.com',
-  footerText: 'This is an automated message from MetaSys ERP. Please do not reply directly to this email.'
+  replyToEmail: 'info@metasysltd.com',
+  footerText: 'This is an automated message from MetaSys ERP. For support, please contact info@metasysltd.com'
 };
 
 // Create a transporter for SMTP using Google Workspace
@@ -55,16 +55,23 @@ export function initializeTransporter(options: {
   }
 }
 
-// Initialize with environment variables if available
+// Initialize with environment variables if available, or use provided credentials
 if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
   initializeTransporter({
     email: process.env.SMTP_EMAIL,
     password: process.env.SMTP_PASSWORD,
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : undefined
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587
   });
 } else {
-  console.warn("SMTP_EMAIL or SMTP_PASSWORD environment variables are not set. Email functionality will not work.");
+  // Use the provided Google Workspace credentials for MetaSys
+  initializeTransporter({
+    email: 'info@metasysltd.com',
+    password: 'gmbl apox swgd wynv',
+    host: 'smtp.gmail.com',
+    port: 587
+  });
+  console.log('Email transporter initialized with Google Workspace credentials for info@metasysltd.com');
 }
 
 /**
