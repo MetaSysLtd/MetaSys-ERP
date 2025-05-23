@@ -5,19 +5,22 @@ import { store } from './store/store';
 import { queryClient } from "./lib/queryClient";
 import { useSocket, SocketProvider } from './hooks/use-socket';
 import { LeadNotificationProvider } from './hooks/use-lead-notifications';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { useDispatch } from 'react-redux';
 import { setPreferences, fetchPreferences } from './store/uiPreferencesSlice';
 import { useRealTime } from './hooks/use-real-time';
 import { useToast } from '@/hooks/use-toast';
+
+// Core pages - keep non-lazy for initial load
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/login";
 import ForgotPassword from "@/pages/auth/forgot-password";
-// Use original dashboard with enhanced error handling
 import Dashboard from "@/pages/dashboard";
-import CRMPage from "@/pages/crm";
-import LeadDetails from "@/pages/crm/[id]";
-import CRMLeadsPage from "@/pages/crm/leads";
+
+// Lazy load heavy pages for better performance
+const CRMPage = lazy(() => import("@/pages/crm"));
+const LeadDetails = lazy(() => import("@/pages/crm/[id]"));
+const CRMLeadsPage = lazy(() => import("@/pages/crm/leads"));
 import CRMClientsPage from "@/pages/crm/clients";
 import CRMCommissionsPage from "@/pages/crm/commissions";
 import CRMAccountsPage from "@/pages/crm/accounts";
