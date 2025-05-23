@@ -170,8 +170,14 @@ export interface IStorage {
   // User & Role operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
+  
+  // Password reset operations
+  setPasswordResetToken(userId: number, token: string, expires: Date): Promise<void>;
+  getPasswordResetToken(token: string): Promise<{ userId: number; expires: Date } | undefined>;
+  clearPasswordResetToken(userId: number): Promise<void>;
   getUsers(): Promise<User[]>;
   getUsersByOrganization(orgId: number): Promise<User[]>;
   getAllUsers(): Promise<User[]>;
