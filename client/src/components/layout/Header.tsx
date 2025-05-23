@@ -112,13 +112,21 @@ export function Header({ setSidebarOpen }: HeaderProps) {
           </div>
 
           {/* Help button */}
-          <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+          <button 
+            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#025E73] focus:ring-offset-2 transition-all duration-200"
+            aria-label="Open help center"
+            type="button"
+          >
             <span className="sr-only">Get help</span>
             <HelpCircle className="h-5 w-5" />
           </button>
 
           {/* Calendar button */}
-          <button className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+          <button 
+            className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#025E73] focus:ring-offset-2 transition-all duration-200"
+            aria-label="Open calendar"
+            type="button"
+          >
             <span className="sr-only">View calendar</span>
             <Calendar className="h-5 w-5" />
           </button>
