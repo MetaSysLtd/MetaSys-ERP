@@ -69,17 +69,33 @@ export default function ForgotPassword() {
     setError(null);
     
     try {
-      // Normally would call an API here
-      // For demo, we'll just simulate a successful request
-      await new Promise(r => setTimeout(r, 1500));
+      // Make actual API call to send password reset email
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: data.email }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send password reset email');
+      }
+
+      const result = await response.json();
       
       setIsSuccess(true);
       toast({
         title: "Reset link sent",
-        description: "Check your email for password reset instructions.",
+        description: result.message || "Check your email for password reset instructions.",
       });
     } catch (err) {
       setError("Failed to send password reset email. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to send password reset email. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
