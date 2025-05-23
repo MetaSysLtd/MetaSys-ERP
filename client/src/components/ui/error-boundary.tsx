@@ -1,219 +1,146 @@
-import React, { Component, ErrorInfo, ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, RotateCcw } from "lucide-react";
-import { EmptyState } from "@/components/ui/empty-state";
-import { useEffect } from "react";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-  moduleName?: string;
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+  onRetry?: () => void;
+  title?: string;
+  description?: string;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
-  error: Error | null;
-  errorInfo: ErrorInfo | null;
+  error?: Error;
 }
 
-/**
- * ErrorBoundary - Component to gracefully catch and display React errors
- * 
- * This component catches JavaScript errors anywhere in its child component tree,
- * logs those errors, and displays a fallback UI instead of crashing the whole app.
- * 
- * Features:
- * - Catches errors during rendering, in lifecycle methods, and in constructors
- * - Provides a reset button to attempt recovery
- * - Logs the full component stack trace to help with debugging
- * - Can be placed around specific components or sections that might fail
- * 
- * @example
- * ```tsx
- * <ErrorBoundary moduleName="user dashboard">
- *   <UserDashboard />
- * </ErrorBoundary>
- * ```
- */
-export class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { 
-      hasError: false, 
-      error: null, 
-      errorInfo: null 
-    };
+    this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): State {
-    // Update state so the next render will show the fallback UI.
-    return { hasError: true, error, errorInfo: null };
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Catch errors in any components below and re-render with error message
-    this.setState({
-      error: error,
-      errorInfo: errorInfo
-    });
-
-    // Log error to console
-    console.error("Error caught by ErrorBoundary:", error, {
-      componentStack: errorInfo.componentStack
-    });
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
   }
 
-  handleReset = (): void => {
-    this.setState({ 
-      hasError: false, 
-      error: null, 
-      errorInfo: null 
-    });
-  };
-
-  render(): ReactNode {
-    const { moduleName } = this.props;
-
+  render() {
     if (this.state.hasError) {
-      // Custom fallback UI
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
-      // Default error UI
       return (
-        <EmptyState
-          icon={<AlertTriangle className="h-12 w-12 text-destructive" />}
-          title={`Something went wrong ${moduleName ? `in ${moduleName}` : ''}`}
-          description={this.state.error?.message || "An unexpected error occurred"}
-          className="my-8 border border-destructive/10 bg-destructive/5"
-          action={
-            <Button 
-              onClick={this.handleReset}
-              variant="outline"
-              className="mt-4"
-            >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Try again
-            </Button>
-          }
-        />
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-red-800 flex items-center text-sm">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              {this.props.title || 'Something went wrong'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="text-sm text-red-700 mb-3">
+              {this.props.description || 'An error occurred while loading this component.'}
+            </p>
+            {this.props.onRetry && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  this.setState({ hasError: false });
+                  this.props.onRetry?.();
+                }}
+                className="text-red-700 border-red-300 hover:bg-red-100"
+              >
+                <RefreshCw className="h-3 w-3 mr-2" />
+                Try again
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       );
     }
 
-    // Normally, just render children
     return this.props.children;
   }
 }
 
-// Added error logging to the server.  Assumes apiClient is defined elsewhere.
-const useErrorLogging = (error: Error | null, errorInfo: ErrorInfo | null) => {
-  useEffect(() => {
-    if (error) {
-      // Replace with your actual API client
-      const apiClient = {post: async (url: string, body: any) => {
-        // Replace with your actual API call logic
-        console.log('Sending error to server:', url, body);
-        // Example fetch implementation:
-        // await fetch(url, { method: 'POST', body: JSON.stringify(body) });
-      }};
-      apiClient.post('/api/errors/client', {
-        type: 'REACT_ERROR_BOUNDARY',
-        message: error.message,
-        stack: error.stack,
-        componentStack: errorInfo?.componentStack,
-        url: window.location.href
-      }).catch(console.error);
-    }
-  }, [error, errorInfo]);
-};
-
-interface ExtendedProps extends Props {
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+// Hook version for functional components
+interface UseErrorHandlerOptions {
+  onError?: (error: Error) => void;
+  fallbackMessage?: string;
 }
 
-export class ErrorBoundaryWithLogging extends Component<ExtendedProps, State> {
-  constructor(props: ExtendedProps) {
-    super(props);
-    this.state = { 
-      hasError: false, 
-      error: null, 
-      errorInfo: null 
-    };
-  }
+export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
+  const { toast } = useToast();
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error, errorInfo: null };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    this.setState({
-      error: error,
-      errorInfo: errorInfo
-    });
+  const handleError = React.useCallback((error: Error, context?: string) => {
+    console.error(`Error${context ? ` in ${context}` : ''}:`, error);
     
-    // Log to console
-    console.error("[Global Error]", error);
+    // Call custom error handler if provided
+    options.onError?.(error);
     
-    // Pass to parent if needed
-    if (this.props.onError) {
-      this.props.onError(error, errorInfo);
-    }
-
-    // Send to server
-    fetch('/api/errors/client', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'REACT_ERROR_BOUNDARY',
-        message: error.message,
-        stack: error.stack,
-        componentStack: errorInfo.componentStack,
-        url: window.location.href,
-        timestamp: new Date().toISOString()
-      })
-    }).catch(err => console.error("Failed to log error:", err));
-  }
-
-  handleReset = (): void => {
-    this.setState({ 
-      hasError: false, 
-      error: null, 
-      errorInfo: null 
+    // Show toast notification
+    toast({
+      title: "Something went wrong",
+      description: options.fallbackMessage || "Please try again or contact support if the problem persists.",
+      variant: "destructive",
     });
-  };
+  }, [toast, options]);
 
-  render(): ReactNode {
-    const { moduleName, fallback, children } = this.props;
+  return { handleError };
+}
 
-    if (this.state.hasError) {
-      // Custom fallback UI
-      if (fallback) {
-        return fallback;
-      }
+// Wrapper component for query errors
+interface QueryErrorWrapperProps {
+  error: Error | null;
+  isLoading: boolean;
+  children: React.ReactNode;
+  loadingComponent?: React.ReactNode;
+  retryFn?: () => void;
+  emptyState?: React.ReactNode;
+  hasData?: boolean;
+}
 
-      // Default error UI
-      return (
-        <EmptyState
-          icon={<AlertTriangle className="h-12 w-12 text-destructive" />}
-          title={`Something went wrong ${moduleName ? `in ${moduleName}` : ''}`}
-          description={this.state.error?.message || "An unexpected error occurred"}
-          className="my-8 border border-destructive/10 bg-destructive/5"
-          action={
-            <Button 
-              onClick={this.handleReset}
-              variant="outline"
-              className="mt-4"
-            >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Try again
-            </Button>
-          }
-        />
-      );
-    }
-
-    // Normally, just render children
-    return children;
+export function QueryErrorWrapper({
+  error,
+  isLoading,
+  children,
+  loadingComponent,
+  retryFn,
+  emptyState,
+  hasData = true
+}: QueryErrorWrapperProps) {
+  if (isLoading) {
+    return loadingComponent || (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#025E73]"></div>
+      </div>
+    );
   }
-};
+
+  if (error) {
+    return (
+      <ErrorBoundary
+        title="Failed to load data"
+        description="There was a problem loading this information."
+        onRetry={retryFn}
+      >
+        <div /> {/* Placeholder child to satisfy TypeScript */}
+      </ErrorBoundary>
+    );
+  }
+
+  if (!hasData && emptyState) {
+    return <>{emptyState}</>;
+  }
+
+  return <>{children}</>;
+}

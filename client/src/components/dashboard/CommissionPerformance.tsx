@@ -19,6 +19,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSocket } from "@/hooks/use-socket";
 import { useEffect } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { QueryErrorWrapper } from "@/components/ui/error-boundary";
 
 interface CommissionPerformanceProps {
   userId?: number;
