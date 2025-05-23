@@ -18,36 +18,44 @@ import ForgotPassword from "@/pages/auth/forgot-password";
 import Dashboard from "@/pages/dashboard";
 
 // Lazy load heavy pages for better performance
+// Lazy load CRM modules for better performance
 const CRMPage = lazy(() => import("@/pages/crm"));
 const LeadDetails = lazy(() => import("@/pages/crm/[id]"));
 const CRMLeadsPage = lazy(() => import("@/pages/crm/leads"));
-import CRMClientsPage from "@/pages/crm/clients";
-import CRMCommissionsPage from "@/pages/crm/commissions";
-import CRMAccountsPage from "@/pages/crm/accounts";
-import CRMSurveysPage from "@/pages/crm/surveys";
-import CRMActivitiesPage from "@/pages/crm/activities";
-import DispatchPage from "@/pages/dispatch";
-import DispatchClientsPage from "@/pages/dispatch/clients";
-import DispatchLoadsPage from "@/pages/dispatch/loads";
-import NewLoadPage from "@/pages/dispatch/new-load";
-import TrackingPage from "@/pages/dispatch/tracking";
-import DispatchTasksPage from "@/pages/dispatch/tasks";
-import DispatchReportsPage from "@/pages/dispatch/reports";
-import PerformanceTargetsPage from "@/pages/dispatch/targets";
-import InvoicesPage from "@/pages/invoices";
-import InvoiceDetailsPage from "@/pages/invoices/[id]";
-import TasksPage from "@/pages/tasks";
-import TimeTrackingPage from "@/pages/time-tracking";
-import TimeOffPage from "@/pages/time-off";
-import ReportsPage from "@/pages/reports";
-import SettingsPage from "@/pages/settings";
-import ProfilePage from "@/pages/settings/profile";
-import AdminDashboard from "@/pages/admin";
-import AdminManagementPage from "@/pages/admin/management";
-import AdminUsersPage from "@/pages/admin/users";
-import AdminRolesPage from "@/pages/admin/roles";
-import AdminOrganizationsPage from "@/pages/admin/organizations";
-import AdminCommissionsPage from "@/pages/admin/commissions";
+const CRMClientsPage = lazy(() => import("@/pages/crm/clients"));
+const CRMCommissionsPage = lazy(() => import("@/pages/crm/commissions"));
+const CRMAccountsPage = lazy(() => import("@/pages/crm/accounts"));
+const CRMSurveysPage = lazy(() => import("@/pages/crm/surveys"));
+const CRMActivitiesPage = lazy(() => import("@/pages/crm/activities"));
+
+// Lazy load Dispatch modules (heavy with charts/reports)
+const DispatchPage = lazy(() => import("@/pages/dispatch"));
+const DispatchClientsPage = lazy(() => import("@/pages/dispatch/clients"));
+const DispatchLoadsPage = lazy(() => import("@/pages/dispatch/loads"));
+const NewLoadPage = lazy(() => import("@/pages/dispatch/new-load"));
+const TrackingPage = lazy(() => import("@/pages/dispatch/tracking"));
+const DispatchTasksPage = lazy(() => import("@/pages/dispatch/tasks"));
+const DispatchReportsPage = lazy(() => import("@/pages/dispatch/reports"));
+const PerformanceTargetsPage = lazy(() => import("@/pages/dispatch/targets"));
+
+// Lazy load Invoice modules (heavy with charts)
+const InvoicesPage = lazy(() => import("@/pages/invoices"));
+const InvoiceDetailsPage = lazy(() => import("@/pages/invoices/[id]"));
+// Lazy load other heavy modules
+const TasksPage = lazy(() => import("@/pages/tasks"));
+const TimeTrackingPage = lazy(() => import("@/pages/time-tracking"));
+const TimeOffPage = lazy(() => import("@/pages/time-off"));
+const ReportsPage = lazy(() => import("@/pages/reports"));
+const SettingsPage = lazy(() => import("@/pages/settings"));
+const ProfilePage = lazy(() => import("@/pages/settings/profile"));
+
+// Lazy load Admin modules (heavy with charts and tables)
+const AdminDashboard = lazy(() => import("@/pages/admin"));
+const AdminManagementPage = lazy(() => import("@/pages/admin/management"));
+const AdminUsersPage = lazy(() => import("@/pages/admin/users"));
+const AdminRolesPage = lazy(() => import("@/pages/admin/roles"));
+const AdminOrganizationsPage = lazy(() => import("@/pages/admin/organizations"));
+const AdminCommissionsPage = lazy(() => import("@/pages/admin/commissions"));
 import AdminSettingsPage from "@/pages/admin/settings";
 import AdminTasksPage from "@/pages/admin/tasks";
 import AdminReportsPage from "@/pages/admin/reports";
