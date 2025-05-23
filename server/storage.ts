@@ -2899,6 +2899,37 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Password reset token storage (using a simple in-memory map for now)
+  private passwordResetTokens = new Map<string, { userId: number; expires: Date }>();
+
+  async setPasswordResetToken(userId: number, token: string, expires: Date): Promise<void> {
+    this.passwordResetTokens.set(token, { userId, expires });
+  }
+
+  async getPasswordResetToken(token: string): Promise<{ userId: number; expires: Date } | undefined> {
+    const tokenData = this.passwordResetTokens.get(token);
+    if (!tokenData) {
+      return undefined;
+    }
+    
+    // Check if token has expired
+    if (new Date() > tokenData.expires) {
+      this.passwordResetTokens.delete(token);
+      return undefined;
+    }
+    
+    return tokenData;
+  }
+
+  async clearPasswordResetToken(userId: number): Promise<void> {
+    // Remove all tokens for this user
+    for (const [token, data] of this.passwordResetTokens.entries()) {
+      if (data.userId === userId) {
+        this.passwordResetTokens.delete(token);
+      }
+    }
+  }
+
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
       // Explicitly select only the columns we know exist in the database
