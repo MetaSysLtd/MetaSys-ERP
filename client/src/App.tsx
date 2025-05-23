@@ -16,7 +16,7 @@ import ForgotPassword from "@/pages/auth/forgot-password";
 // Use original dashboard with enhanced error handling
 import Dashboard from "@/pages/dashboard";
 import CRMPage from "@/pages/crm";
-import ContactDetails from "@/pages/crm/[id]";
+import LeadDetails from "@/pages/crm/[id]";
 import CRMLeadsPage from "@/pages/crm/leads";
 import CRMClientsPage from "@/pages/crm/clients";
 import CRMCommissionsPage from "@/pages/crm/commissions";
@@ -162,9 +162,9 @@ function Router() {
       </Route>
 
       <Route path="/crm/leads/:id">
-        {() => (
+        {(params) => (
           <AppLayout>
-            <ProtectedRoute component={ContactDetails} />
+            <ProtectedRoute component={LeadDetails} params={params} />
           </AppLayout>
         )}
       </Route>
@@ -209,13 +209,7 @@ function Router() {
         )}
       </Route>
       
-      <Route path="/crm/:id">
-        {(params) => (
-          <AppLayout>
-            <ProtectedRoute component={ContactDetails} params={params} />
-          </AppLayout>
-        )}
-      </Route>
+
 
       <Route path="/dispatch">
         {() => (
