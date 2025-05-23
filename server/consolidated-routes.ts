@@ -1395,6 +1395,47 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     });
   });
 
+  // Password reset request route
+  authRouter.post("/forgot-password", express.json(), async (req, res, next) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        // For security, always return success even if user doesn't exist
+        return res.status(200).json({ 
+          message: "If an account with that email exists, a password reset link has been sent" 
+        });
+      }
+
+      // Generate reset token
+      const resetToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+      // Store reset token (you'll need to add this to storage interface)
+      await storage.setPasswordResetToken(user.id, resetToken, resetExpires);
+
+      // Import email service
+      const { sendPasswordResetEmail } = await import('./email');
+      
+      // Send password reset email using your Google Workspace credentials
+      const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password?token=${resetToken}`;
+      await sendPasswordResetEmail(email, user.firstName || user.username, resetUrl, resetToken);
+
+      res.status(200).json({ 
+        message: "Password reset email sent successfully" 
+      });
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ error: "Failed to send password reset email" });
+    }
+  });
+
   // Check current user session
   authRouter.get("/me", async (req, res, next) => {
     try {
