@@ -23,6 +23,8 @@ import path from "path";
 import * as slackNotifications from "./slack";
 import * as notificationService from "./notifications";
 import { NotificationPreferences, defaultNotificationPreferences } from "./notifications";
+import { sendPasswordResetEmail } from "./email";
+import crypto from "crypto";
 import { WebSocket, WebSocketServer } from "ws";
 import errorLoggingRoutes from "./routes/error-logging";
 import statusRoutes from "./routes/status";
