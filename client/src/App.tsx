@@ -46,8 +46,8 @@ const TasksPage = lazy(() => import("@/pages/tasks"));
 const TimeTrackingPage = lazy(() => import("@/pages/time-tracking"));
 const TimeOffPage = lazy(() => import("@/pages/time-off"));
 const ReportsPage = lazy(() => import("@/pages/reports"));
-const SettingsPage = lazy(() => import("@/pages/settings/profile-only"));
-const ProfilePage = lazy(() => import("@/pages/settings/profile"));
+const SettingsPage = lazy(() => import("@/pages/profile"));
+const ProfilePage = lazy(() => import("@/pages/profile"));
 
 // Lazy load Admin modules (heavy with charts and tables)
 const AdminDashboard = lazy(() => import("@/pages/admin"));
