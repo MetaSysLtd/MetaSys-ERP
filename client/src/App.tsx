@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Provider } from 'react-redux';
 import { store } from './store/store';
@@ -89,9 +89,9 @@ import metaSysLogo from "@/assets/logos/MetaSys.png";
 
 function ProtectedRoute({ component: Component, ...rest }: any) {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const [, navigate] = useLocation();
 
-  // SECURITY FIX: Enhanced protection for routes
-  // First ensure we've completed loading and have a definitive auth state
+  // Show loading state while authentication is being determined
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center flex-col bg-[#F1FAFB]">
@@ -104,21 +104,9 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
     );
   }
 
-  // SECURITY FIX: Strict verification - must be authenticated AND have valid user data
-  const isFullyAuthenticated = isAuthenticated === true && user !== null && user?.id > 0;
-  
-  // If not properly authenticated, redirect to login
-  if (!isFullyAuthenticated) {
-    console.warn("Access to protected route denied - user not authenticated");
-    
-    // Clear any potentially misleading auth data before redirecting
-    localStorage.removeItem('metasys_auth_timestamp');
-    localStorage.removeItem('login_attempt_timestamp');
-    sessionStorage.clear();
-    
-    // Using window.location.replace() instead of href to avoid adding to browser history
-    // This prevents back button from showing protected content
-    window.location.replace("/auth");
+  // Check if user is authenticated
+  if (!isAuthenticated || !user) {
+    navigate("/auth");
     return null;
   }
 
