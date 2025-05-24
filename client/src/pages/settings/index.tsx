@@ -109,6 +109,13 @@ export default function SettingsPage() {
   const searchParams = new URLSearchParams(search);
   const activeTab = searchParams.get("tab") || "profile";
   
+  // Mock role data for now - this should come from user auth context
+  const role = {
+    level: user?.roleId || 3, // Default to admin level for testing
+    name: "Administrator",
+    permissions: ["all"] // Mock permissions
+  };
+  
   // Profile form
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
