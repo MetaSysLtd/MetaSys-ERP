@@ -36,15 +36,19 @@ export function initializeTransporter(options: {
   port?: number;
 }) {
   try {
-    // Create reusable transporter object using SMTP transport
+    // Create reusable transporter object using SMTP transport optimized for Google Workspace
     transporter = nodemailer.createTransport({
-      host: options.host || 'smtp.gmail.com',
-      port: options.port || 587,
-      secure: options.port === 465, // true for 465, false for other ports
+      service: 'gmail', // Use Gmail service for better compatibility
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // Use STARTTLS
       auth: {
         user: options.email,
         pass: options.password,
       },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
     console.log('Email transporter initialized successfully');
@@ -64,14 +68,15 @@ if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
     port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587
   });
 } else {
-  // Use the provided Google Workspace credentials for MetaSys
-  initializeTransporter({
+  // Force initialize with provided Google Workspace credentials for MetaSys
+  console.log('Forcing email initialization with Google Workspace credentials...');
+  const result = initializeTransporter({
     email: 'info@metasysltd.com',
     password: 'gmbl apox swgd wynv',
     host: 'smtp.gmail.com',
     port: 587
   });
-  console.log('Email transporter initialized with Google Workspace credentials for info@metasysltd.com');
+  console.log('Email transporter initialization result:', result);
 }
 
 /**
