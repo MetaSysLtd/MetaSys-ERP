@@ -103,7 +103,7 @@ type NotificationFormValues = z.infer<typeof notificationFormSchema>;
 
 export default function SettingsPage() {
   const { toast } = useToast();
-  const { user, role } = useAuth();
+  const { user } = useAuth();
   const [, navigate] = useLocation();
   const search = useSearch();
   const searchParams = new URLSearchParams(search);
@@ -368,7 +368,7 @@ export default function SettingsPage() {
     navigate(`?${params.toString()}`, { replace: true });
   };
   
-  if (!user || !role) {
+  if (!user) {
     return (
       <div className="flex h-full items-center justify-center p-8">
         <div className="text-center">
@@ -413,8 +413,8 @@ export default function SettingsPage() {
                 </div>
                 <div className="overflow-hidden text-ellipsis">
                   <h3 className="font-medium truncate">{user.firstName} {user.lastName}</h3>
-                  <p className={`text-sm truncate ${getDepartmentColor(role.department)}`}>
-                    {role.name}
+                  <p className="text-sm truncate text-muted-foreground">
+                    {user.username}
                   </p>
                 </div>
               </div>
