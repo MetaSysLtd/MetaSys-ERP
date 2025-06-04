@@ -1542,7 +1542,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       }
       
       // Check if user is trying to access other user's data
-      if (req.user?.id !== user.id && req.userRole?.level < 3) {
+      if (req.user?.id !== user.id && (req.userRole?.level || 0) < 3) {
         return res.status(403).json({ message: "Forbidden: You can only view your own profile" });
       }
       
@@ -2875,11 +2875,11 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   prefsRouter.get("/me", createAuthMiddleware(1), async (req, res, next) => {
     try {
 
-      const prefs = await storage.getUserPreferences(req.session.userId);
+      const prefs = await storage.getUserPreferences(req.session.userId || req.user?.id || 0);
       if (!prefs) {
         // Return default preferences
         return res.json({
-          userId: req.session.userId,
+          userId: req.session.userId || req.user?.id || 0,
           theme: 'light',
           sidebarCollapsed: false,
           dashboardLayout: 'default',
@@ -2898,17 +2898,18 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     try {
 
       // Get existing prefs or create new ones
-      let prefs = await storage.getUserPreferences(req.session.userId);
+      const userId = req.session.userId || req.user?.id || 0;
+      let prefs = await storage.getUserPreferences(userId);
       
       if (!prefs) {
         // Create new preferences
         prefs = await storage.createUserPreferences({
-          userId: req.session.userId,
+          userId: userId,
           ...req.body
         });
       } else {
         // Update existing preferences
-        prefs = await storage.updateUserPreferences(req.session.userId, req.body);
+        prefs = await storage.updateUserPreferences(userId, req.body);
       }
       
       res.json(prefs);
@@ -2927,7 +2928,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   notificationsRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
 
-      const notifications = await storage.getUserNotifications(req.session.userId);
+      const notifications = await storage.getUserNotifications(req.session.userId || req.user?.id || 0);
       res.json(notifications);
     } catch (error) {
       next(error);
@@ -2939,7 +2940,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     try {
 
       const notifications = await storage.getUserNotificationsByType(
-        req.session.userId, 
+        req.session.userId || req.user?.id || 0, 
         ['lead_created', 'lead_updated', 'lead_status_changed']
       );
       res.json(notifications);
