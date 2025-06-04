@@ -3597,11 +3597,11 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
             });
           }
           
-          // Emit real-time updates
-          if (invoiceRealTimeMiddleware && typeof invoiceRealTimeMiddleware.emitInvoiceCreated === 'function') {
+          // Emit real-time updates via socket
+          if (io) {
             const invoiceWithItems = await storage.getInvoiceWithItems(invoice.id);
             if (invoiceWithItems) {
-              invoiceRealTimeMiddleware.emitInvoiceCreated(invoiceWithItems);
+              io.emit('invoice:created', invoiceWithItems);
             }
           }
         }
@@ -3647,9 +3647,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       
       // First update the invoice status to 'sent'
       const updatedInvoice = await storage.updateInvoice(invoiceId, { 
-        status: 'sent',
-        approvedBy: req.user?.id || 1,  // Default to admin if no user ID
-        updatedAt: new Date()
+        status: 'sent'
       });
       
       // Format invoice items for email
@@ -3668,7 +3666,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         id: invoice.id,
         invoiceNumber: invoice.invoiceNumber,
         companyName: lead.companyName,
-        contactEmail: lead.email || lead.contactEmail || '',
+        contactEmail: lead.email || '',
         contactName: lead.contactName,
         totalAmount: invoice.totalAmount,
         dueDate: invoice.dueDate,
@@ -3688,11 +3686,11 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         createdAt: new Date()
       });
       
-      // Emit real-time update if available
-      if (invoiceRealTimeMiddleware && typeof invoiceRealTimeMiddleware.emitInvoiceUpdated === 'function') {
+      // Emit real-time update via socket
+      if (io) {
         const refreshedInvoice = await storage.getInvoiceWithItems(invoiceId);
         if (refreshedInvoice) {
-          invoiceRealTimeMiddleware.emitInvoiceUpdated(refreshedInvoice);
+          io.emit('invoice:updated', refreshedInvoice);
         }
       }
       
