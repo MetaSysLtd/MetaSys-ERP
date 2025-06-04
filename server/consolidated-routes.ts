@@ -261,7 +261,8 @@ async function calculateSalesCommission(userId: number, month: string, calculate
     );
     
     // 7. Calculate the base commission from the active lead table tiers
-    const activeLeadTable = activePolicy.activeLeadTable as Array<{activeleads: number, amount: number}>;
+    const policyRules = activePolicy.rules as any;
+    const activeLeadTable = policyRules.activeLeadTable as Array<{activeleads: number, amount: number}>;
     let baseCommission = 0;
     
     // Sort tiers by activeLeads descending to find the correct tier
@@ -293,28 +294,28 @@ async function calculateSalesCommission(userId: number, month: string, calculate
     
     for (const lead of starterLeads) {
       leadAdjustments[lead.leadId] = { 
-        factor: activePolicy.starterSplit, 
-        reason: `Starter (${activePolicy.starterSplit * 100}%)` 
+        factor: policyRules.starterSplit, 
+        reason: `Starter (${policyRules.starterSplit * 100}%)` 
       };
     }
     
     for (const lead of closerLeads) {
       leadAdjustments[lead.leadId] = { 
-        factor: activePolicy.closerSplit, 
-        reason: `Closer (${activePolicy.closerSplit * 100}%)` 
+        factor: policyRules.closerSplit, 
+        reason: `Closer (${policyRules.closerSplit * 100}%)` 
       };
     }
     
     for (const leadId of inboundLeads) {
       if (leadAdjustments[leadId]) {
         leadAdjustments[leadId] = {
-          factor: leadAdjustments[leadId].factor * activePolicy.inboundFactor,
-          reason: `${leadAdjustments[leadId].reason} & Inbound (${activePolicy.inboundFactor * 100}%)`
+          factor: leadAdjustments[leadId].factor * policyRules.inboundFactor,
+          reason: `${leadAdjustments[leadId].reason} & Inbound (${policyRules.inboundFactor * 100}%)`
         };
       } else {
         leadAdjustments[leadId] = {
-          factor: activePolicy.inboundFactor,
-          reason: `Inbound (${activePolicy.inboundFactor * 100}%)`
+          factor: policyRules.inboundFactor,
+          reason: `Inbound (${policyRules.inboundFactor * 100}%)`
         };
       }
     }
@@ -322,7 +323,7 @@ async function calculateSalesCommission(userId: number, month: string, calculate
     // 9. Apply penalty for low or no active leads
     let penaltyApplied = false;
     if (activeLeads.length === 0) {
-      adjustedCommission *= activePolicy.penaltyFactor;
+      adjustedCommission *= policyRules.penaltyFactor;
       penaltyApplied = true;
     }
     
@@ -332,8 +333,8 @@ async function calculateSalesCommission(userId: number, month: string, calculate
     const activeTrucksBonus = 0; // Example value
     
     // Calculate team lead bonus if applicable
-    const isTeamLead = user.isTeamLead || false; // This would be part of the user schema
-    const teamLeadBonus = isTeamLead ? activePolicy.teamLeadBonusAmount : 0;
+    const isTeamLead = false; // TODO: Add team lead flag to user schema
+    const teamLeadBonus = isTeamLead ? policyRules.teamLeadBonusAmount : 0;
     
     // 11. Calculate total commission
     const totalCommission = adjustedCommission + repOfMonthBonus + activeTrucksBonus + teamLeadBonus;
@@ -348,7 +349,7 @@ async function calculateSalesCommission(userId: number, month: string, calculate
       adjustments: leadAdjustments,
       penalties: penaltyApplied ? {
         reason: 'No active leads',
-        factor: activePolicy.penaltyFactor,
+        factor: policyRules.penaltyFactor,
         originalAmount: baseCommission,
         reducedAmount: adjustedCommission
       } : null,
@@ -536,8 +537,9 @@ async function calculateDispatchCommission(userId: number, month: string, calcul
     const activeTrucksBonus = activeTrucksCount * 10; // $10 per active truck
     
     // Calculate team lead bonus if applicable
-    const isTeamLead = user.isTeamLead || false; // This would be part of the user schema
-    const teamLeadBonus = isTeamLead ? activePolicy.teamLeadBonusAmount : 0;
+    const policyRules = activePolicy.rules as any;
+    const isTeamLead = false; // TODO: Add team lead flag to user schema
+    const teamLeadBonus = isTeamLead ? policyRules.teamLeadBonusAmount : 0;
     
     // 9. Calculate total commission
     const totalCommission = baseCommission + repOfMonthBonus + activeTrucksBonus + teamLeadBonus;
