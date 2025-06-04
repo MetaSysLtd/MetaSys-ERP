@@ -2526,11 +2526,15 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       });
       
       // Send notifications
-      await notificationService.sendDispatchNotification({
+      await storage.createNotification({
         userId: req.user?.id || 0,
-        userName: req.user?.username || 'System',
-        leadId: clientData.leadId,
-        companyName: 'Unknown Company'
+        orgId: req.user?.orgId || 1,
+        title: 'Dispatch Client Created',
+        message: `New dispatch client created for lead ID: ${clientData.leadId}`,
+        type: 'dispatch_client_created',
+        read: false,
+        entityType: 'dispatch_client',
+        entityId: newClient.id
       });
       
       res.status(201).json({
@@ -2582,11 +2586,15 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       
       // If status changed, send notification
       if (req.body.status && req.body.status !== client.status) {
-        await notificationService.sendDispatchNotification({
+        await storage.createNotification({
           userId: req.user?.id || 0,
-          userName: req.user?.username || 'System',
-          leadId: client.leadId,
-          companyName: 'Unknown Company'
+          orgId: req.user?.orgId || 1,
+          title: 'Dispatch Client Status Changed',
+          message: `Dispatch client status changed from ${client.status} to ${req.body.status}`,
+          type: 'dispatch_client_status_changed',
+          read: false,
+          entityType: 'dispatch_client',
+          entityId: clientId
         });
       }
       
@@ -3377,7 +3385,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       
       // Use transaction for creating invoice with items if provided
       if (req.body.items && Array.isArray(req.body.items) && req.body.items.length > 0) {
-        const itemsData = req.body.items.map(item => ({
+        const itemsData = req.body.items.map((item: any) => ({
           loadId: item.loadId,
           description: item.description,
           amount: item.amount
@@ -3770,7 +3778,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   leaderboardRouter.get("/sales", createAuthMiddleware(1), async (req, res, next) => {
     try {
       // Extract the query parameter for date, defaulting to "current"
-      const dateParam = req.query.date as string || "current";
+      const dateParam = (req.query.date === "current" || req.query.date === "previous") ? req.query.date : "current";
       const orgId = req.user?.orgId || 1;
       
       // Get the sales leaderboard data from service
@@ -3786,7 +3794,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   leaderboardRouter.get("/dispatch", createAuthMiddleware(1), async (req, res, next) => {
     try {
       // Extract the query parameter for date, defaulting to "current"
-      const dateParam = req.query.date as string || "current";
+      const dateParam = (req.query.date === "current" || req.query.date === "previous") ? req.query.date : "current";
       const orgId = req.user?.orgId || 1;
       
       // Get the dispatch leaderboard data from service
@@ -3802,7 +3810,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   leaderboardRouter.get("/combined", createAuthMiddleware(1), async (req, res, next) => {
     try {
       // Extract the query parameter for date, defaulting to "current"
-      const dateParam = req.query.date as string || "current";
+      const dateParam = (req.query.date === "current" || req.query.date === "previous") ? req.query.date : "current";
       const orgId = req.user?.orgId || 1;
       
       // Get the combined leaderboard data from service
