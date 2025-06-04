@@ -3593,8 +3593,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
               entityType: 'invoice',
               entityId: invoice.id,
               orgId: invoice.orgId || 1,
-              read: false,
-              createdAt: new Date()
+              read: false
             });
           }
           
@@ -3677,14 +3676,14 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       
       // Create notification for the invoice being sent
       await storage.createNotification({
+        userId: invoice.createdBy,
         title: 'Invoice Sent to Client',
         message: `Invoice #${invoice.invoiceNumber} for ${lead.companyName} has been approved and sent via email`,
         type: 'invoice_sent',
         entityType: 'invoice',
         entityId: invoice.id,
-        orgId: invoice.orgId,
-        read: false,
-        createdAt: new Date()
+        orgId: invoice.orgId || 1,
+        read: false
       });
       
       // Emit real-time update via socket
@@ -3770,8 +3769,8 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   // Get sales leaderboard data
   leaderboardRouter.get("/sales", createAuthMiddleware(1), async (req, res, next) => {
     try {
-      // Extract the query parameter for date, defaulting to current date
-      const dateParam = req.query.date ? new Date(req.query.date as string) : new Date();
+      // Extract the query parameter for date, defaulting to "current"
+      const dateParam = req.query.date as string || "current";
       const orgId = req.user?.orgId || 1;
       
       // Get the sales leaderboard data from service
@@ -3786,8 +3785,8 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   // Get dispatch leaderboard data
   leaderboardRouter.get("/dispatch", createAuthMiddleware(1), async (req, res, next) => {
     try {
-      // Extract the query parameter for date, defaulting to current date
-      const dateParam = req.query.date ? new Date(req.query.date as string) : new Date();
+      // Extract the query parameter for date, defaulting to "current"
+      const dateParam = req.query.date as string || "current";
       const orgId = req.user?.orgId || 1;
       
       // Get the dispatch leaderboard data from service
@@ -3802,8 +3801,8 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   // Get combined leaderboard data
   leaderboardRouter.get("/combined", createAuthMiddleware(1), async (req, res, next) => {
     try {
-      // Extract the query parameter for date, defaulting to current date
-      const dateParam = req.query.date ? new Date(req.query.date as string) : new Date();
+      // Extract the query parameter for date, defaulting to "current"
+      const dateParam = req.query.date as string || "current";
       const orgId = req.user?.orgId || 1;
       
       // Get the combined leaderboard data from service
