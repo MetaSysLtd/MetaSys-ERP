@@ -1968,15 +1968,15 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         });
       }
       
-      // Validate that the type matches the policy
-      if (existingPolicy.type !== type) {
+      // Validate that the scope matches the policy
+      if (existingPolicy.scope !== type) {
         return res.status(400).json({ 
           status: "error", 
-          message: "Policy type mismatch" 
+          message: "Policy scope mismatch" 
         });
       }
       
-      // Deactivate all other policies of the same type
+      // Deactivate all other policies of the same scope
       await storage.deactivateCommissionPoliciesByType(type, req.user?.orgId || 1);
       
       // Activate this policy
@@ -1992,7 +1992,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         entityType: "commission_policy",
         entityId: id,
         action: "activated",
-        details: `Commission policy activated: ${existingPolicy.type}`
+        details: `Commission policy activated: ${existingPolicy.scope}`
       });
       
       res.json(updatedPolicy);
