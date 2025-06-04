@@ -2411,7 +2411,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   // GET all clients
   clientsRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
-      const clients = await storage.getClients();
+      const clients = await storage.getLeads();
       res.json(clients);
     } catch (error) {
       console.error("Error fetching clients:", error);
@@ -2423,7 +2423,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   clientsRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
     try {
       const clientId = Number(req.params.id);
-      const client = await storage.getClient(clientId);
+      const client = await storage.getLead(clientId);
       
       if (!client) {
         return res.status(404).json({ message: "Client not found" });
@@ -2485,7 +2485,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       const lead = await storage.getLead(client.leadId);
       
       // Get loads for this client
-      const loads = await storage.getLoadsByClient(client.id);
+      const loads = await storage.getLoadsByLead(client.id);
       
       res.status(200).json({
         status: "success",
@@ -2526,13 +2526,12 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       });
       
       // Send notifications
-      await notificationService.sendDispatchNotification({
-        clientId: newClient.id,
-        action: 'client_created',
-        title: 'New Dispatch Client Created',
-        message: `A new dispatch client was created from lead ID ${clientData.leadId}`,
-        createdBy: req.user?.id || 0
-      });
+      await notificationService.sendDispatchNotification(
+        newClient.id,
+        'client_created',
+        'New Dispatch Client Created',
+        `A new dispatch client was created from lead ID ${clientData.leadId}`
+      );
       
       res.status(201).json({
         status: "success",
@@ -2583,13 +2582,12 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       
       // If status changed, send notification
       if (req.body.status && req.body.status !== client.status) {
-        await notificationService.sendDispatchNotification({
-          clientId: clientId,
-          action: 'client_status_changed',
-          title: 'Dispatch Client Status Changed',
-          message: `Dispatch client status changed from '${client.status}' to '${req.body.status}'`,
-          createdBy: req.user?.id || 0
-        });
+        await notificationService.sendDispatchNotification(
+          clientId,
+          'client_status_changed',
+          'Dispatch Client Status Changed',
+          `Dispatch client status changed from '${client.status}' to '${req.body.status}'`
+        );
       }
       
       res.status(200).json({
@@ -2992,8 +2990,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       }
       
       const updatedNotification = await storage.updateNotification(notificationId, {
-        read: true,
-        readAt: new Date()
+        read: true
       });
       
       res.json(updatedNotification);
@@ -3161,13 +3158,13 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       const widgetPosition = position || existingWidgets.length + 1;
       
       const widget = await storage.createDashboardWidget({
+        orgId: req.user?.orgId || 1,
         userId: req.user.id,
+        title: `${widgetType} Widget`,
         widgetType,
+        widgetKey: `${widgetType}_${Date.now()}`,
         position: widgetPosition,
-        config: config || {},
-        active: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        config: config || {}
       });
       
       res.status(201).json(widget);
