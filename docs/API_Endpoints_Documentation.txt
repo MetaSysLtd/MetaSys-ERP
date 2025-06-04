@@ -1,0 +1,285 @@
+
+# MetaSys ERP - API Endpoints Documentation
+
+## BASE URL
+Development: http://localhost:5000/api
+Production: https://your-domain.com/api
+
+## AUTHENTICATION ENDPOINTS
+
+### POST /api/auth/login
+Login with username/password
+Body: { username: string, password: string }
+Response: { authenticated: boolean, user: User }
+
+### POST /api/auth/logout
+Logout current user
+Response: { success: boolean }
+
+### GET /api/auth/me
+Get current user info
+Response: { authenticated: boolean, user: User }
+
+### GET /api/auth/user-organizations
+Get user's organizations
+Response: Organization[]
+
+## USER MANAGEMENT
+
+### GET /api/users
+Get all users (admin only)
+Query: page, limit, search
+Response: { users: User[], total: number }
+
+### POST /api/users
+Create new user (admin only)
+Body: User creation data
+Response: { user: User }
+
+### PUT /api/users/:id
+Update user (admin only)
+Body: User update data
+Response: { user: User }
+
+### DELETE /api/users/:id
+Delete user (admin only)
+Response: { success: boolean }
+
+## DASHBOARD ENDPOINTS
+
+### GET /api/dashboard
+Get dashboard overview data
+Response: { counts: object, metrics: object }
+
+### GET /api/dashboard/metrics
+Get performance metrics
+Response: { performance: object, targets: object }
+
+### GET /api/dashboard/revenue
+Get revenue data
+Response: { revenue: number, growth: number }
+
+### GET /api/dashboard/activities
+Get recent activities
+Response: Activity[]
+
+### GET /api/dashboard/widgets
+Get user's dashboard widgets
+Response: Widget[]
+
+## CRM ENDPOINTS
+
+### GET /api/crm/leads
+Get all leads
+Query: page, limit, status, assignedTo
+Response: { leads: Lead[], total: number }
+
+### POST /api/crm/leads
+Create new lead
+Body: Lead creation data
+Response: { lead: Lead }
+
+### GET /api/crm/leads/:id
+Get specific lead
+Response: { lead: Lead }
+
+### PUT /api/crm/leads/:id
+Update lead
+Body: Lead update data
+Response: { lead: Lead }
+
+### DELETE /api/crm/leads/:id
+Delete lead
+Response: { success: boolean }
+
+### POST /api/crm/leads/:id/assign
+Assign lead to sales rep
+Body: { assignedTo: userId }
+Response: { success: boolean }
+
+### POST /api/crm/leads/:id/handoff
+Handoff lead to dispatch
+Body: { dispatcherId: userId, notes: string }
+Response: { success: boolean }
+
+## COMMISSION ENDPOINTS
+
+### GET /api/commissions/monthly/user/:userId
+Get user's monthly commissions
+Query: month (optional)
+Response: { commissions: Commission[], total: number }
+
+### GET /api/commissions/policies
+Get commission policies
+Response: CommissionPolicy[]
+
+### POST /api/commissions/policies
+Create commission policy (admin only)
+Body: Policy data
+Response: { policy: CommissionPolicy }
+
+## DISPATCH ENDPOINTS
+
+### GET /api/dispatch/loads
+Get all loads
+Query: page, limit, status
+Response: { loads: Load[], total: number }
+
+### POST /api/dispatch/loads
+Create new load
+Body: Load creation data
+Response: { load: Load }
+
+### GET /api/dispatch/reports
+Get dispatch reports
+Query: date, dispatcherId
+Response: DispatchReport
+
+### POST /api/dispatch/reports
+Create dispatch report
+Body: Report data
+Response: { report: DispatchReport }
+
+### GET /api/dispatch/tasks
+Get dispatch tasks
+Query: assignedTo, status
+Response: Task[]
+
+## FINANCE ENDPOINTS
+
+### GET /api/finance/invoices
+Get all invoices
+Query: page, limit, status
+Response: { invoices: Invoice[], total: number }
+
+### POST /api/finance/invoices
+Create new invoice
+Body: Invoice data
+Response: { invoice: Invoice }
+
+### GET /api/finance/invoices/:id
+Get specific invoice
+Response: { invoice: Invoice }
+
+### PUT /api/finance/invoices/:id
+Update invoice
+Body: Invoice update data
+Response: { invoice: Invoice }
+
+## HR ENDPOINTS
+
+### GET /api/hr/employees
+Get all employees
+Query: page, limit, department
+Response: { employees: Employee[], total: number }
+
+### POST /api/hr/employees
+Create employee record
+Body: Employee data
+Response: { employee: Employee }
+
+### GET /api/hr/leaves
+Get leave requests
+Query: employeeId, status
+Response: LeaveRequest[]
+
+### POST /api/hr/leaves
+Submit leave request
+Body: Leave request data
+Response: { request: LeaveRequest }
+
+## NOTIFICATION ENDPOINTS
+
+### GET /api/notifications
+Get user notifications
+Query: page, limit, unread
+Response: { notifications: Notification[], total: number }
+
+### POST /api/notifications/:id/read
+Mark notification as read
+Response: { success: boolean }
+
+### DELETE /api/notifications/:id
+Delete notification
+Response: { success: boolean }
+
+## ADMIN ENDPOINTS
+
+### GET /api/admin/users
+Get all users with admin details
+Response: { users: User[], total: number }
+
+### GET /api/admin/organizations
+Get all organizations
+Response: Organization[]
+
+### GET /api/admin/system-health
+Get system health status
+Response: { status: string, details: object }
+
+### GET /api/admin/audit-logs
+Get audit logs
+Query: page, limit, userId, action
+Response: { logs: AuditLog[], total: number }
+
+## SETTINGS ENDPOINTS
+
+### GET /api/settings/profile
+Get user profile settings
+Response: UserProfile
+
+### PUT /api/settings/profile
+Update user profile
+Body: Profile update data
+Response: { profile: UserProfile }
+
+### GET /api/ui-prefs/me
+Get user UI preferences
+Response: UIPreferences
+
+### PUT /api/ui-prefs/me
+Update UI preferences
+Body: Preferences data
+Response: { preferences: UIPreferences }
+
+## HEALTH & STATUS
+
+### GET /api/health
+Health check endpoint
+Response: { status: "ok", timestamp: string }
+
+### GET /api/status
+System status information
+Response: { uptime: number, memory: object, database: object }
+
+## ERROR RESPONSES
+
+All endpoints return errors in this format:
+```json
+{
+  "status": "error",
+  "message": "Error description",
+  "code": "ERROR_CODE",
+  "details": {} // Optional additional details
+}
+```
+
+Common HTTP status codes:
+- 200: Success
+- 201: Created
+- 400: Bad Request
+- 401: Unauthorized
+- 403: Forbidden
+- 404: Not Found
+- 500: Internal Server Error
+
+## AUTHENTICATION
+Most endpoints require session-based authentication. Include session cookie in requests.
+
+## RATE LIMITING
+API endpoints are rate-limited to prevent abuse. Limits vary by endpoint type.
+
+## PAGINATION
+List endpoints support pagination with query parameters:
+- page: Page number (default: 1)
+- limit: Items per page (default: 20, max: 100)

@@ -1,0 +1,106 @@
+
+# MetaSys ERP - Frontend Code Structure Documentation
+
+## CLIENT DIRECTORY STRUCTURE
+
+### /client/src/components/
+Complete component library organized by module:
+
+#### UI Components (/ui/)
+- Basic UI primitives (buttons, cards, forms, etc.)
+- Custom components (error boundaries, animations, etc.)
+- Theme customization components
+- Reusable layout components
+
+#### Module-Specific Components:
+- /admin/ - Admin panel components
+- /auth/ - Authentication components
+- /crm/ - CRM module components
+- /dashboard/ - Dashboard widgets and layouts
+- /dispatch/ - Dispatch module components
+- /invoices/ - Invoice management components
+- /layout/ - Page layout components
+- /settings/ - Settings and configuration components
+
+### /client/src/pages/
+Page components organized by route structure:
+
+#### Main Modules:
+- /admin/ - Admin panel pages
+- /auth/ - Login, forgot password
+- /crm/ - CRM pages (leads, accounts, etc.)
+- /dashboard/ - Main dashboard
+- /dispatch/ - Dispatch operations
+- /finance/ - Financial management
+- /hr/ - Human resources
+- /invoices/ - Invoice management
+- /settings/ - User and system settings
+
+### /client/src/contexts/
+React contexts for global state:
+- AuthContext.tsx - Authentication state
+- NotificationContext.tsx - Notifications
+- SocketContext.tsx - Real-time connections
+- AnimationContext.tsx - UI animations
+
+### /client/src/hooks/
+Custom React hooks:
+- use-auth.tsx - Authentication logic
+- use-socket.tsx - Socket.IO integration
+- use-dashboard-data.tsx - Dashboard data fetching
+- use-real-time.tsx - Real-time updates
+- use-query-error-handler.tsx - Error handling
+
+### /client/src/lib/
+Utility libraries:
+- api-client.ts - API communication
+- error-handler.ts - Error handling utilities
+- queryClient.ts - TanStack Query setup
+- socket-manager.ts - Socket.IO management
+- utils.ts - General utilities
+
+### /client/src/services/
+Frontend services:
+- adminService.ts - Admin operations
+- socket-service.ts - Socket communication
+- leaderboard-service.ts - Leaderboard data
+
+### /client/src/types/
+TypeScript type definitions for frontend
+
+## KEY FRONTEND FEATURES
+
+### State Management:
+- React Context for global state
+- TanStack Query for server state
+- Local state with useState/useReducer
+
+### Real-time Features:
+- Socket.IO client integration
+- Real-time notifications
+- Live data updates
+- Cross-module synchronization
+
+### Error Handling:
+- Global error boundaries
+- API error interceptors
+- Query error handling
+- User-friendly error messages
+
+### Performance:
+- Lazy loading of components
+- Query caching with TanStack Query
+- Optimized re-renders
+- Image optimization
+
+### Accessibility:
+- ARIA labels and roles
+- Keyboard navigation
+- Screen reader support
+- Focus management
+
+### Responsive Design:
+- Mobile-first approach
+- Tailwind CSS responsive utilities
+- Adaptive layouts
+- Touch-friendly interfaces

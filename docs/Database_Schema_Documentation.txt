@@ -1,0 +1,134 @@
+
+# MetaSys ERP - Database Schema Documentation
+
+## DATABASE OVERVIEW
+PostgreSQL database with 26+ tables using Drizzle ORM for type-safe operations.
+
+## CORE TABLES
+
+### Users & Authentication
+- users: User accounts and profiles
+- sessions: Session management
+- roles: Role definitions
+- permissions: Permission mappings
+- user_roles: User-role relationships
+
+### Organizations
+- organizations: Multi-tenant organization structure
+- organization_users: User-organization relationships
+- organization_settings: Organization-specific settings
+
+### CRM & Sales
+- leads: Lead management and tracking
+- lead_activities: Activity timeline for leads
+- lead_assignments: Sales rep assignments
+- lead_handoffs: Handoff between sales and dispatch
+- accounts: Client account management
+- form_templates: Lead capture form templates
+- surveys: Customer surveys and feedback
+
+### Commission System
+- commissions: Commission calculations
+- commission_policies: Commission policy definitions
+- commission_payments: Payment tracking
+- performance_targets: Sales targets and goals
+
+### Dispatch & Operations
+- loads: Load/shipment management
+- dispatch_reports: Daily dispatch reports
+- dispatch_tasks: Task assignments for dispatchers
+- performance_alerts: Performance monitoring alerts
+- clients: Dispatch client management
+
+### Finance & Invoicing
+- invoices: Invoice management
+- invoice_items: Invoice line items
+- payments: Payment tracking
+- expenses: Expense management
+- financial_targets: Financial goals
+
+### HR & Employee Management
+- employees: Employee records
+- candidates: Job candidate tracking
+- time_tracking: Time and attendance
+- leave_requests: Leave management
+- hr_policies: HR policy definitions
+- performance_reviews: Performance evaluations
+
+### System & Notifications
+- notifications: System notifications
+- messages: Internal messaging
+- audit_logs: System audit trail
+- error_logs: Error tracking
+- system_settings: Global system settings
+- ui_preferences: User interface preferences
+
+### Gamification & Leaderboards
+- achievements: Achievement definitions
+- user_achievements: User achievement tracking
+- leaderboard_entries: Leaderboard data
+- scorecards: Performance scorecards
+
+## KEY RELATIONSHIPS
+
+### User Hierarchy:
+Users -> Organizations (many-to-many)
+Users -> Roles -> Permissions
+Users -> UI Preferences
+
+### Sales Flow:
+Leads -> Assignments -> Activities -> Handoffs
+Leads -> Commissions -> Payments
+
+### Dispatch Flow:
+Loads -> Reports -> Tasks -> Alerts
+Clients -> Loads -> Tracking
+
+### Financial Flow:
+Invoices -> Items -> Payments
+Expenses -> Categories -> Approvals
+
+### HR Flow:
+Candidates -> Employees -> Time Tracking
+Employees -> Leave Requests -> Approvals
+
+## SCHEMA FEATURES
+
+### Multi-tenancy:
+- Organization-scoped data isolation
+- Cross-organization reporting capabilities
+- Flexible role assignments per organization
+
+### Audit Trail:
+- Created/updated timestamps on all tables
+- User tracking for data changes
+- Comprehensive audit logging
+
+### Performance Optimization:
+- Strategic indexing on foreign keys
+- Composite indexes for common queries
+- Pagination support for large datasets
+
+### Data Integrity:
+- Foreign key constraints
+- Check constraints for data validation
+- NOT NULL constraints where appropriate
+- Unique constraints for business rules
+
+### Extensibility:
+- JSON columns for flexible data storage
+- Polymorphic relationships where needed
+- Versioning support for schema changes
+- Plugin architecture support
+
+## MIGRATION SYSTEM
+- Drizzle migrations for schema changes
+- Version-controlled database updates
+- Rollback capabilities
+- Data migration scripts
+
+## BACKUP & RECOVERY
+- Automated database backups
+- Point-in-time recovery
+- Data export capabilities
+- Disaster recovery procedures

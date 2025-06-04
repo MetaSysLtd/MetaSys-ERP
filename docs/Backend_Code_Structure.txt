@@ -1,0 +1,124 @@
+
+# MetaSys ERP - Backend Code Structure Documentation
+
+## SERVER DIRECTORY STRUCTURE
+
+### /server/routes/
+API route handlers organized by module:
+
+#### Core Routes:
+- auth.ts - Authentication endpoints
+- dashboard.ts - Dashboard data endpoints
+- users.ts - User management
+- organizations.ts - Organization management
+
+#### Module Routes:
+- crm.ts - CRM operations
+- leads.ts - Lead management
+- dispatch.ts - Dispatch operations
+- hr.ts - HR management
+- finance.ts - Financial operations
+- invoices.ts - Invoice management
+- commissions.ts - Commission tracking
+
+#### Utility Routes:
+- health.ts - Health check endpoints
+- status.ts - System status
+- error-logging.ts - Error reporting
+
+### /server/services/
+Business logic layer:
+
+#### Core Services:
+- auth-service.ts - Authentication logic
+- user-service.ts - User operations
+- organization-service.ts - Organization management
+- notification-service.ts - Notification handling
+
+#### Communication Services:
+- email-service.ts - Email sending
+- slack-service.ts - Slack integration
+- socket.ts - Real-time communication
+
+#### Module Services:
+- sales-service.ts - Sales operations
+- dispatch-service.ts - Dispatch logic
+- hr-service.ts - HR operations
+- finance-service.ts - Financial calculations
+
+#### Utility Services:
+- audit-logger.ts - Audit trail logging
+- permissions.ts - Permission checking
+
+### /server/middleware/
+Express middleware:
+- auth.ts - Authentication middleware
+- error-handler.ts - Global error handling
+- validation.ts - Request validation
+- organizationMiddleware.ts - Organization context
+
+### /server/utils/
+Utility functions:
+- date-utils.ts - Date formatting
+- validation-utils.ts - Data validation
+- crypto-utils.ts - Cryptography
+- db-health-check.ts - Database monitoring
+- pagination.ts - Query pagination
+
+### /server/config/
+Configuration files:
+- env.ts - Environment variables
+- constants.ts - Application constants
+- logger-config.ts - Logging configuration
+
+## KEY BACKEND FEATURES
+
+### Database Layer:
+- Drizzle ORM for type-safe queries
+- PostgreSQL with connection pooling
+- Migration system for schema changes
+- Audit logging for data changes
+
+### Authentication & Authorization:
+- Session-based authentication
+- Role-based access control
+- Permission checking middleware
+- Multi-organization support
+
+### Real-time Communication:
+- Socket.IO server
+- Event-driven architecture
+- Cross-module notifications
+- Live data synchronization
+
+### Scheduled Tasks:
+- Node-Cron for automation
+- Daily report generation
+- Performance alerts
+- Data cleanup tasks
+
+### Error Handling:
+- Global error middleware
+- Structured error responses
+- Error logging and monitoring
+- Graceful error recovery
+
+### API Design:
+- RESTful endpoints
+- Consistent response format
+- Input validation with Zod
+- Pagination support
+- Rate limiting
+
+### Email & Notifications:
+- Nodemailer for email delivery
+- HTML email templates
+- Slack webhook integration
+- In-app notifications
+
+### Security:
+- CORS protection
+- Input sanitization
+- SQL injection prevention
+- Session security
+- Environment variable protection
