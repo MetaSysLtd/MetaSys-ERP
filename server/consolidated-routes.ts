@@ -3391,9 +3391,9 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         result = { invoice: newInvoice, items: [] };
       }
       
-      // Emit real-time update
-      if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceCreated) {
-        invoiceRealTimeMiddleware.emitInvoiceCreated(result);
+      // Emit real-time update via socket
+      if (io) {
+        io.emit('invoice:created', result);
       }
       
       res.status(201).json(result);
@@ -3436,9 +3436,9 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       
       const updatedInvoice = await storage.updateInvoice(id, updates);
       
-      // Emit real-time update
-      if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceUpdated) {
-        invoiceRealTimeMiddleware.emitInvoiceUpdated(updatedInvoice);
+      // Emit real-time update via socket
+      if (io) {
+        io.emit('invoice:updated', updatedInvoice);
       }
       
       res.json(updatedInvoice);
@@ -3469,9 +3469,9 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         return res.status(404).json({ error: "Invoice not found" });
       }
       
-      // Emit real-time update
-      if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceUpdated) {
-        invoiceRealTimeMiddleware.emitInvoiceUpdated(updatedInvoice);
+      // Emit real-time update via socket
+      if (io) {
+        io.emit('invoice:updated', updatedInvoice);
       }
       
       res.json(updatedInvoice);
@@ -3494,9 +3494,9 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       const success = await storage.deleteInvoice(id);
       
       if (success) {
-        // Emit real-time update
-        if (invoiceRealTimeMiddleware && invoiceRealTimeMiddleware.emitInvoiceDeleted) {
-          invoiceRealTimeMiddleware.emitInvoiceDeleted(id);
+        // Emit real-time update via socket
+        if (io) {
+          io.emit('invoice:deleted', { id });
         }
         
         res.status(200).json({ success: true, message: "Invoice deleted successfully" });
@@ -3547,11 +3547,11 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
               createdAt: new Date()
             });
             
-            // Emit real-time updates for each new invoice if socket middleware exists
-            if (invoiceRealTimeMiddleware && typeof invoiceRealTimeMiddleware.emitInvoiceCreated === 'function') {
+            // Emit real-time updates for each new invoice via socket
+            if (io) {
               const invoiceWithItems = await storage.getInvoiceWithItems(invoice.id);
               if (invoiceWithItems) {
-                invoiceRealTimeMiddleware.emitInvoiceCreated(invoiceWithItems);
+                io.emit('invoice:created', invoiceWithItems);
               }
             }
           }
