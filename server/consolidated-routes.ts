@@ -2526,12 +2526,12 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       });
       
       // Send notifications
-      await notificationService.sendDispatchNotification(
-        newClient.id,
-        'client_created',
-        'New Dispatch Client Created',
-        `A new dispatch client was created from lead ID ${clientData.leadId}`
-      );
+      await notificationService.sendDispatchNotification({
+        userId: req.user?.id || 0,
+        userName: req.user?.username || 'System',
+        leadId: clientData.leadId,
+        companyName: 'Unknown Company'
+      });
       
       res.status(201).json({
         status: "success",
@@ -2582,12 +2582,12 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       
       // If status changed, send notification
       if (req.body.status && req.body.status !== client.status) {
-        await notificationService.sendDispatchNotification(
-          clientId,
-          'client_status_changed',
-          'Dispatch Client Status Changed',
-          `Dispatch client status changed from '${client.status}' to '${req.body.status}'`
-        );
+        await notificationService.sendDispatchNotification({
+          userId: req.user?.id || 0,
+          userName: req.user?.username || 'System',
+          leadId: client.leadId,
+          companyName: 'Unknown Company'
+        });
       }
       
       res.status(200).json({
@@ -2628,9 +2628,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       const updatedClient = await storage.updateDispatchClient(clientId, {
         status: 'active',
         approvedBy: req.user?.id,
-        approvedDate: new Date(),
-        onboardingDate: req.body.onboardingDate ? new Date(req.body.onboardingDate) : new Date(),
-        updatedBy: req.user?.id
+        onboardingDate: req.body.onboardingDate ? new Date(req.body.onboardingDate) : new Date()
       });
       
       // Create activity
@@ -2644,11 +2642,10 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       
       // Send notification
       await notificationService.sendDispatchNotification({
-        clientId: clientId,
-        action: 'client_approved',
-        title: 'Dispatch Client Approved',
-        message: `Dispatch client has been approved and activated`,
-        createdBy: req.user?.id || 0
+        userId: req.user?.id || 0,
+        userName: req.user?.username || 'System',
+        leadId: updatedClient.leadId,
+        companyName: 'Approved Company'
       });
       
       res.status(200).json({
