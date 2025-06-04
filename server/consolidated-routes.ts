@@ -27,6 +27,7 @@ import { registerModuleRoutes } from "./routes/index";
 import { setupLeadRoutes } from "./lead-routes";
 
 import { organizationMiddleware } from "./middleware/organizationMiddleware";
+import { sendEmail } from './email';
 import { 
   leadRealTimeMiddleware, 
   loadRealTimeMiddleware, 
@@ -3943,6 +3944,45 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         }
       });
     } catch (error) {
+      next(error);
+    }
+  });
+
+  // Test email endpoint
+  apiRouter.post("/test-email", createAuthMiddleware(1), async (req, res, next) => {
+    try {
+      const { to, subject, message } = req.body;
+      
+      if (!to || !subject || !message) {
+        return res.status(400).json({
+          status: "error",
+          message: "Missing required fields: to, subject, message"
+        });
+      }
+
+      const emailSent = await sendEmail(
+        to,
+        subject,
+        message,
+        `<p>${message}</p>`,
+        {
+          fromName: "MetaSys ERP Test"
+        }
+      );
+
+      if (emailSent) {
+        res.status(200).json({
+          status: "success",
+          message: "Test email sent successfully"
+        });
+      } else {
+        res.status(500).json({
+          status: "error",
+          message: "Failed to send test email"
+        });
+      }
+    } catch (error) {
+      console.error("Error sending test email:", error);
       next(error);
     }
   });
