@@ -1390,8 +1390,24 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
 
   // Logout route
   authRouter.post("/logout", (req, res) => {
-    req.session.destroy(() => {
-      res.status(200).json({ message: "Logged out successfully" });
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destruction error:', err);
+        return res.status(500).json({ error: "Logout failed" });
+      }
+      
+      // Clear session cookie
+      res.clearCookie('connect.sid', { 
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+      });
+      
+      res.status(200).json({ 
+        message: "Logged out successfully",
+        redirect: "/auth"
+      });
     });
   });
 

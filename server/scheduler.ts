@@ -29,7 +29,6 @@ import {
 // Import required modules
 import { initializeDispatchReportAutomation } from './dispatch-report-automation';
 import { sendSlackMessage, sendSlackNotification } from './slack';
-import { not, isNull, desc } from 'drizzle-orm';
 
 /**
  * Creates daily tasks for dispatchers at the start of their shift

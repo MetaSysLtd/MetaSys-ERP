@@ -1,0 +1,48 @@
+Rules:
+
+==
+- Build BOTH backend (DB, API, sockets) and frontend (UI, internal linking). Now the platform is live, ensure that it is working on Dev server, as well as, on the live server. Most of the issues or screenshots that I am sending are from the live website/application.
+- All data changes must emit socket events for real‑time dashboards.
+- Follow brand button style:Primary: #025E73, #011F26 Secondary: #F2A71B, #412754  text-white  rounded-md  transition-all  duration-200. Font = Inter (Google Fonts)
+- Is fully permission-based (who can view, who can edit)
+- Is fully mobile responsive and accessible. Dark Mode also works
+- Don't break the code or mess things up. Only try to fix things while improving, patching, and enhancing. Do NOT delete a working functionality or intended functionality/feature. We will be building it and expanding it, not stripping it. 
+- Ultimate goal is to keep on adding new features/functionalities, and fix the existing ones. Try not to eliminate any feature. 
+- For any feature that you might change significantly, first verify it with me.
+==
+
+
+1. Weigh the Absolute Showstoppers First
+	1. Login/Logout/Redirection
+As things stand, unauthenticated users can’t reliably hit the “Sign In” form, and authenticated users sometimes get bounced back to “auth” or to a blank screen. That’s a critical barrier—nobody can actually reach the application.
+		○ What to ask Replit to do:
+			1. Confirm that the “protected routes” middleware is correctly forcing non-logged-in visitors to /auth.
+			2. Confirm that after req.session.destroy() on logout, the server issues a res.redirect('/auth') (not back to /dashboard).
+Test in incognito: visiting erp.metasysltd.com or /dashboard should redirect you to /auth if there is no valid session cookie, and if you are fully logged in, it should load /dashboard directly—without flickering through blank pages or flashing CSS.
+
+	2. Blank Page / Static Asset Serving in Production
+Right now, the SPA handler changes have broken everything in production so that no React, CSS, or JS actually reaches the browser.
+		○ What to ask Replit to do:
+			1. Verify that there’s a valid build/ (or dist/) folder on the live server (you should be able to ls in the deployment environment and see build/index.html, build/assets/..., etc.).
+			2. Ensure that express.static(path.join(__dirname, 'build')) is mounted before any “catch-all” handler. For example:
+// 1) Serve static files first
+app.use(express.static(path.join(__dirname, 'build')));
+
+// 2) Then, any other API routes…
+app.use('/api', apiRouter);
+
+// 3) Finally, fallback to index.html for any route not handled above:
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+			3. Add temporary console logs (e.g. console.log("[static] trying to serve", req.url)) in both the static middleware and the fallback, to prove in logs whether the static folder is ever found or not.
+Until these two “gateway” items are fully solved, none of the other pieces matter—no user can even see the UI to log in, and nobody can get to /dashboard.
+
+
+Bottom Line
+Right now, the two critical blockers are:
+	• Production static serving is broken (SPA never loads), and
+	• Authentication redirects are mis-wired (can’t reliably land on /auth or /dashboard).
+Until those two are fully solved, nothing else matters. Once they’re rock solid, tackle the “Create Lead” fix (POST endpoint), commission 401s, and then restore your TypeScript‐based Settings module. Finally, polish all the UI/UX details (sidebar highlight, button icon spacing, dropdown content, theme defaults).
+Let me know as soon as you’ve verified those showstoppers, and we’ll move into the next phase of stabilizing the Settings screens, email reliability, and real-time sockets. Good luck—and keep me posted after each small milestone so we never lose sight of which piece is still broken.
