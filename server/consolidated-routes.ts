@@ -3537,14 +3537,14 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
           if (lead) {
             // Create a notification for finance team
             await storage.createNotification({
+              userId: invoice.createdBy,
               title: 'New Weekly Invoice Generated',
               message: `Invoice #${invoice.invoiceNumber} for ${lead.companyName} has been generated for $${invoice.totalAmount.toFixed(2)}`,
               type: 'invoice_generated',
               entityType: 'invoice',
               entityId: invoice.id,
-              orgId: invoice.orgId,
-              read: false,
-              createdAt: new Date()
+              orgId: invoice.orgId || 1,
+              read: false
             });
             
             // Emit real-time updates for each new invoice via socket
@@ -3586,12 +3586,13 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
           if (lead) {
             // Create a notification for finance team
             await storage.createNotification({
+              userId: invoice.createdBy,
               title: 'Weekly Invoice Generated',
               message: `Invoice #${invoice.invoiceNumber} for ${lead.companyName} has been generated for $${invoice.totalAmount.toFixed(2)}`,
               type: 'invoice_generated',
               entityType: 'invoice',
               entityId: invoice.id,
-              orgId: invoice.orgId,
+              orgId: invoice.orgId || 1,
               read: false,
               createdAt: new Date()
             });
