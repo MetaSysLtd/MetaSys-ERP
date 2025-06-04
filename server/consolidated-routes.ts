@@ -1819,7 +1819,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       const policyData = {
         ...result.data,
         orgId: req.user?.orgId || 1,
-        updatedBy: req.user?.id
+        updatedBy: req.user?.id || 1
       };
       
       const newPolicy = await storage.createCommissionPolicy(policyData);
@@ -1830,7 +1830,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         entityType: "commission_policy",
         entityId: newPolicy.id,
         action: "created",
-        details: `Commission policy created: ${newPolicy.type}`
+        details: `Commission policy created: ${newPolicy.scope}`
       });
       
       res.status(201).json(newPolicy);
@@ -1869,7 +1869,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         entityType: "commission_policy",
         entityId: id,
         action: "updated",
-        details: `Commission policy updated: ${existingPolicy.type}`
+        details: `Commission policy updated: ${existingPolicy.scope}`
       });
       
       res.json(updatedPolicy);
@@ -1910,7 +1910,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         entityType: "commission_policy",
         entityId: id,
         action: "deleted",
-        details: `Commission policy deleted: ${existingPolicy.type}`
+        details: `Commission policy deleted: ${existingPolicy.scope}`
       });
       
       res.status(204).send();
@@ -1943,7 +1943,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         entityType: "commission_policy",
         entityId: id,
         action: "archived",
-        details: `Commission policy archived: ${existingPolicy.type}`
+        details: `Commission policy archived: ${existingPolicy.scope}`
       });
       
       res.json(archivedPolicy);
@@ -2055,7 +2055,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       const runData = {
         ...result.data,
         orgId: req.user?.orgId || 1,
-        calculatedBy: req.user?.id
+        calculatedBy: req.user?.id || 1
       };
       
       const newRun = await storage.createCommissionRun(runData);
