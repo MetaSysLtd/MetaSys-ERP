@@ -465,16 +465,4 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server, io: 
   return httpServer;
 }
 
-// Add custom interfaces for request object with user and role
-declare global {
-  namespace Express {
-    interface Request {
-      user?: typeof users.$inferSelect;
-      userRole?: typeof roles.$inferSelect;
-    }
-
-    interface Session {
-      userId?: number;
-    }
-  }
-}
+// Interface declarations moved to consolidated-routes.ts to avoid conflicts

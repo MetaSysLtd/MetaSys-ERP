@@ -2639,6 +2639,13 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         onboardingDate: req.body.onboardingDate ? new Date(req.body.onboardingDate) : new Date()
       });
       
+      if (!updatedClient) {
+        return res.status(404).json({
+          status: "error",
+          message: "Dispatch client not found after update"
+        });
+      }
+      
       // Create activity
       await storage.createActivity({
         userId: req.user?.id || 0,
@@ -2649,11 +2656,15 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       });
       
       // Send notification
-      await notificationService.sendDispatchNotification({
+      await storage.createNotification({
         userId: req.user?.id || 0,
-        userName: req.user?.username || 'System',
-        leadId: updatedClient.leadId,
-        companyName: 'Approved Company'
+        orgId: req.user?.orgId || 1,
+        title: 'Dispatch Client Approved',
+        message: `Dispatch client with ID: ${clientId} has been approved`,
+        type: 'dispatch_client_approved',
+        read: false,
+        entityType: 'dispatch_client',
+        entityId: clientId
       });
       
       res.status(200).json({

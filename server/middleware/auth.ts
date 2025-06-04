@@ -1,32 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { storage } from "../storage";
 
-// Add type definitions for ExpressJS to recognize the user object
-declare global {
-  namespace Express {
-    interface User {
-      id: number;
-      username: string;
-      firstName: string;
-      lastName: string;
-      roleId: number;
-      [key: string]: any;
-    }
-
-    interface Request {
-      userRole?: {
-        id: number;
-        name: string;
-        description: string | null;
-        level: number;
-        department: string;
-        permissions: any;
-        isAdmin: boolean;
-        canManageUsers: boolean;
-      };
-    }
-  }
-}
+// Interface declarations moved to consolidated-routes.ts to avoid conflicts
 
 // Middleware for checking authentication and minimum role level
 export function auth(minimumLevel: number = 1) {

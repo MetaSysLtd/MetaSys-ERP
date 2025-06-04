@@ -972,22 +972,7 @@ function registerHrRoutes(router: Router) {
 // Socket.IO instance will be initialized in registerRoutes
 let io: SocketIOServer;
 
-// Add type extensions for Express
-declare global {
-  namespace Express {
-    interface Request {
-      user?: typeof users.$inferSelect;
-      userRole?: typeof roles.$inferSelect;
-    }
-  }
-  
-  // Extend express-session
-  namespace Express {
-    interface Session {
-      userId?: number;
-    }
-  }
-}
+// Interface declarations moved to consolidated-routes.ts to avoid conflicts
 
 const MemoryStore = createMemoryStore(session);;
 
