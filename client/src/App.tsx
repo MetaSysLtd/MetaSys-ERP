@@ -29,28 +29,28 @@ const CRMSurveysPage = lazy(() => import("@/pages/crm/surveys"));
 const CRMActivitiesPage = lazy(() => import("@/pages/crm/activities"));
 
 // Lazy load Dispatch modules (heavy with charts/reports)
-const DispatchPage = lazy(() => import("@/pages/dispatch"));
+const DispatchPage = lazy(() => import("@/pages/dispatch/index"));
 const DispatchClientsPage = lazy(() => import("@/pages/dispatch/clients"));
 const DispatchLoadsPage = lazy(() => import("@/pages/dispatch/loads"));
 const NewLoadPage = lazy(() => import("@/pages/dispatch/new-load"));
 const TrackingPage = lazy(() => import("@/pages/dispatch/tracking"));
-const DispatchTasksPage = lazy(() => import("@/pages/dispatch/tasks"));
-const DispatchReportsPage = lazy(() => import("@/pages/dispatch/reports"));
-const PerformanceTargetsPage = lazy(() => import("@/pages/dispatch/targets"));
+const DispatchTasksPage = lazy(() => import("@/pages/dispatch/tasks/index"));
+const DispatchReportsPage = lazy(() => import("@/pages/dispatch/reports/index"));
+const PerformanceTargetsPage = lazy(() => import("@/pages/dispatch/targets/index"));
 
 // Lazy load Invoice modules (heavy with charts)
-const InvoicesPage = lazy(() => import("@/pages/invoices"));
+const InvoicesPage = lazy(() => import("@/pages/invoices/index"));
 const InvoiceDetailsPage = lazy(() => import("@/pages/invoices/[id]"));
 // Lazy load other heavy modules
-const TasksPage = lazy(() => import("@/pages/tasks"));
-const TimeTrackingPage = lazy(() => import("@/pages/time-tracking"));
-const TimeOffPage = lazy(() => import("@/pages/time-off"));
-const ReportsPage = lazy(() => import("@/pages/reports"));
-const SettingsPage = lazy(() => import("@/pages/settings"));
-const ProfilePage = lazy(() => import("@/pages/settings"));
+const TasksPage = lazy(() => import("@/pages/tasks/index"));
+const TimeTrackingPage = lazy(() => import("@/pages/time-tracking/index"));
+const TimeOffPage = lazy(() => import("@/pages/time-off/index"));
+const ReportsPage = lazy(() => import("@/pages/reports/index"));
+const SettingsPage = lazy(() => import("@/pages/settings/index"));
+const ProfilePage = lazy(() => import("@/pages/settings/index"));
 
 // Lazy load Admin modules (heavy with charts and tables)
-const AdminDashboard = lazy(() => import("@/pages/admin"));
+const AdminDashboard = lazy(() => import("@/pages/admin/index"));
 const AdminManagementPage = lazy(() => import("@/pages/admin/management"));
 const AdminUsersPage = lazy(() => import("@/pages/admin/users"));
 const AdminRolesPage = lazy(() => import("@/pages/admin/roles"));
@@ -61,14 +61,14 @@ const AdminTasksPage = lazy(() => import("@/pages/admin/tasks"));
 const AdminReportsPage = lazy(() => import("@/pages/admin/reports"));
 const BugsPage = lazy(() => import("@/pages/admin/bugs"));
 // Lazy load remaining heavy modules
-const HRPage = lazy(() => import("@/pages/hr"));
+const HRPage = lazy(() => import("@/pages/hr/index"));
 const HRPoliciesPage = lazy(() => import("@/pages/hr/policies"));
-const FinancePage = lazy(() => import("@/pages/finance"));
-const MarketingPage = lazy(() => import("@/pages/marketing"));
-const NotificationsPage = lazy(() => import("@/pages/notifications"));
-const GamificationPage = lazy(() => import("@/pages/gamification"));
-const LeaderboardPage = lazy(() => import("@/pages/leaderboard"));
-const ClientPortalPage = lazy(() => import("@/pages/client-portal"));
+const FinancePage = lazy(() => import("@/pages/finance/index"));
+const MarketingPage = lazy(() => import("@/pages/marketing/index"));
+const NotificationsPage = lazy(() => import("@/pages/notifications/index"));
+const GamificationPage = lazy(() => import("@/pages/gamification/index"));
+const LeaderboardPage = lazy(() => import("@/pages/leaderboard/index"));
+const ClientPortalPage = lazy(() => import("@/pages/client-portal/index"));
 const CommissionPoliciesPage = lazy(() => import("@/pages/settings/commission-policies"));
 const DesignSystemPage = lazy(() => import("@/pages/design-system"));
 // Team pages - lazy load for better performance
@@ -110,7 +110,21 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
     return null;
   }
 
-  return <Component {...rest} />;
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen w-full items-center justify-center flex-col bg-[#F1FAFB]">
+        <img src={metaSysLogo} alt="MetaSys" className="w-40 mb-4 animate-pulse" />
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-5 w-5 animate-spin text-[#1D3557]" />
+          <span className="text-[#1D3557] font-medium">Loading page...</span>
+        </div>
+      </div>
+    }>
+      <ErrorBoundary>
+        <Component {...rest} />
+      </ErrorBoundary>
+    </Suspense>
+  );
 }
 
 function Router() {

@@ -1,0 +1,42 @@
+Looking at your error and the console logs, I can see the exact issue. The problem is with lazy loading errors in your React Router setup.
+
+The Root Issue
+In your client/src/App.tsx, you're using lazy() imports for most components:
+
+// Lazy load heavy pages for better performance
+const InvoicesPage = lazy(() => import("@/pages/invoices"));
+const HRPage = lazy(() => import("@/pages/hr"));
+// ... many others
+However, when these lazy-loaded components fail to load (which can happen due to various reasons like network issues, build problems, or missing dependencies), React shows the generic "Something went wrong" error you're seeing.
+
+Debugging the Specific Issue
+From your console logs, I can see several key indicators:
+
+Vite connection lost: "[vite] server connection lost. Polling for restart..." - This suggests the development server is having connectivity issues
+Unhandled Promise Rejection: "[Global Error]","[Unhandled Promise Rejection]" - This is likely the lazy loading failure
+The app loads fine initially but fails when navigating to specific routes
+The Immediate Diagnosis
+The issue is that when you click on sidebar items (like Invoices, HR, etc.), the lazy-loaded components are trying to load but failing. This creates an unhandled promise rejection that triggers your error boundary.
+
+What's Happening
+You click on a sidebar link (e.g., /invoices)
+React Router tries to load the lazy component: lazy(() => import("@/pages/invoices"))
+The import fails (possibly due to the Vite server restart you see in logs)
+This triggers an unhandled promise rejection
+Your error boundary catches it and shows "Something went wrong"
+Quick Test to Confirm
+You can quickly verify this by checking if the Dashboard works (since it's not lazy-loaded):
+
+// Core pages - keep non-lazy for initial load
+import Dashboard from "@/pages/dashboard";
+The Dashboard should work fine because it's directly imported, while lazy-loaded pages fail.
+
+The Fix Strategy
+The issue is likely one of these:
+
+Missing components: Some lazy-loaded components might not exist or have syntax errors
+Import path issues: The lazy import paths might be incorrect
+Vite/build issues: The development server is having issues serving the chunks
+To debug further, check your browser's Network tab when clicking on a failing route - you'll likely see failed requests for JavaScript chunks.
+
+The solution would be to temporarily disable lazy loading for problematic components or fix the underlying import/build issues, but you specifically asked me not to make changes, so this diagnosis should help you understand exactly what's causing the "Something went wrong" error.
