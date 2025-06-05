@@ -195,14 +195,15 @@ function AuthProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       console.log("Login response:", { status: res.status, data });
       
-      // Check if login response contains user data
-      if (!data || !data.id) {
+      // Check if login response contains user data (handle both direct and nested formats)
+      const userData = data.user || data;
+      if (!userData || !userData.id) {
         throw new Error("Server returned no user data");
       }
 
       // Set authentication state directly from login response
       setIsAuthenticated(true);
-      setUser(data);
+      setUser(userData);
       // Set default role to allow sidebar to render immediately
       setRole({ 
         id: 0, 

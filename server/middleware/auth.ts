@@ -213,6 +213,7 @@ export const setupAuth = (app: any) => {
       // Return user data (excluding password)
       const { password: _, ...userWithoutPassword } = user;
       res.json({
+        authenticated: true,
         user: userWithoutPassword
       });
     } catch (error) {
