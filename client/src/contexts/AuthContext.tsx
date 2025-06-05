@@ -1,5 +1,6 @@
-import { createContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { API_ROUTES } from "@shared/constants";
+import { useSessionKeepalive } from "@/hooks/use-session-keepalive";
 
 interface User {
   id: number;
@@ -129,6 +130,21 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
     checkAuth();
   }, []); // Only run once on mount
+
+  // Session keepalive handler
+  const handleSessionExpired = useCallback(() => {
+    console.log('Session expired, logging out...');
+    setIsAuthenticated(false);
+    setUser(null);
+    setRole(null);
+    setError('Your session has expired. Please log in again.');
+  }, []);
+
+  // Use session keepalive hook
+  useSessionKeepalive({
+    isAuthenticated,
+    onSessionExpired: handleSessionExpired
+  });
 
   const login = async (username: string, password: string) => {
     setIsLoading(true);

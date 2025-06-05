@@ -38,6 +38,14 @@ export function useCrossModuleData<T>(dataType: ModuleType, options: {
     queryKey: options.entityId
       ? ['crossModule', dataType, options.entityId]
       : ['crossModule', dataType],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
+    retry: false,
+    enabled: options.enabled !== false, // Stable condition
+    refetchOnReconnect: false,
     queryFn: async () => {
       try {
         const response = await apiRequest('GET', `${url}${queryParams}`);
