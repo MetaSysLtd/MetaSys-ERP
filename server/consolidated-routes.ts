@@ -2804,6 +2804,20 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         details: `Load created for ${req.body.origin || 'unknown origin'} to ${req.body.destination || 'unknown destination'}`
       });
       
+      // Emit socket event for real-time updates
+      const io = getIo();
+      if (io) {
+        io.emit('dispatch:created', { 
+          load: newLoad, 
+          userId: req.user?.id 
+        });
+        io.emit('data:updated', { 
+          type: 'loads', 
+          action: 'created', 
+          data: newLoad 
+        });
+      }
+      
       res.status(201).json(newLoad);
     } catch (error) {
       console.error("Error creating load:", error);
@@ -2832,6 +2846,20 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         ...req.body,
         updatedBy: req.user?.id
       });
+      
+      // Emit socket event for real-time updates
+      const io = getIo();
+      if (io) {
+        io.emit('dispatch:updated', { 
+          load: updatedLoad, 
+          userId: req.user?.id 
+        });
+        io.emit('data:updated', { 
+          type: 'loads', 
+          action: 'updated', 
+          data: updatedLoad 
+        });
+      }
       
       res.json(updatedLoad);
     } catch (error) {

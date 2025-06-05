@@ -66,10 +66,13 @@ export function DashboardWidgetManager() {
   const extendedUser = user as unknown as ExtendedUser;
   const [open, setOpen] = useState(false);
   const [editWidget, setEditWidget] = useState<Widget | null>(null);
-  // COMPLETELY DISABLE WIDGET QUERIES TO ELIMINATE INFINITE API LOOPS
-  // This component is temporarily disabled to fix performance issues
-  const widgets: Widget[] = [];
-  const isLoading = false;
+  // Re-enable widget queries with proper error handling and optimization
+  const { data: widgets = [], isLoading, error } = useQuery({
+    queryKey: ['/api/dashboard/widgets'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+    retryDelay: 1000,
+  });
 
   // Use memoized list of available widgets instead of state + useEffect
   const availableList = useMemo(() => {
