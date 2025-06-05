@@ -14,7 +14,7 @@ import { TeamPerformance } from "@/components/dashboard/TeamPerformance";
 import { OnboardingRatio } from "@/components/dashboard/OnboardingRatio";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { RecentLeads } from "@/components/dashboard/RecentLeads";
-import CommissionBreakdown from "@/components/dashboard/CommissionBreakdown";
+import CommissionBreakdown from "@/components/dashboard/CommissionBreakdown-clean";
 import CommissionPerformance from "@/components/dashboard/CommissionPerformance";
 import { CommissionTracking } from "@/components/dashboard/CommissionTracking";
 import { RevenueCard } from "@/components/dashboard/RevenueCard";
@@ -86,65 +86,7 @@ export default function Dashboard() {
     }
   };
 
-  // Using proper error handling with the dashboard API
-  const dashboardQuery = useQuery({
-    queryKey: ["/api/dashboard", dateRange, department],
-    queryFn: async () => {
-      try {
-        console.log("[Dashboard] Fetching dashboard data...");
-        
-        // Reset error state when trying a new fetch
-        setHasError(false);
-        setErrorMsg("");
-        
-        // Use retry fetch for resilience
-        const response = await retryFetch("/api/dashboard");
-        
-        if (!response.ok) {
-          const errorMessage = response.status === 500
-            ? "Dashboard data temporarily unavailable. Our team is working on it."
-            : "Failed to load dashboard data.";
-          
-          console.error(`[Dashboard] API Error: ${errorMessage} (${response.status})`);
-          setHasError(true);
-          setErrorMsg(errorMessage);
-          
-          // Return fallback data instead of throwing
-          return { ...fallbackData, error: errorMessage };
-        }
-        
-        try {
-          const data = await response.json();
-          
-          // Validate that we received valid data
-          if (!data || typeof data !== 'object') {
-            console.error("[Dashboard] Invalid data format received");
-            setHasError(true);
-            setErrorMsg("Invalid dashboard data received");
-            return { ...fallbackData, error: "Invalid data format" };
-          }
-          
-          console.log("[Dashboard] Data loaded successfully");
-          return data;
-        } catch (parseError) {
-          console.error("[Dashboard] JSON parse error:", parseError);
-          setHasError(true);
-          setErrorMsg("Failed to parse dashboard data");
-          return { ...fallbackData, error: "Parse error" };
-        }
-      } catch (error) {
-        console.error("[Dashboard] Error loading dashboard data:", error);
-        setHasError(true);
-        setErrorMsg("Failed to load dashboard data");
-        return { ...fallbackData, error: "Network error" };
-      }
-    },
-    // Reduce the frequency of refetches to avoid overwhelming the user with error messages
-    refetchInterval: 30000, // 30 seconds
-    refetchOnWindowFocus: false,
-    retry: 3, // Retry up to 3 times
-    retryDelay: 3000, // 3 seconds between retries
-  });
+  // Removed redundant dashboardQuery - using useDashboardData() only to prevent infinite loops
   
   // Handle the skeleton state display for the first render
   if (!uiReady || criticalDataLoading) {
@@ -204,15 +146,15 @@ export default function Dashboard() {
   
         {/* Even with errors, continue showing components with safe fallbacks */}
           <MotionWrapper animation="scale-up" delay={0.4}>
-            <RevenueCard data={dashboardQuery.data?.revenueData} />
+            <RevenueCard data={revenueData} />
           </MotionWrapper>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <MotionWrapper animation="fade-right" delay={0.5}>
-              <OnboardingRatio data={dashboardQuery.data?.onboardingMetrics} />
+              <OnboardingRatio />
             </MotionWrapper>
             <MotionWrapper animation="fade-left" delay={0.5}>
-              <TeamPerformance data={dashboardQuery.data?.teamMetrics} />
+              <TeamPerformance />
             </MotionWrapper>
           </div>
 
@@ -221,7 +163,6 @@ export default function Dashboard() {
               <TeamPerformance 
                 title="Sales Team Performance" 
                 type="sales" 
-                data={dashboardQuery.data?.salesPerformance} 
                 className="border-blue-500 dark:border-blue-400"
               />
             </MotionWrapper>
@@ -242,8 +183,7 @@ export default function Dashboard() {
             >
               <TeamPerformance 
                 title="Dispatch Team Performance" 
-                type="dispatch" 
-                data={dashboardQuery.data?.dispatchPerformance}
+                type="dispatch"
                 className="border-amber-500 dark:border-amber-400" 
               />
             </MotionWrapper>
@@ -251,8 +191,8 @@ export default function Dashboard() {
 
           <MotionList animation="fade-up" delay={0.8}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              <ActivityFeed activities={dashboardQuery.data?.activities?.slice(0, 10)} />
-              <RecentLeads leads={dashboardQuery.data?.leads} />
+              <ActivityFeed activities={activitiesData?.slice(0, 10)} />
+              <RecentLeads />
             </div>
           </MotionList>
 
@@ -291,11 +231,11 @@ export default function Dashboard() {
           </div>
           
           <MotionWrapper animation="fade-in" delay={1.0}>
-            <FinanceOverview data={dashboardQuery.data?.finance} />
+            <FinanceOverview />
           </MotionWrapper>
           
           <MotionWrapper animation="fade-in" delay={1.1}>
-            <EmployeeSummary data={dashboardQuery.data?.employees} />
+            <EmployeeSummary />
           </MotionWrapper>
       </div>
     </ErrorBoundary>
