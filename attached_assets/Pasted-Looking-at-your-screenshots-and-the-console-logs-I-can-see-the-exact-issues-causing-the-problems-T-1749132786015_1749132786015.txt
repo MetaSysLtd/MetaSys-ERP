@@ -1,0 +1,53 @@
+Looking at your screenshots and the console logs, I can see the exact issues causing the problems. The main issue is JSON parsing errors where the server is returning HTML instead of JSON responses. This is causing the "Unexpected token '<', '<!DOCTYPE '... is not valid JSON" error.
+
+Dynamic Flow Analysis - Critical Issues Identified:
+1. Primary Issue: Server Returning HTML Instead of JSON
+The logs show: "Unexpected token '<', '<!DOCTYPE '... is not valid JSON"
+
+This means your API endpoints are returning HTML error pages instead of JSON responses, which happens when:
+
+The API route doesn't exist or isn't properly registered
+There's a server-side error that's returning an HTML error page
+The route handler is crashing and falling back to default HTML error handling
+2. Socket Connection Failures
+The logs show repeated WebSocket connection failures:
+
+WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed
+This is causing the infinite socket handler cycling you see in the logs.
+
+3. Infinite Socket Handler Registration Loop
+The logs show constant cycling of:
+
+Setting up handler for connect
+Removing handler for connect
+Setting up handler for disconnect
+Removing handler for disconnect
+This suggests a dependency issue in your socket setup that's causing infinite re-renders.
+
+4. Authentication State Issues
+Several 401 errors and authentication check failures, indicating session management problems on the live server.
+
+Root Cause Analysis:
+Based on the console logs, the issue is in your API route handling. When you click on sidebar items like:
+
+/dispatch/loads → calls /api/dispatch/loads
+/crm/commissions → calls /api/commissions
+/crm/activities → calls /api/activities
+These API endpoints are either:
+
+Not properly registered in your server routes
+Returning HTML error pages instead of JSON
+Crashing server-side and falling back to default error handling
+Specific Issues from Your Screenshots:
+Dispatch Loads: "Error Loading Dispatch Data" - The /api/dispatch/loads endpoint is returning HTML
+Commission Data: "Error Loading Commission Data" - The /api/commissions endpoint is failing
+Activities: "Error Loading Activities" - The /api/activities endpoint is not working
+Accounts/Clients: Same JSON parsing issues
+What's Happening:
+The sidebar navigation works fine, but when the components try to fetch data from the API endpoints, they're getting HTML error pages instead of JSON data. This suggests your server routing configuration has issues where certain API routes aren't properly registered or are crashing.
+
+Next Steps for Debugging:
+Check your server console logs (not browser console) to see what errors are happening server-side when these API calls are made
+Verify your API routes in server/routes/ are properly registered
+Test the API endpoints directly by visiting them in your browser (e.g., https://erp.metasysltd.com/api/dispatch/loads)
+The issue is not with your React components or lazy loading - it's with the backend API routes returning HTML instead of JSON responses. All your built functionality is still there; it's just the API layer that needs fixing.
