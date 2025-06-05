@@ -18,7 +18,12 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [connected, setConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState<{ event: string; data: any } | null>(null);
   const { user } = useAuth();
+  
+  // Create stable toast reference to prevent useEffect cycling
   const { toast } = useToast();
+  const stableToast = useCallback((options: any) => {
+    toast(options);
+  }, [toast]);
 
   // Initialize socket connection
   useEffect(() => {
@@ -58,7 +63,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.error('Socket error:', error);
       
       if (error.message?.includes('auth')) {
-        toast({
+        stableToast({
           title: 'Connection Error',
           description: 'Authentication issue with real-time updates. Please refresh.',
           variant: 'destructive',
@@ -70,7 +75,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.log(`Socket reconnect attempt ${attemptNumber}`);
       
       if (attemptNumber >= 5) {
-        toast({
+        stableToast({
           title: 'Connection Issues',
           description: 'Having trouble connecting for real-time updates.',
           variant: 'destructive',
@@ -82,7 +87,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.log('Socket reconnected');
       setConnected(true);
       
-      toast({
+      stableToast({
         title: 'Reconnected',
         description: 'Real-time updates restored.',
         duration: 3000,
@@ -102,7 +107,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setSocket(null);
       setConnected(false);
     };
-  }, [user, toast]);
+  }, [user]); // Removed toast dependency to prevent infinite socket cycling
 
   // Subscribe to events (with typed callback)
   const subscribe = useCallback((event: string, callback: (data: any) => void) => {

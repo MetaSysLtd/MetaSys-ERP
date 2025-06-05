@@ -1,0 +1,106 @@
+Looking at your codebase and the console logs, I can identify the exact root causes of the infinite API loops and explain why they're occurring. Let me break this down systematically:
+
+Primary Root Cause: Socket Handler Cycling
+The main culprit is in SocketContext.tsx. Here's what's happening:
+
+useEffect(() => {
+  if (!user) return;
+  // Socket setup code...
+  return () => {
+    socketInstance.disconnect();
+    setSocket(null);
+    setConnected(false);
+  };
+}, [user, toast]); // ← THE PROBLEM: `toast` dependency
+Why this causes infinite loops:
+
+The toast function from useToast() gets recreated on every render
+This triggers the useEffect to re-run
+Socket disconnects and reconnects continuously
+Each reconnection triggers authentication checks
+Authentication checks trigger more renders
+More renders = new toast function = cycle repeats
+Evidence from logs:
+
+["Setting up handler for connect"]
+["Removing handler for connect"] 
+["Setting up handler for disconnect"]
+["Removing handler for disconnect"]
+Secondary Cause: Commission Components Bypassing Consolidated Hook
+Looking at dashboard/index.tsx, I can see:
+
+// The dashboard uses useDashboardData hook (GOOD)
+const {
+  isLoading: dashboardLoading,
+  kpiData,
+  revenueData,
+  activitiesData,
+  commissionData
+} = useDashboardData();
+// BUT commission components are still making independent calls (BAD)
+<CommissionBreakdown 
+  isAdmin={role && role.level ? role.level >= 4 : false}
+/>
+<CommissionPerformance 
+  type={user?.roleId === 5 || user?.roleId === 6 ? 'dispatch' : 'sales'}
+/>
+The Problem: CommissionBreakdown-clean.tsx and CommissionPerformance.tsx likely contain their own useQuery calls instead of using the commissionData prop from the consolidated hook.
+
+Tertiary Cause: Multiple Dashboard Files
+I see you have multiple dashboard implementations:
+
+dashboard/index.tsx (using consolidated hook)
+dashboard/fixed-dashboard.tsx (using individual API calls)
+dashboard/safe-dashboard.tsx (using individual API calls)
+If multiple dashboard files are being used or imported somewhere, they could be triggering competing API calls.
+
+Authentication Loop Amplification
+From the console logs:
+
+["Making query to:","/api/auth/me"]
+["Making query to:","/api/auth/user-organizations"] 
+["Making query to:","/api/organizations/current"]
+These authentication calls are happening because:
+
+Socket reconnections trigger auth checks
+Multiple components are independently checking auth status
+The auth context is probably re-rendering due to socket state changes
+Why the Agent's Previous Fixes Didn't Work
+The Agent created the useDashboardData hook correctly with:
+
+Infinite staleTime/gcTime
+Proper dependency management
+Single consolidated endpoint
+But the fixes failed because:
+
+Socket cycling wasn't addressed - the root cause remains
+Commission components weren't updated to use the consolidated data
+Multiple dashboard files exist - unclear which one is actually being used
+No cleanup of old useQuery calls in commission components
+The Complete Fix Strategy (Understanding Only)
+To completely eliminate the infinite loops, you would need to:
+
+1. Fix Socket Context Dependencies
+Remove toast from the useEffect dependency array and handle errors differently.
+
+2. Update Commission Components
+Modify CommissionBreakdown-clean.tsx and CommissionPerformance.tsx to:
+
+Remove all useQuery calls
+Accept data as props from the consolidated hook
+Use the commissionData passed down from the main dashboard
+3. Cleanup Dashboard Files
+Determine which dashboard file is actually being used and remove the others to prevent confusion.
+
+4. Verify Consolidated Endpoint
+Ensure /api/dashboard/consolidated actually exists and returns all necessary data.
+
+Why This Matters
+The infinite loops are causing:
+
+Performance degradation (constant API calls)
+Database strain (unnecessary queries)
+User experience issues (visible reloads/refreshes)
+Authentication instability (session checks)
+Memory leaks (socket handlers piling up)
+The core issue is dependency management in React hooks - when dependencies change unnecessarily, it triggers cascading re-renders that create feedback loops. The socket context is the primary trigger, but the commission components amplify the problem by making independent API calls that should be consolidated.
