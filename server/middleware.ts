@@ -90,15 +90,21 @@ export const checkUserModifyPermission = async (req: Request, res: Response, nex
 
   const targetUserId = parseInt(req.params.id);
   
-  // Allow users to modify their own profile (except restricted fields)
+  // Allow users to modify their own profile
   if (req.user.id === targetUserId) {
-    // Check if restricted fields are being modified
+    // Check if user is a system admin - they can modify any field on their own profile
+    const isSystemAdmin = req.user.isSystemAdmin === true || (req.userRole?.level && req.userRole.level >= 5);
+    
+    if (isSystemAdmin) {
+      return next();
+    }
+    
+    // For non-admin users, check if restricted fields are being modified
     const restrictedFields = ['username', 'firstName', 'lastName', 'roleId'];
     const requestHasRestrictedFields = restrictedFields.some(field => field in req.body);
     
-    // If user is trying to modify restricted fields, check permissions
+    // If non-admin user is trying to modify restricted fields, check permissions
     if (requestHasRestrictedFields) {
-      // Allow admins (level 5+) or HR roles to modify restricted fields
       const roleName = req.userRole?.name?.toLowerCase() || '';
       const isHrRole = roleName.includes('hr') || roleName.includes('human resources');
       

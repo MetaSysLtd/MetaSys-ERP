@@ -84,8 +84,8 @@ router.post('/change-password', createAuthMiddleware(1), async (req, res) => {
     const userId = req.user!.id;
     const { currentPassword, newPassword } = req.body;
     
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: 'Current password and new password are required' });
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters long' });
     }
     
     // Get current user to check password
@@ -95,9 +95,19 @@ router.post('/change-password', createAuthMiddleware(1), async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    // Verify current password (would normally use bcrypt compare here)
-    if (user.password !== currentPassword) {
-      return res.status(401).json({ error: 'Current password is incorrect' });
+    // Check if user is system admin - they can change password without current password
+    const isSystemAdmin = user.isSystemAdmin === true || (req.userRole?.level && req.userRole.level >= 5);
+    
+    // For non-system admins, verify current password
+    if (!isSystemAdmin) {
+      if (!currentPassword) {
+        return res.status(400).json({ error: 'Current password is required' });
+      }
+      
+      // Compare current password (plain text for now - should use bcrypt in production)
+      if (user.password !== currentPassword) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
     }
     
     // Update password
