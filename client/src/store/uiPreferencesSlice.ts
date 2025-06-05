@@ -99,12 +99,17 @@ export const saveAnimationSettings = (settings: {
 export const fetchPreferences = () => async (dispatch: any) => {
   try {
     const response = await apiRequest('GET', '/api/ui-prefs/me');
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
     const data = await response.json();
     dispatch(setPreferences(data));
     return data;
   } catch (error) {
     console.error('Failed to fetch UI preferences:', error);
-    return null;
+    // Always dispatch default preferences to prevent loading loops
+    dispatch(setPreferences(initialState));
+    throw error; // Re-throw to allow App.tsx catch handler to work
   }
 };
 

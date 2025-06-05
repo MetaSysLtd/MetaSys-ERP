@@ -600,10 +600,23 @@ function AppContent() {
     }
   });
 
-  // Load UI preferences when user logs in
+  // Load UI preferences when user logs in (non-blocking with fallbacks)
   useEffect(() => {
     if (user) {
-      dispatch(fetchPreferences());
+      // Don't block sidebar rendering - use async pattern with fallbacks
+      dispatch(fetchPreferences()).catch((error) => {
+        console.warn('UI preferences failed to load, using defaults:', error);
+        // Set default preferences so sidebar can render
+        dispatch(setPreferences({
+          sidebarPinned: true,
+          sidebarCollapsed: false,
+          expandedDropdown: null,
+          animationsEnabled: false,
+          transitionSpeed: 'normal',
+          pageTransition: 'fade',
+          reducedMotion: false
+        }));
+      });
     }
   }, [user, dispatch]);
 
