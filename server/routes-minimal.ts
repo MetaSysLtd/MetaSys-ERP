@@ -214,6 +214,16 @@ export async function registerRoutes(router: any): Promise<void> {
   });
 
   // Add missing CRM endpoints that frontend is calling
+  router.get("/leads", requireAuth(1), async (req, res) => {
+    try {
+      const leads = await storage.getLeads?.() || [];
+      res.json(leads);
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+      res.status(500).json({ message: "Failed to fetch leads" });
+    }
+  });
+
   router.get("/crm/leads", requireAuth(1), async (req, res) => {
     try {
       const leads = await storage.getLeads?.() || [];
