@@ -626,6 +626,7 @@ export class MemStorage implements IStorage {
   private formTemplateIdCounter: number;
   private formSubmissionIdCounter: number;
   private leadHandoffIdCounter: number;
+  private commissionRuleIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
@@ -1973,6 +1974,18 @@ export class MemStorage implements IStorage {
   async createCommissionRun(run: InsertCommissionRun): Promise<CommissionRun> {
     const [newRun] = await db.insert(commissionRun).values(run).returning();
     return newRun;
+  }
+
+  async createCommissionRule(rule: InsertCommissionRule): Promise<CommissionRule> {
+    const now = new Date();
+    const newRule: CommissionRule = {
+      id: this.commissionRuleIdCounter++,
+      ...rule,
+      createdAt: now,
+      updatedAt: now
+    };
+    this.commissionRules.set(newRule.id, newRule);
+    return newRule;
   }
   
   // Enhanced commission-related operations
