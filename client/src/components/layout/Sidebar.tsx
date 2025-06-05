@@ -173,9 +173,12 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
   }, [mobile, dispatch, preferences]);
 
   // Return early if user not authenticated
-  if (!user || !role) {
+  if (!user) {
     return null;
   }
+
+  // Use fallback role if role is not loaded yet
+  const effectiveRole = role || { name: 'User', level: 1 };
 
   // Define navigation items
   const mainNavItems: NavItem[] = [
@@ -376,7 +379,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
                 {user.firstName} {user.lastName}
               </p>
               <p className="text-xs text-[#025E73] font-medium">
-                {role.name}
+                {typeof effectiveRole === 'object' ? effectiveRole.name : 'User'}
               </p>
             </div>
           </div>
@@ -421,7 +424,7 @@ export function Sidebar({ mobile, collapsed }: SidebarProps) {
           </div>
 
           {/* Admin section - visible only to system admins */}
-          {role && (role.level >= 4 || role.name === "System Admin") && (
+          {typeof effectiveRole === 'object' && (effectiveRole.level >= 4 || effectiveRole.name === "System Admin") && (
             <div className="px-4 mb-6 pt-4">
               <h3 className="px-2 text-xs font-semibold text-[#F2A71B] uppercase tracking-[.5px] mb-3 pt-1">
                 Administration
