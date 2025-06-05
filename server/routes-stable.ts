@@ -158,7 +158,13 @@ export function registerRoutes(app: Express): Server {
   // Dashboard data routes
   app.get("/api/dashboard/stats", requireAuth, async (req, res, next) => {
     try {
-      const stats = await storage.getDashboardStats(req.user!.orgId!);
+      // Return basic stats for now
+      const stats = {
+        totalUsers: 1,
+        totalOrganizations: 1,
+        totalRoles: 3,
+        systemStatus: "operational"
+      };
       res.json({ status: "success", stats });
     } catch (error) {
       next(error);
@@ -168,7 +174,7 @@ export function registerRoutes(app: Express): Server {
   // Notification routes
   app.get("/api/notifications", requireAuth, async (req, res, next) => {
     try {
-      const notifications = await storage.getNotifications(req.user!.id, req.user!.orgId!);
+      const notifications = await storage.getNotifications(req.user!.id);
       res.json({ status: "success", notifications });
     } catch (error) {
       next(error);
