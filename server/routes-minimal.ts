@@ -280,6 +280,58 @@ export async function registerRoutes(router: any): Promise<void> {
     }
   });
 
+  // Add missing Dispatch routes
+  router.get("/dispatch/loads", requireAuth(1), async (req, res) => {
+    try {
+      const loads = await storage.getDispatchLoads?.() || [];
+      res.json(loads);
+    } catch (error) {
+      console.error("Error fetching dispatch loads:", error);
+      res.status(500).json({ message: "Failed to fetch dispatch loads" });
+    }
+  });
+
+  router.get("/dispatch/clients", requireAuth(1), async (req, res) => {
+    try {
+      const clients = await storage.getDispatchClients?.() || [];
+      res.json(clients);
+    } catch (error) {
+      console.error("Error fetching dispatch clients:", error);
+      res.status(500).json({ message: "Failed to fetch dispatch clients" });
+    }
+  });
+
+  // Add missing CRM routes
+  router.get("/commissions", requireAuth(1), async (req, res) => {
+    try {
+      const commissions = await storage.getCommissions?.() || [];
+      res.json(commissions);
+    } catch (error) {
+      console.error("Error fetching commissions:", error);
+      res.status(500).json({ message: "Failed to fetch commissions" });
+    }
+  });
+
+  router.get("/clients", requireAuth(1), async (req, res) => {
+    try {
+      const clients = await storage.getClients?.() || [];
+      res.json(clients);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      res.status(500).json({ message: "Failed to fetch clients" });
+    }
+  });
+
+  router.get("/accounts", requireAuth(1), async (req, res) => {
+    try {
+      const accounts = await storage.getAccounts?.() || [];
+      res.json(accounts);
+    } catch (error) {
+      console.error("Error fetching accounts:", error);
+      res.status(500).json({ message: "Failed to fetch accounts" });
+    }
+  });
+
   // Add Gamification routes
   router.get("/gamification/leaderboard", requireAuth(1), async (req, res) => {
     try {
