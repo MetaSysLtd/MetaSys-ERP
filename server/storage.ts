@@ -737,6 +737,61 @@ export class MemStorage implements IStorage {
     
     // Initialize with default roles
     this.initializeRoles();
+    
+    // Initialize default users
+    this.initializeDefaultUsers();
+  }
+
+  private initializeDefaultUsers() {
+    // Create default organization first
+    if (this.organizations.size === 0) {
+      const defaultOrg = {
+        id: this.organizationIdCounter++,
+        name: "MetaSys Corporation",
+        code: "METASYS",
+        active: true,
+        address: null,
+        contactName: null,
+        contactEmail: null,
+        contactPhone: null,
+        logoUrl: null,
+        enabledModules: ["CRM", "HR", "Finance", "Dispatch"],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      this.organizations.set(defaultOrg.id, defaultOrg);
+    }
+
+    // Create default admin user if no users exist
+    if (this.users.size === 0) {
+      const adminUser = {
+        id: this.userIdCounter++,
+        username: "admin",
+        password: "admin", // Simple password for demo
+        firstName: "System",
+        lastName: "Administrator",
+        email: "admin@metasys.com",
+        phoneNumber: null,
+        roleId: 1, // Admin role
+        active: true,
+        orgId: 1, // Default organization
+        profileImageUrl: null,
+        lastLoginAt: null,
+        canCreateLeads: true,
+        canEditLeads: true,
+        canDeleteLeads: true,
+        canViewReports: true,
+        canManageUsers: true,
+        canManageSettings: true,
+        canAccessFinance: true,
+        canAccessHR: true,
+        canAccessDispatch: true,
+        canManageRoles: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      this.users.set(adminUser.id, adminUser);
+    }
   }
   
   private initializeCommissionRules(orgId: number) {

@@ -148,7 +148,97 @@ export const addOrgContext = async (req: Request, res: Response, next: NextFunct
 
 // Basic auth setup function for compatibility
 export const setupAuth = (app: any) => {
-  // This is a placeholder function for minimal auth setup
-  // The actual authentication is handled by the middleware above
+  // Login endpoint
+  app.post("/auth/login", async (req: any, res: any) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ 
+          error: "Username and password are required" 
+        });
+      }
+
+      // Get user by username
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        return res.status(401).json({ 
+          error: "Invalid credentials" 
+        });
+      }
+
+      // For now, simple password check (in production, use proper hashing)
+      if (user.password !== password) {
+        return res.status(401).json({ 
+          error: "Invalid credentials" 
+        });
+      }
+
+      // Set session
+      if (req.session) {
+        req.session.userId = user.id;
+        req.session.orgId = user.orgId;
+      }
+
+      // Return user data (excluding password)
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({
+        user: userWithoutPassword,
+        message: "Login successful"
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ 
+        error: "Internal server error" 
+      });
+    }
+  });
+
+  // Auth check endpoint
+  app.get("/auth/me", async (req: any, res: any) => {
+    try {
+      if (!req.session || !req.session.userId) {
+        return res.status(401).json({ 
+          error: "Not authenticated" 
+        });
+      }
+
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        return res.status(401).json({ 
+          error: "User not found" 
+        });
+      }
+
+      // Return user data (excluding password)
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({
+        user: userWithoutPassword
+      });
+    } catch (error) {
+      console.error("Auth check error:", error);
+      res.status(500).json({ 
+        error: "Internal server error" 
+      });
+    }
+  });
+
+  // Logout endpoint
+  app.post("/auth/logout", (req: any, res: any) => {
+    if (req.session) {
+      req.session.destroy((err: any) => {
+        if (err) {
+          console.error("Session destruction error:", err);
+          return res.status(500).json({ 
+            error: "Logout failed" 
+          });
+        }
+        res.json({ message: "Logout successful" });
+      });
+    } else {
+      res.json({ message: "Already logged out" });
+    }
+  });
+
   console.log("Auth middleware setup completed");
 };
