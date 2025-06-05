@@ -1841,6 +1841,19 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         details: `Commission policy created: ${newPolicy.scope}`
       });
       
+      // Emit socket events for real-time updates
+      if (io) {
+        io.emit('policy:created', { 
+          policy: newPolicy, 
+          userId: req.user?.id 
+        });
+        io.emit('data:updated', { 
+          type: 'policies', 
+          action: 'created', 
+          data: newPolicy 
+        });
+      }
+      
       res.status(201).json(newPolicy);
     } catch (error) {
       console.error("Error creating commission policy:", error);
@@ -2076,6 +2089,19 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         action: "created",
         details: `Commission calculation run created for user ${newRun.userId} (${newRun.year}-${newRun.month})`
       });
+      
+      // Emit socket events for real-time updates
+      if (io) {
+        io.emit('commission:calculated', { 
+          commission: newRun, 
+          userId: req.user?.id 
+        });
+        io.emit('data:updated', { 
+          type: 'commissions', 
+          action: 'calculated', 
+          data: newRun 
+        });
+      }
       
       res.status(201).json(newRun);
     } catch (error) {
@@ -3449,6 +3475,11 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
       // Emit real-time update via socket
       if (io) {
         io.emit('invoice:created', result);
+        io.emit('data:updated', { 
+          type: 'invoices', 
+          action: 'created', 
+          data: result 
+        });
       }
       
       res.status(201).json(result);
