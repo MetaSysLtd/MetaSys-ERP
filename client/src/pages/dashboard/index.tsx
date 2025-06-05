@@ -140,7 +140,7 @@ export default function Dashboard() {
   
         {/* Always show KPI section even if dashboard data isn't loaded */}
         <MotionWrapper animation="fade-in" delay={0.3}>
-          <KPISection metrics={metricsData} />
+          <KPISection metrics={kpiData} />
         </MotionWrapper>
 
         {/* No visible error alerts - all components will handle errors gracefully */}
