@@ -116,25 +116,31 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
   // Stable loading state - prevent endless loops by using static content
   if (!user || !role) {
     return (
-      <div className="flex flex-col h-full bg-gradient-to-b from-white to-gray-100 text-gray-800">
-        {/* Static header without dynamic queries */}
-        <div className="px-6 pt-6 pb-5 flex items-center justify-between border-b border-gray-200">
-          <Logo />
-        </div>
+      <div className="w-full h-full flex flex-col bg-gradient-to-b from-white to-gray-100 text-gray-800 relative overflow-hidden">
+        {/* Semi-transparent overlay */}
+        <div className="absolute inset-0 bg-white/30"></div>
         
-        {/* Static loading content */}
-        <div className="flex flex-col items-center justify-center flex-1">
-          <div className="bg-white/50 rounded-lg p-6 shadow-sm">
-            <div className="flex flex-col items-center space-y-3">
-              <div className="w-12 h-12 border-3 border-[#025E73] border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-sm text-gray-600 font-medium">Initializing workspace...</p>
+        {/* Content container */}
+        <div className="relative z-10 flex flex-col h-full">
+          {/* Static header without dynamic queries */}
+          <div className="px-6 pt-6 pb-5 flex items-center justify-between border-b border-gray-200">
+            <Logo />
+          </div>
+          
+          {/* Static loading content */}
+          <div className="flex flex-col items-center justify-center flex-1 px-4">
+            <div className="bg-white/50 rounded-lg p-6 shadow-sm max-w-xs w-full">
+              <div className="flex flex-col items-center space-y-3">
+                <div className="w-10 h-10 border-2 border-[#025E73] border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-xs text-gray-600 font-medium text-center">Initializing workspace...</p>
+              </div>
             </div>
           </div>
-        </div>
-        
-        {/* Static version info */}
-        <div className="px-5 py-3 border-t border-gray-200 text-xs text-gray-600 text-center bg-white/30">
-          MetaSys ERP v1.0
+          
+          {/* Static version info */}
+          <div className="px-5 py-3 border-t border-gray-200 text-xs text-gray-600 text-center bg-white/30">
+            MetaSys ERP v1.0
+          </div>
         </div>
       </div>
     );
