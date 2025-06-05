@@ -29,8 +29,24 @@ export function registerRoutes(app: Express): Server {
         });
       }
 
-      // TODO: Add password verification logic here
-      // For now, allowing login for demo purposes
+      // Secure password verification using bcrypt
+      const { comparePassword, isPasswordHashed, migratePasswordIfNeeded } = await import('./utils/password');
+      
+      // Migrate legacy plain text passwords
+      if (!isPasswordHashed(user.password)) {
+        console.log(`Migrating plain text password for user: ${username}`);
+        const hashedPassword = await migratePasswordIfNeeded(user.password);
+        await storage.updateUser(user.id, { password: hashedPassword });
+        user.password = hashedPassword;
+      }
+      
+      const isValidPassword = await comparePassword(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ 
+          status: "error", 
+          message: "Invalid username or password" 
+        });
+      }
 
       req.session!.userId = user.id;
       req.session!.orgId = user.orgId;
@@ -108,6 +124,13 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/users", requireAdmin, async (req, res, next) => {
     try {
       const userData = insertUserSchema.parse(req.body);
+      
+      // Hash password before storing
+      if (userData.password) {
+        const { hashPassword } = await import('./utils/password');
+        userData.password = await hashPassword(userData.password);
+      }
+      
       const user = await storage.createUser(userData);
       
       // Emit real-time notification for user creation
