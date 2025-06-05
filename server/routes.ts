@@ -2184,72 +2184,33 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   const leadRemarkRouter = express.Router();
   app.use("/lead-remarks", leadRemarkRouter);
   
-  // Team management routes (using existing teamRouter from line 7104)
+  // Team management routes moved to line 7104 to avoid conflicts
   
-  // Get all teams
-  teamRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
+  // Commission rules routes
+  const commissionRuleRouter = express.Router();
+  app.use("/api/commission-rules", commissionRuleRouter);
+  
+  // Task tracking routes
+  const taskRouter = express.Router();
+  app.use("/api/tasks", taskRouter);
+  
+  // Get user tasks
+  taskRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
     try {
-      const teams = await storage.getTeams(req.orgId);
-      res.json(teams);
+      const tasks = await storage.getTasksByUser(req.user!.id);
+      res.json(tasks);
     } catch (error) {
-      console.error("Error fetching teams:", error);
-      res.status(500).json({ 
-        message: "Failed to fetch teams",
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
+      next(error);
     }
   });
   
-  // Get a specific team by ID
-  teamRouter.get("/:id", createAuthMiddleware(1), async (req, res, next) => {
-    try {
-      const teamId = Number(req.params.id);
-      const team = await storage.getTeam(teamId);
-      
-      if (!team) {
-        return res.status(404).json({ message: "Team not found" });
-      }
-      
-      res.json(team);
-    } catch (error) {
-      console.error("Error fetching team:", error);
-      res.status(500).json({ 
-        message: "Failed to fetch team",
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  });
+  // Contact management routes
+  const contactRouter = express.Router();
+  app.use("/api/contacts", contactRouter);
   
-  // Create a new team
-  teamRouter.post("/", createAuthMiddleware(3), async (req, res, next) => {
-    try {
-      // Check if user has permission to create teams (System Admin or HR Manager+)
-      const isAdmin = req.userRole.level >= 5;
-      const isHR = req.userRole.department === 'hr' && req.userRole.level >= 3;
-      
-      if (!isAdmin && !isHR) {
-        return res.status(403).json({ 
-          message: "Forbidden: You don't have permission to create teams"
-        });
-      }
-      
-      const teamData = {
-        ...req.body,
-        orgId: req.orgId
-      };
-      
-      const team = await storage.createTeam(teamData);
-      res.status(201).json(team);
-    } catch (error) {
-      console.error("Error creating team:", error);
-      res.status(500).json({ 
-        message: "Failed to create team",
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-    }
-  });
-  
-  // Update a team
+  // Marketing campaigns routes
+  const campaignRouter = express.Router();
+  app.use("/api/campaigns", campaignRouter);
   teamRouter.patch("/:id", createAuthMiddleware(3), async (req, res, next) => {
     try {
       const teamId = Number(req.params.id);
