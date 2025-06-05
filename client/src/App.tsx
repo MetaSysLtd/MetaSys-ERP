@@ -80,6 +80,7 @@ import { MessageProvider } from "@/contexts/MessageContext";
 import { AnimationProvider } from "@/contexts/AnimationContext";
 import { OrganizationProvider } from "@/hooks/use-organization";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { AuthBoundary } from "@/components/auth/AuthBoundary";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
@@ -563,7 +564,9 @@ function App() {
                   <AnimationProvider>
                     <OrganizationProvider>
                       <LeadNotificationProvider>
-                        <AppContent />
+                        <AuthBoundary>
+                          <AppContent />
+                        </AuthBoundary>
                         <Toaster />
                       </LeadNotificationProvider>
                     </OrganizationProvider>
