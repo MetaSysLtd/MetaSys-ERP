@@ -113,7 +113,7 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         value={metrics.totalLeads?.toString() || '0'}
         description={`${metrics.qualifiedLeads || 0} qualified`}
         trend={getTrend(metrics.leadsChange)}
-        href="/leads"
+        href="/crm/leads"
         emptyStateMessage={emptyStateMessages.leads}
         isEmptyState={metrics.totalLeads === 0}
         iconBgColor="bg-blue-50"
@@ -124,7 +124,7 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
         value={metrics.activeLoads?.toString() || '0'}
         description={`${metrics.completedLoads || 0} completed this month`}
         trend={getTrend(metrics.loadsChange)}
-        href="/dispatch"
+        href="/dispatch/loads"
         emptyStateMessage={emptyStateMessages.loads}
         isEmptyState={metrics.activeLoads === 0}
         iconBgColor="bg-amber-50"
