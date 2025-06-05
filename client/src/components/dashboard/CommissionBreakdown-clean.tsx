@@ -46,40 +46,10 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
   // Extract monthly data from dashboard data
   const monthlyData = commissionData?.monthlyData;
   const isMonthlyLoading = isDashboardLoading;
-      
-      const response = await fetch(`/api/commissions/monthly/user/${targetUserId}/${month}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null; // No commission data for this month
-        }
-        throw new Error('Failed to fetch commission data');
-      }
-      return response.json();
-    },
-  });
 
-  // Get historical commission data (last 6 months) with aggressive caching
-  const { data: historicalData, isLoading: isHistoricalLoading } = useQuery({
-    queryKey: ['/api/commissions/monthly/user', targetUserId],
-    staleTime: 300000, // 5 minutes cache
-    gcTime: 600000, // 10 minutes
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: !!targetUserId,
-    queryFn: async () => {
-      if (!targetUserId) return [];
-
-      const response = await fetch(`/api/commissions/monthly/user/${targetUserId}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          return []; // No historical data found
-        }
-        throw new Error('Failed to fetch historical commission data');
-      }
-      return response.json();
-    },
-  });
+  // Extract historical data from dashboard data
+  const historicalData = commissionData?.historicalData || [];
+  const isHistoricalLoading = isDashboardLoading;
 
   const isLoading = isMonthlyLoading || isHistoricalLoading;
   const historicalCommissions = historicalData || [];
