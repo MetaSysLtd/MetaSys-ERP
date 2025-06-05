@@ -115,6 +115,20 @@ export function setupLeadRoutes() {
         details: `Created lead: ${newLead.companyName || 'Unknown Company'}`
       });
       
+      // Emit socket events for real-time updates
+      const io = getIo();
+      if (io) {
+        io.emit('lead:created', { 
+          lead: newLead, 
+          userId: req.user?.id 
+        });
+        io.emit('data:updated', { 
+          type: 'leads', 
+          action: 'created', 
+          data: newLead 
+        });
+      }
+      
       res.status(201).json(newLead);
     } catch (error) {
       console.error("Error creating lead:", error);
@@ -144,8 +158,19 @@ export function setupLeadRoutes() {
         details: `Updated lead: ${lead.companyName || 'Unknown Company'}`
       });
       
-      // Notify of update via sockets
-      notifyDataChange('lead', leadId, 'updated', updatedLead);
+      // Emit socket events for real-time updates
+      const io = getIo();
+      if (io) {
+        io.emit('lead:updated', { 
+          lead: updatedLead, 
+          userId: req.user?.id 
+        });
+        io.emit('data:updated', { 
+          type: 'leads', 
+          action: 'updated', 
+          data: updatedLead 
+        });
+      }
       
       res.json(updatedLead);
     } catch (error) {

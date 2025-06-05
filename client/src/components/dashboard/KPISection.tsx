@@ -1,10 +1,11 @@
 
 import { useState, useEffect } from 'react';
 import { MetricCard } from './MetricCard';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { formatCurrency } from '@/lib/utils';
 import { metricCardStyles } from '@/lib/style-utils';
 import { KPICardSkeleton } from '@/components/ui/skeleton';
+import { useSocket } from '@/hooks/use-socket';
 
 // Define the metrics interface
 interface DashboardMetrics {
@@ -39,11 +40,42 @@ interface KPISectionProps {
 export function KPISection({ metrics: propMetrics }: KPISectionProps) {
   const [filter, setFilter] = useState('all');
   const [showSkeleton, setShowSkeleton] = useState(true);
+  const queryClient = useQueryClient();
+  const { socket } = useSocket();
   
   // NO QUERY - Use only provided metrics to prevent duplicate fetching
   const fetchedMetrics = undefined;
   const isLoading = false;
   const error = null;
+
+  // Real-time socket event subscriptions for dashboard updates
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleDataUpdate = () => {
+      // Invalidate dashboard queries for fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/consolidated'] });
+    };
+
+    // Subscribe to real-time events
+    socket.on('lead:created', handleDataUpdate);
+    socket.on('lead:updated', handleDataUpdate);
+    socket.on('dispatch:created', handleDataUpdate);
+    socket.on('dispatch:updated', handleDataUpdate);
+    socket.on('invoice:created', handleDataUpdate);
+    socket.on('invoice:updated', handleDataUpdate);
+    socket.on('data:updated', handleDataUpdate);
+
+    return () => {
+      socket.off('lead:created', handleDataUpdate);
+      socket.off('lead:updated', handleDataUpdate);
+      socket.off('dispatch:created', handleDataUpdate);
+      socket.off('dispatch:updated', handleDataUpdate);
+      socket.off('invoice:created', handleDataUpdate);
+      socket.off('invoice:updated', handleDataUpdate);
+      socket.off('data:updated', handleDataUpdate);
+    };
+  }, [socket, queryClient]);
 
   // Handle loading state with timeout for perceived performance
   useEffect(() => {
