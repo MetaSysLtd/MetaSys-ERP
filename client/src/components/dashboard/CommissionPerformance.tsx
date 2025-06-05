@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Card,
   CardContent,
@@ -20,6 +20,7 @@ import { useSocket } from "@/hooks/use-socket";
 import { useEffect } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { QueryErrorWrapper } from "@/components/ui/error-boundary";
+import { useDashboardData } from "@/hooks/use-dashboard-data";
 
 interface CommissionPerformanceProps {
   userId?: number;
@@ -71,51 +72,14 @@ export default function CommissionPerformance({ userId, type = 'sales' }: Commis
     };
   }, [targetUserId, socket, queryClient, currentMonth, prevMonth]);
   
-  // Fetch current month's commission
-  const { data: currentCommission, isLoading: isLoadingCurrent } = useQuery({
-    queryKey: ['/api/commissions/monthly', targetUserId, currentMonth],
-    queryFn: async () => {
-      if (!targetUserId) return null;
-      
-      try {
-        const response = await fetch(`/api/commissions/monthly/user/${targetUserId}/${currentMonth}`);
-        if (response.status === 404) {
-          return null; // No commission found for this month
-        }
-        if (!response.ok) {
-          throw new Error('Failed to fetch commission data');
-        }
-        return response.json();
-      } catch (error) {
-        console.error('Error fetching current month commission:', error);
-        return null;
-      }
-    },
-    enabled: !!targetUserId,
-  });
-
-  // Fetch previous month's commission for comparison
-  const { data: prevCommission, isLoading: isLoadingPrev } = useQuery({
-    queryKey: ['/api/commissions/monthly', targetUserId, prevMonth],
-    queryFn: async () => {
-      if (!targetUserId) return null;
-      
-      try {
-        const response = await fetch(`/api/commissions/monthly/user/${targetUserId}/${prevMonth}`);
-        if (response.status === 404) {
-          return null; // No commission found for this month
-        }
-        if (!response.ok) {
-          throw new Error('Failed to fetch commission data');
-        }
-        return response.json();
-      } catch (error) {
-        console.error('Error fetching previous month commission:', error);
-        return null;
-      }
-    },
-    enabled: !!targetUserId,
-  });
+  // USE CONSOLIDATED DASHBOARD DATA - NO INDEPENDENT QUERIES TO ELIMINATE INFINITE LOOPS
+  const { commissionData, isLoading: isDashboardLoading } = useDashboardData();
+  
+  // Extract commission data from consolidated response (prevent independent API calls)
+  const currentCommission = commissionData?.monthlyData?.current || null;
+  const prevCommission = commissionData?.monthlyData?.previous || null;
+  const isLoadingCurrent = isDashboardLoading;
+  const isLoadingPrev = isDashboardLoading;
 
   // Calculate performance metrics
   const performance = {

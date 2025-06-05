@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 /**
- * Custom hook to load critical dashboard data in parallel for improved performance
- * Uses Promise.all to fetch multiple endpoints at once and set timeout fallbacks
+ * CONSOLIDATED DASHBOARD DATA HOOK - PREVENTS INFINITE API LOOPS
+ * Uses a single consolidated endpoint to fetch all dashboard data at once
  */
 export function useDashboardData() {
   // Get user profile and permissions - highest priority
@@ -13,69 +13,40 @@ export function useDashboardData() {
     refetchOnWindowFocus: false,
   });
   
-  // Get KPI metrics data - high priority with aggressive caching
-  const kpiMetricsQuery = useQuery({
-    queryKey: ['/api/dashboard/metrics'],
+  // SINGLE CONSOLIDATED DASHBOARD QUERY - ELIMINATES COMPETING QUERIES
+  const consolidatedDashboardQuery = useQuery({
+    queryKey: ['/api/dashboard/consolidated'],
     staleTime: 300000, // Cache for 5 minutes
     gcTime: 600000, // 10 minutes
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
-  });
-  
-  // Get revenue data - high priority with aggressive caching
-  const revenueQuery = useQuery({
-    queryKey: ['/api/dashboard/revenue'],
-    staleTime: 300000, // Cache for 5 minutes
-    gcTime: 600000, // 10 minutes
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-  });
-  
-  // Get activity feed - medium priority with aggressive caching
-  const activitiesQuery = useQuery({
-    queryKey: ['/api/dashboard/activities'],
-    staleTime: 300000, // Cache for 5 minutes
-    gcTime: 600000, // 10 minutes
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-  });
-
-  // Get commission data - consolidated to prevent duplicate queries
-  const commissionQuery = useQuery({
-    queryKey: ['/api/commissions/dashboard'],
-    staleTime: 300000, // Cache for 5 minutes
-    gcTime: 600000, // 10 minutes
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
+    enabled: !!userProfileQuery.data, // Only run after user is loaded
   });
 
   // Simple loading state based on critical queries only
-  const isLoading = userProfileQuery.isLoading || kpiMetricsQuery.isLoading;
-  const hasTimedOut = userProfileQuery.isError && kpiMetricsQuery.isError;
+  const isLoading = userProfileQuery.isLoading || consolidatedDashboardQuery.isLoading;
+  const hasTimedOut = userProfileQuery.isError && consolidatedDashboardQuery.isError;
+  
+  // Extract data from consolidated response
+  const dashboardData = consolidatedDashboardQuery.data || {};
   
   return {
     isLoading,
     hasTimedOut,
     userData: userProfileQuery.data,
-    kpiData: kpiMetricsQuery.data,
-    revenueData: revenueQuery.data,
-    activitiesData: activitiesQuery.data,
-    commissionData: commissionQuery.data,
+    kpiData: dashboardData.metrics,
+    revenueData: dashboardData.revenue,
+    activitiesData: dashboardData.activities,
+    commissionData: dashboardData.commissions,
     userProfileLoading: userProfileQuery.isLoading,
-    kpiMetricsLoading: kpiMetricsQuery.isLoading,
-    revenueLoading: revenueQuery.isLoading,
-    activitiesLoading: activitiesQuery.isLoading,
-    commissionLoading: commissionQuery.isLoading,
+    kpiMetricsLoading: consolidatedDashboardQuery.isLoading,
+    revenueLoading: consolidatedDashboardQuery.isLoading,
+    activitiesLoading: consolidatedDashboardQuery.isLoading,
+    commissionLoading: consolidatedDashboardQuery.isLoading,
     refetchAll: () => {
       userProfileQuery.refetch();
-      kpiMetricsQuery.refetch();
-      revenueQuery.refetch();
-      activitiesQuery.refetch();
-      commissionQuery.refetch();
+      consolidatedDashboardQuery.refetch();
     }
   };
 }
