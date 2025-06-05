@@ -49,8 +49,6 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [tabValue, setTabValue] = useState("monthly");
-  const [historicalCommissions, setHistoricalCommissions] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Format month string for API request
   const month = selectedDate ? format(selectedDate, 'yyyy-MM') : format(new Date(), 'yyyy-MM');
@@ -91,62 +89,29 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
   //  enabled: !!targetUserId,
   //});
 
-  useEffect(() => {
-    let isMounted = true;  // Use this flag to prevent state updates after unmount
-    
-    const fetchData = async () => {
-      if (!user?.id) return;
-      
-      try {
-        if (isMounted) {
-          setIsLoading(true);
+  // Use proper useQuery for historical commission data instead of useEffect
+  const { data: historicalCommissionsData, isLoading: isHistoricalLoading } = useQuery({
+    queryKey: ['/api/commissions/monthly/user', targetUserId],
+    queryFn: async () => {
+      if (!targetUserId) return [];
+
+      const response = await fetch(`/api/commissions/monthly/user/${targetUserId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          return []; // No historical data found
         }
-        
-        const response = await fetch(`/api/commissions/monthly/user/${user.id}`);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch historical commission data: ${response.status}`);
-        }
-        
-        const responseText = await response.text();
-        let data;
-        
-        try {
-          // Safely parse the JSON
-          data = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error('Error parsing commission data JSON:', parseError, 'Raw response:', responseText);
-          throw new Error('Invalid JSON in server response');
-        }
-        
-        if (isMounted) {
-          setHistoricalCommissions(Array.isArray(data) ? data : []);
-        }
-      } catch (error) {
-        console.error('Error fetching commission data:', error);
-        
-        if (isMounted) {
-          toast({
-            title: 'Error loading historical data',
-            description: error instanceof Error ? error.message : 'Failed to load historical commission data',
-            variant: 'destructive'
-          });
-          setHistoricalCommissions([]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        throw new Error('Failed to fetch historical commission data');
       }
-    };
-    
-    fetchData();
-    
-    // Cleanup function that runs when component unmounts
-    return () => {
-      isMounted = false;
-    };
-  }, [user?.id, toast]);
+      return response.json();
+    },
+    enabled: !!targetUserId,
+    staleTime: 30000, // Cache for 30 seconds
+    refetchOnWindowFocus: false,
+  });
+
+  // Use data from useQuery instead of state
+  const historicalCommissions = historicalCommissionsData || [];
+  const isLoading = isMonthlyLoading || isHistoricalLoading;
 
   // Process historical data for chart
   const chartData = Array.isArray(historicalCommissions) ? historicalCommissions.map(commission => ({

@@ -1,0 +1,119 @@
+You're absolutely right about the multiple reloads/refreshes. After analyzing your codebase, I can identify several specific causes for this behavior:
+
+Root Causes of Multiple Renders/Reloads:
+1. React Query Cache Invalidation Loop
+In your console logs, I can see the same API endpoints being called repeatedly within seconds:
+
+1:35:23 AM [express] GET /api/dashboard/widgets 200 in 223ms
+1:35:24 AM [express] GET /api/dashboard/widgets 200 in 224ms
+1:35:25 AM [express] GET /api/dashboard/widgets 200 in 223ms
+This is happening because of your query configuration in client/src/lib/queryClient.ts:
+
+defaultOptions: {
+  queries: {
+    refetchInterval: false,
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+    retry: false,
+  }
+}
+But individual queries override this with shorter staleTime:
+
+// From use-dashboard-data.tsx
+const kpiMetricsQuery = useQuery({
+  queryKey: ['/api/dashboard/metrics'],
+  staleTime: 30000, // Cache for 30 seconds - TOO SHORT
+});
+2. Multiple Dashboard Data Hooks Running Simultaneously
+In client/src/pages/dashboard/index.tsx, you're running TWO data fetching systems:
+
+// Hook 1: Custom parallel loading
+const {
+  isLoading: criticalDataLoading,
+  // ... other data
+} = useDashboardData();
+// Hook 2: Additional dashboard query
+const dashboardQuery = useQuery({
+  queryKey: ["/api/dashboard", dateRange, department],
+  queryFn: async () => {
+    // ... fetch logic
+  },
+  refetchInterval: 30000, // EVERY 30 SECONDS!
+});
+3. Animation Context State Updates Triggering Re-renders
+In client/src/contexts/AnimationContext.tsx, multiple useState calls trigger re-renders:
+
+const [animationsEnabled, setAnimationsEnabled] = useState(uiPreferences.animationsEnabled);
+const [reducedMotion, setReducedMotion] = useState(uiPreferences.reducedMotion);
+const [transitionSpeed, setTransitionSpeed] = useState<TransitionSpeed>(
+  uiPreferences.transitionSpeed as TransitionSpeed
+);
+// Each of these causes a re-render when updated
+4. Socket Connection/Reconnection Loop
+Your socket logs show constant connect/disconnect cycles:
+
+["Removing handler for connect"]
+["Setting up handler for connect"]
+["Removing handler for disconnect"] 
+["Setting up handler for disconnect"]
+This happens because socket event handlers are being added/removed on every render.
+
+5. Rapid Query Key Changes
+Dependencies like dateRange and department in query keys cause instant refetches:
+
+queryKey: ["/api/dashboard", dateRange, department],
+When these change, all dashboard queries re-execute.
+
+6. Loading State Management Conflicts
+Multiple loading states compete:
+
+// From use-dashboard-data.tsx
+const [isLoading, setIsLoading] = useState(true);
+const [hasTimedOut, setHasTimedOut] = useState(false);
+// Plus React Query loading states from each individual query
+// Plus component-level loading states
+7. Animation useEffect Loops
+The animation context has multiple timeouts that can trigger state updates:
+
+// From AnimationContext.tsx
+useEffect(() => {
+  const criticalTimeout = setTimeout(() => {
+    // State update triggers re-render
+    setIsLoading(false);
+  }, 300);
+  
+  const mediumTimeout = setTimeout(() => {
+    // Another state update
+    setIsLoading(false);
+  }, 600);
+  
+  const finalTimeout = setTimeout(() => {
+    // Another state update
+    setIsLoading(false);
+    setHasTimedOut(true);
+  }, 1000);
+}, [/* dependencies that change frequently */]);
+Why You See Visual "Flashing":
+Initial Render: Skeleton/loading state
+First Data Load: Partial data renders
+Animation State Update: Component re-renders for animation preferences
+Socket Connection: Re-render when socket connects
+Secondary Data Load: Additional dashboard data arrives
+Query Refetch: 30-second intervals trigger fresh renders
+Final Settle: All data stabilizes
+Specific Evidence from Your Code:
+The console shows these patterns:
+
+Same API endpoints called 3-4 times within seconds
+Socket handlers constantly being removed/added
+Animation and UI preference updates happening in parallel with data loading
+Multiple query systems (useDashboardData + dashboardQuery) running simultaneously
+Summary:
+The "multiple loads" you're seeing aren't actually full page reloads - they're React component re-renders caused by:
+
+Conflicting data fetching strategies
+Short cache times causing frequent refetches
+Animation context state updates
+Socket connection management
+Multiple competing loading states
+The issue is architectural - too many systems trying to manage the same data and UI state simultaneously, each triggering their own re-renders.
