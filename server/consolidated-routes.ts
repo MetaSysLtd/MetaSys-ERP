@@ -2804,7 +2804,7 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         details: `Load created for ${req.body.origin || 'unknown origin'} to ${req.body.destination || 'unknown destination'}`
       });
       
-      // Emit socket event for real-time updates
+      // Emit socket events for real-time updates
       const io = getIo();
       if (io) {
         io.emit('dispatch:created', { 
