@@ -163,6 +163,109 @@ export async function registerRoutes(router: any): Promise<void> {
     });
   });
 
+  // Add missing CRM routes
+  router.get("/crm/accounts", requireAuth(1), async (req, res) => {
+    try {
+      // Return empty array for now - can be populated later
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching CRM accounts:", error);
+      res.status(500).json({ message: "Failed to fetch accounts" });
+    }
+  });
+
+  router.get("/crm/activities", requireAuth(1), async (req, res) => {
+    try {
+      // Return empty array for now - can be populated later
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching CRM activities:", error);
+      res.status(500).json({ message: "Failed to fetch activities" });
+    }
+  });
+
+  router.get("/crm/surveys", requireAuth(1), async (req, res) => {
+    try {
+      // Return empty array for now - can be populated later
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching CRM surveys:", error);
+      res.status(500).json({ message: "Failed to fetch surveys" });
+    }
+  });
+
+  // Add Finance module routes
+  router.get("/finance/overview", requireAuth(1), async (req, res) => {
+    try {
+      res.json({
+        totalRevenue: 0,
+        totalExpenses: 0,
+        netProfit: 0,
+        monthlyData: []
+      });
+    } catch (error) {
+      console.error("Error fetching finance overview:", error);
+      res.status(500).json({ message: "Failed to fetch finance overview" });
+    }
+  });
+
+  router.get("/finance/expenses", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+      res.status(500).json({ message: "Failed to fetch expenses" });
+    }
+  });
+
+  // Add Tasks routes
+  router.get("/tasks", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      res.status(500).json({ message: "Failed to fetch tasks" });
+    }
+  });
+
+  router.get("/tasks/user", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching user tasks:", error);
+      res.status(500).json({ message: "Failed to fetch user tasks" });
+    }
+  });
+
+  // Add UI preferences route
+  router.get("/ui-prefs/me", requireAuth(1), async (req, res) => {
+    try {
+      // Return default UI preferences to prevent loading loops
+      res.json({
+        sidebarPinned: true,
+        sidebarCollapsed: false,
+        expandedDropdown: null,
+        animationsEnabled: false,
+        transitionSpeed: 'normal',
+        pageTransition: 'fade',
+        reducedMotion: false
+      });
+    } catch (error) {
+      console.error("Error fetching UI preferences:", error);
+      res.status(500).json({ message: "Failed to fetch UI preferences" });
+    }
+  });
+
+  router.post("/ui-prefs/me", requireAuth(1), async (req, res) => {
+    try {
+      // Accept and return the preferences (for now just echo back)
+      res.json(req.body);
+    } catch (error) {
+      console.error("Error updating UI preferences:", error);
+      res.status(500).json({ message: "Failed to update UI preferences" });
+    }
+  });
+
   // User management routes
   router.get("/users", requireAuth(3), async (req, res) => {
     try {
