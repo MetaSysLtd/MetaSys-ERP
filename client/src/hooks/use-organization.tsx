@@ -31,7 +31,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     error,
     isLoading,
   } = useQuery<Organization, Error>({
-    queryKey: ["/api/organization/current"],
+    queryKey: ["/api/organizations/current"],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 

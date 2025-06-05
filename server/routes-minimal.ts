@@ -194,6 +194,120 @@ export async function registerRoutes(router: any): Promise<void> {
     }
   });
 
+  // Add missing CRM routes
+  router.get("/crm/form-templates", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching form templates:", error);
+      res.status(500).json({ message: "Failed to fetch form templates" });
+    }
+  });
+
+  router.get("/crm/qualification", requireAuth(1), async (req, res) => {
+    try {
+      res.json({ qualified: 0, unqualified: 0, pending: 0 });
+    } catch (error) {
+      console.error("Error fetching qualification data:", error);
+      res.status(500).json({ message: "Failed to fetch qualification data" });
+    }
+  });
+
+  // Add Time Tracking routes
+  router.get("/time-tracking/entries", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching time entries:", error);
+      res.status(500).json({ message: "Failed to fetch time entries" });
+    }
+  });
+
+  router.post("/time-tracking/entries", requireAuth(1), async (req, res) => {
+    try {
+      // Return the submitted entry with an ID
+      res.json({ id: Date.now(), ...req.body });
+    } catch (error) {
+      console.error("Error creating time entry:", error);
+      res.status(500).json({ message: "Failed to create time entry" });
+    }
+  });
+
+  // Add Marketing routes
+  router.get("/marketing/campaigns", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching campaigns:", error);
+      res.status(500).json({ message: "Failed to fetch campaigns" });
+    }
+  });
+
+  router.get("/marketing/analytics", requireAuth(1), async (req, res) => {
+    try {
+      res.json({ impressions: 0, clicks: 0, conversions: 0 });
+    } catch (error) {
+      console.error("Error fetching marketing analytics:", error);
+      res.status(500).json({ message: "Failed to fetch marketing analytics" });
+    }
+  });
+
+  // Add Client Portal routes
+  router.get("/client-portal/loads", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching client loads:", error);
+      res.status(500).json({ message: "Failed to fetch client loads" });
+    }
+  });
+
+  router.get("/client-portal/invoices", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching client invoices:", error);
+      res.status(500).json({ message: "Failed to fetch client invoices" });
+    }
+  });
+
+  router.get("/client-portal/documents", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching client documents:", error);
+      res.status(500).json({ message: "Failed to fetch client documents" });
+    }
+  });
+
+  // Add Gamification routes
+  router.get("/gamification/leaderboard", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      res.status(500).json({ message: "Failed to fetch leaderboard" });
+    }
+  });
+
+  router.get("/gamification/achievements", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+      res.status(500).json({ message: "Failed to fetch achievements" });
+    }
+  });
+
+  router.get("/gamification/badges", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching badges:", error);
+      res.status(500).json({ message: "Failed to fetch badges" });
+    }
+  });
+
   // Add Finance module routes
   router.get("/finance/overview", requireAuth(1), async (req, res) => {
     try {
