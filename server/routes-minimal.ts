@@ -111,23 +111,29 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Basic CRM endpoints - return empty arrays for now
+  // Basic CRM endpoints - connect to storage
   app.get("/api/leads", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    if (!req.session || !req.session.userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    res.json({ data: [], pagination: { total: 0, page: 1, limit: 10 } });
+    try {
+      const leads = await minimalStorage.getLeads();
+      res.json(leads);
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+      res.status(500).json({ error: "Failed to fetch leads" });
+    }
   });
 
   app.get("/api/tasks", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    if (!req.session || !req.session.userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
     res.json({ data: [], pagination: { total: 0, page: 1, limit: 10 } });
   });
 
   app.get("/api/notifications", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    if (!req.session || !req.session.userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
     res.json([]);

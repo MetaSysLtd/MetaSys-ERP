@@ -740,6 +740,9 @@ export class MemStorage implements IStorage {
     
     // Initialize default users
     this.initializeDefaultUsers();
+    
+    // Initialize sample data
+    this.initializeSampleLeads();
   }
 
   private initializeDefaultUsers() {
@@ -2694,6 +2697,106 @@ export class MemStorage implements IStorage {
     };
     
     return await this.updateDispatchReport(reportId, updatedData) as DispatchReport;
+  }
+
+  private initializeSampleLeads() {
+    // Create sample leads for the CRM
+    const sampleLeads = [
+      {
+        id: ++this.leadIdCounter,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        orgId: 1,
+        firstName: "John",
+        lastName: "Smith", 
+        email: "john.smith@example.com",
+        phone: "+1 (555) 123-4567",
+        company: "ABC Construction",
+        status: "New" as const,
+        source: "Website",
+        assignedUserId: 1,
+        value: 15000,
+        notes: "Interested in kitchen renovation",
+        lastContactDate: new Date(),
+        nextFollowUpDate: new Date(Date.now() + 86400000), // Tomorrow
+        tags: ["kitchen", "renovation"],
+        priority: "High",
+        leadScore: 85,
+        convertedAt: null,
+        lostReason: null
+      },
+      {
+        id: ++this.leadIdCounter,
+        createdAt: new Date(Date.now() - 86400000), // Yesterday
+        updatedAt: new Date(),
+        orgId: 1,
+        firstName: "Sarah",
+        lastName: "Johnson",
+        email: "sarah.johnson@techcorp.com",
+        phone: "+1 (555) 987-6543",
+        company: "TechCorp Industries",
+        status: "InProgress" as const,
+        source: "Referral",
+        assignedUserId: 1,
+        value: 25000,
+        notes: "Looking for complete bathroom remodel, has budget approved",
+        lastContactDate: new Date(),
+        nextFollowUpDate: new Date(Date.now() + 172800000), // Day after tomorrow
+        tags: ["bathroom", "remodel", "approved-budget"],
+        priority: "High",
+        leadScore: 92,
+        convertedAt: null,
+        lostReason: null
+      },
+      {
+        id: ++this.leadIdCounter,
+        createdAt: new Date(Date.now() - 172800000), // 2 days ago
+        updatedAt: new Date(),
+        orgId: 1,
+        firstName: "Mike",
+        lastName: "Davis",
+        email: "mike.davis@gmail.com", 
+        phone: "+1 (555) 456-7890",
+        company: null,
+        status: "FollowUp" as const,
+        source: "Phone Call",
+        assignedUserId: 1,
+        value: 8000,
+        notes: "Needs flooring replacement, waiting for insurance approval",
+        lastContactDate: new Date(Date.now() - 86400000),
+        nextFollowUpDate: new Date(Date.now() + 259200000), // 3 days from now
+        tags: ["flooring", "insurance"],
+        priority: "Medium",
+        leadScore: 65,
+        convertedAt: null,
+        lostReason: null
+      },
+      {
+        id: ++this.leadIdCounter,
+        createdAt: new Date(Date.now() - 432000000), // 5 days ago
+        updatedAt: new Date(),
+        orgId: 1,
+        firstName: "Lisa",
+        lastName: "Wilson",
+        email: "lisa.wilson@homeowners.net",
+        phone: "+1 (555) 321-9876",
+        company: "Wilson Enterprises",
+        status: "HandToDispatch" as const,
+        source: "Email Campaign",
+        assignedUserId: 1,
+        value: 35000,
+        notes: "Full home renovation project, ready to start next month",
+        lastContactDate: new Date(),
+        nextFollowUpDate: new Date(Date.now() + 86400000),
+        tags: ["full-renovation", "ready-to-start"],
+        priority: "High",
+        leadScore: 98,
+        convertedAt: null,
+        lostReason: null
+      }
+    ];
+
+    this.leads = new Map(sampleLeads.map(lead => [lead.id, lead]));
   }
 }
 
