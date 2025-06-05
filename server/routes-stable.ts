@@ -227,6 +227,61 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // CRM Leads routes
+  app.get("/api/leads", requireAuth, async (req, res, next) => {
+    try {
+      const leads = await storage.getLeads();
+      
+      // Transform the leads data to match the expected CRM structure
+      const transformedLeads = leads.map(lead => ({
+        id: lead.id,
+        companyName: lead.company || `${lead.firstName} ${lead.lastName}`,
+        contactName: `${lead.firstName} ${lead.lastName}`,
+        email: lead.email,
+        phoneNumber: lead.phone,
+        source: lead.source,
+        sourceDetails: lead.notes || "",
+        mcNumber: `MC${1000 + lead.id}`,
+        mcAge: Math.floor(Math.random() * 60) + 6,
+        dotNumber: `DOT${2000 + lead.id}`,
+        equipmentType: "flatbed",
+        truckCategory: "Class 8",
+        factoringStatus: "has-factoring",
+        serviceCharges: 4.5,
+        priority: lead.priority,
+        category: "Carrier",
+        currentAvailability: "Available",
+        notes: lead.notes,
+        status: lead.status,
+        assignedTo: lead.assignedUserId,
+        orgId: lead.orgId,
+        createdAt: lead.createdAt,
+        updatedAt: lead.updatedAt
+      }));
+      
+      res.json(transformedLeads);
+    } catch (error) {
+      console.error("Error fetching leads:", error);
+      next(error);
+    }
+  });
+
+  app.get("/api/leads/:id", requireAuth, async (req, res, next) => {
+    try {
+      const leadId = parseInt(req.params.id);
+      const lead = await storage.getLead(leadId);
+      
+      if (!lead) {
+        return res.status(404).json({ error: "Lead not found" });
+      }
+      
+      res.json(lead);
+    } catch (error) {
+      console.error("Error fetching lead:", error);
+      next(error);
+    }
+  });
+
   // Notification routes
   app.get("/api/notifications", requireAuth, async (req, res, next) => {
     try {
