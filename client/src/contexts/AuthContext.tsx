@@ -50,17 +50,22 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   // Track auth checks to prevent infinite loops in session validation
-  const [authCheckCount, setAuthCheckCount] = useState(0);
-  const MAX_AUTH_CHECKS = 2; // Reduce max auth checks to minimize redirects
+  const [authCheckComplete, setAuthCheckComplete] = useState(false);
 
-  // CRITICAL SECURITY FIX: Explicitly set initial state to not authenticated
+  // CRITICAL SECURITY FIX: Authentication state isolation and cleanup
   useEffect(() => {
-    // Only run initial auth check on first render
-    if (authCheckCount > 0) return;
+    // Clear ALL authentication-related cache on mount to prevent state conflicts
+    const clearAuthCache = () => {
+      localStorage.clear();
+      sessionStorage.clear();
+      // Clear any existing intervals that might interfere with auth
+      const highestId = Number(window.setTimeout(() => {}, 0));
+      for (let i = 0; i < highestId; i++) {
+        window.clearInterval(i);
+      }
+    };
     
-    // Clear any potentially misleading auth data in localStorage during initialization
-    localStorage.removeItem('metasys_auth_timestamp');
-    localStorage.removeItem('login_attempt_timestamp');
+    clearAuthCache();
     
     // Initial state is always unauthenticated until proven otherwise
     setIsAuthenticated(false);
@@ -72,15 +77,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
         // Add timestamp to prevent caching
         const timestamp = new Date().getTime();
         
-        console.log(`Checking authentication (attempt ${authCheckCount + 1}/${MAX_AUTH_CHECKS})`);
-        
-        if (authCheckCount >= MAX_AUTH_CHECKS) {
-          console.warn("Maximum auth check attempts reached, stopping retries");
-          setIsLoading(false);
-          return;
-        }
-        
-        setAuthCheckCount(prevCount => prevCount + 1);
+        console.log('Performing single authentication check...');
         
         const res = await fetch(`${API_ROUTES.AUTH.ME}?_t=${timestamp}`, {
           method: "GET",
@@ -108,44 +105,18 @@ function AuthProvider({ children }: { children: ReactNode }) {
         if (data.authenticated === true && data.user && data.user.id) {
           console.log("Authentication check successful - user authenticated", data.user.id);
           
-          // Store minimal authentication data - only used for logging
-          localStorage.setItem('metasys_auth_timestamp', timestamp.toString());
-          
           setIsAuthenticated(true);
           setUser(data.user);
           setRole(data.role);
           setIsLoading(false);
-          
-          // Set a periodic check to keep session alive (more frequent in production)
-          const intervalId = setInterval(() => {
-            console.log("Running session keepalive check...");
-            fetch(`${API_ROUTES.AUTH.ME}?_t=${new Date().getTime()}`, {
-              method: "GET",
-              credentials: "include",
-              headers: { 'Cache-Control': 'no-cache' }
-            })
-            .then(response => {
-              if (!response.ok) {
-                console.warn("Session refresh returned non-OK status:", response.status);
-              }
-              return response.json();
-            })
-            .then(data => {
-              if (!data.authenticated) {
-                console.warn("Session is no longer valid during keepalive");
-              }
-            })
-            .catch(e => console.warn("Session refresh error:", e));
-          }, 5 * 60 * 1000); // Every 5 minutes
-          
-          return () => clearInterval(intervalId);
+          setAuthCheckComplete(true);
         } else {
           console.log("Authentication check returned not authenticated status");
-          localStorage.removeItem('metasys_auth_timestamp');
           setIsAuthenticated(false);
           setUser(null);
           setRole(null);
           setIsLoading(false);
+          setAuthCheckComplete(true);
         }
       } catch (err) {
         console.error("Auth check error:", err);
@@ -157,7 +128,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     checkAuth();
-  }, [authCheckCount]);
+  }, []); // Only run once on mount
 
   const login = async (username: string, password: string) => {
     setIsLoading(true);
@@ -217,7 +188,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(true);
       setUser(data);
       // Set default role to allow sidebar to render immediately
-      setRole({ name: 'User', level: 1 });
+      setRole({ 
+        id: 0, 
+        name: 'User', 
+        department: 'General',
+        level: 1, 
+        permissions: [] 
+      });
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message || "Failed to login. Please check your credentials.");

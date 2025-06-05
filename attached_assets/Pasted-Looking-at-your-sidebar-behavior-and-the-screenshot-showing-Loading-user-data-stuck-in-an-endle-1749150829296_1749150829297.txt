@@ -1,0 +1,130 @@
+Looking at your sidebar behavior and the screenshot showing "Loading user data..." stuck in an endless loop, I can diagnose the root cause through advanced analysis of your authentication and sidebar code patterns.
+
+Root Cause Analysis
+The infinite loop is caused by authentication state persistence conflicts between cached browser data and fresh authentication checks. Here's the detailed breakdown:
+
+1. Cache-Based Authentication Pollution
+In your AuthContext.tsx, the authentication check runs on every render but has conflicting cache strategies:
+
+// This creates cache pollution
+localStorage.setItem('metasys_auth_timestamp', timestamp.toString());
+// But then you clear it inconsistently
+localStorage.removeItem('metasys_auth_timestamp');
+Why it works in incognito: Fresh browser state with no cached authentication data means clean initialization.
+
+Why it loops in normal browsing: Stale authentication timestamps and localStorage data create race conditions.
+
+2. Sidebar Authentication Dependency Loop
+In Sidebar.tsx, the sidebar renders based on user state:
+
+// Return early if user not authenticated
+if (!user) {
+  return null;
+}
+// Use fallback role if role is not loaded yet
+const effectiveRole = role || { name: 'User', level: 1 };
+This creates a dependency chain:
+
+Sidebar waits for user
+AuthContext keeps retrying authentication
+Each retry triggers sidebar re-render
+Sidebar re-render triggers new auth check
+3. Query Invalidation Cascade
+The useDashboardData hook has aggressive query invalidation:
+
+// Real-time socket subscriptions for dashboard updates
+const handleDataUpdate = () => {
+  // This invalidates ALL dashboard queries
+  queryClient.invalidateQueries({ queryKey: ['/api/dashboard/consolidated'] });
+};
+When combined with authentication retries, this creates an infinite invalidation loop.
+
+4. Socket Connection State Conflicts
+In use-socket.tsx, socket connections are managed per user but persist across authentication state changes:
+
+// This creates connection conflicts
+if (socketInstance && currentUserId !== user.id) {
+  console.log('Different user, cleaning up previous socket');
+  socketInstance.disconnect();
+  socketInstance = null;
+}
+Advanced Reasoning: Why This Pattern Emerges
+State Hydration Mismatch: Server-side authentication state differs from client-side cached state
+React Query Cache Pollution: Stale query cache entries trigger unnecessary refetches
+Socket Persistence: WebSocket connections maintain state across auth changes
+LocalStorage Contamination: Authentication timestamps from previous sessions interfere
+Suggested Fix Strategy
+1. Authentication State Isolation
+// In AuthContext.tsx - Add session isolation
+useEffect(() => {
+  // Clear ALL authentication-related cache on mount
+  const clearAuthCache = () => {
+    localStorage.removeItem('metasys_auth_timestamp');
+    localStorage.removeItem('login_attempt_timestamp');
+    sessionStorage.clear();
+    // Clear React Query cache for auth-related queries
+    queryClient.clear();
+  };
+  
+  clearAuthCache();
+}, []); // Only on mount
+2. Sidebar Rendering Guard
+// In Sidebar.tsx - Add stable loading state
+if (!user || isLoading) {
+  return (
+    <div className="sidebar-loading">
+      <div className="loading-placeholder">
+        {/* Static loading state - no dynamic queries */}
+      </div>
+    </div>
+  );
+}
+3. Query Stabilization
+// In use-dashboard-data.tsx - Add query stability
+const consolidatedDashboardQuery = useQuery({
+  queryKey: ['/api/dashboard/consolidated'],
+  staleTime: 5 * 60 * 1000,
+  gcTime: 10 * 60 * 1000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
+  refetchInterval: false,
+  retry: false,
+  enabled: !!userProfileQuery.data && !userProfileQuery.isLoading, // Stable condition
+  // ADD: Prevent refetch during auth state changes
+  refetchOnReconnect: false,
+});
+4. Socket Connection Cleanup
+// In use-socket.tsx - Add connection state cleanup
+useEffect(() => {
+  return () => {
+    // Cleanup socket on unmount, not just user change
+    if (socketInstance) {
+      socketInstance.disconnect();
+      socketInstance = null;
+      currentUserId = null;
+    }
+  };
+}, []); // Only on unmount
+5. Cache Boundary Implementation
+// Add cache boundary in App.tsx
+const AuthBoundary = ({ children }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div>Authenticating...</div>; // Static, no queries
+  }
+  
+  if (!user) {
+    return <LoginPage />; // Isolated auth flow
+  }
+  
+  return children; // Render app only when auth is stable
+};
+Verification Against Code
+This diagnosis is verified by:
+
+AuthContext.tsx lines 25-35: Multiple auth check attempts with cache conflicts
+Sidebar.tsx lines 234-237: Early return pattern that triggers re-renders
+use-dashboard-data.tsx lines 20-30: Aggressive query invalidation
+use-socket.tsx lines 55-75: Socket state persistence across auth changes
+The pattern consistently shows state persistence across authentication boundaries causing infinite loops in environments with cached data, but working fine in clean environments (incognito mode).
