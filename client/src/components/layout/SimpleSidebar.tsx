@@ -113,38 +113,30 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
     return location.startsWith(parentRoute) && location !== parentRoute;
   }, [location]);
   
-  // Stable loading state - prevent endless loops by using static content
-  if (!user || !role) {
+  // Always render sidebar with navigation - role filtering happens after render
+  if (!user) {
     return (
-      <div className="w-full h-full flex flex-col bg-gradient-to-b from-white to-gray-100 text-gray-800 relative overflow-hidden">
-        {/* Semi-transparent overlay */}
-        <div className="absolute inset-0 bg-white/30"></div>
-        
-        {/* Content container */}
-        <div className="relative z-10 flex flex-col h-full">
-          {/* Static header without dynamic queries */}
-          <div className="px-6 pt-6 pb-5 flex items-center justify-between border-b border-gray-200">
-            <Logo />
-          </div>
-          
-          {/* Static loading content */}
-          <div className="flex flex-col items-center justify-center flex-1 px-4">
-            <div className="bg-white/50 rounded-lg p-6 shadow-sm max-w-xs w-full">
-              <div className="flex flex-col items-center space-y-3">
-                <div className="w-10 h-10 border-2 border-[#025E73] border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-xs text-gray-600 font-medium text-center">Initializing workspace...</p>
-              </div>
+      <div className="w-full h-full flex flex-col bg-gradient-to-b from-white to-gray-100 text-gray-800">
+        <div className="px-6 pt-6 pb-5 flex items-center justify-between border-b border-gray-200">
+          <Logo />
+        </div>
+        <div className="flex flex-col items-center justify-center flex-1 px-4">
+          <div className="bg-white/50 rounded-lg p-6 shadow-sm">
+            <div className="flex flex-col items-center space-y-3">
+              <div className="w-8 h-8 border-2 border-[#025E73] border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-xs text-gray-600 font-medium">Loading...</p>
             </div>
           </div>
-          
-          {/* Static version info */}
-          <div className="px-5 py-3 border-t border-gray-200 text-xs text-gray-600 text-center bg-white/30">
-            MetaSys ERP v1.0
-          </div>
+        </div>
+        <div className="px-5 py-3 border-t border-gray-200 text-xs text-gray-600 text-center bg-white/30">
+          MetaSys ERP v1.0
         </div>
       </div>
     );
   }
+
+  // Use fallback role if none provided - don't block sidebar rendering
+  const effectiveRole = role || 'user';
 
   // CRM Sub-items
   const crmSubItems = [
@@ -215,8 +207,8 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
   const filterItems = (items: NavItem[]) => {
     return items.filter(item => {
       if (item.hidden) return false;
-      if (item.showFor && !item.showFor.includes(role.department)) return false;
-      if (item.minLevel && role.level < item.minLevel) return false;
+      if (item.showFor && role?.department && !item.showFor.includes(role.department)) return false;
+      if (item.minLevel && role?.level && role.level < item.minLevel) return false;
       return true;
     });
   };
@@ -258,6 +250,8 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
 
   // Render a navigation item with auto-collapse on mobile
   const renderNavItem = (item: NavItem) => {
+    if (!item || !item.name || !item.href) return null;
+    
     const hasSubItems = item.subItems && item.subItems.length > 0;
     const isExpanded = expandedItems[item.href] || false;
     const isActive = isActiveRoute(item.href);
@@ -449,7 +443,7 @@ export default function SimpleSidebar({ mobile, collapsed: externalCollapsed, on
                     {user.firstName} {user.lastName}
                   </p>
                   <p className="text-xs text-[#025E73] font-medium">
-                    {role.name}
+                    {role?.name || 'User'}
                   </p>
                 </motion.div>
               )}
