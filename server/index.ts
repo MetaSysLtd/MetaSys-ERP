@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
-import { registerRoutes } from "./consolidated-routes";
+import { registerRoutes } from "./routes-minimal";
 import { setupVite, serveStatic, log } from "./vite";
 import * as notificationService from "./notifications";
 import session from "express-session";
@@ -9,7 +9,7 @@ import { sessionHandler } from "./middleware/error-handler";
 
 // JSON error handler middleware
 function jsonErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
-  if (err instanceof SyntaxError && 'body' in err && err.type === 'entity.parse.failed') {
+  if (err instanceof SyntaxError && 'body' in err) {
     return res.status(400).json({ 
       status: 'error', 
       message: 'Invalid JSON payload'
@@ -143,9 +143,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Now register API routes using our dedicated apiRouter
-  // Pass the apiRouter and httpServer to registerRoutes
-  await registerRoutes(apiRouter, httpServer);
+  // Now register API routes using the app directly
+  // The minimal routes setup expects the Express app
+  await registerRoutes(app);
 
   // Initialize socket.io server using the correct HTTP server
   const { initSocketIO } = await import('./socket');
