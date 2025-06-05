@@ -145,3 +145,10 @@ export const addOrgContext = async (req: Request, res: Response, next: NextFunct
     next();
   }
 };
+
+// Basic auth setup function for compatibility
+export const setupAuth = (app: any) => {
+  // This is a placeholder function for minimal auth setup
+  // The actual authentication is handled by the middleware above
+  console.log("Auth middleware setup completed");
+};

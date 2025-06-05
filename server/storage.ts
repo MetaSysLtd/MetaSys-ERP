@@ -577,6 +577,7 @@ export class MemStorage implements IStorage {
   private permissionTemplates: Map<number, PermissionTemplate>;
   private featureFlags: Map<number, FeatureFlag>;
   private userLocations: Map<number, UserLocation>;
+  private notifications: Map<number, Notification>;
   
 
   
@@ -621,6 +622,7 @@ export class MemStorage implements IStorage {
   private permissionTemplateIdCounter: number;
   private featureFlagIdCounter: number;
   private userLocationIdCounter: number;
+  private notificationIdCounter: number;
   
   // CRM enhancement counters
   private formTemplateIdCounter: number;
@@ -728,6 +730,10 @@ export class MemStorage implements IStorage {
     this.formTemplateIdCounter = 1;
     this.formSubmissionIdCounter = 1;
     this.leadHandoffIdCounter = 1;
+    this.notificationIdCounter = 1;
+    
+    // Initialize notifications Map
+    this.notifications = new Map();
     
     // Initialize with default roles
     this.initializeRoles();
@@ -4727,6 +4733,19 @@ export class DatabaseStorage implements IStorage {
       console.error('Error updating notification:', error);
       return undefined;
     }
+  }
+
+  async createNotification(notificationData: InsertNotification): Promise<Notification> {
+    const notification: Notification = {
+      id: this.notificationIdCounter++,
+      ...notificationData,
+      read: false,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.notifications.set(notification.id, notification);
+    return notification;
   }
   
   // Dashboard count functions

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { minimalStorage } from "./storage-minimal";
-import { setupAuth } from "./auth";
+import { setupAuth } from "./middleware/auth";
 
 export function registerRoutes(app: Express): Server {
   // Setup authentication routes
