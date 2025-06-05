@@ -213,6 +213,37 @@ export async function registerRoutes(router: any): Promise<void> {
     }
   });
 
+  // Add missing CRM endpoints that frontend is calling
+  router.get("/crm/leads", requireAuth(1), async (req, res) => {
+    try {
+      const leads = await storage.getLeads?.() || [];
+      res.json(leads);
+    } catch (error) {
+      console.error("Error fetching CRM leads:", error);
+      res.status(500).json({ message: "Failed to fetch leads" });
+    }
+  });
+
+  router.get("/crm/clients", requireAuth(1), async (req, res) => {
+    try {
+      const clients = await storage.getClients?.() || [];
+      res.json(clients);
+    } catch (error) {
+      console.error("Error fetching CRM clients:", error);
+      res.status(500).json({ message: "Failed to fetch clients" });
+    }
+  });
+
+  router.get("/crm/commissions", requireAuth(1), async (req, res) => {
+    try {
+      const commissions = await storage.getCommissions?.() || [];
+      res.json(commissions);
+    } catch (error) {
+      console.error("Error fetching CRM commissions:", error);
+      res.status(500).json({ message: "Failed to fetch commissions" });
+    }
+  });
+
   // Add Time Tracking routes
   router.get("/time-tracking/entries", requireAuth(1), async (req, res) => {
     try {

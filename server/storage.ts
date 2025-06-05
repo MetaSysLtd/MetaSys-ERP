@@ -130,6 +130,11 @@ export interface IStorage {
   createAccount(account: InsertAccount): Promise<Account>;
   updateAccount(id: number, updates: Partial<Account>): Promise<Account | undefined>;
   deleteAccount(id: number): Promise<boolean>;
+
+  // Additional CRM methods for endpoints
+  getClients(): Promise<DispatchClient[]>;
+  getDispatchLoads(): Promise<Load[]>;
+  getDispatchClients(): Promise<DispatchClient[]>;
   
   // Survey operations (CRM Deep-Carve)
   getSurvey(id: number): Promise<Survey | undefined>;
@@ -7651,6 +7656,43 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error(`Error in updateLeadHandoff for ID ${id}:`, error);
       return undefined; // Return undefined rather than throwing
+    }
+  }
+
+  // Add missing methods for CRM endpoints
+  async getClients(): Promise<DispatchClient[]> {
+    try {
+      return await db.select().from(dispatch_clients);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+      return [];
+    }
+  }
+
+  async getDispatchLoads(): Promise<Load[]> {
+    try {
+      return await db.select().from(loads);
+    } catch (error) {
+      console.error('Error fetching dispatch loads:', error);
+      return [];
+    }
+  }
+
+  async getDispatchClients(): Promise<DispatchClient[]> {
+    try {
+      return await db.select().from(dispatch_clients);
+    } catch (error) {
+      console.error('Error fetching dispatch clients:', error);
+      return [];
+    }
+  }
+
+  async getAccounts(): Promise<Account[]> {
+    try {
+      return await db.select().from(accounts);
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+      return [];
     }
   }
 }
