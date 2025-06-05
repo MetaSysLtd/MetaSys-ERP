@@ -133,7 +133,7 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
       <MetricCard
         title="Active Clients"
         value={metrics.activeDispatchClients?.toString() || '0'}
-        description="Dispatch clients in date range"
+        description="Active this month"
         trend={getTrend(metrics.dispatchClientsChange)}
         href="/dispatch/clients"
         iconBgColor="bg-green-50"
@@ -144,7 +144,7 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
       <MetricCard
         title="Total Revenue"
         value={formatCurrency(metrics.totalRevenue || 0)}
-        description={`${metrics.profitMargin || 0}% profit margin`}
+        description={`${formatCurrency(metrics.totalProfit || 0)} profit earned`}
         trend={metrics.profitMargin > 20 ? 'up' : metrics.profitMargin > 10 ? 'neutral' : 'down'}
         href="/finance"
         emptyStateMessage={emptyStateMessages.revenue}
@@ -155,7 +155,7 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
       <MetricCard
         title="Pending Invoices"
         value={metrics.invoicesPending?.toString() || '0'}
-        description={`${formatCurrency(metrics.totalProfit || 0)} profit`}
+        description="Awaiting payment"
         trend={getTrend(metrics.profitMargin)}
         href="/invoices"
         className="lg:col-span-2 xl:col-span-1"

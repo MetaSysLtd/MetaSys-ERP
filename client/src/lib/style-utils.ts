@@ -114,13 +114,24 @@ export const brandColors = {
   }
 };
 
-// Metric card specific styles
+// Metric card specific styles with improved responsive grid
 export const metricCardStyles = {
-  title: "text-sm font-medium text-gray-500 whitespace-normal",
-  value: "text-lg font-medium text-gray-900 dark:text-gray-100",
-  description: "text-sm flex items-center",
-  iconContainer: "flex-shrink-0 rounded-md p-3",
-  grid: "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5"
+  title: "text-base font-semibold text-gray-700 dark:text-gray-300 whitespace-normal mb-2",
+  value: "text-3xl font-bold text-gray-900 dark:text-gray-100 leading-tight mb-1",
+  description: "text-sm flex items-center text-gray-600 dark:text-gray-400",
+  iconContainer: "flex-shrink-0 rounded-lg p-3 w-12 h-12 flex items-center justify-center",
+  // Responsive grid that handles 5 cards properly across all screen sizes
+  grid: `
+    grid gap-6 
+    grid-cols-1 
+    sm:grid-cols-2 
+    lg:grid-cols-3 
+    xl:grid-cols-4 
+    2xl:grid-cols-5
+    auto-rows-fr
+  `.replace(/\s+/g, ' ').trim(),
+  // Consistent card styling
+  cardBase: "min-h-[180px] p-6 flex flex-col justify-between bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200"
 };
 
 // Button styles based on brand guidelines

@@ -79,53 +79,42 @@ export function MetricCard({
   const displayIcon = icon || getDefaultIcon();
 
   return (
-    <Card 
-      accent={true} 
-      accentPosition="left" 
-      className={`${getCardClass({ 
-        withAccent: true,
-        minHeight: true,
-        withBorder: true 
-      })} overflow-hidden group ${className}`}
-    >
-      <CardContent className="p-5">
-        <div className="flex items-center h-full">
-          <div className={`${metricCardStyles.iconContainer} ${iconBgColor} transition-colors group-hover:bg-[#F2A71B]/10`}>
-            <div className={`h-6 w-6 ${iconColor} transition-colors group-hover:text-[#F2A71B]`}>{displayIcon}</div>
-          </div>
-          <div className="ml-5 w-0 flex-1">
-            <dl>
-              <dt className={metricCardStyles.title}>{title}</dt>
-              <dd>
-                <div className={metricCardStyles.value}>{value}</div>
-                {isEmptyState && emptyStateMessage ? (
-                  <div className={`${typography.tiny} text-amber-600 mt-1`}>
-                    {emptyStateMessage}
-                  </div>
-                ) : description && (
-                  <div className={`${metricCardStyles.description} ${trendStyles.textColor}`}>
-                    {trendStyles.icon}
-                    <span className="ml-1 whitespace-normal break-words">{description}</span>
-                  </div>
-                )}
-              </dd>
-            </dl>
-          </div>
+    <div className={`${metricCardStyles.cardBase} group ${className}`}>
+      {/* Header with title and icon */}
+      <div className="flex items-start justify-between mb-4">
+        <h3 className={metricCardStyles.title}>{title}</h3>
+        <div className={`${metricCardStyles.iconContainer} ${iconBgColor} transition-colors group-hover:bg-[#F2A71B]/10`}>
+          <div className={`w-6 h-6 ${iconColor} transition-colors group-hover:text-[#F2A71B]`}>{displayIcon}</div>
         </div>
-      </CardContent>
-      {href && (
-        <CardFooter className="bg-gray-50 px-5 py-3">
-          <div className="text-sm">
-            <Link href={href}>
-              <span className={`${typography.small} font-medium text-[${brandColors.primary}] hover:text-[${brandColors.secondary}] flex items-center cursor-pointer transition-colors`}>
-                View details
-                <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </span>
-            </Link>
+      </div>
+      
+      {/* Main value display */}
+      <div className="flex-1 flex flex-col justify-center">
+        <div className={metricCardStyles.value}>{value}</div>
+        {isEmptyState && emptyStateMessage ? (
+          <div className={`${typography.tiny} text-amber-600 mt-2 leading-relaxed`}>
+            {emptyStateMessage}
           </div>
-        </CardFooter>
+        ) : description && (
+          <div className={`${metricCardStyles.description} mt-2 ${trendStyles.textColor}`}>
+            {trendStyles.icon}
+            <span className="ml-2 whitespace-normal break-words leading-relaxed">{description}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Footer with action link */}
+      {href && (
+        <div className="pt-4 border-t border-gray-100 dark:border-gray-700 mt-4">
+          <Link href={href}>
+            <span className={`${typography.small} font-medium text-[${brandColors.primary}] hover:text-[${brandColors.secondary}] flex items-center cursor-pointer transition-colors group-hover:text-[#F2A71B]`}>
+              View details
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </span>
+          </Link>
+        </div>
       )}
-    </Card>
+    </div>
   );
 }
 
