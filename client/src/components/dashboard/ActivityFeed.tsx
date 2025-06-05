@@ -4,6 +4,9 @@ import { formatDate } from "@/lib/formatters";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bell, Users, FileText, TrendingUp, Clipboard, ClipboardCheck, Truck, PenTool, DollarSign } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useSocket } from "@/hooks/use-socket";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 // Extended Activity type to account for dashboard activity data which may include user info
 interface ExtendedActivity extends Activity {
@@ -30,6 +33,46 @@ export function ActivityFeed({
   showHeader = true,
   height = "400px",
 }: ActivityFeedProps) {
+  const { socket } = useSocket();
+  const queryClient = useQueryClient();
+
+  // Real-time socket subscriptions for activity updates
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleActivityUpdate = () => {
+      // Invalidate dashboard queries for fresh activity data
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/consolidated'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/activities'] });
+    };
+
+    // Subscribe to all activity-generating events
+    socket.on('lead:created', handleActivityUpdate);
+    socket.on('lead:updated', handleActivityUpdate);
+    socket.on('lead:deleted', handleActivityUpdate);
+    socket.on('dispatch:created', handleActivityUpdate);
+    socket.on('dispatch:updated', handleActivityUpdate);
+    socket.on('dispatch:deleted', handleActivityUpdate);
+    socket.on('invoice:created', handleActivityUpdate);
+    socket.on('invoice:updated', handleActivityUpdate);
+    socket.on('commission:calculated', handleActivityUpdate);
+    socket.on('policy:created', handleActivityUpdate);
+    socket.on('data:updated', handleActivityUpdate);
+
+    return () => {
+      socket.off('lead:created', handleActivityUpdate);
+      socket.off('lead:updated', handleActivityUpdate);
+      socket.off('lead:deleted', handleActivityUpdate);
+      socket.off('dispatch:created', handleActivityUpdate);
+      socket.off('dispatch:updated', handleActivityUpdate);
+      socket.off('dispatch:deleted', handleActivityUpdate);
+      socket.off('invoice:created', handleActivityUpdate);
+      socket.off('invoice:updated', handleActivityUpdate);
+      socket.off('commission:calculated', handleActivityUpdate);
+      socket.off('policy:created', handleActivityUpdate);
+      socket.off('data:updated', handleActivityUpdate);
+    };
+  }, [socket, queryClient]);
   const getActivityIcon = (entityType: string, action: string) => {
     switch (entityType) {
       case "lead":

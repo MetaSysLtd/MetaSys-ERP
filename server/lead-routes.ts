@@ -250,6 +250,20 @@ export function setupLeadRoutes() {
         details: `Marked lead as deleted: ${existingLead.companyName || 'Unknown Company'}`
       });
       
+      // Emit socket events for real-time updates
+      const io = getIo();
+      if (io) {
+        io.emit('lead:deleted', { 
+          lead: updatedLead, 
+          userId: req.user?.id 
+        });
+        io.emit('data:updated', { 
+          type: 'leads', 
+          action: 'deleted', 
+          data: updatedLead 
+        });
+      }
+      
       // Return success
       res.status(200).json({ success: true, message: "Lead marked as deleted successfully" });
     } catch (error) {
