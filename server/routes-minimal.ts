@@ -332,6 +332,47 @@ export async function registerRoutes(router: any): Promise<void> {
     }
   });
 
+  router.post("/finance/expenses", requireAuth(1), async (req, res) => {
+    try {
+      res.json({ id: Date.now(), ...req.body });
+    } catch (error) {
+      console.error("Error creating expense:", error);
+      res.status(500).json({ message: "Failed to create expense" });
+    }
+  });
+
+  router.get("/finance/revenue", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching revenue:", error);
+      res.status(500).json({ message: "Failed to fetch revenue" });
+    }
+  });
+
+  router.get("/finance/reports", requireAuth(1), async (req, res) => {
+    try {
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching financial reports:", error);
+      res.status(500).json({ message: "Failed to fetch financial reports" });
+    }
+  });
+
+  router.get("/finance/dashboard", requireAuth(1), async (req, res) => {
+    try {
+      res.json({
+        monthlyRevenue: 0,
+        monthlyExpenses: 0,
+        profit: 0,
+        cashFlow: 0
+      });
+    } catch (error) {
+      console.error("Error fetching finance dashboard:", error);
+      res.status(500).json({ message: "Failed to fetch finance dashboard" });
+    }
+  });
+
   // Add Tasks routes
   router.get("/tasks", requireAuth(1), async (req, res) => {
     try {
