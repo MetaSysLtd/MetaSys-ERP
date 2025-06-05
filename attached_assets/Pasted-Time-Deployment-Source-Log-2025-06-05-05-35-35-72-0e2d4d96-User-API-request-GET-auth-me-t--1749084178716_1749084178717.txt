@@ -1,0 +1,116 @@
+Time
+Deployment
+Source
+Log
+2025-06-05 05:35:35.72
+0e2d4d96
+User
+API request: GET /auth/me?_t=1749083735950
+2025-06-05 05:35:35.72
+0e2d4d96
+User
+No userId in session
+2025-06-05 05:35:35.72
+0e2d4d96
+User
+12:35:35 AM [express] GET /api/auth/me 401 in 4ms :: {"authenticated":false}
+2025-06-05 05:35:35.85
+0e2d4d96
+User
+API request: GET /auth/user-organizations
+2025-06-05 05:35:35.85
+0e2d4d96
+User
+12:35:35 AM [express] GET /api/auth/user-organizations 401 in 2ms :: {"error":"Unauthorized: Please l…
+2025-06-05 05:35:40.59
+0e2d4d96
+User
+API request: POST /auth/login
+2025-06-05 05:35:40.60
+0e2d4d96
+User
+Login attempt received: {
+2025-06-05 05:35:40.60
+0e2d4d96
+User
+body: { username: 'admin', password: 'admin123', timestamp: 1749083740778 },
+2025-06-05 05:35:40.60
+0e2d4d96
+User
+contentType: 'application/json',
+2025-06-05 05:35:40.60
+0e2d4d96
+User
+method: 'POST',
+2025-06-05 05:35:40.60
+0e2d4d96
+User
+path: '/login',
+2025-06-05 05:35:40.60
+0e2d4d96
+User
+url: '/login',
+2025-06-05 05:35:40.60
+0e2d4d96
+User
+originalUrl: '/api/auth/login'
+2025-06-05 05:35:40.60
+0e2d4d96
+User
+}
+2025-06-05 05:35:40.60
+0e2d4d96
+User
+Login attempt for username: admin
+2025-06-05 05:35:40.92
+0e2d4d96
+User
+User admin logged in successfully
+2025-06-05 05:35:41.12
+0e2d4d96
+User
+12:35:41 AM [express] POST /api/auth/login 200 in 527ms :: {"user":{"id":1,"username":"admin","firstN…
+2025-06-05 05:35:42.41
+0e2d4d96
+User
+12:35:42 AM [express] GET /api/auth/user-organizations 200 in 405ms :: [{"id":1,"name":"Default Organ…
+2025-06-05 05:35:42.43
+0e2d4d96
+User
+12:35:42 AM [express] GET /api/dashboard/activities 200 in 255ms
+2025-06-05 05:35:42.44
+0e2d4d96
+User
+12:35:42 AM [express] GET /api/notifications 200 in 374ms :: []
+2025-06-05 05:35:42.45
+0e2d4d96
+User
+12:35:42 AM [express] GET /api/dashboard/revenue 200 in 262ms
+2025-06-05 05:35:42.45
+0e2d4d96
+User
+12:35:42 AM [express] GET /api/notifications/leads 200 in 395ms :: []
+2025-06-05 05:35:42.52
+0e2d4d96
+User
+12:35:42 AM [express] GET /api/dashboard 200 in 344ms :: {"counts":{"leads":5,"clients":3,"loads":0,"…
+2025-06-05 05:35:42.52
+0e2d4d96
+User
+12:35:42 AM [express] GET /api/dashboard/metrics 200 in 340ms :: {"performance":{"sales":{"weekly":{"…
+2025-06-05 05:35:42.80
+0e2d4d96
+User
+API request: GET /dashboard
+2025-06-05 05:35:43.01
+0e2d4d96
+User
+12:35:43 AM [express] GET /api/dashboard 200 in 202ms :: {"counts":{"leads":5,"clients":3,"loads":0,"…
+2025-06-05 05:35:43.13
+0e2d4d96
+System
+error proxying request error=EOF
+2025-06-05 05:35:43.15
+0e2d4d96
+User
+API request: GET /dispatch-reports?dispatcherId=1&date=2025-06-05

@@ -1,0 +1,283 @@
+ injection-tss TSS: hosted page injected
+ injection-tss MBTSS: Nonce:  nonce
+ TSS: excluded result:  false
+ DFP: Breach notification feature flag is enabled. true
+ DFP: Search Hijacking notification feature flag is enabled. true
+ Browsing Topics API removed
+ Global error handlers initialized
+ User not authenticated or missing data, staying on login page
+ Connecting to socket at relative path
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Making query to: /api/organization/current
+ Checking authentication (attempt 1/2)
+ Global error handlers initialized
+ MetaSys ERP global error handling initialized
+ Socket already initialized, reusing existing connection
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for system:message
+ Setting up handler for error
+ Setting up handler for data:updated
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead:deleted
+ Removing handler for lead:status_changed
+ Removing handler for dispatch:created
+ Removing handler for dispatch:updated
+ Removing handler for dispatch:deleted
+index-c31Ytz30.js:61 Removing handler for dispatch:status_changed
+index-c31Ytz30.js:61 Removing handler for invoice:created
+index-c31Ytz30.js:61 Removing handler for invoice:updated
+index-c31Ytz30.js:61 Removing handler for invoice:deleted
+index-c31Ytz30.js:61 Removing handler for invoice:status_changed
+index-c31Ytz30.js:61 Removing handler for notification:created
+index-c31Ytz30.js:61 Removing handler for notification:read
+index-c31Ytz30.js:61 Removing handler for notification:deleted
+index-c31Ytz30.js:61 Removing handler for data:updated
+index-c31Ytz30.js:61 Setting up handler for connect
+index-c31Ytz30.js:61 Setting up handler for disconnect
+index-c31Ytz30.js:61 Setting up handler for authenticated
+index-c31Ytz30.js:61 Setting up handler for data:refresh
+index-c31Ytz30.js:61 Setting up handler for error
+index-c31Ytz30.js:61 Setting up handler for system:message
+api/auth/me?_t=1749084023757:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()
+index-c31Ytz30.js:61 Authentication check failed with status 401 - not authenticated
+index-c31Ytz30.js:61 Removing handler for connect
+index-c31Ytz30.js:61 Removing handler for disconnect
+index-c31Ytz30.js:61 Removing handler for authenticated
+index-c31Ytz30.js:61 Removing handler for data:refresh
+index-c31Ytz30.js:61 Removing handler for error
+index-c31Ytz30.js:61 Removing handler for system:message
+index-c31Ytz30.js:61 Setting up handler for connect
+index-c31Ytz30.js:61 Setting up handler for disconnect
+index-c31Ytz30.js:61 Setting up handler for authenticated
+index-c31Ytz30.js:61 Setting up handler for data:refresh
+index-c31Ytz30.js:61 Setting up handler for error
+index-c31Ytz30.js:61 Setting up handler for system:message
+api/organization/current:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 ()
+index-c31Ytz30.js:61 Attempting to login with username: admin
+index-c31Ytz30.js:61 Removing handler for connect
+index-c31Ytz30.js:61 Removing handler for disconnect
+index-c31Ytz30.js:61 Removing handler for authenticated
+index-c31Ytz30.js:61 Removing handler for data:refresh
+index-c31Ytz30.js:61 Removing handler for error
+index-c31Ytz30.js:61 Removing handler for system:message
+index-c31Ytz30.js:61 Setting up handler for connect
+index-c31Ytz30.js:61 Setting up handler for disconnect
+index-c31Ytz30.js:61 Setting up handler for authenticated
+index-c31Ytz30.js:61 Setting up handler for data:refresh
+index-c31Ytz30.js:61 Setting up handler for error
+index-c31Ytz30.js:61 Setting up handler for system:message
+index-c31Ytz30.js:61 Login attempt to /api/auth/login, status: 200
+index-c31Ytz30.js:61 Login response: Object
+index-c31Ytz30.js:61 SECURITY CHECK: Verifying session establishment...
+index-c31Ytz30.js:61 Session verification successful - user is properly authenticated
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+index-c31Ytz30.js:61 Removing handler for connect
+index-c31Ytz30.js:61 Removing handler for disconnect
+index-c31Ytz30.js:61 Removing handler for authenticated
+index-c31Ytz30.js:61 Removing handler for data:refresh
+index-c31Ytz30.js:61 Removing handler for error
+index-c31Ytz30.js:61 Removing handler for system:message
+index-c31Ytz30.js:61 Socket not connected, waiting before authentication attempt
+index-c31Ytz30.js:61 Setting up handler for connect
+index-c31Ytz30.js:61 Setting up handler for disconnect
+index-c31Ytz30.js:61 Setting up handler for authenticated
+index-c31Ytz30.js:61 Setting up handler for data:refresh
+index-c31Ytz30.js:61 Setting up handler for error
+index-c31Ytz30.js:61 Setting up handler for system:message
+index-c31Ytz30.js:61 Making API request to: /api/ui-prefs/me with method: GET
+index-c31Ytz30.js:61 Connecting to socket at: wss://erp.metasysltd.com/ws
+index-c31Ytz30.js:61 Removing handler for connect
+index-c31Ytz30.js:61 Removing handler for disconnect
+index-c31Ytz30.js:61 Removing handler for authenticated
+index-c31Ytz30.js:61 Removing handler for data:refresh
+index-c31Ytz30.js:61 Removing handler for error
+index-c31Ytz30.js:61 Removing handler for system:message
+index-c31Ytz30.js:61 Setting up handler for connect
+index-c31Ytz30.js:61 Setting up handler for disconnect
+index-c31Ytz30.js:61 Setting up handler for authenticated
+index-c31Ytz30.js:61 Setting up handler for data:refresh
+index-c31Ytz30.js:61 Setting up handler for error
+index-c31Ytz30.js:61 Setting up handler for system:message
+index-c31Ytz30.js:61 Making query to: /api/auth/user-organizations
+index-c31Ytz30.js:61 Making query to: /api/organizations/current
+index-c31Ytz30.js:61 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-c31Ytz30.js:61
+index-c31Ytz30.js:61 Making query to: /api/auth/me
+index-c31Ytz30.js:61 Making query to: /api/dashboard/metrics
+index-c31Ytz30.js:61 Making query to: /api/dashboard/revenue
+index-c31Ytz30.js:61 Making query to: /api/dashboard/activities
+index-c31Ytz30.js:632 [Dashboard] Fetching dashboard data...
+index-c31Ytz30.js:61 Making query to: /api/dashboard/revenue
+index-c31Ytz30.js:632 [Dashboard] Fetching dashboard data...
+index-c31Ytz30.js:632 [Dashboard] Data loaded successfully
+index-c31Ytz30.js:632 [Dashboard] Data loaded successfully
+index-c31Ytz30.js:61 Making query to: /api/dashboard/widgets
+index-c31Ytz30.js:61 Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-c31Ytz30.js:61
+index-c31Ytz30.js:61 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-c31Ytz30.js:61
+index-c31Ytz30.js:61 Making API request to: /api/ui-prefs/me with method: PATCH
+index-c31Ytz30.js:61 Making query to: /api/dashboard/revenue
+index-c31Ytz30.js:61 Making query to: /api/dashboard/activities
+index-c31Ytz30.js:632 [Dashboard] Fetching dashboard data...
+index-c31Ytz30.js:641 Failed to update UI preferences: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+console.error @ index-c31Ytz30.js:641
+index-c31Ytz30.js:641 [Global Error] Failed to update UI preferences:
+index-c31Ytz30.js:632 [Dashboard] Data loaded successfully
+index-c31Ytz30.js:61 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-c31Ytz30.js:61
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+index-c31Ytz30.js:641 TypeError: Cannot read properties of undefined (reading 'toLowerCase')
+    at DHe (index-c31Ytz30.js:61:136085)
+    at Re (index-B58XMrIU.js:11:15584)
+    at jC (index-c31Ytz30.js:39:16998)
+    at vE (index-c31Ytz30.js:41:3139)
+    at eB (index-c31Ytz30.js:41:44560)
+    at Z4 (index-c31Ytz30.js:41:39766)
+    at pQ (index-c31Ytz30.js:41:39694)
+    at By (index-c31Ytz30.js:41:39547)
+    at CE (index-c31Ytz30.js:41:35914)
+    at q4 (index-c31Ytz30.js:41:34865)
+console.error @ index-c31Ytz30.js:641
+index-c31Ytz30.js:641 [Global Error] TypeError: Cannot read properties of undefined (reading 'toLowerCase')
+    at DHe (index-c31Ytz30.js:61:136085)
+    at Re (index-B58XMrIU.js:11:15584)
+    at jC (index-c31Ytz30.js:39:16998)
+    at vE (index-c31Ytz30.js:41:3139)
+    at eB (index-c31Ytz30.js:41:44560)
+    at Z4 (index-c31Ytz30.js:41:39766)
+    at pQ (index-c31Ytz30.js:41:39694)
+    at By (index-c31Ytz30.js:41:39547)
+    at CE (index-c31Ytz30.js:41:35914)
+    at q4 (index-c31Ytz30.js:41:34865)
+index-c31Ytz30.js:641 Error caught by boundary: TypeError: Cannot read properties of undefined (reading 'toLowerCase')
+    at DHe (index-c31Ytz30.js:61:136085)
+    at Re (index-B58XMrIU.js:11:15584)
+    at jC (index-c31Ytz30.js:39:16998)
+    at vE (index-c31Ytz30.js:41:3139)
+    at eB (index-c31Ytz30.js:41:44560)
+    at Z4 (index-c31Ytz30.js:41:39766)
+    at pQ (index-c31Ytz30.js:41:39694)
+    at By (index-c31Ytz30.js:41:39547)
+    at CE (index-c31Ytz30.js:41:35914)
+    at q4 (index-c31Ytz30.js:41:34865) Object
+console.error @ index-c31Ytz30.js:641
+index-c31Ytz30.js:641 [Global Error] Error caught by boundary:
+index-c31Ytz30.js:61 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-c31Ytz30.js:61
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  Object
+index-c31Ytz30.js:61 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-c31Ytz30.js:61
+index-c31Ytz30.js:61 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-c31Ytz30.js:61
+index-c31Ytz30.js:61 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-c31Ytz30.js:61
+doOpen @ index-c31Ytz30.js:61
+open @ index-c31Ytz30.js:61
+_open @ index-c31Ytz30.js:61
+Ns @ index-c31Ytz30.js:61
+lre @ index-c31Ytz30.js:61
+cre @ index-c31Ytz30.js:61
+open @ index-c31Ytz30.js:61
+(anonymous) @ index-c31Ytz30.js:61
+injection-tss-mv3.js:1 TSS: Counted history being pushed
+injection-tss-mv3.js:1 TSS: Caught history
+injection-tss-mv3.js:1 TSS: Checking if repeated 500 times for interval 1000 against data:  {lastTime: 1749084044667, lastCount: 1}
+index-c31Ytz30.js:61 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-c31Ytz30.js:61
+doOpen @ index-c31Ytz30.js:61
+open @ index-c31Ytz30.js:61
+_open @ index-c31Ytz30.js:61
+Ns @ index-c31Ytz30.js:61
+lre @ index-c31Ytz30.js:61
+cre @ index-c31Ytz30.js:61
+open @ index-c31Ytz30.js:61
+(anonymous) @ index-c31Ytz30.js:61
+index-c31Ytz30.js:61 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-c31Ytz30.js:61
+doOpen @ index-c31Ytz30.js:61
+open @ index-c31Ytz30.js:61
+_open @ index-c31Ytz30.js:61
+Ns @ index-c31Ytz30.js:61
+lre @ index-c31Ytz30.js:61
+cre @ index-c31Ytz30.js:61
+open @ index-c31Ytz30.js:61
+(anonymous) @ index-c31Ytz30.js:61
+index-c31Ytz30.js:61 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-c31Ytz30.js:61
+doOpen @ index-c31Ytz30.js:61
+open @ index-c31Ytz30.js:61
+_open @ index-c31Ytz30.js:61
+Ns @ index-c31Ytz30.js:61
+lre @ index-c31Ytz30.js:61
+cre @ index-c31Ytz30.js:61
+open @ index-c31Ytz30.js:61
+(anonymous) @ index-c31Ytz30.js:61
+index-c31Ytz30.js:61 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-c31Ytz30.js:61
+doOpen @ index-c31Ytz30.js:61
+open @ index-c31Ytz30.js:61
+_open @ index-c31Ytz30.js:61
+Ns @ index-c31Ytz30.js:61
+lre @ index-c31Ytz30.js:61
+cre @ index-c31Ytz30.js:61
+open @ index-c31Ytz30.js:61
+(anonymous) @ index-c31Ytz30.js:61
+index-c31Ytz30.js:61 WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-c31Ytz30.js:61
+doOpen @ index-c31Ytz30.js:61
+open @ index-c31Ytz30.js:61
+_open @ index-c31Ytz30.js:61
+Ns @ index-c31Ytz30.js:61
+lre @ index-c31Ytz30.js:61
+cre @ index-c31Ytz30.js:61
+open @ index-c31Ytz30.js:61
+(anonymous) @ index-c31Ytz30.js:61

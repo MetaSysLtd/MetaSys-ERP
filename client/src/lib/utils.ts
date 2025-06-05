@@ -152,7 +152,11 @@ export function getPrevMonthsData(count: number): { name: string; value: number 
   return months;
 }
 
-export function getDepartmentColor(department: string): string {
+export function getDepartmentColor(department: string | undefined | null): string {
+  if (!department) {
+    return 'text-gray-600';
+  }
+  
   switch (department.toLowerCase()) {
     case 'sales':
       return 'text-primary-600';
