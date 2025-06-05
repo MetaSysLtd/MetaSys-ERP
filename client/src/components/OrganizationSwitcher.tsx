@@ -21,8 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 interface Organization {
   id: number;
   name: string;
-  code: string;
-  active: boolean;
+  current?: boolean;
 }
 
 export function OrganizationSwitcher() {
@@ -31,10 +30,12 @@ export function OrganizationSwitcher() {
   const { toast } = useToast();
 
   // Fetch organizations the user has access to
-  const { data: organizations = [], isLoading } = useQuery<Organization[]>({
+  const { data: orgResponse, isLoading } = useQuery<{organizations: Organization[]}>({
     queryKey: ['/api/auth/user-organizations'],
     staleTime: 60000 // 1 minute
   });
+
+  const organizations = orgResponse?.organizations || [];
 
   // Fetch current organization
   const { data: currentOrg, isLoading: isLoadingCurrent } = useQuery<Organization>({
