@@ -164,7 +164,7 @@ export async function registerRoutes(router: any): Promise<void> {
   });
 
   // User management routes
-  app.get("/api/users", requireAuth(3), async (req, res) => {
+  router.get("/users", requireAuth(3), async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       res.json(users);
@@ -175,7 +175,7 @@ export async function registerRoutes(router: any): Promise<void> {
   });
 
   // Admin profile management routes
-  app.get("/api/admin/users", requireAuth(5), async (req, res) => {
+  router.get("/admin/users", requireAuth(5), async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       const usersWithRoles = await Promise.all(
@@ -191,7 +191,7 @@ export async function registerRoutes(router: any): Promise<void> {
     }
   });
 
-  app.patch("/api/admin/users/:id", requireAuth(5), async (req, res) => {
+  router.patch("/admin/users/:id", requireAuth(5), async (req, res) => {
     try {
       const userId = Number(req.params.id);
       const updates = req.body;
@@ -204,7 +204,7 @@ export async function registerRoutes(router: any): Promise<void> {
     }
   });
 
-  app.delete("/api/admin/users/:id", requireAuth(5), async (req, res) => {
+  router.delete("/admin/users/:id", requireAuth(5), async (req, res) => {
     try {
       const userId = Number(req.params.id);
       
@@ -221,7 +221,4 @@ export async function registerRoutes(router: any): Promise<void> {
       res.status(500).json({ message: "Failed to deactivate user" });
     }
   });
-
-  const httpServer = createServer(app);
-  return httpServer;
 }
