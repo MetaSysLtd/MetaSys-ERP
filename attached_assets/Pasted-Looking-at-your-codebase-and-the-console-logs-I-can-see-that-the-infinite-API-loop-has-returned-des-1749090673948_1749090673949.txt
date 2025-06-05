@@ -1,0 +1,45 @@
+Looking at your codebase and the console logs, I can see that the infinite API loop has returned despite the Agent's previous fixes. Let me analyze the specific issues and help you craft targeted prompts for the Agent.
+
+Current Critical Issues Analysis
+1. The Consolidated Hook Isn't Working
+From use-dashboard-data.tsx, I can see the Agent created a useDashboardData hook that's supposed to use /api/dashboard/consolidated endpoint, but looking at the console logs, the old individual endpoints are still being called:
+
+/api/dashboard/metrics
+/api/dashboard/revenue
+/api/dashboard/activities
+/api/commissions/monthly/user/1/2025-06
+This means components are bypassing the consolidated hook.
+
+2. Commission Components Have Independent Data Fetching
+The commission components (CommissionBreakdown-clean.tsx and CommissionPerformance.tsx) are still making their own API calls instead of using data from the consolidated hook.
+
+3. Socket Handler Cycling Still Occurring
+From the webview logs, I can see the socket handlers are still being setup/removed repeatedly:
+
+["Setting up handler for connect"]
+["Removing handler for connect"]
+["Setting up handler for disconnect"]
+Strategic Prompts for the Agent
+Here are specific, targeted prompts you can use to guide the Agent:
+
+Prompt 1: Fix Commission Component Data Fetching
+"The commission components are bypassing the consolidated dashboard hook. Please update CommissionBreakdown-clean.tsx and CommissionPerformance.tsx to ONLY use data from the useDashboardData hook's commissionData property, and remove all independent useQuery calls from these components. They should receive data as props from the main dashboard."
+Prompt 2: Enforce Consolidated Endpoint Usage
+"Looking at the console logs, the dashboard is still calling individual endpoints (/api/dashboard/metrics, /api/dashboard/revenue, etc.) instead of using the consolidated endpoint. Please ensure ALL dashboard components use ONLY the useDashboardData hook and remove any direct useQuery calls to individual dashboard endpoints from the main dashboard component."
+Prompt 3: Fix Socket Handler Memory Leaks
+"The SocketContext is creating memory leaks by repeatedly setting up and removing handlers. Please fix the useEffect dependency array in SocketContext.tsx to prevent the socket connection from being recreated on every render. Focus specifically on the user dependency and ensure handlers are only setup once per connection."
+Prompt 4: Verify Consolidated Endpoint Implementation
+"Please verify that the /api/dashboard/consolidated endpoint exists in the server routes and returns all the data that the individual endpoints were providing (metrics, revenue, activities, commissions). The endpoint should return a single object with all dashboard data to eliminate multiple API calls."
+Diagnostic Questions for the Agent
+Before making changes, ask the Agent:
+
+"Can you show me exactly which components are still making individual API calls instead of using the consolidated useDashboardData hook?"
+
+"Does the /api/dashboard/consolidated endpoint exist in the server routes, and what data structure does it return?"
+
+"Why are the commission components still making separate API calls when they should be getting data from the consolidated hook?"
+
+Immediate Next Steps
+I recommend starting with Prompt 1 about the commission components, as this is likely the biggest source of the API spam. The commission endpoints are being called every second, which suggests these components have their own independent data fetching logic that needs to be removed.
+
+After that, use Prompt 2 to ensure the main dashboard uses only the consolidated endpoint.

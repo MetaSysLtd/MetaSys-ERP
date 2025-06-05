@@ -16,11 +16,12 @@ export function useDashboardData() {
   // SINGLE CONSOLIDATED DASHBOARD QUERY - ELIMINATES COMPETING QUERIES
   const consolidatedDashboardQuery = useQuery({
     queryKey: ['/api/dashboard/consolidated'],
-    staleTime: 300000, // Cache for 5 minutes
-    gcTime: 600000, // 10 minutes
+    staleTime: Infinity, // Never consider data stale - aggressive caching
+    gcTime: Infinity, // Never garbage collect
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchInterval: false,
+    retry: false, // Don't retry to prevent loops
     enabled: !!userProfileQuery.data, // Only run after user is loaded
   });
 
@@ -28,17 +29,17 @@ export function useDashboardData() {
   const isLoading = userProfileQuery.isLoading || consolidatedDashboardQuery.isLoading;
   const hasTimedOut = userProfileQuery.isError && consolidatedDashboardQuery.isError;
   
-  // Extract data from consolidated response
-  const dashboardData = consolidatedDashboardQuery.data || {};
+  // Extract data from consolidated response with proper type safety
+  const dashboardData = consolidatedDashboardQuery.data as any || {};
   
   return {
     isLoading,
     hasTimedOut,
     userData: userProfileQuery.data,
-    kpiData: dashboardData.metrics,
-    revenueData: dashboardData.revenue,
-    activitiesData: dashboardData.activities,
-    commissionData: dashboardData.commissions,
+    kpiData: dashboardData.metrics || {},
+    revenueData: dashboardData.revenue || {},
+    activitiesData: dashboardData.activities || [],
+    commissionData: dashboardData.commissions || { monthlyData: { current: null, previous: null } },
     userProfileLoading: userProfileQuery.isLoading,
     kpiMetricsLoading: consolidatedDashboardQuery.isLoading,
     revenueLoading: consolidatedDashboardQuery.isLoading,
