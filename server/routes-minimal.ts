@@ -25,14 +25,14 @@ const requireAuth = (minLevel: number = 1) => {
   };
 };
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(router: any): Promise<void> {
   // Basic health check
-  app.get("/api/health", (req, res) => {
+  router.get("/health", (req, res) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
   // Authentication routes
-  app.post("/api/auth/login", async (req, res) => {
+  router.post("/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
       
@@ -61,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/logout", (req, res) => {
+  router.post("/auth/logout", (req, res) => {
     req.session.destroy((err) => {
       if (err) {
         return res.status(500).json({ message: "Could not logout" });
@@ -70,7 +70,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.get("/api/auth/me", async (req, res) => {
+  router.get("/auth/me", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ 
         status: "error", 
@@ -101,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.get("/api/auth/user-organizations", async (req, res) => {
+  router.get("/auth/user-organizations", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ organizations: [] });
     }
@@ -121,7 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  app.get("/api/organization/current", async (req, res) => {
+  router.get("/organization/current", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -135,7 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(org || { message: "Organization not found" });
   });
 
-  app.get("/api/organizations/current", async (req, res) => {
+  router.get("/organizations/current", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -149,7 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(org || { message: "Organization not found" });
   });
 
-  app.get("/api/user", requireAuth(1), async (req, res) => {
+  router.get("/user", requireAuth(1), async (req, res) => {
     if (!req.user) {
       return res.status(401).json({ message: "Not authenticated" });
     }
