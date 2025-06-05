@@ -806,8 +806,8 @@ export default function SettingsPage() {
                       <Label>Role</Label>
                       <div className="mt-1 flex items-center space-x-2">
                         <p className="text-sm">{role.name}</p>
-                        <Badge variant="outline" className={`text-xs ${getDepartmentColor(role.department)}`}>
-                          {role.department.charAt(0).toUpperCase() + role.department.slice(1)}
+                        <Badge variant="outline" className={`text-xs ${getDepartmentColor(role?.department)}`}>
+                          {role?.department ? role.department.charAt(0).toUpperCase() + role.department.slice(1) : 'N/A'}
                         </Badge>
                       </div>
                     </div>
