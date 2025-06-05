@@ -1,6 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
-import { registerRoutes } from "./routes-minimal";
+import { registerRoutes } from "./routes-stable";
 import { setupVite, serveStatic, log } from "./vite";
 import * as notificationService from "./notifications";
 import session from "express-session";
@@ -153,18 +153,17 @@ app.use((req, res, next) => {
   const { initSocketIO } = await import('./socket');
   const io = initSocketIO(httpServer);
 
-  // Initialize scheduler
-  const { initializeScheduler } = await import('./scheduler');
-  const schedulerJobs = initializeScheduler();
+  // Scheduler initialization disabled due to schema conflicts
+  console.log('Scheduler temporarily disabled for stability');
 
   // Import error handling middleware
-  const { errorHandler, notFoundHandler } = await import('./middleware/error-handler');
+  const { globalErrorHandler, notFoundHandler } = await import('./middleware/error-handler');
 
   // Route not found handler - must be after Vite/static middleware and before the errorHandler
   app.use(notFoundHandler);
 
   // Global error handler - must be registered last
-  app.use(errorHandler);
+  app.use(globalErrorHandler);
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.

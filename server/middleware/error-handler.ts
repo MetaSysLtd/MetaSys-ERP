@@ -99,7 +99,7 @@ export const globalErrorHandler = (
   });
 
   // Send appropriate response based on error type
-  const errorResponse = {
+  const errorResponse: any = {
     status: 'error',
     message: getPublicErrorMessage(error, category),
     category,
@@ -108,7 +108,7 @@ export const globalErrorHandler = (
 
   // Add debug info in development
   if (process.env.NODE_ENV === 'development') {
-    errorResponse['debug'] = {
+    errorResponse.debug = {
       stack: error.stack,
       context: errorContext
     };
@@ -211,12 +211,11 @@ export const withErrorRecovery = (
         console.error(`Error in ${operation}:`, error);
         
         // Log error for monitoring
-        const systemError: SystemError = {
-          ...error,
+        const systemError: SystemError = Object.assign(new Error(), error, {
           category: ErrorCategory.BUSINESS_LOGIC,
           severity: ErrorSeverity.MEDIUM,
           context: { operation, args: args.slice(0, 2) } // Log first 2 args only
-        };
+        });
 
         // Store error without blocking operation
         storeError(systemError, { operation }, ErrorCategory.BUSINESS_LOGIC, ErrorSeverity.MEDIUM)
