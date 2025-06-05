@@ -43,7 +43,17 @@ export function useDashboardData() {
     refetchInterval: false,
   });
 
-  // Simple loading state based on critical queries
+  // Get commission data - consolidated to prevent duplicate queries
+  const commissionQuery = useQuery({
+    queryKey: ['/api/commissions/dashboard'],
+    staleTime: 300000, // Cache for 5 minutes
+    gcTime: 600000, // 10 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
+  });
+
+  // Simple loading state based on critical queries only
   const isLoading = userProfileQuery.isLoading || kpiMetricsQuery.isLoading;
   const hasTimedOut = userProfileQuery.isError && kpiMetricsQuery.isError;
   
@@ -54,15 +64,18 @@ export function useDashboardData() {
     kpiData: kpiMetricsQuery.data,
     revenueData: revenueQuery.data,
     activitiesData: activitiesQuery.data,
+    commissionData: commissionQuery.data,
     userProfileLoading: userProfileQuery.isLoading,
     kpiMetricsLoading: kpiMetricsQuery.isLoading,
     revenueLoading: revenueQuery.isLoading,
     activitiesLoading: activitiesQuery.isLoading,
+    commissionLoading: commissionQuery.isLoading,
     refetchAll: () => {
       userProfileQuery.refetch();
       kpiMetricsQuery.refetch();
       revenueQuery.refetch();
       activitiesQuery.refetch();
+      commissionQuery.refetch();
     }
   };
 }

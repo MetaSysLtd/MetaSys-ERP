@@ -44,52 +44,22 @@ export default function Dashboard() {
   const [errorMsg, setErrorMsg] = useState("");
   const [uiReady, setUiReady] = useState(false);
   
-  // Use our new parallel data loading hook for improved performance
+  // Use consolidated dashboard data hook with proper loading states
   const {
-    isLoading: criticalDataLoading,
-    hasTimedOut,
-    userData,
+    isLoading: dashboardLoading,
     kpiData,
     revenueData,
     activitiesData,
-    refetchAll
+    commissionData
   } = useDashboardData();
 
-  // Set a quick timeout to ensure the UI frame appears instantly
-  // even before data is loaded (perceived performance boost)
+  // Set UI ready state immediately - no delay needed
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setUiReady(true);
-    }, 100);
-    
-    return () => clearTimeout(timer);
+    setUiReady(true);
   }, []);
 
-  // Default data to use as fallback when the API call fails
-  const fallbackData = {
-    counts: {
-      leads: 0,
-      clients: 0,
-      loads: 0,
-      invoices: 0
-    },
-    recent: {
-      leads: [],
-      loads: [],
-      invoices: []
-    },
-    activities: [],
-    revenueData: {
-      total: 0,
-      change: 0,
-      data: []
-    }
-  };
-
-  // Removed redundant dashboardQuery - using useDashboardData() only to prevent infinite loops
-  
-  // Handle the skeleton state display for the first render
-  if (!uiReady || criticalDataLoading) {
+  // Show loading only on initial load, not on subsequent updates
+  if (!uiReady || (dashboardLoading && !kpiData)) {
     return (
       <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
         <DashboardSkeleton />
