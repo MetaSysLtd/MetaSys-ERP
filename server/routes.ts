@@ -2184,9 +2184,7 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
   const leadRemarkRouter = express.Router();
   app.use("/lead-remarks", leadRemarkRouter);
   
-  // Team management routes
-  const teamRouter = express.Router();
-  app.use("/api/teams", teamRouter);
+  // Team management routes (using existing teamRouter from line 7104)
   
   // Get all teams
   teamRouter.get("/", createAuthMiddleware(1), async (req, res, next) => {
@@ -4968,11 +4966,118 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
     }
   });
 
-  // Import Admin router
-  import adminRouter from './routes/admin';
-  
-  // Register the Admin router
-  app.use('/api/admin', adminRouter);
+  // Admin profile management routes
+  app.get("/api/admin/profile", createAuthMiddleware(5), async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.user!.id);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // Remove sensitive info before sending response
+      const { password, ...userProfile } = user;
+      res.json(userProfile);
+    } catch (error: any) {
+      console.error('Error fetching admin profile:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch profile',
+        message: error.message
+      });
+    }
+  });
+
+  app.patch("/api/admin/profile", createAuthMiddleware(5), async (req, res, next) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // Check if user is system admin
+      const isSystemAdmin = user.isSystemAdmin === true || (req.userRole?.level && req.userRole.level >= 5);
+      
+      if (!isSystemAdmin) {
+        return res.status(403).json({ 
+          error: 'System administrator privileges required' 
+        });
+      }
+      
+      // Update the user profile
+      const updatedUser = await storage.updateUser(userId, req.body);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'Failed to update profile' });
+      }
+      
+      // Remove password from response
+      const { password, ...userProfile } = updatedUser;
+      res.json({
+        success: true,
+        message: 'Profile updated successfully',
+        user: userProfile
+      });
+    } catch (error: any) {
+      console.error('Error updating admin profile:', error);
+      res.status(500).json({
+        error: 'Failed to update profile',
+        message: error.message
+      });
+    }
+  });
+
+  app.patch("/api/admin/password", createAuthMiddleware(5), async (req, res, next) => {
+    try {
+      const userId = req.user!.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // Check if user is system admin
+      const isSystemAdmin = user.isSystemAdmin === true || (req.userRole?.level && req.userRole.level >= 5);
+      
+      if (!isSystemAdmin) {
+        return res.status(403).json({ 
+          error: 'System administrator privileges required' 
+        });
+      }
+      
+      const { newPassword, currentPassword } = req.body;
+      
+      if (!newPassword || newPassword.length < 6) {
+        return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+      }
+      
+      // For system admins, current password is optional
+      if (currentPassword && user.password !== currentPassword) {
+        return res.status(401).json({ 
+          error: 'Current password is incorrect' 
+        });
+      }
+      
+      // Update password
+      const updatedUser = await storage.updateUser(userId, { password: newPassword });
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'Failed to update password' });
+      }
+      
+      res.json({
+        success: true,
+        message: 'Password updated successfully'
+      });
+    } catch (error: any) {
+      console.error('Error changing admin password:', error);
+      res.status(500).json({
+        error: 'Failed to change password',
+        message: error.message
+      });
+    }
+  });
   
   // Legacy Admin route - preserved for backward compatibility
   app.get("/api/admin-legacy", createAuthMiddleware(4), async (req, res, next) => {

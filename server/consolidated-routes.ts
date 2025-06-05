@@ -23,6 +23,7 @@ import { getIo, notifyDataChange } from "./socket";
 import errorLoggingRoutes from "./routes/error-logging";
 import statusRoutes from "./routes/status";
 import userProfileRoutes from "./routes/user-profile";
+import adminProfileRoutes from "./routes/admin-profile";
 import { registerModuleRoutes } from "./routes/index";
 import { setupLeadRoutes } from "./lead-routes";
 
@@ -707,6 +708,12 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
   
   // Register status routes
   apiRouter.use('/status', statusRoutes);
+  
+  // Register user profile routes
+  apiRouter.use('/user-profile', userProfileRoutes);
+  
+  // Register admin profile routes
+  apiRouter.use('/admin', adminProfileRoutes);
   
   // Register CRM module routes with dynamic imports to avoid circular dependencies
   import('./routes/leads').then(module => {
