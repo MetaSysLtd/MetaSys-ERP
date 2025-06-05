@@ -41,6 +41,10 @@ interface SocketContextType {
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
+// Singleton socket instance to prevent multiple connections
+let socketInstance: Socket | null = null;
+let currentUserId: number | null = null;
+
 export function SocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState<boolean>(false);
@@ -50,23 +54,47 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user) {
-      // Don't connect if not authenticated
+      // Clean up socket if user logs out
+      if (socketInstance) {
+        console.log('User logged out, cleaning up socket connection');
+        socketInstance.disconnect();
+        socketInstance = null;
+        currentUserId = null;
+        setSocket(null);
+        setConnected(false);
+      }
       return;
+    }
+
+    // Reuse existing socket if same user
+    if (socketInstance && currentUserId === user.id && socketInstance.connected) {
+      console.log('Socket already initialized, reusing existing connection');
+      setSocket(socketInstance);
+      setConnected(true);
+      return;
+    }
+
+    // Clean up previous socket if different user
+    if (socketInstance && currentUserId !== user.id) {
+      console.log('Different user, cleaning up previous socket');
+      socketInstance.disconnect();
+      socketInstance = null;
     }
     
     // Determine WebSocket URL based on current environment
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     
-    console.log('Connecting to socket at:', wsUrl);
+    console.log('Creating new socket connection to:', wsUrl);
+    currentUserId = user.id;
     
     // Create socket connection with proper config and robust error handling
-    const socketInstance = io(wsUrl, {
+    socketInstance = io(wsUrl, {
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 10,   // Increased for better reliability
       reconnectionDelay: 2000,    // More time between attempts
       timeout: 30000,             // Increased timeout
-      forceNew: true,             // Force new connection to avoid stale connections
+      forceNew: false,            // Allow reuse of existing connection
       autoConnect: true,          // Ensure auto-connection
       path: '/socket.io',         // Explicitly specify default path
       auth: {
@@ -75,83 +103,99 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       },
     });
     
-    // Set up enhanced event listeners with better error handling
-    socketInstance.on('connect', () => {
-      console.log('Socket connected:', socketInstance.id);
-      setConnected(true);
-    });
-    
-    socketInstance.on('disconnect', (reason) => {
-      console.log('Socket disconnected:', reason);
-      setConnected(false);
-      
-      if (reason === 'io server disconnect') {
-        // Need to manually reconnect
-        setTimeout(() => socketInstance.connect(), 1000);
-      }
-    });
-    
-    socketInstance.on('error', (error) => {
-      console.error('Socket error:', error);
-      setConnected(false);
-      
-      toast({
-        title: "Connection Error",
-        description: "Lost connection to server. Some real-time updates may not appear.",
-        variant: "destructive"
+    // Only add event listeners if they haven't been added before
+    if (!socketInstance.hasListeners('connect')) {
+      socketInstance.on('connect', () => {
+        console.log('Socket connected:', socketInstance?.id);
+        setConnected(true);
       });
-    });
+    }
     
-    socketInstance.on('reconnect_attempt', (attemptNumber) => {
-      console.log(`Socket reconnect attempt ${attemptNumber}`);
-      
-      if (attemptNumber >= 5) {
+    if (!socketInstance.hasListeners('disconnect')) {
+      socketInstance.on('disconnect', (reason) => {
+        console.log('Socket disconnected:', reason);
+        setConnected(false);
+        
+        if (reason === 'io server disconnect') {
+          // Need to manually reconnect
+          setTimeout(() => socketInstance?.connect(), 1000);
+        }
+      });
+    }
+    
+    if (!socketInstance.hasListeners('error')) {
+      socketInstance.on('error', (error) => {
+        console.error('Socket error:', error);
+        setConnected(false);
+        
         toast({
-          title: "Connection Issues",
-          description: "Having trouble connecting for real-time updates.",
-          variant: "destructive",
+          title: "Connection Error",
+          description: "Lost connection to server. Some real-time updates may not appear.",
+          variant: "destructive"
         });
-      }
-    });
-    
-    socketInstance.on('reconnect', () => {
-      console.log('Socket reconnected');
-      setConnected(true);
-      
-      toast({
-        title: "Reconnected",
-        description: "Real-time updates restored.",
-        duration: 3000,
       });
-    });
+    }
+    
+    if (!socketInstance.hasListeners('reconnect_attempt')) {
+      socketInstance.on('reconnect_attempt', (attemptNumber) => {
+        console.log(`Socket reconnect attempt ${attemptNumber}`);
+        
+        if (attemptNumber >= 5) {
+          toast({
+            title: "Connection Issues",
+            description: "Having trouble connecting for real-time updates.",
+            variant: "destructive",
+          });
+        }
+      });
+    }
+    
+    if (!socketInstance.hasListeners('reconnect')) {
+      socketInstance.on('reconnect', () => {
+        console.log('Socket reconnected');
+        setConnected(true);
+        
+        toast({
+          title: "Reconnected",
+          description: "Real-time updates restored.",
+          duration: 3000,
+        });
+      });
+    }
     
     // Global event listener
-    socketInstance.on(SocketEvents.GLOBAL_EVENT, (data) => {
-      console.log('Global event received:', data);
-      setLastEvent({ event: SocketEvents.GLOBAL_EVENT, data });
-    });
+    if (!socketInstance.hasListeners(SocketEvents.GLOBAL_EVENT)) {
+      socketInstance.on(SocketEvents.GLOBAL_EVENT, (data) => {
+        console.log('Global event received:', data);
+        setLastEvent({ event: SocketEvents.GLOBAL_EVENT, data });
+      });
+    }
     
     // System alert listener
-    socketInstance.on(SocketEvents.SYSTEM_ALERT, (data) => {
-      console.log('System alert received:', data);
-      setLastEvent({ event: SocketEvents.SYSTEM_ALERT, data });
-      
-      toast({
-        title: data.title || "System Alert",
-        description: data.message,
-        variant: "destructive",
-        duration: 10000,
+    if (!socketInstance.hasListeners(SocketEvents.SYSTEM_ALERT)) {
+      socketInstance.on(SocketEvents.SYSTEM_ALERT, (data) => {
+        console.log('System alert received:', data);
+        setLastEvent({ event: SocketEvents.SYSTEM_ALERT, data });
+        
+        toast({
+          title: data.title || "System Alert",
+          description: data.message,
+          variant: "destructive",
+          duration: 10000,
+        });
       });
-    });
+    }
     
     // Save socket instance in state
     setSocket(socketInstance);
     
-    // Clean up on unmount
+    // Clean up on unmount - don't disconnect the singleton socket
     return () => {
-      socketInstance.disconnect();
-      setSocket(null);
-      setConnected(false);
+      // Only cleanup local state, keep socket alive for reuse
+      if (currentUserId !== user.id) {
+        setSocket(null);
+        setConnected(false);
+      }
     };
   }, [user, toast]);
 

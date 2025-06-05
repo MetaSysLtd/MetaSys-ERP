@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { useDashboardData } from "@/hooks/use-dashboard-data";
 import {
   BarChart,
   Bar,
@@ -40,17 +40,12 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
   // Determine target user ID (admin can view other users, regular users see only their own)
   const targetUserId = isAdmin && userId ? userId : user?.id;
 
-  // Get monthly commission data with aggressive caching to prevent loops
-  const { data: monthlyData, isLoading: isMonthlyLoading } = useQuery({
-    queryKey: ['/api/commissions/monthly/user', targetUserId, month],
-    staleTime: 300000, // 5 minutes cache
-    gcTime: 600000, // 10 minutes
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchInterval: false,
-    enabled: !!targetUserId && !!month,
-    queryFn: async () => {
-      if (!targetUserId) return null;
+  // Use consolidated dashboard data instead of independent queries
+  const { commissionData, isLoading: isDashboardLoading } = useDashboardData();
+  
+  // Extract monthly data from dashboard data
+  const monthlyData = commissionData?.monthlyData;
+  const isMonthlyLoading = isDashboardLoading;
       
       const response = await fetch(`/api/commissions/monthly/user/${targetUserId}/${month}`);
       if (!response.ok) {
