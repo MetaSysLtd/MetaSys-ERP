@@ -131,6 +131,10 @@ app.use((req, res, next) => {
     next();
   });
 
+  // Register minimal routes on the apiRouter
+  const { registerRoutes } = await import('./routes-minimal');
+  await registerRoutes(apiRouter);
+  
   // Mount the API router at /api
   app.use('/api', apiRouter);
 
@@ -143,9 +147,7 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Now register API routes using the app directly
-  // The minimal routes setup expects the Express app
-  await registerRoutes(app);
+  // API routes are already registered via the apiRouter above
 
   // Initialize socket.io server using the correct HTTP server
   const { initSocketIO } = await import('./socket');

@@ -32,7 +32,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Authentication routes
-  app.post("/api/login", async (req, res) => {
+  app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
       
@@ -61,13 +61,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/logout", (req, res) => {
+  app.post("/api/auth/logout", (req, res) => {
     req.session.destroy((err) => {
       if (err) {
         return res.status(500).json({ message: "Could not logout" });
       }
       res.json({ message: "Logged out successfully" });
     });
+  });
+
+  app.get("/api/auth/me", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ 
+        status: "error", 
+        message: "Unauthorized: Please log in to access this resource",
+        authenticated: false 
+      });
+    }
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      return res.status(401).json({ 
+        status: "error", 
+        message: "User not found",
+        authenticated: false 
+      });
+    }
+    
+    res.json({
+      status: "success",
+      authenticated: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      }
+    });
+  });
+
+  app.get("/api/auth/user-organizations", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ organizations: [] });
+    }
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user || !user.orgId) {
+      return res.json({ organizations: [] });
+    }
+    
+    const org = await storage.getOrganization(user.orgId);
+    res.json({ 
+      organizations: org ? [{ 
+        id: org.id, 
+        name: org.name,
+        current: true 
+      }] : [] 
+    });
+  });
+
+  app.get("/api/organization/current", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user || !user.orgId) {
+      return res.status(404).json({ message: "No organization found" });
+    }
+    
+    const org = await storage.getOrganization(user.orgId);
+    res.json(org || { message: "Organization not found" });
+  });
+
+  app.get("/api/organizations/current", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const user = await storage.getUser(req.session.userId);
+    if (!user || !user.orgId) {
+      return res.status(404).json({ message: "No organization found" });
+    }
+    
+    const org = await storage.getOrganization(user.orgId);
+    res.json(org || { message: "Organization not found" });
   });
 
   app.get("/api/user", requireAuth(1), async (req, res) => {
