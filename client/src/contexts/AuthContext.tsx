@@ -216,7 +216,8 @@ function AuthProvider({ children }: { children: ReactNode }) {
       // Set authentication state directly from login response
       setIsAuthenticated(true);
       setUser(data);
-      setRole(null); // Will be fetched later if needed
+      // Set default role to allow sidebar to render immediately
+      setRole({ name: 'User', level: 1 });
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message || "Failed to login. Please check your credentials.");

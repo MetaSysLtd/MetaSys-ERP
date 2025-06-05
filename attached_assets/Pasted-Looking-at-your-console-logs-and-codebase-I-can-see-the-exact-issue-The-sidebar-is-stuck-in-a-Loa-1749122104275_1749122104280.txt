@@ -1,0 +1,54 @@
+Looking at your console logs and codebase, I can see the exact issue. The sidebar is stuck in a "Loading user data..." loop because of a critical dependency problem in the Sidebar.tsx.
+
+Root Cause Analysis:
+Authentication is working - The logs show successful login (user ID 1)
+UI Preferences API is working - The logs show successful /api/ui-prefs/me responses
+The sidebar has an early return that's blocking render - In Sidebar.tsx line 188:
+// Return early if user not authenticated
+if (!user) {
+  return null;
+}
+The role is null but sidebar expects it - The sidebar uses role || { name: 'User', level: 1 } as fallback, but the early return happens before this fallback is applied.
+The Issue:
+The problem is in the AuthContext.tsx. When the user logs in successfully, the role is not being set properly. Looking at the login function:
+
+// Set authentication state directly from login response
+setIsAuthenticated(true);
+setUser(data);
+setRole(null); // ← This is the problem!
+The role is explicitly set to null after login, and the sidebar's early return if (!user || !role) in the old code structure is causing the issue.
+
+The Fix:
+The issue is that the sidebar is checking for both user AND role, but role is being set to null in the auth context. The sidebar should render with just the user being authenticated, and use fallback role data.
+
+Here's what needs to be changed:
+
+In AuthContext.tsx - The login function should fetch the role or set a default role instead of explicitly setting it to null.
+
+In Sidebar.tsx - The early return should only check for user, not role, since role has a fallback.
+
+Specific Changes Needed:
+1. Fix the AuthContext login function:
+In AuthContext.tsx, the login function should either fetch the role or set a default role instead of setRole(null).
+
+2. Fix the Sidebar early return:
+In Sidebar.tsx, change the early return from:
+
+if (!user || !role) {
+  return null;
+}
+To:
+
+if (!user) {
+  return null;
+}
+This way, the sidebar will render once the user is authenticated, and the role fallback mechanism will handle cases where role is null.
+
+Why This Happens:
+User logs in successfully
+user is set with valid data
+role is explicitly set to null
+Sidebar checks if (!user || !role) and finds role is null
+Sidebar returns null instead of rendering
+App shows "Loading user data..." indefinitely
+The solution is to remove the role dependency from the sidebar's render condition and let the existing fallback mechanism handle null roles.
