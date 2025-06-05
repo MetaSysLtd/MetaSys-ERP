@@ -131,9 +131,10 @@ export default function Dashboard() {
                 </SelectContent>
               </Select>
             </MotionWrapper>
-            <MotionWrapper animation="fade-left" delay={0.35}>
+            {/* Temporarily disabled to fix infinite API calls */}
+            {/* <MotionWrapper animation="fade-left" delay={0.35}>
               <DashboardWidgetManager />
-            </MotionWrapper>
+            </MotionWrapper> */}
           </div>
         </div>
   
