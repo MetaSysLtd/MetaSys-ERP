@@ -5,7 +5,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import * as notificationService from "./notifications";
 import session from "express-session";
 import { storage } from "./storage";
-import { sessionHandler } from "./middleware/error-handler";
+import { globalErrorHandler, setupUnhandledRejectionHandler } from "./middleware/error-handler";
 
 // JSON error handler middleware
 function jsonErrorHandler(err: any, req: Request, res: Response, next: NextFunction) {
@@ -50,8 +50,8 @@ app.use(session({
   store: storage.sessionStore   // Use the configured database session store
 }));
 
-// Apply session authentication check middleware
-app.use(sessionHandler);
+// Setup global error handling
+setupUnhandledRejectionHandler();
 
 // Add a special middleware to handle API routes specifically
 // This ensures API routes are handled correctly

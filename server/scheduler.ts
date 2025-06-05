@@ -30,6 +30,71 @@ import {
 import { initializeDispatchReportAutomation } from './dispatch-report-automation';
 import { sendSlackMessage, sendSlackNotification } from './slack';
 
+// Circuit breaker implementation for job error recovery
+class JobCircuitBreaker {
+  private failureCount = 0;
+  private lastFailureTime = 0;
+  private readonly failureThreshold = 3;
+  private readonly recoveryTimeoutMs = 5 * 60 * 1000; // 5 minutes
+
+  async execute<T>(jobName: string, jobFunction: () => Promise<T>): Promise<T | null> {
+    if (this.isCircuitOpen()) {
+      console.warn(`Circuit breaker OPEN for job ${jobName}. Skipping execution.`);
+      return null;
+    }
+
+    try {
+      const result = await jobFunction();
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onFailure(jobName, error);
+      throw error;
+    }
+  }
+
+  private isCircuitOpen(): boolean {
+    if (this.failureCount >= this.failureThreshold) {
+      const timeSinceLastFailure = Date.now() - this.lastFailureTime;
+      return timeSinceLastFailure < this.recoveryTimeoutMs;
+    }
+    return false;
+  }
+
+  private onSuccess(): void {
+    this.failureCount = 0;
+  }
+
+  private onFailure(jobName: string, error: any): void {
+    this.failureCount++;
+    this.lastFailureTime = Date.now();
+    console.error(`Job ${jobName} failed (${this.failureCount}/${this.failureThreshold}):`, error);
+    
+    // Send notification for job failures
+    this.notifyJobFailure(jobName, error);
+  }
+
+  private async notifyJobFailure(jobName: string, error: any): Promise<void> {
+    try {
+      const io = getIo();
+      if (io) {
+        io.emit('system:alert', {
+          type: 'job_failure',
+          jobName,
+          error: error.message,
+          timestamp: new Date(),
+          failureCount: this.failureCount
+        });
+      }
+    } catch (notificationError) {
+      console.error('Failed to send job failure notification:', notificationError);
+    }
+  }
+}
+
+// Global circuit breaker instance
+const jobCircuitBreaker = new JobCircuitBreaker();
+
 /**
  * Creates daily tasks for dispatchers at the start of their shift
  * Default shift start is 09:00 if user.shiftStart is not defined

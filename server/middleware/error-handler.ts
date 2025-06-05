@@ -1,276 +1,312 @@
-import { Request, Response, NextFunction } from 'express';
-import { storage } from '../storage';
-import { logger } from '../logger';
+import { Request, Response, NextFunction } from "express";
+import { getIo } from "../socket";
+import { storage } from "../storage";
 
-// Custom error class for API errors
-export class APIError extends Error {
-  statusCode: number;
-  errorCode?: string;
-  details?: any;
-  isOperational: boolean;
+// Error categorization for proper routing and handling
+export enum ErrorCategory {
+  AUTHENTICATION = 'authentication',
+  AUTHORIZATION = 'authorization',
+  VALIDATION = 'validation',
+  DATABASE = 'database',
+  EXTERNAL_SERVICE = 'external_service',
+  SYSTEM = 'system',
+  BUSINESS_LOGIC = 'business_logic'
+}
 
-  constructor(
-    message: string,
-    statusCode = 500,
-    errorCode?: string,
-    details?: any,
-    isOperational = true
-  ) {
-    super(message);
-    this.statusCode = statusCode;
-    this.errorCode = errorCode;
-    this.details = details;
-    this.isOperational = isOperational;
-    this.name = this.constructor.name;
-    Error.captureStackTrace(this, this.constructor);
+// Error severity levels
+export enum ErrorSeverity {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  CRITICAL = 'critical'
+}
+
+interface SystemError extends Error {
+  statusCode?: number;
+  category?: ErrorCategory;
+  severity?: ErrorSeverity;
+  userId?: number;
+  orgId?: number;
+  context?: Record<string, any>;
+}
+
+class ErrorTracker {
+  private errorCounts = new Map<string, number>();
+  private readonly maxErrorsPerHour = 100;
+  private readonly cleanupIntervalMs = 60 * 60 * 1000; // 1 hour
+
+  constructor() {
+    // Cleanup error counts every hour
+    setInterval(() => this.cleanup(), this.cleanupIntervalMs);
+  }
+
+  private cleanup() {
+    this.errorCounts.clear();
+  }
+
+  shouldThrottle(errorKey: string): boolean {
+    const count = this.errorCounts.get(errorKey) || 0;
+    this.errorCounts.set(errorKey, count + 1);
+    return count >= this.maxErrorsPerHour;
   }
 }
 
-// Different types of errors
-export class ValidationError extends APIError {
-  constructor(message: string, details?: any) {
-    super(message, 400, 'VALIDATION_ERROR', details, true);
-  }
-}
+const errorTracker = new ErrorTracker();
 
-export class AuthenticationError extends APIError {
-  constructor(message = 'Unauthorized: Please log in to access this resource') {
-    super(message, 401, 'AUTHENTICATION_ERROR', undefined, true);
-  }
-}
-
-export class AuthorizationError extends APIError {
-  constructor(message = 'Forbidden: You do not have permission to perform this action') {
-    super(message, 403, 'AUTHORIZATION_ERROR', undefined, true);
-  }
-}
-
-export class NotFoundError extends APIError {
-  constructor(message: string) {
-    super(message, 404, 'NOT_FOUND', undefined, true);
-  }
-}
-
-export class ConflictError extends APIError {
-  constructor(message: string, details?: any) {
-    super(message, 409, 'CONFLICT', details, true);
-  }
-}
-
-export class RateLimitError extends APIError {
-  constructor(message = 'Too many requests, please try again later') {
-    super(message, 429, 'RATE_LIMIT', undefined, true);
-  }
-}
-
-// JSON parsing error handler
-export function jsonErrorHandler(
-  err: Error,
+// Comprehensive error handler with notification integration
+export const globalErrorHandler = (
+  error: SystemError,
   req: Request,
   res: Response,
   next: NextFunction
-) {
-  if (err instanceof SyntaxError && 'body' in err) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Invalid JSON payload',
-      error: 'INVALID_JSON',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-  }
-  next(err);
-}
-
-// Global error handler middleware
-export function errorHandler(
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  // Log the error
-  const timestamp = new Date().toISOString();
-  const requestId = req.headers['x-request-id'] || `req_${Date.now()}`;
+) => {
+  // Set default error properties
+  const statusCode = error.statusCode || 500;
+  const category = error.category || ErrorCategory.SYSTEM;
+  const severity = error.severity || ErrorSeverity.MEDIUM;
   
-  let statusCode = 500;
-  let errorMessage = 'Internal Server Error';
-  let errorCode = 'INTERNAL_SERVER_ERROR';
-  let details: any = undefined;
-  let isOperational = false;
-  
-  // If this is our custom API error, use its values
-  if (err instanceof APIError) {
-    statusCode = err.statusCode;
-    errorMessage = err.message;
-    errorCode = err.errorCode || 'API_ERROR';
-    details = err.details;
-    isOperational = err.isOperational;
-  } else if (err.name === 'ZodError') {
-    // Handle Zod validation errors
-    statusCode = 400;
-    errorMessage = 'Validation error';
-    errorCode = 'VALIDATION_ERROR';
-    details = err;
-    isOperational = true;
-  }
-  
-  // Format the error for the log
-  const errorLog = {
-    timestamp,
-    requestId,
-    url: req.originalUrl,
+  // Create error context
+  const errorContext = {
     method: req.method,
+    url: req.url,
+    userAgent: req.get('User-Agent'),
     ip: req.ip,
-    userId: req.session?.userId || null,
-    statusCode,
-    errorCode,
-    errorMessage,
-    stack: err.stack,
-    details,
-    isOperational
+    userId: req.user?.id,
+    orgId: req.user?.orgId,
+    timestamp: new Date(),
+    ...error.context
   };
-  
-  // Log the error - different log level based on severity
-  if (statusCode >= 500) {
-    logger.error(`[${timestamp}] ${statusCode} ERROR: ${errorMessage} User: ${req.session?.userId || 'unknown'} Path: ${req.method} ${req.originalUrl} `, err);
-    
-    // Store critical errors in database for monitoring
-    try {
-      // Check if the storage interface has the createErrorLog method
-      if (typeof storage.createErrorLog === 'function') {
-        storage.createErrorLog({
-          level: 'error',
-          message: errorMessage,
-          code: errorCode,
-          path: req.originalUrl,
-          method: req.method,
-          userId: req.session?.userId || null,
-          userIp: req.ip,
-          userAgent: req.headers['user-agent'] || null,
-          stackTrace: err.stack || null,
-          timestamp: new Date(),
-        }).catch((logErr: Error) => {
-          // Handle database errors gracefully - likely table doesn't exist yet
-          if (logErr.message.includes('relation') && logErr.message.includes('does not exist')) {
-            logger.warn('Error logs table not available - system is still in setup phase');
-          } else {
-            logger.error('Error saving error log:', logErr);
-          }
-        });
-      } else {
-        // Method doesn't exist in storage interface yet
-        logger.info('Error logging to database not configured yet - skipping');
-      }
-    } catch (logErr) {
-      logger.error('Failed to save error log:', logErr);
+
+  // Generate error key for throttling
+  const errorKey = `${category}-${error.message}-${req.url}`;
+
+  // Log error with context
+  console.error(`[${severity.toUpperCase()}] ${category}: ${error.message}`, {
+    stack: error.stack,
+    context: errorContext
+  });
+
+  // Send real-time notification for high/critical errors
+  if (severity === ErrorSeverity.HIGH || severity === ErrorSeverity.CRITICAL) {
+    if (!errorTracker.shouldThrottle(errorKey)) {
+      notifyError(error, errorContext, category, severity);
     }
-  } else if (statusCode >= 400) {
-    logger.warn(`[${timestamp}] ${statusCode} WARN: ${errorMessage} User: ${req.session?.userId || 'unknown'} Path: ${req.method} ${req.originalUrl}`);
   }
-  
-  // Send appropriate response to client
-  // Don't expose error stack in production
-  const response = {
+
+  // Store error in database for analysis
+  storeError(error, errorContext, category, severity).catch(dbError => {
+    console.error('Failed to store error in database:', dbError);
+  });
+
+  // Send appropriate response based on error type
+  const errorResponse = {
     status: 'error',
-    message: errorMessage,
-    error: errorCode,
-    path: req.originalUrl,
+    message: getPublicErrorMessage(error, category),
+    category,
+    timestamp: errorContext.timestamp
+  };
+
+  // Add debug info in development
+  if (process.env.NODE_ENV === 'development') {
+    errorResponse['debug'] = {
+      stack: error.stack,
+      context: errorContext
+    };
+  }
+
+  res.status(statusCode).json(errorResponse);
+};
+
+// Send real-time error notifications
+async function notifyError(
+  error: SystemError,
+  context: Record<string, any>,
+  category: ErrorCategory,
+  severity: ErrorSeverity
+) {
+  try {
+    const io = getIo();
+    if (io) {
+      // Emit to system administrators
+      io.emit('system:error', {
+        type: 'system_error',
+        category,
+        severity,
+        message: error.message,
+        context,
+        timestamp: new Date()
+      });
+
+      // Emit user-specific notification if user context available
+      if (context.userId) {
+        io.to(`user:${context.userId}`).emit('notification:error', {
+          type: 'error_notification',
+          message: getPublicErrorMessage(error, category),
+          severity,
+          timestamp: new Date()
+        });
+      }
+    }
+  } catch (notificationError) {
+    console.error('Failed to send error notification:', notificationError);
+  }
+}
+
+// Store errors for analysis and monitoring
+async function storeError(
+  error: SystemError,
+  context: Record<string, any>,
+  category: ErrorCategory,
+  severity: ErrorSeverity
+) {
+  try {
+    // Create system notification for tracking
+    await storage.createNotification({
+      userId: context.userId || null,
+      orgId: context.orgId || 1,
+      type: 'system_error',
+      title: `System Error: ${category}`,
+      message: `${error.message} (${severity})`,
+      entityType: 'system',
+      entityId: null,
+      read: false
+    });
+  } catch (dbError) {
+    console.error('Database error while storing system error:', dbError);
+  }
+}
+
+// Get user-friendly error messages
+function getPublicErrorMessage(error: SystemError, category: ErrorCategory): string {
+  switch (category) {
+    case ErrorCategory.AUTHENTICATION:
+      return 'Authentication failed. Please log in again.';
+    case ErrorCategory.AUTHORIZATION:
+      return 'You do not have permission to perform this action.';
+    case ErrorCategory.VALIDATION:
+      return error.message; // Validation errors are usually safe to expose
+    case ErrorCategory.DATABASE:
+      return 'A database error occurred. Please try again later.';
+    case ErrorCategory.EXTERNAL_SERVICE:
+      return 'An external service is temporarily unavailable.';
+    case ErrorCategory.BUSINESS_LOGIC:
+      return error.message; // Business logic errors are usually safe
+    default:
+      return 'An unexpected error occurred. Please try again later.';
+  }
+}
+
+// Error recovery middleware for specific operations
+export const withErrorRecovery = (
+  operation: string,
+  fallbackValue: any = null
+) => {
+  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    const originalMethod = descriptor.value;
+
+    descriptor.value = async function (...args: any[]) {
+      try {
+        return await originalMethod.apply(this, args);
+      } catch (error) {
+        console.error(`Error in ${operation}:`, error);
+        
+        // Log error for monitoring
+        const systemError: SystemError = {
+          ...error,
+          category: ErrorCategory.BUSINESS_LOGIC,
+          severity: ErrorSeverity.MEDIUM,
+          context: { operation, args: args.slice(0, 2) } // Log first 2 args only
+        };
+
+        // Store error without blocking operation
+        storeError(systemError, { operation }, ErrorCategory.BUSINESS_LOGIC, ErrorSeverity.MEDIUM)
+          .catch(dbError => console.error('Failed to log error:', dbError));
+
+        return fallbackValue;
+      }
+    };
+
+    return descriptor;
+  };
+};
+
+// Circuit breaker for external service calls
+export class ServiceCircuitBreaker {
+  private failures = 0;
+  private lastFailureTime = 0;
+  private readonly threshold = 5;
+  private readonly timeout = 60000; // 1 minute
+
+  async execute<T>(serviceCall: () => Promise<T>): Promise<T> {
+    if (this.isOpen()) {
+      throw new Error('Service circuit breaker is open');
+    }
+
+    try {
+      const result = await serviceCall();
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onFailure();
+      throw error;
+    }
+  }
+
+  private isOpen(): boolean {
+    return this.failures >= this.threshold && 
+           (Date.now() - this.lastFailureTime) < this.timeout;
+  }
+
+  private onSuccess() {
+    this.failures = 0;
+  }
+
+  private onFailure() {
+    this.failures++;
+    this.lastFailureTime = Date.now();
+  }
+}
+
+// 404 handler
+export const notFoundHandler = (req: Request, res: Response) => {
+  res.status(404).json({
+    status: 'error',
+    message: 'Resource not found',
+    path: req.path,
     method: req.method,
-    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
-    ...(details && { details }),
-  };
-  
-  res.status(statusCode).json(response);
-}
+    timestamp: new Date()
+  });
+};
 
-// 404 handler - should be added after all other routes
-export function notFoundHandler(req: Request, res: Response, next: NextFunction) {
-  // Skip 404 errors for assets and favicon since they're common and noisy
-  if (req.path.startsWith('/assets/') || req.path === '/favicon.ico') {
-    return res.status(404).end();
-  }
-
-  // For API routes, return proper JSON errors
-  if (req.path.startsWith('/api/')) {
-    // Always return a structured JSON response for API routes
-    return res.status(404).json({
-      status: "error",
-      message: `Route not found: ${req.method} ${req.path}`,
-      path: req.path,
-      method: req.method
-    });
-  }
-
-  // For any other non-API routes, let them be handled by the frontend router (SPA)
-  // This is crucial for client-side routing to work properly
-  // In development, Vite middleware will handle this and serve index.html
-  // In production, the static middleware will serve index.html
-  next();
-}
-
-// Session expired handler
-export function sessionHandler(req: Request, res: Response, next: NextFunction) {
-  if (req.path.startsWith('/api/') && 
-      !req.path.startsWith('/api/auth') && 
-      !req.path.startsWith('/api/status') && 
-      !req.path.startsWith('/api/public') && 
-      !req.session.userId) {
-    // Skip auth check for the /api/errors endpoint to avoid infinite loops
-    if (req.path.startsWith('/api/errors/')) {
-      return next();
-    }
+// Unhandled rejection handler
+export const setupUnhandledRejectionHandler = () => {
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
     
-    // Return a structured JSON response for authentication errors
-    return res.status(401).json({
-      status: "error",
-      message: "Unauthorized: Please log in to access this resource",
-      authenticated: false
-    });
-  }
-  next();
-}
+    const error: SystemError = {
+      name: 'UnhandledRejection',
+      message: reason?.toString() || 'Unknown rejection',
+      category: ErrorCategory.SYSTEM,
+      severity: ErrorSeverity.CRITICAL
+    };
 
-// Role authorization middleware
-export function requireRole(roles: string[]) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    // Skip in development if specified
-    if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
-      return next();
-    }
-    
-    if (!req.userRole || !roles.includes(req.userRole.department)) {
-      return next(new AuthorizationError('You do not have permission to access this resource'));
-    }
-    next();
-  };
-}
+    storeError(error, { source: 'unhandledRejection' }, ErrorCategory.SYSTEM, ErrorSeverity.CRITICAL)
+      .catch(dbError => console.error('Failed to log unhandled rejection:', dbError));
+  });
 
-// Admin authorization middleware
-export function requireAdmin() {
-  return (req: Request, res: Response, next: NextFunction) => {
-    // Skip in development if specified
-    if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
-      return next();
-    }
+  process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
     
-    if (!req.userRole || !req.userRole.isSystemAdmin) {
-      return next(new AuthorizationError('This action requires administrator privileges'));
-    }
-    next();
-  };
-}
+    const systemError: SystemError = {
+      ...error,
+      category: ErrorCategory.SYSTEM,
+      severity: ErrorSeverity.CRITICAL
+    };
 
-// Permission check middleware
-export function requirePermission(permission: string) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    // Skip in development if specified
-    if (process.env.NODE_ENV === 'development' && process.env.SKIP_AUTH === 'true') {
-      return next();
-    }
-    
-    if (!req.userRole || !(req.userRole as any)[permission]) {
-      return next(new AuthorizationError(`You lack the required permission: ${permission}`));
-    }
-    next();
-  };
-}
+    storeError(systemError, { source: 'uncaughtException' }, ErrorCategory.SYSTEM, ErrorSeverity.CRITICAL)
+      .catch(dbError => console.error('Failed to log uncaught exception:', dbError));
+
+    // Graceful shutdown
+    process.exit(1);
+  });
+};
