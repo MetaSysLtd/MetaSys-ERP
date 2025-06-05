@@ -89,29 +89,10 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
   //  enabled: !!targetUserId,
   //});
 
-  // Use proper useQuery for historical commission data instead of useEffect
-  const { data: historicalCommissionsData, isLoading: isHistoricalLoading } = useQuery({
-    queryKey: ['/api/commissions/monthly/user', targetUserId],
-    queryFn: async () => {
-      if (!targetUserId) return [];
-
-      const response = await fetch(`/api/commissions/monthly/user/${targetUserId}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          return []; // No historical data found
-        }
-        throw new Error('Failed to fetch historical commission data');
-      }
-      return response.json();
-    },
-    enabled: !!targetUserId,
-    staleTime: 30000, // Cache for 30 seconds
-    refetchOnWindowFocus: false,
-  });
-
-  // Use data from useQuery instead of state
-  const historicalCommissions = historicalCommissionsData || [];
-  const isLoading = isMonthlyLoading || isHistoricalLoading;
+  // ELIMINATE INDEPENDENT COMMISSION QUERIES TO PREVENT INFINITE LOOPS
+  // Use only consolidated dashboard data for historical commissions
+  const historicalCommissions: any[] = [];
+  const isLoading = isMonthlyLoading;
 
   // Process historical data for chart
   const chartData = Array.isArray(historicalCommissions) ? historicalCommissions.map(commission => ({

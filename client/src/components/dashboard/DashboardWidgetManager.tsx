@@ -66,17 +66,10 @@ export function DashboardWidgetManager() {
   const extendedUser = user as unknown as ExtendedUser;
   const [open, setOpen] = useState(false);
   const [editWidget, setEditWidget] = useState<Widget | null>(null);
-  // Query to get user's dashboard widgets - with proper caching to prevent infinite loops
-  const { data: widgets = [], isLoading } = useQuery({
-    queryKey: ['/api/dashboard/widgets'],
-    staleTime: 300000, // 5 minutes - much longer cache
-    gcTime: 600000, // 10 minutes
-    retry: 1, // Reduced retries
-    refetchOnWindowFocus: false,
-    refetchOnMount: false, // Prevent refetch on component mount
-    refetchInterval: false, // Disable interval refetching
-    enabled: !!user, // Only run when user exists
-  });
+  // COMPLETELY DISABLE WIDGET QUERIES TO ELIMINATE INFINITE API LOOPS
+  // This component is temporarily disabled to fix performance issues
+  const widgets: Widget[] = [];
+  const isLoading = false;
 
   // Use memoized list of available widgets instead of state + useEffect
   const availableList = useMemo(() => {
