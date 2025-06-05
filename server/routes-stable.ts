@@ -109,6 +109,24 @@ export function registerRoutes(app: Express): Server {
     try {
       const userData = insertUserSchema.parse(req.body);
       const user = await storage.createUser(userData);
+      
+      // Emit real-time notification for user creation
+      const io = await import('./socket').then(m => m.getIo());
+      if (io) {
+        io.emit('user:created', {
+          type: 'user_created',
+          user: {
+            id: user.id,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            orgId: user.orgId
+          },
+          timestamp: new Date()
+        });
+      }
+      
       res.status(201).json({ status: "success", user });
     } catch (error) {
       next(error);
@@ -129,6 +147,21 @@ export function registerRoutes(app: Express): Server {
     try {
       const orgData = insertOrganizationSchema.parse(req.body);
       const organization = await storage.createOrganization(orgData);
+      
+      // Emit real-time notification for organization creation
+      const io = await import('./socket').then(m => m.getIo());
+      if (io) {
+        io.emit('organization:created', {
+          type: 'organization_created',
+          organization: {
+            id: organization.id,
+            name: organization.name,
+            address: organization.address
+          },
+          timestamp: new Date()
+        });
+      }
+      
       res.status(201).json({ status: "success", organization });
     } catch (error) {
       next(error);

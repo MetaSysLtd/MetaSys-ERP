@@ -120,6 +120,26 @@ export function useUnifiedDashboard() {
         
         if (response.status === 403) {
           setHasPermissionIssues(true);
+          return null;
+        }
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch unified dashboard data: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        // Validate response structure
+        if (!result || typeof result !== 'object') {
+          throw new Error('Invalid unified dashboard data format');
+        }
+        
+        return result;
+      } catch (error) {
+        console.error('Error fetching unified dashboard data:', error);
+        
+        if (error instanceof Error && error.message.includes('403')) {
+          setHasPermissionIssues(true);
           toast({
             title: "Permission Error",
             description: "You don't have permission to access some dashboard components",

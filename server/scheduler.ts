@@ -100,17 +100,46 @@ const jobCircuitBreaker = new JobCircuitBreaker();
  * Default shift start is 09:00 if user.shiftStart is not defined
  */
 export function scheduleDailyTasksReminder() {
-  // Temporarily disabled due to TypeScript schema conflicts
   // Run at 9:00 AM every day (default shift start)
   return new CronJob('0 9 * * *', async () => {
-    console.log('Daily tasks reminder cron job temporarily disabled - schema update needed');
-    try {
-      // TODO: Fix TypeScript schema conflicts before re-enabling
-      console.log('Skipping dispatcher task creation due to schema issues');
-    } catch (error) {
-      console.error('Error in daily tasks reminder cron job:', error);
-    }
-  }, null, false, 'America/New_York'); // Set to false to disable
+    await jobCircuitBreaker.execute('dailyTasksReminder', async () => {
+      console.log('Running daily tasks reminder job');
+      
+      try {
+        const dispatchers = await storage.getUsersByRole('Dispatcher');
+        const io = getIo();
+        
+        for (const dispatcher of dispatchers) {
+          // Create daily task notification
+          await storage.createNotification({
+            userId: dispatcher.id,
+            orgId: dispatcher.orgId || 1,
+            title: 'Daily Tasks Reminder',
+            message: 'Your daily dispatch tasks are ready for review',
+            type: 'daily_reminder',
+            read: false,
+            entityType: 'task',
+            entityId: null
+          });
+          
+          // Emit real-time notification
+          if (io) {
+            io.to(`user:${dispatcher.id}`).emit(RealTimeEvents.NOTIFICATION_CREATED, {
+              type: 'daily_reminder',
+              title: 'Daily Tasks Reminder',
+              message: 'Your daily dispatch tasks are ready for review',
+              timestamp: new Date()
+            });
+          }
+        }
+        
+        console.log(`Daily task reminders sent to ${dispatchers.length} dispatchers`);
+      } catch (error) {
+        console.error('Error in daily tasks reminder:', error);
+        throw error;
+      }
+    });
+  }, null, true, 'America/New_York');
 }
 
 /**
