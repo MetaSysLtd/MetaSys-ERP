@@ -40,9 +40,15 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
   // Determine target user ID (admin can view other users, regular users see only their own)
   const targetUserId = isAdmin && userId ? userId : user?.id;
 
-  // Get monthly commission data
+  // Get monthly commission data with aggressive caching to prevent loops
   const { data: monthlyData, isLoading: isMonthlyLoading } = useQuery({
     queryKey: ['/api/commissions/monthly/user', targetUserId, month],
+    staleTime: 300000, // 5 minutes cache
+    gcTime: 600000, // 10 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
+    enabled: !!targetUserId && !!month,
     queryFn: async () => {
       if (!targetUserId) return null;
       
@@ -55,14 +61,17 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
       }
       return response.json();
     },
-    enabled: !!targetUserId,
-    staleTime: 30000,
-    refetchOnWindowFocus: false,
   });
 
-  // Get historical commission data (last 6 months)
+  // Get historical commission data (last 6 months) with aggressive caching
   const { data: historicalData, isLoading: isHistoricalLoading } = useQuery({
     queryKey: ['/api/commissions/monthly/user', targetUserId],
+    staleTime: 300000, // 5 minutes cache
+    gcTime: 600000, // 10 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
+    enabled: !!targetUserId,
     queryFn: async () => {
       if (!targetUserId) return [];
 
@@ -75,9 +84,6 @@ export default function CommissionBreakdown({ userId, isAdmin = false }: Commiss
       }
       return response.json();
     },
-    enabled: !!targetUserId,
-    staleTime: 30000,
-    refetchOnWindowFocus: false,
   });
 
   const isLoading = isMonthlyLoading || isHistoricalLoading;

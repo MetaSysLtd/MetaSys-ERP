@@ -13,25 +13,34 @@ export function useDashboardData() {
     refetchOnWindowFocus: false,
   });
   
-  // Get KPI metrics data - high priority
+  // Get KPI metrics data - high priority with aggressive caching
   const kpiMetricsQuery = useQuery({
     queryKey: ['/api/dashboard/metrics'],
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 300000, // Cache for 5 minutes
+    gcTime: 600000, // 10 minutes
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
   });
   
-  // Get revenue data - high priority
+  // Get revenue data - high priority with aggressive caching
   const revenueQuery = useQuery({
     queryKey: ['/api/dashboard/revenue'],
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 300000, // Cache for 5 minutes
+    gcTime: 600000, // 10 minutes
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
   });
   
-  // Get activity feed - medium priority (can be loaded after initial view)
+  // Get activity feed - medium priority with aggressive caching
   const activitiesQuery = useQuery({
     queryKey: ['/api/dashboard/activities'],
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 300000, // Cache for 5 minutes
+    gcTime: 600000, // 10 minutes
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
   });
 
   // Simple loading state based on critical queries

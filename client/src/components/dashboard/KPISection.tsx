@@ -40,14 +40,10 @@ export function KPISection({ metrics: propMetrics }: KPISectionProps) {
   const [filter, setFilter] = useState('all');
   const [showSkeleton, setShowSkeleton] = useState(true);
   
-  // Only fetch metrics if not provided as props
-  const { data: fetchedMetrics, isLoading, error } = useQuery({
-    queryKey: ['/api/dashboard/metrics'],
-    queryFn: () => fetch('/api/dashboard/metrics').then(res => res.json()),
-    enabled: !propMetrics,
-    staleTime: 30000, // 30 seconds
-    refetchOnWindowFocus: false
-  });
+  // NO QUERY - Use only provided metrics to prevent duplicate fetching
+  const fetchedMetrics = undefined;
+  const isLoading = false;
+  const error = null;
 
   // Handle loading state with timeout for perceived performance
   useEffect(() => {
