@@ -1372,8 +1372,19 @@ export async function registerRoutes(apiRouter: Router, server?: Server): Promis
           });
         }
         
-        // Simple password comparison - in a real app, use bcrypt
-        if (user.password !== password) {
+        // Secure password comparison using bcrypt
+        const { comparePassword, isPasswordHashed, migratePasswordIfNeeded } = await import('./utils/password');
+        
+        // Migrate legacy plain text passwords
+        if (!isPasswordHashed(user.password)) {
+          console.log(`Migrating plain text password for user: ${username}`);
+          const hashedPassword = await migratePasswordIfNeeded(user.password);
+          await storage.updateUser(user.id, { password: hashedPassword });
+          user.password = hashedPassword;
+        }
+        
+        const isValidPassword = await comparePassword(password, user.password);
+        if (!isValidPassword) {
           console.log(`Invalid password for user: ${username}`);
           return res.status(401).json({ 
             error: "Authentication failed", 
