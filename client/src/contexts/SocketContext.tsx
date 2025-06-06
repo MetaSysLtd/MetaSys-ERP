@@ -137,15 +137,23 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, [socket]);
 
-  // Emit events
+  // Emit events with connection queueing
   const emit = useCallback((event: string, data: any) => {
-    if (!socket || !connected) {
-      console.warn(`Cannot emit ${event}, socket not connected`);
+    if (!socket) {
+      console.warn(`Cannot emit ${event}, socket not initialized`);
       return;
     }
 
-    socket.emit(event, data);
-    console.log(`Emitted ${event}:`, data);
+    if (connected) {
+      socket.emit(event, data);
+      console.log(`Emitted ${event}:`, data);
+    } else {
+      // Queue the event for when socket connects
+      socket.once('connect', () => {
+        socket.emit(event, data);
+        console.log(`Queued emission ${event}:`, data);
+      });
+    }
   }, [socket, connected]);
 
   return (

@@ -305,6 +305,9 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/notifications", requireAuth, async (req, res, next) => {
     try {
       const user = await storage.getUser(req.session.userId);
+      if (!user?.orgId) {
+        return res.status(401).json({ error: "User organization not found" });
+      }
       const notifications = await storage.getNotifications(user.orgId);
       res.json({ status: "success", notifications });
     } catch (error) {
@@ -317,6 +320,9 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/messages/conversations", requireAuth, async (req, res, next) => {
     try {
       const user = await storage.getUser(req.session.userId);
+      if (!user?.id) {
+        return res.status(401).json({ error: "User not found" });
+      }
       const conversations = await storage.getConversations(user.id);
       res.json({ status: "success", conversations });
     } catch (error) {
