@@ -420,14 +420,24 @@ async function calculateSalesCommission(userId: number, month: string, calculate
     };
   } catch (error) {
     console.error('Error calculating sales commission:', error);
-    // Return a basic structure with error details
+    // Return a comprehensive structure with error details
     return { 
       userId, 
       month, 
       total: 0, 
       deals: [], 
+      items: [],
+      leads: 0,
+      clients: 0,
+      baseCommission: 0,
+      adjustedCommission: 0,
+      repOfMonthBonus: 0,
+      activeTrucksBonus: 0,
+      teamLeadBonus: 0,
+      calculationDetails: {},
+      previousMonth: { total: 0 },
       error: error instanceof Error ? error.message : 'Unknown error',
-      stats: {} 
+      stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 }
     };
   }
 }
@@ -2339,27 +2349,49 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         total: 0,
         leads: 0,
         clients: 0,
-        deals: []
+        deals: [],
+        baseCommission: 0,
+        adjustedCommission: 0,
+        previousMonth: { total: 0 },
+        stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 }
       };
       
       // Check if the user has a sales or dispatch role
       const role = await storage.getUserRole(userId);
       
       if (role?.department === "sales") {
-        // Calculate sales commissions
-        const salesCommissions = await calculateSalesCommission(userId, month, req.user?.id || 0);
-        res.json(salesCommissions);
+        try {
+          // Calculate sales commissions
+          const salesCommissions = await calculateSalesCommission(userId, month, req.user?.id || 0);
+          res.json(salesCommissions);
+        } catch (calcError) {
+          console.error("Sales commission calculation error:", calcError);
+          res.json(defaultCommissions);
+        }
       } else if (role?.department === "dispatch") {
-        // Calculate dispatch commissions
-        const dispatchCommissions = await calculateDispatchCommission(userId, month, req.user?.id || 0);
-        res.json(dispatchCommissions);
+        try {
+          // Calculate dispatch commissions
+          const dispatchCommissions = await calculateDispatchCommission(userId, month, req.user?.id || 0);
+          res.json(dispatchCommissions);
+        } catch (calcError) {
+          console.error("Dispatch commission calculation error:", calcError);
+          res.json(defaultCommissions);
+        }
       } else {
         // Return default structure for users without commissions
         res.json(defaultCommissions);
       }
     } catch (error) {
       console.error("Error fetching user commission for specific month:", error);
-      res.status(500).json({ 
+      // Always return JSON even in error cases to prevent HTML responses
+      res.json({ 
+        userId,
+        month,
+        items: [],
+        total: 0,
+        leads: 0,
+        clients: 0,
+        deals: [],
         status: "error", 
         message: "Failed to fetch commission data",
         error: error instanceof Error ? error.message : "Unknown error"
