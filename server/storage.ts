@@ -560,8 +560,10 @@ export class MemStorage implements IStorage {
   private activities: Map<number, Activity>;
   private organizations: Map<number, Organization>;
   private userOrganizations: Map<number, UserOrganization>;
-  private commissionRules: Map<number, CommissionRule>;
+  private commissionRules: Map<number, CommissionRun>;
   private commissionsMonthly: Map<number, CommissionMonthly>;
+  private accounts: Map<number, Account>;
+  private surveys: Map<number, Survey>;
   private tasks: Map<number, Task>;
   private clockEvents: Map<number, ClockEvent>;
   private uiPreferences: Map<number, UiPreferences>;
@@ -640,7 +642,8 @@ export class MemStorage implements IStorage {
   private formTemplateIdCounter: number;
   private formSubmissionIdCounter: number;
   private leadHandoffIdCounter: number;
-  private commissionRuleIdCounter: number;
+  private accountIdCounter: number;
+  private surveyIdCounter: number;
 
   constructor() {
     // Initialize the memory session store
@@ -695,6 +698,9 @@ export class MemStorage implements IStorage {
     this.formTemplates = new Map();
     this.formSubmissions = new Map();
     this.leadHandoffs = new Map();
+    this.accounts = new Map();
+    this.surveys = new Map();
+    this.notifications = new Map();
     
     this.userIdCounter = 1;
     this.roleIdCounter = 1;
@@ -742,10 +748,9 @@ export class MemStorage implements IStorage {
     this.formTemplateIdCounter = 1;
     this.formSubmissionIdCounter = 1;
     this.leadHandoffIdCounter = 1;
+    this.accountIdCounter = 1;
+    this.surveyIdCounter = 1;
     this.notificationIdCounter = 1;
-    
-    // Initialize notifications Map
-    this.notifications = new Map();
     
     // Initialize with default roles
     this.initializeRoles();
@@ -2809,6 +2814,81 @@ export class MemStorage implements IStorage {
     ];
 
     this.leads = new Map(sampleLeads.map(lead => [lead.id, lead]));
+  }
+
+  // CRM Storage Methods Implementation
+  async getCRMAccounts(orgId: number): Promise<Account[]> {
+    const accounts = Array.from(this.accounts?.values() || []).filter(account => account.orgId === orgId);
+    return accounts;
+  }
+
+  async createCRMAccount(account: InsertAccount): Promise<Account> {
+    const newAccount = {
+      ...account,
+      id: ++this.accountIdCounter,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.accounts?.set(newAccount.id, newAccount);
+    return newAccount;
+  }
+
+  async getCRMClients(orgId: number): Promise<DispatchClient[]> {
+    return Array.from(this.dispatchClients.values()).filter(client => client.orgId === orgId);
+  }
+
+  async getCRMActivities(orgId: number): Promise<Activity[]> {
+    return Array.from(this.activities.values()).filter(activity => activity.orgId === orgId);
+  }
+
+  async createCRMActivity(activity: InsertActivity): Promise<Activity> {
+    const newActivity = {
+      ...activity,
+      id: ++this.activityIdCounter,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.activities.set(newActivity.id, newActivity);
+    return newActivity;
+  }
+
+  async getCRMCommissions(orgId: number): Promise<Commission[]> {
+    return Array.from(this.commissions.values()).filter(commission => {
+      // Filter by organization through user lookup
+      return commission.userId && commission.userId > 0;
+    });
+  }
+
+  async getCRMFormTemplates(orgId: number): Promise<FormTemplate[]> {
+    return Array.from(this.formTemplates.values()).filter(template => template.orgId === orgId);
+  }
+
+  async createCRMFormTemplate(template: InsertFormTemplate): Promise<FormTemplate> {
+    const newTemplate = {
+      ...template,
+      id: ++this.formTemplateIdCounter,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.formTemplates.set(newTemplate.id, newTemplate);
+    return newTemplate;
+  }
+
+  async getCRMQualifications(orgId: number): Promise<any[]> {
+    // Return qualification data from leads or related data
+    return Array.from(this.leads.values())
+      .filter(lead => lead.orgId === orgId)
+      .map(lead => ({
+        id: lead.id,
+        leadId: lead.id,
+        qualificationScore: lead.leadScore || 0,
+        status: lead.status,
+        qualifiedAt: lead.lastContactDate
+      }));
+  }
+
+  async getCRMSurveys(orgId: number): Promise<Survey[]> {
+    return Array.from(this.surveys?.values() || []).filter(survey => survey.orgId === orgId);
   }
 }
 
