@@ -2900,6 +2900,64 @@ export class MemStorage implements IStorage {
   async getCRMSurveys(orgId: number): Promise<Survey[]> {
     return Array.from(this.surveys?.values() || []).filter(survey => survey.orgId === orgId);
   }
+
+  // Missing API endpoint storage methods implementation
+  async getNotifications(orgId: number): Promise<any[]> {
+    return Array.from(this.notifications?.values() || []).filter(notification => notification.orgId === orgId);
+  }
+
+  async getConversations(userId: number): Promise<any[]> {
+    // Return empty array as conversations feature is not fully implemented
+    return [];
+  }
+
+  async getTasks(orgId: number): Promise<any[]> {
+    return Array.from(this.tasks?.values() || []).filter(task => task.orgId === orgId);
+  }
+
+  async getUserPreferences(userId: number): Promise<any> {
+    const preferences = Array.from(this.uiPreferences?.values() || []).find(pref => pref.userId === userId);
+    return preferences || {
+      theme: "light",
+      sidebarCollapsed: false,
+      notifications: true
+    };
+  }
+
+  async getDashboardData(orgId: number): Promise<any> {
+    const leads = Array.from(this.leads?.values() || []).filter(lead => lead.orgId === orgId);
+    const clients = Array.from(this.dispatchClients?.values() || []).filter(client => client.orgId === orgId);
+    const tasks = Array.from(this.tasks?.values() || []).filter(task => task.orgId === orgId);
+    const users = Array.from(this.users?.values() || []).filter(user => user.orgId === orgId);
+
+    return {
+      totalUsers: users.length,
+      activeLeads: leads.filter(lead => lead.status === 'Active').length,
+      completedTasks: tasks.filter(task => task.completed).length,
+      revenue: 0
+    };
+  }
+
+  async getCommissionPolicies(orgId: number): Promise<any[]> {
+    return Array.from(this.commissionPolicies?.values() || []).filter(policy => policy.orgId === orgId);
+  }
+
+  async getClientPortalData(orgId: number): Promise<any> {
+    return {
+      projects: [],
+      documents: [],
+      messages: []
+    };
+  }
+
+  async getGamificationStats(userId: number): Promise<any> {
+    return {
+      points: 0,
+      level: 1,
+      achievements: [],
+      leaderboard: []
+    };
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -8100,6 +8158,98 @@ export class DatabaseStorage implements IStorage {
       console.error('Error getting CRM surveys:', error);
       return [];
     }
+  }
+
+  // Missing API endpoint storage methods implementation for DatabaseStorage
+  async getNotifications(orgId: number): Promise<any[]> {
+    try {
+      return await db.select().from(notifications).where(eq(notifications.orgId, orgId));
+    } catch (error) {
+      console.error('Error getting notifications:', error);
+      return [];
+    }
+  }
+
+  async getConversations(userId: number): Promise<any[]> {
+    // Return empty array as conversations feature is not fully implemented
+    return [];
+  }
+
+  async getTasks(orgId: number): Promise<any[]> {
+    try {
+      return await db.select().from(tasks).where(eq(tasks.orgId, orgId));
+    } catch (error) {
+      console.error('Error getting tasks:', error);
+      return [];
+    }
+  }
+
+  async getUserPreferences(userId: number): Promise<any> {
+    try {
+      const [preferences] = await db.select().from(uiPreferences).where(eq(uiPreferences.userId, userId));
+      return preferences || {
+        theme: "light",
+        sidebarCollapsed: false,
+        notifications: true
+      };
+    } catch (error) {
+      console.error('Error getting user preferences:', error);
+      return {
+        theme: "light",
+        sidebarCollapsed: false,
+        notifications: true
+      };
+    }
+  }
+
+  async getDashboardData(orgId: number): Promise<any> {
+    try {
+      const [leadCount] = await db.select({ count: sql<number>`count(*)` }).from(leads).where(eq(leads.orgId, orgId));
+      const [clientCount] = await db.select({ count: sql<number>`count(*)` }).from(dispatchClients).where(eq(dispatchClients.orgId, orgId));
+      const [taskCount] = await db.select({ count: sql<number>`count(*)` }).from(tasks).where(and(eq(tasks.orgId, orgId), eq(tasks.completed, true)));
+      const [userCount] = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.orgId, orgId));
+
+      return {
+        totalUsers: userCount.count,
+        activeLeads: leadCount.count,
+        completedTasks: taskCount.count,
+        revenue: 0
+      };
+    } catch (error) {
+      console.error('Error getting dashboard data:', error);
+      return {
+        totalUsers: 0,
+        activeLeads: 0,
+        completedTasks: 0,
+        revenue: 0
+      };
+    }
+  }
+
+  async getCommissionPolicies(orgId: number): Promise<any[]> {
+    try {
+      return await db.select().from(commissionPolicies).where(eq(commissionPolicies.orgId, orgId));
+    } catch (error) {
+      console.error('Error getting commission policies:', error);
+      return [];
+    }
+  }
+
+  async getClientPortalData(orgId: number): Promise<any> {
+    return {
+      projects: [],
+      documents: [],
+      messages: []
+    };
+  }
+
+  async getGamificationStats(userId: number): Promise<any> {
+    return {
+      points: 0,
+      level: 1,
+      achievements: [],
+      leaderboard: []
+    };
   }
 }
 
