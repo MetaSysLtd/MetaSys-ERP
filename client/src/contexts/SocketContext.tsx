@@ -25,28 +25,42 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     toast(options);
   }, [toast]);
 
-  // Initialize socket connection
+  // Initialize socket connection with proper cleanup
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      // Clean up existing socket if user logs out
+      if (socket) {
+        console.log('Cleaning up socket due to user logout');
+        socket.disconnect();
+        setSocket(null);
+        setConnected(false);
+      }
+      return;
+    }
 
-    // Get the right protocol based on the current connection
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    // Prevent multiple socket connections
+    if (socket && socket.connected) {
+      console.log('Socket already connected, reusing existing connection');
+      return;
+    }
 
-    const socketInstance = io(wsUrl, {
+    // Connect to Socket.IO server with correct path
+    const socketInstance = io({
+      path: '/ws', // Match server configuration
       transports: ['websocket', 'polling'],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      timeout: 20000,
+      reconnectionAttempts: 3,
+      reconnectionDelay: 2000,
+      timeout: 10000,
+      forceNew: false,
       auth: {
         userId: user.id,
-        orgId: (user as any).orgId || 1, // Safe access with fallback
+        orgId: user.orgId || 1,
       },
     });
 
     socketInstance.on('connect', () => {
+      console.log('Socket connected successfully');
       setConnected(true);
-      console.log('Socket connected:', socketInstance.id);
     });
 
     socketInstance.on('disconnect', (reason) => {

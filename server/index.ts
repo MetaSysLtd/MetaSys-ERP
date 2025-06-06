@@ -112,42 +112,16 @@ app.use((req, res, next) => {
   // Create the HTTP server first - this needs to be used consistently
   const httpServer = createServer(app);
 
-  // Create a dedicated API router
-  const apiRouter = express.Router();
-
-  // Apply specific middleware to API routes only
-  apiRouter.use(express.json());  
-  apiRouter.use(express.urlencoded({ extended: false }));
-
-  // Set proper headers for API responses
-  apiRouter.use((req, res, next) => {
-    // Log original URL for debugging
-    console.log(`API request: ${req.method} ${req.url}`);
-
-    // IMPORTANT: Set proper content type for API responses
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Cache-Control', 'no-store, max-age=0');
-
-    next();
-  });
-
-  // Register minimal routes on the apiRouter
-  const { registerRoutes } = await import('./routes-minimal');
-  await registerRoutes(apiRouter);
+  // CRITICAL FIX: Register API routes FIRST, before Vite middleware
+  // This prevents Vite from intercepting API calls and returning HTML
+  registerRoutes(app);
   
-  // Mount the API router at /api
-  app.use('/api', apiRouter);
-
-  // Setup Vite or static serving BEFORE API routes
-  // This is counter-intuitive but fixes the clash between Vite's "*" handler and our API routes
+  // Setup Vite or static serving AFTER API routes are registered
   if (app.get("env") === "development") {
-    // Make sure we pass the correct httpServer to setupVite
     await setupVite(app, httpServer); 
   } else {
     serveStatic(app);
   }
-
-  // API routes are already registered via the apiRouter above
 
   // Initialize socket.io server using the correct HTTP server
   const { initSocketIO } = await import('./socket');

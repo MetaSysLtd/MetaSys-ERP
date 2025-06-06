@@ -66,7 +66,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       req.session!.userId = user.id;
-      req.session!.orgId = user.orgId;
+      req.session!.orgId = user.orgId ?? undefined;
 
       res.json({ 
         status: "success", 

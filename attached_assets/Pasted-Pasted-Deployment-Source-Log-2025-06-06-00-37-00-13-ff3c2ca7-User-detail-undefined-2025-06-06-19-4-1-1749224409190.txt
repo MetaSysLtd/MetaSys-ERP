@@ -1,0 +1,124 @@
+Pasted-Deployment-Source-Log-2025-06-06-00-37-00-13-ff3c2ca7-User-detail-undefined-2025-06-06-19-4-1749224250570.txt
+Deployment
+Source
+Log
+2025-06-06 00:37:00.13
+ff3c2ca7
+User
+detail: undefined,
+2025-06-06 19:48:34.77
+ddc31226
+System
+error proxying request error=EOF
+2025-06-06 19:48:42.11
+ddc31226
+System
+error proxying request error=EOF
+2025-06-06 19:48:49.13
+ddc31226
+System
+error proxying request error=EOF
+2025-06-06 19:48:56.25
+ddc31226
+System
+error proxying request error=EOF
+2025-06-06 19:49:03.17
+ddc31226
+System
+error proxying request error=EOF
+2025-06-06 19:49:10.16
+ddc31226
+System
+error proxying request error=EOF
+2025-06-06 20:03:24.54
+a8b2bd7a
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-06-06 20:03:24.55
+a8b2bd7a
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-06-06 20:03:24.57
+a8b2bd7a
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-06-06 20:03:24.65
+a8b2bd7a
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-06-06 20:03:24.80
+a8b2bd7a
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-06-06 20:03:24.90
+a8b2bd7a
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-06-06 20:03:25.44
+a8b2bd7a
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-06-06 20:03:25.46
+a8b2bd7a
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-06-06 20:03:26.86
+a8b2bd7a
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-06-06 20:03:28.67
+a8b2bd7a
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-06-06 20:03:28.75
+a8b2bd7a
+System
+error proxying request error=dial tcp 127.0.0.1:5000: connect: connection refused
+2025-06-06 20:05:51.80
+a8b2bd7a
+System
+error proxying request error=EOF
+2025-06-06 20:05:55.89
+a8b2bd7a
+System
+error proxying request error=EOF
+2025-06-06 20:06:02.37
+a8b2bd7a
+System
+error proxying request error=EOF
+2025-06-06 20:06:08.86
+a8b2bd7a
+System
+error proxying request error=EOF
+2025-06-06 20:06:15.41
+a8b2bd7a
+System
+error proxying request error=EOF
+2025-06-06 20:06:21.92
+a8b2bd7a
+System
+error proxying request error=EOF
+2025-06-06 20:06:28.44
+a8b2bd7a
+System
+error proxying request error=EOF
+2025-06-06 20:06:34.98
+a8b2bd7a
+System
+error proxying request error=EOF
+2025-06-06 20:06:41.51
+a8b2bd7a
+System
+error proxying request error=EOF
+2025-06-06 20:06:48.16
+a8b2bd7a
+System
+error proxying request error=EOF
+2025-06-06 20:06:55.15
+a8b2bd7a
+System
+error proxying request error=EOF
+
+Wrap
+
+Colors

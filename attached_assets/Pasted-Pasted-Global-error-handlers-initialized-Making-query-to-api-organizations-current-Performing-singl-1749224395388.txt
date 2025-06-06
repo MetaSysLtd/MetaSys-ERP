@@ -1,0 +1,120 @@
+Pasted--Global-error-handlers-initialized-Making-query-to-api-organizations-current-Performing-single-1749222483074.txt
+ Global error handlers initialized
+ Making query to: /api/organizations/current
+ Performing single authentication check...
+ Global error handlers initialized
+ MetaSys ERP global error handling initialized
+ Connecting to socket at relative path
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for system:message
+ Setting up handler for error
+ Setting up handler for data:updated
+/api/auth/me?_t=1749222344720:1  Failed to load resource: the server responded with a status of 401 ()
+ Authentication check failed with status 401 - not authenticated
+ User not authenticated or missing data, staying on login page
+ Attempting to login with username: admin
+ Login attempt to /api/auth/login, status: 200
+ Login response: Object
+ Socket already initialized, reusing existing connection
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Making API request to: /api/ui-prefs/me with method: GET
+ Creating new socket connection to: wss://erp.metasysltd.com/ws
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Removing handler for lead:created
+ Removing handler for lead:updated
+ Removing handler for lead:deleted
+ Removing handler for lead:status_changed
+ Removing handler for dispatch:created
+ Removing handler for dispatch:updated
+ Removing handler for dispatch:deleted
+ Removing handler for dispatch:status_changed
+ Removing handler for invoice:created
+ Removing handler for invoice:updated
+ Removing handler for invoice:deleted
+ Removing handler for invoice:status_changed
+ Removing handler for notification:created
+ Removing handler for notification:read
+ Removing handler for notification:deleted
+ Removing handler for data:updated
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Setting up handler for data:refresh
+ Setting up handler for error
+ Setting up handler for system:message
+ Making query to: /api/auth/user-organizations
+ Making query to: /api/organizations/current
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-By2DEoQ-.js:61
+ Making query to: /api/auth/me
+ Failed to fetch UI preferences: 
+console.error @ index-By2DEoQ-.js:581
+ [Global Error] Failed to fetch UI preferences:
+ UI preferences failed to load, using defaults: 
+(anonymous) @ index-By2DEoQ-.js:581
+ Making query to: /api/dashboard/consolidated
+ Cannot emit event, socket is not connected: authenticate
+(anonymous) @ index-By2DEoQ-.js:61
+ WebSocket connection to 'wss://erp.metasysltd.com/socket.io/?EIO=4&transport=websocket' failed: 
+createSocket @ index-By2DEoQ-.js:61
+ Making query to: /api/leads
+ Socket already initialized, reusing existing connection
+ Socket not connected, waiting before authentication attempt
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead:deleted
+ Setting up handler for lead:status_changed
+ Setting up handler for dispatch:created
+ Setting up handler for dispatch:updated
+ Setting up handler for dispatch:deleted
+ Setting up handler for dispatch:status_changed
+ Setting up handler for invoice:created
+ Setting up handler for invoice:updated
+ Setting up handler for invoice:deleted
+ Setting up handler for invoice:status_changed
+ Setting up handler for notification:created
+ Setting up handler for notification:read
+ Setting up handler for notification:deleted
+ Setting up handler for data:updated
+ Setting up handler for lead:created
+ Setting up handler for lead:updated
+ Setting up handler for lead-status:updated
+ Removing handler for connect
+ Removing handler for disconnect
+ Removing handler for authenticated
+ Removing handler for data:refresh
+ Removing handler for error
+ Removing handler for system:message
+ Setting up handler for connect
+ Setting up handler for disconnect
+ Setting up handler for authenticated
+ Sett...

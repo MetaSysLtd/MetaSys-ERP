@@ -1,0 +1,93 @@
+Based on my comprehensive analysis of the logs, screenshots, and codebase, I've identified several critical architectural problems that are causing continuous errors and system instability. Let me break down the issues by severity:
+
+CRITICAL ROUTING & API INFRASTRUCTURE ISSUES
+1. HTML Being Returned Instead of JSON (Primary Issue)
+The core problem is that your production deployment is serving HTML responses for API endpoints instead of JSON, causing the "Unexpected token '<', '<!DOCTYPE '... is not valid JSON" errors.
+
+Root Causes:
+
+Your server has conflicting route handlers - you have routes-stable.ts, routes-minimal.ts, and routes.ts all potentially interfering
+The Vite middleware in production is intercepting API routes and serving HTML fallbacks
+Express route precedence is incorrect - static/Vite middleware is registered before API routes
+Critical Fix Needed in server/index.ts:
+
+// WRONG ORDER (current):
+await setupVite(app, httpServer); // This catches everything including /api/*
+app.use('/api', apiRouter); // Never reached
+// CORRECT ORDER should be:
+app.use('/api', apiRouter); // Register API routes FIRST
+await setupVite(app, httpServer); // Then Vite for everything else
+2. Socket.IO Connection Architecture Breakdown
+Your WebSocket connections are failing catastrophically with continuous reconnection loops:
+
+Problems:
+
+Socket handlers are being registered/removed in endless loops (visible in logs)
+Socket authentication failing: "Cannot emit event, socket is not connected: authenticate"
+WebSocket endpoint mismatch: trying wss://erp.metasysltd.com/socket.io/ but server likely expects different path
+Multiple socket initialization attempts causing memory leaks
+Critical Issues in Socket Implementation:
+
+SocketContext.tsx has no cleanup mechanism for event handlers
+Socket connection state not properly managed across component re-renders
+Authentication race condition between socket connection and user auth state
+3. Session & Authentication State Conflicts
+The authentication system has fundamental flaws:
+
+Problems:
+
+Multiple auth context initializations causing state conflicts
+Session validation happening after component mounts, causing auth loops
+Cookie configuration mismatch between development and production
+Auth middleware has circular dependency issues
+SECONDARY ARCHITECTURAL ISSUES
+4. Database Connection Instability
+While the DB health check passes, there are underlying issues:
+
+Connection pooling not properly configured
+Transaction isolation problems
+Storage methods returning inconsistent data structures
+5. Error Handling System Overload
+Your error handling is creating more problems:
+
+Global error boundary catching and re-throwing errors
+Error handlers not properly classifying API vs network vs auth errors
+Toast notifications causing UI lag due to error spam
+6. Real-time Data Synchronization Breakdown
+The real-time features are completely non-functional:
+
+Socket events not being processed
+Data refresh mechanisms failing
+State synchronization between components broken
+PRODUCTION DEPLOYMENT ISSUES
+7. Proxy Configuration Problems
+The deployment logs show:
+
+error proxying request error=EOF - indicates the reverse proxy can't reach your application
+connection refused errors - your app isn't binding to the correct interface
+Server not responding on expected port/interface
+RECOMMENDED SOLUTION STRATEGY
+Phase 1: Fix Core Routing (Immediate)
+Reorder middleware in server/index.ts - API routes must come before Vite middleware
+Consolidate route files - Use only one routes file to eliminate conflicts
+Fix Content-Type headers - Ensure API routes always return application/json
+Phase 2: Stabilize Authentication (Critical)
+Simplify AuthContext - Remove multiple initialization patterns
+Fix session configuration - Ensure cookies work in production environment
+Add proper auth state management - Prevent endless loops
+Phase 3: Rebuild Socket Architecture (Important)
+Implement proper socket cleanup - Add useEffect cleanup in all socket components
+Fix socket endpoint configuration - Match client and server socket paths
+Add connection state management - Prevent multiple simultaneous connections
+Phase 4: Error Handling Redesign (Important)
+Implement proper error classification - Different handling for different error types
+Add circuit breaker pattern - Prevent error cascading
+Fix global error boundaries - Stop error loops
+IMMEDIATE ACTIONS NEEDED
+The application is currently completely non-functional for end users due to the routing issue. Priority order:
+
+Fix API routing order (blocks all functionality)
+Fix deployment proxy configuration (blocks production access)
+Stabilize authentication (blocks user access)
+Fix socket connections (blocks real-time features)
+The good news is that most of these are configuration and architecture issues rather than fundamental logic problems. The codebase structure is sound, but the integration between components is broken.
