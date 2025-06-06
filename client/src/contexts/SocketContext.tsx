@@ -54,7 +54,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       forceNew: false,
       auth: {
         userId: user.id,
-        orgId: user.orgId || 1,
+        orgId: (user as any).orgId || 1,
       },
     });
 
