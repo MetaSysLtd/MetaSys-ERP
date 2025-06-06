@@ -7977,6 +7977,120 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+
+  // CRM Storage Methods Implementation for DatabaseStorage
+  async getCRMAccounts(orgId: number): Promise<Account[]> {
+    try {
+      return await db.select().from(accounts).where(eq(accounts.orgId, orgId));
+    } catch (error) {
+      console.error('Error getting CRM accounts:', error);
+      return [];
+    }
+  }
+
+  async createCRMAccount(account: InsertAccount): Promise<Account> {
+    try {
+      const [newAccount] = await db.insert(accounts).values({
+        ...account,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      return newAccount;
+    } catch (error) {
+      console.error('Error creating CRM account:', error);
+      throw error;
+    }
+  }
+
+  async getCRMClients(orgId: number): Promise<DispatchClient[]> {
+    try {
+      return await db.select().from(dispatchClients).where(eq(dispatchClients.orgId, orgId));
+    } catch (error) {
+      console.error('Error getting CRM clients:', error);
+      return [];
+    }
+  }
+
+  async getCRMActivities(orgId: number): Promise<Activity[]> {
+    try {
+      return await db.select().from(activities).where(eq(activities.orgId, orgId));
+    } catch (error) {
+      console.error('Error getting CRM activities:', error);
+      return [];
+    }
+  }
+
+  async createCRMActivity(activity: InsertActivity): Promise<Activity> {
+    try {
+      const [newActivity] = await db.insert(activities).values({
+        ...activity,
+        timestamp: new Date()
+      }).returning();
+      return newActivity;
+    } catch (error) {
+      console.error('Error creating CRM activity:', error);
+      throw error;
+    }
+  }
+
+  async getCRMCommissions(orgId: number): Promise<Commission[]> {
+    try {
+      return await db.select().from(commissions)
+        .innerJoin(users, eq(commissions.userId, users.id))
+        .where(eq(users.orgId, orgId))
+        .then(results => results.map(result => result.commissions));
+    } catch (error) {
+      console.error('Error getting CRM commissions:', error);
+      return [];
+    }
+  }
+
+  async getCRMFormTemplates(orgId: number): Promise<FormTemplate[]> {
+    try {
+      return await db.select().from(formTemplates).where(eq(formTemplates.orgId, orgId));
+    } catch (error) {
+      console.error('Error getting CRM form templates:', error);
+      return [];
+    }
+  }
+
+  async createCRMFormTemplate(template: InsertFormTemplate): Promise<FormTemplate> {
+    try {
+      const [newTemplate] = await db.insert(formTemplates).values({
+        ...template,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      return newTemplate;
+    } catch (error) {
+      console.error('Error creating CRM form template:', error);
+      throw error;
+    }
+  }
+
+  async getCRMQualifications(orgId: number): Promise<any[]> {
+    try {
+      return await db.select({
+        id: leads.id,
+        leadId: leads.id,
+        qualificationScore: leads.leadScore,
+        status: leads.status,
+        qualifiedAt: leads.lastContactDate
+      }).from(leads).where(eq(leads.orgId, orgId));
+    } catch (error) {
+      console.error('Error getting CRM qualifications:', error);
+      return [];
+    }
+  }
+
+  async getCRMSurveys(orgId: number): Promise<Survey[]> {
+    try {
+      return await db.select().from(surveys).where(eq(surveys.orgId, orgId));
+    } catch (error) {
+      console.error('Error getting CRM surveys:', error);
+      return [];
+    }
+  }
 }
 
 // Use database storage instead of memory storage
