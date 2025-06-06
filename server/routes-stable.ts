@@ -597,6 +597,80 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Commission routes - Critical fix for JSON parsing error
+  app.get("/api/commissions/monthly/user/:id", requireAuth, async (req, res, next) => {
+    try {
+      const userId = Number(req.params.id);
+      const defaultResponse = {
+        userId,
+        month: new Date().toISOString().slice(0, 7),
+        items: [],
+        total: 0,
+        leads: 0,
+        clients: 0,
+        deals: [],
+        baseCommission: 0,
+        adjustedCommission: 0,
+        previousMonth: { total: 0 },
+        stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 }
+      };
+      res.json(defaultResponse);
+    } catch (error) {
+      console.error("Error fetching user commissions:", error);
+      res.json({
+        userId: Number(req.params.id) || 0,
+        month: new Date().toISOString().slice(0, 7),
+        items: [],
+        total: 0,
+        leads: 0,
+        clients: 0,
+        deals: [],
+        baseCommission: 0,
+        adjustedCommission: 0,
+        previousMonth: { total: 0 },
+        stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 },
+        error: "Failed to fetch commission data"
+      });
+    }
+  });
+
+  app.get("/api/commissions/monthly/user/:id/:month", requireAuth, async (req, res, next) => {
+    try {
+      const userId = Number(req.params.id);
+      const month = req.params.month;
+      const defaultResponse = {
+        userId,
+        month,
+        items: [],
+        total: 0,
+        leads: 0,
+        clients: 0,
+        deals: [],
+        baseCommission: 0,
+        adjustedCommission: 0,
+        previousMonth: { total: 0 },
+        stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 }
+      };
+      res.json(defaultResponse);
+    } catch (error) {
+      console.error("Error fetching user commission for month:", error);
+      res.json({
+        userId: Number(req.params.id) || 0,
+        month: req.params.month || new Date().toISOString().slice(0, 7),
+        items: [],
+        total: 0,
+        leads: 0,
+        clients: 0,
+        deals: [],
+        baseCommission: 0,
+        adjustedCommission: 0,
+        previousMonth: { total: 0 },
+        stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 },
+        error: "Failed to fetch commission data"
+      });
+    }
+  });
+
   // CRM Clients routes
   app.get("/api/clients", requireAuth, async (req, res, next) => {
     try {

@@ -627,14 +627,24 @@ async function calculateDispatchCommission(userId: number, month: string, calcul
     };
   } catch (error) {
     console.error('Error calculating dispatch commission:', error);
-    // Return a basic structure with error details
+    // Return a comprehensive structure with error details
     return { 
       userId, 
       month, 
       total: 0, 
       deals: [], 
+      items: [],
+      leads: 0,
+      clients: 0,
+      baseCommission: 0,
+      adjustedCommission: 0,
+      repOfMonthBonus: 0,
+      activeTrucksBonus: 0,
+      teamLeadBonus: 0,
+      calculationDetails: {},
+      previousMonth: { total: 0 },
       error: error instanceof Error ? error.message : 'Unknown error',
-      stats: {} 
+      stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 }
     };
   }
 }
@@ -2384,6 +2394,9 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
     } catch (error) {
       console.error("Error fetching user commission for specific month:", error);
       // Always return JSON even in error cases to prevent HTML responses
+      const userId = Number(req.params.id) || 0;
+      const month = req.params.month || new Date().toISOString().slice(0, 7);
+      
       res.json({ 
         userId,
         month,
@@ -2392,6 +2405,10 @@ export async function registerRoutes(apiRouter: Router, httpServer: Server): Pro
         leads: 0,
         clients: 0,
         deals: [],
+        baseCommission: 0,
+        adjustedCommission: 0,
+        previousMonth: { total: 0 },
+        stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 },
         status: "error", 
         message: "Failed to fetch commission data",
         error: error instanceof Error ? error.message : "Unknown error"
