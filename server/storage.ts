@@ -136,6 +136,18 @@ export interface IStorage {
   getDispatchLoads(): Promise<Load[]>;
   getDispatchClients(): Promise<DispatchClient[]>;
   
+  // Missing CRM storage methods
+  getCRMAccounts(orgId: number): Promise<Account[]>;
+  createCRMAccount(account: InsertAccount): Promise<Account>;
+  getCRMClients(orgId: number): Promise<DispatchClient[]>;
+  getCRMActivities(orgId: number): Promise<Activity[]>;
+  createCRMActivity(activity: InsertActivity): Promise<Activity>;
+  getCRMCommissions(orgId: number): Promise<Commission[]>;
+  getCRMFormTemplates(orgId: number): Promise<FormTemplate[]>;
+  createCRMFormTemplate(template: InsertFormTemplate): Promise<FormTemplate>;
+  getCRMQualifications(orgId: number): Promise<any[]>;
+  getCRMSurveys(orgId: number): Promise<Survey[]>;
+  
   // Survey operations (CRM Deep-Carve)
   getSurvey(id: number): Promise<Survey | undefined>;
   getSurveyByToken(token: string): Promise<Survey | undefined>;

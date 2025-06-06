@@ -463,6 +463,97 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // CRM Module Routes - Missing backend implementations
+  app.get("/api/crm/accounts", requireAuth, async (req, res, next) => {
+    try {
+      const accounts = await storage.getCRMAccounts(req.user!.orgId || 1);
+      res.json({ status: "success", accounts });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/crm/accounts", requireAuth, async (req, res, next) => {
+    try {
+      const account = await storage.createCRMAccount(req.body);
+      res.json({ status: "success", account });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/crm/clients", requireAuth, async (req, res, next) => {
+    try {
+      const clients = await storage.getCRMClients(req.user!.orgId || 1);
+      res.json({ status: "success", clients });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/crm/activities", requireAuth, async (req, res, next) => {
+    try {
+      const activities = await storage.getCRMActivities(req.user!.orgId || 1);
+      res.json({ status: "success", activities });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/crm/activities", requireAuth, async (req, res, next) => {
+    try {
+      const activity = await storage.createCRMActivity(req.body);
+      res.json({ status: "success", activity });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/crm/commissions", requireAuth, async (req, res, next) => {
+    try {
+      const commissions = await storage.getCRMCommissions(req.user!.orgId || 1);
+      res.json({ status: "success", commissions });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/crm/form-templates", requireAuth, async (req, res, next) => {
+    try {
+      const templates = await storage.getCRMFormTemplates(req.user!.orgId || 1);
+      res.json({ status: "success", templates });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/crm/form-templates", requireAuth, async (req, res, next) => {
+    try {
+      const template = await storage.createCRMFormTemplate(req.body);
+      res.json({ status: "success", template });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/crm/qualification", requireAuth, async (req, res, next) => {
+    try {
+      const qualifications = await storage.getCRMQualifications(req.user!.orgId || 1);
+      res.json({ status: "success", qualifications });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/crm/surveys", requireAuth, async (req, res, next) => {
+    try {
+      const surveys = await storage.getCRMSurveys(req.user!.orgId || 1);
+      res.json({ status: "success", surveys });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Health check route
   app.get("/api/health", (req, res) => {
     res.json({ 

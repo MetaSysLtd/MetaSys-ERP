@@ -164,5 +164,35 @@ export const API_ROUTES = {
   USER: {
     PROFILE: '/api/user/profile',
     PREFERENCES: '/api/user/preferences'
+  },
+  ORGANIZATION: {
+    CURRENT: '/api/organizations/current',
+    LIST: '/api/organizations',
+    CREATE: '/api/organizations',
+    UPDATE: '/api/organizations',
+    DELETE: '/api/organizations'
+  },
+  CRM: {
+    LEADS: '/api/leads',
+    ACCOUNTS: '/api/crm/accounts',
+    CLIENTS: '/api/crm/clients',
+    ACTIVITIES: '/api/crm/activities',
+    COMMISSIONS: '/api/crm/commissions',
+    FORM_TEMPLATES: '/api/crm/form-templates',
+    QUALIFICATION: '/api/crm/qualification',
+    SURVEYS: '/api/crm/surveys'
+  },
+  DASHBOARD: {
+    CONSOLIDATED: '/api/dashboard/consolidated'
+  },
+  NOTIFICATIONS: {
+    LIST: '/api/notifications',
+    LEADS: '/api/notifications/leads'
+  },
+  MESSAGES: {
+    CONVERSATIONS: '/api/messages/conversations'
+  },
+  UI_PREFS: {
+    ME: '/api/ui-prefs/me'
   }
 };
