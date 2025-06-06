@@ -319,8 +319,8 @@ export default function CommissionsPage() {
     );
   }
   
-  // Render error state with a clean fallback view
-  if (isError) {
+  // Handle error state only for actual network/server errors
+  if (isError && error instanceof Error && !error.message.includes('404')) {
     return (
       <div className="container mx-auto py-6">
         <Card className="border-red-200 bg-red-50">
@@ -332,7 +332,7 @@ export default function CommissionsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-red-600">
-              {error instanceof Error ? error.message : "Failed to load commission data"}
+              {error.message}
             </p>
           </CardContent>
           <CardFooter>
@@ -349,30 +349,6 @@ export default function CommissionsPage() {
               Retry
             </Button>
           </CardFooter>
-        </Card>
-      </div>
-    );
-  }
-  
-  // If no commission data found, show empty state
-  if (!userCommissions || userCommissions.length === 0) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            CRM Commissions
-          </h1>
-        </div>
-        
-        <Card className="border-blue-200 bg-blue-50 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-blue-700">No Commission Data Available</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-blue-600">
-              There is no commission data available yet. Commissions are calculated based on successfully closed deals and clients onboarded.
-            </p>
-          </CardContent>
         </Card>
       </div>
     );

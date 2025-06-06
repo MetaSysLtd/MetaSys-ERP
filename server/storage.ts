@@ -4182,24 +4182,19 @@ export class DatabaseStorage implements IStorage {
 
   async getSalesRepCommissions(orgId: number, month: string): Promise<any[]> {
     try {
-      // Get all sales reps in the organization
-      const salesReps = await db.select()
-        .from(users)
-        .leftJoin(roles, eq(users.roleId, roles.id))
-        .where(
-          and(
-            eq(users.orgId, orgId),
-            eq(roles.department, 'sales')
-          )
-        );
+      // Get all sales reps from memory
+      const salesReps = this.users.filter(user => {
+        const role = this.roles.find(r => r.id === user.roleId);
+        return user.orgId === orgId && role?.department === 'sales';
+      });
 
       // Calculate commission for each sales rep
       const commissionPromises = salesReps.map(async (rep) => {
-        const commissionData = await this.calculateUserCommissionForMonth(rep.users.id, month);
+        const commissionData = await this.calculateUserCommissionForMonth(rep.id, month);
         return {
-          id: rep.users.id,
-          name: `${rep.users.firstName} ${rep.users.lastName}`,
-          email: rep.users.email,
+          id: rep.id,
+          name: `${rep.firstName} ${rep.lastName}`,
+          email: rep.email,
           total: commissionData.total,
           leads: commissionData.leads,
           deals: commissionData.stats.totalDeals,
