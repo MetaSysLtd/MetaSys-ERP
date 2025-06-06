@@ -597,39 +597,34 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Commission routes - Critical fix for JSON parsing error
+  // Commission routes - Complete commission system with real data flow
   app.get("/api/commissions/monthly/user/:id", requireAuth, async (req, res, next) => {
     try {
       const userId = Number(req.params.id);
-      const defaultResponse = {
-        userId,
-        month: new Date().toISOString().slice(0, 7),
-        items: [],
-        total: 0,
-        leads: 0,
-        clients: 0,
-        deals: [],
-        baseCommission: 0,
-        adjustedCommission: 0,
-        previousMonth: { total: 0 },
-        stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 }
-      };
-      res.json(defaultResponse);
-    } catch (error) {
-      console.error("Error fetching user commissions:", error);
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      
+      // Get commission data from storage with real calculation
+      const commissionData = await storage.calculateUserCommissionForMonth(userId, currentMonth);
+      
       res.json({
-        userId: Number(req.params.id) || 0,
-        month: new Date().toISOString().slice(0, 7),
-        items: [],
-        total: 0,
-        leads: 0,
-        clients: 0,
-        deals: [],
-        baseCommission: 0,
-        adjustedCommission: 0,
-        previousMonth: { total: 0 },
-        stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 },
-        error: "Failed to fetch commission data"
+        userId,
+        month: currentMonth,
+        items: commissionData.items || [],
+        total: commissionData.total || 0,
+        leads: commissionData.leads || 0,
+        clients: commissionData.clients || 0,
+        deals: commissionData.deals || [],
+        baseCommission: commissionData.baseCommission || 0,
+        adjustedCommission: commissionData.adjustedCommission || 0,
+        previousMonth: commissionData.previousMonth || { total: 0 },
+        stats: commissionData.stats || { totalDeals: 0, avgCommission: 0, percentChange: 0 }
+      });
+    } catch (error) {
+      console.error("Error calculating user commissions:", error);
+      res.status(500).json({
+        status: "error",
+        message: "Failed to calculate commission data",
+        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });
@@ -638,35 +633,63 @@ export function registerRoutes(app: Express): Server {
     try {
       const userId = Number(req.params.id);
       const month = req.params.month;
-      const defaultResponse = {
+      
+      // Get commission data from storage with real calculation
+      const commissionData = await storage.calculateUserCommissionForMonth(userId, month);
+      
+      res.json({
         userId,
         month,
-        items: [],
-        total: 0,
-        leads: 0,
-        clients: 0,
-        deals: [],
-        baseCommission: 0,
-        adjustedCommission: 0,
-        previousMonth: { total: 0 },
-        stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 }
-      };
-      res.json(defaultResponse);
+        items: commissionData.items || [],
+        total: commissionData.total || 0,
+        leads: commissionData.leads || 0,
+        clients: commissionData.clients || 0,
+        deals: commissionData.deals || [],
+        baseCommission: commissionData.baseCommission || 0,
+        adjustedCommission: commissionData.adjustedCommission || 0,
+        previousMonth: commissionData.previousMonth || { total: 0 },
+        stats: commissionData.stats || { totalDeals: 0, avgCommission: 0, percentChange: 0 }
+      });
     } catch (error) {
-      console.error("Error fetching user commission for month:", error);
-      res.json({
-        userId: Number(req.params.id) || 0,
-        month: req.params.month || new Date().toISOString().slice(0, 7),
-        items: [],
-        total: 0,
-        leads: 0,
-        clients: 0,
-        deals: [],
-        baseCommission: 0,
-        adjustedCommission: 0,
-        previousMonth: { total: 0 },
-        stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 },
-        error: "Failed to fetch commission data"
+      console.error("Error calculating user commission for month:", error);
+      res.status(500).json({
+        status: "error",
+        message: "Failed to calculate commission data",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Commission metrics endpoint
+  app.get("/api/commissions/metrics/:id", requireAuth, async (req, res, next) => {
+    try {
+      const userId = Number(req.params.id);
+      const metrics = await storage.getUserCommissionMetrics(userId);
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching commission metrics:", error);
+      res.status(500).json({
+        status: "error",
+        message: "Failed to fetch commission metrics",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Sales representatives for team view
+  app.get("/api/commissions/sales-reps", requireAuth, async (req, res, next) => {
+    try {
+      const month = req.query.month as string || new Date().toISOString().slice(0, 7);
+      const orgId = req.user?.orgId || 1;
+      
+      const salesReps = await storage.getSalesRepCommissions(orgId, month);
+      res.json(salesReps);
+    } catch (error) {
+      console.error("Error fetching sales reps commission data:", error);
+      res.status(500).json({
+        status: "error",
+        message: "Failed to fetch sales representatives data",
+        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });

@@ -326,6 +326,11 @@ export interface IStorage {
   // Commission Monthly operations
   getCommissionMonthly(id: number): Promise<CommissionMonthly | undefined>;
   
+  // Commission calculation operations
+  calculateUserCommissionForMonth(userId: number, month: string): Promise<any>;
+  getUserCommissionMetrics(userId: number): Promise<any>;
+  getSalesRepCommissions(orgId: number, month: string): Promise<any[]>;
+
   // Commission analysis operations
   getTopCommissionEarners(options: {
     orgId: number;
@@ -4027,6 +4032,186 @@ export class DatabaseStorage implements IStorage {
           );
       }
     });
+  }
+
+  // Commission calculation methods - In-memory implementation for new users
+  async calculateUserCommissionForMonth(userId: number, month: string): Promise<any> {
+    try {
+      // Get user's leads from memory
+      const userLeads = this.leads.filter(lead => 
+        lead.createdBy === userId && lead.status === 'Active'
+      );
+
+      // Get user's clients from memory
+      const userClients = this.dispatchClients.filter(client => 
+        client.createdBy === userId
+      );
+
+      // Get completed loads for user's clients
+      const clientIds = userClients.map(client => client.id);
+      const loads = this.dispatchLoads.filter(load => 
+        clientIds.includes(load.clientId) && load.status === 'completed'
+      );
+
+      // Calculate commission based on business logic
+      const baseCommission = this.calculateBaseCommission(userLeads.length);
+      const loadCommission = this.calculateLoadCommission(loads);
+      const total = baseCommission + loadCommission;
+
+      // For new accounts, previous month data is empty
+      const prevMonth = this.getPreviousMonth(month);
+      const isCurrentMonth = month === new Date().toISOString().slice(0, 7);
+      
+      return {
+        items: [
+          ...userLeads.map(lead => ({
+            type: 'lead_conversion',
+            description: `Lead converted: ${lead.contactName}`,
+            amount: baseCommission / userLeads.length || 0,
+            date: lead.updatedAt || new Date()
+          })),
+          ...loads.map(load => ({
+            type: 'dispatch_load',
+            description: `Load completed: ${load.loadNumber || 'N/A'}`,
+            amount: (load.totalAmount || 0) * 0.05, // 5% commission on loads
+            date: load.createdAt || new Date()
+          }))
+        ],
+        total,
+        leads: userLeads.length,
+        clients: userClients.length,
+        deals: [...userLeads, ...loads],
+        baseCommission,
+        adjustedCommission: total,
+        previousMonth: { total: 0 }, // New account has no previous data
+        stats: {
+          totalDeals: userLeads.length + loads.length,
+          avgCommission: total / Math.max(userLeads.length + loads.length, 1),
+          percentChange: total > 0 ? 100 : 0 // 100% growth from 0 or 0% if no commission
+        }
+      };
+    } catch (error) {
+      console.error('Error calculating commission:', error);
+      return {
+        items: [],
+        total: 0,
+        leads: 0,
+        clients: 0,
+        deals: [],
+        baseCommission: 0,
+        adjustedCommission: 0,
+        previousMonth: { total: 0 },
+        stats: { totalDeals: 0, avgCommission: 0, percentChange: 0 }
+      };
+    }
+  }
+
+  private calculateBaseCommission(activeLeadsCount: number): number {
+    // Commission tiers based on active leads
+    const tiers = [
+      { min: 0, max: 2, amount: 0 },
+      { min: 2, max: 3, amount: 5000 },
+      { min: 3, max: 4, amount: 10000 },
+      { min: 4, max: 5, amount: 15000 },
+      { min: 5, max: 6, amount: 21500 },
+      { min: 6, max: 7, amount: 28000 },
+      { min: 7, max: 8, amount: 36000 },
+      { min: 8, max: 9, amount: 45000 },
+      { min: 9, max: 10, amount: 55000 },
+      { min: 10, max: Infinity, amount: 70000 }
+    ];
+    
+    for (const tier of tiers) {
+      if (activeLeadsCount >= tier.min && activeLeadsCount < tier.max) {
+        return tier.amount;
+      }
+    }
+    return 0;
+  }
+
+  private calculateLoadCommission(loads: any[]): number {
+    return loads.reduce((total, load) => {
+      const loadValue = load.totalAmount || 0;
+      let percentage = 0;
+      
+      // Commission percentage based on load value tiers
+      if (loadValue >= 651 && loadValue <= 850) percentage = 2.5;
+      else if (loadValue >= 851 && loadValue <= 1500) percentage = 5;
+      else if (loadValue >= 1501 && loadValue <= 2700) percentage = 10;
+      else if (loadValue >= 2701 && loadValue <= 3700) percentage = 12.5;
+      else if (loadValue >= 3701) percentage = 15;
+      
+      return total + (loadValue * percentage / 100);
+    }, 0);
+  }
+
+  private getPreviousMonth(month: string): string {
+    const [year, monthNum] = month.split('-').map(Number);
+    const date = new Date(year, monthNum - 2, 1); // -2 because months are 0-indexed
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  private calculatePercentChange(current: number, previous: number): number {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return Math.round(((current - previous) / previous) * 100);
+  }
+
+  async getUserCommissionMetrics(userId: number): Promise<any> {
+    try {
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const commissionData = await this.calculateUserCommissionForMonth(userId, currentMonth);
+      
+      return {
+        totalEarned: commissionData.total,
+        activeLeads: commissionData.leads,
+        completedDeals: commissionData.stats.totalDeals,
+        averageCommission: commissionData.stats.avgCommission,
+        monthlyGrowth: commissionData.stats.percentChange
+      };
+    } catch (error) {
+      console.error('Error fetching commission metrics:', error);
+      return {
+        totalEarned: 0,
+        activeLeads: 0,
+        completedDeals: 0,
+        averageCommission: 0,
+        monthlyGrowth: 0
+      };
+    }
+  }
+
+  async getSalesRepCommissions(orgId: number, month: string): Promise<any[]> {
+    try {
+      // Get all sales reps in the organization
+      const salesReps = await db.select()
+        .from(users)
+        .leftJoin(roles, eq(users.roleId, roles.id))
+        .where(
+          and(
+            eq(users.orgId, orgId),
+            eq(roles.department, 'sales')
+          )
+        );
+
+      // Calculate commission for each sales rep
+      const commissionPromises = salesReps.map(async (rep) => {
+        const commissionData = await this.calculateUserCommissionForMonth(rep.users.id, month);
+        return {
+          id: rep.users.id,
+          name: `${rep.users.firstName} ${rep.users.lastName}`,
+          email: rep.users.email,
+          total: commissionData.total,
+          leads: commissionData.leads,
+          deals: commissionData.stats.totalDeals,
+          growth: commissionData.stats.percentChange
+        };
+      });
+
+      return await Promise.all(commissionPromises);
+    } catch (error) {
+      console.error('Error fetching sales rep commissions:', error);
+      return [];
+    }
   }
 
   // Commission Rules operations
