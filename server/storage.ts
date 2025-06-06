@@ -540,6 +540,16 @@ export interface IStorage {
   // 
   // All operations have been organized by functional area with standardized 
   // documentation comments for improved code maintainability
+
+  // Missing API endpoint storage methods to fix frontend-backend route mismatches
+  getNotifications(orgId: number): Promise<any[]>;
+  getConversations(userId: number): Promise<any[]>;
+  getTasks(orgId: number): Promise<any[]>;
+  getUserPreferences(userId: number): Promise<any>;
+  getDashboardData(orgId: number): Promise<any>;
+  getCommissionPolicies(orgId: number): Promise<any[]>;
+  getClientPortalData(orgId: number): Promise<any>;
+  getGamificationStats(userId: number): Promise<any>;
 }
 
 export class MemStorage implements IStorage {

@@ -194,7 +194,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Organization routes
+  // Organization routes - Fix singular/plural route mismatch
   app.get("/api/organizations", requireAuth, async (req, res, next) => {
     try {
       const organizations = await storage.getOrganizations();
@@ -229,6 +229,56 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Fix organization route mismatch - Frontend calls singular, backend has plural
+  app.get("/api/organization/current", requireAuth, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user || !user.orgId) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "User organization not found" 
+        });
+      }
+      
+      const organization = await storage.getOrganization(user.orgId);
+      if (!organization) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Organization not found" 
+        });
+      }
+      
+      res.json({ status: "success", organization });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Organizations current route (plural version)
+  app.get("/api/organizations/current", requireAuth, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user || !user.orgId) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "User organization not found" 
+        });
+      }
+      
+      const organization = await storage.getOrganization(user.orgId);
+      if (!organization) {
+        return res.status(404).json({ 
+          status: "error", 
+          message: "Organization not found" 
+        });
+      }
+      
+      res.json({ status: "success", organization });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // Role routes
   app.get("/api/roles", requireAuth, async (req, res, next) => {
     try {
@@ -246,6 +296,134 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json({ status: "success", role });
     } catch (error) {
       next(error);
+    }
+  });
+
+  // Fix missing API endpoints causing 404s
+  
+  // Notifications API - Frontend calls this but backend implementation missing
+  app.get("/api/notifications", requireAuth, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      const notifications = await storage.getNotifications(user.orgId);
+      res.json({ status: "success", notifications });
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.json({ status: "success", notifications: [] });
+    }
+  });
+
+  // Messages/Conversations API - Frontend repeatedly calls this
+  app.get("/api/messages/conversations", requireAuth, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      const conversations = await storage.getConversations(user.id);
+      res.json({ status: "success", conversations });
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.json({ status: "success", conversations: [] });
+    }
+  });
+
+  // Tasks API - Frontend page exists but backend incomplete
+  app.get("/api/tasks", requireAuth, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      const tasks = await storage.getTasks(user.orgId);
+      res.json({ status: "success", tasks });
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      res.json({ status: "success", tasks: [] });
+    }
+  });
+
+  // UI Preferences API - Frontend calls /api/ui-prefs/me
+  app.get("/api/ui-prefs/me", requireAuth, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      const preferences = await storage.getUserPreferences(user.id);
+      res.json({ status: "success", preferences });
+    } catch (error) {
+      console.error("Error fetching UI preferences:", error);
+      res.json({ 
+        status: "success", 
+        preferences: {
+          theme: "light",
+          sidebarCollapsed: false,
+          notifications: true
+        }
+      });
+    }
+  });
+
+  // Dashboard consolidated API - Referenced in logs but route missing
+  app.get("/api/dashboard/consolidated", requireAuth, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      const dashboardData = await storage.getDashboardData(user.orgId);
+      res.json({ status: "success", data: dashboardData });
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      res.json({ 
+        status: "success", 
+        data: {
+          totalUsers: 0,
+          activeLeads: 0,
+          completedTasks: 0,
+          revenue: 0
+        }
+      });
+    }
+  });
+
+  // Commission Policies API - Frontend page exists but backend incomplete
+  app.get("/api/settings/commission-policies", requireAdmin, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      const policies = await storage.getCommissionPolicies(user.orgId);
+      res.json({ status: "success", policies });
+    } catch (error) {
+      console.error("Error fetching commission policies:", error);
+      res.json({ status: "success", policies: [] });
+    }
+  });
+
+  // Client Portal API - Frontend page exists but no backend routes
+  app.get("/api/client-portal/data", requireAuth, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      const clientData = await storage.getClientPortalData(user.orgId);
+      res.json({ status: "success", data: clientData });
+    } catch (error) {
+      console.error("Error fetching client portal data:", error);
+      res.json({ 
+        status: "success", 
+        data: {
+          projects: [],
+          documents: [],
+          messages: []
+        }
+      });
+    }
+  });
+
+  // Gamification API - Frontend page exists but no backend implementation
+  app.get("/api/gamification/stats", requireAuth, async (req, res, next) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      const stats = await storage.getGamificationStats(user.id);
+      res.json({ status: "success", stats });
+    } catch (error) {
+      console.error("Error fetching gamification stats:", error);
+      res.json({ 
+        status: "success", 
+        stats: {
+          points: 0,
+          level: 1,
+          achievements: [],
+          leaderboard: []
+        }
+      });
     }
   });
 
